@@ -1,0 +1,546 @@
+[
+ {
+  "id": "anvil-north-gate",
+  "name": "Anvil, north gate",
+  "kind": "gate",
+  "x": -189827,
+  "y": -27821,
+  "z": 397
+ },
+ {
+  "id": "anvil-west-gate",
+  "name": "Anvil, west gate",
+  "kind": "gate",
+  "x": -194866,
+  "y": -32052,
+  "z": 325
+ },
+ {
+  "id": "anvil-southeast-gate",
+  "name": "Anvil, southeast gate",
+  "kind": "gate",
+  "x": -186111,
+  "y": -34878,
+  "z": 320
+ },
+ {
+  "id": "bravil",
+  "name": "Bravil",
+  "kind": "gate",
+  "x": 66302,
+  "y": -31526,
+  "z": 634
+ },
+ {
+  "id": "bruma-east-gate",
+  "name": "Bruma, east gate",
+  "kind": "gate",
+  "x": 28038,
+  "y": 146712,
+  "z": 25626
+ },
+ {
+  "id": "bruma-north-gate",
+  "name": "Bruma, north gate",
+  "kind": "gate",
+  "x": 23596,
+  "y": 151292,
+  "z": 26664
+ },
+ {
+  "id": "cheydinhal-northeast-gate",
+  "name": "Cheydinhal, northeast gate",
+  "kind": "gate",
+  "x": 123885,
+  "y": 95542,
+  "z": 7180
+ },
+ {
+  "id": "cheydinhal-west-gate",
+  "name": "Cheydinhal, west gate",
+  "kind": "gate",
+  "x": 114442,
+  "y": 91859,
+  "z": 7099
+ },
+ {
+  "id": "chorrol-north-gate",
+  "name": "Chorrol, north gate",
+  "kind": "gate",
+  "x": -66168,
+  "y": 100434,
+  "z": 14533
+ },
+ {
+  "id": "chorrol-southeast-gate",
+  "name": "Chorrol, southeast gate",
+  "kind": "gate",
+  "x": -64633,
+  "y": 91819,
+  "z": 14193
+ },
+ {
+  "id": "imperial-city",
+  "name": "Imperial City",
+  "kind": "gate",
+  "x": 18410,
+  "y": 63409,
+  "z": 3333
+ },
+ {
+  "id": "kvatch",
+  "name": "Kvatch",
+  "kind": "gate",
+  "x": -144874,
+  "y": -15918,
+  "z": 11462
+ },
+ {
+  "id": "leyawiin-northwest-gate",
+  "name": "Leyawiin, northwest gate",
+  "kind": "gate",
+  "x": 84806,
+  "y": -139389,
+  "z": 278
+ },
+ {
+  "id": "leyawiin-east-gate",
+  "name": "Leyawiin, east gate",
+  "kind": "gate",
+  "x": 97661,
+  "y": -140875,
+  "z": 40
+ },
+ {
+  "id": "leyawiin-northeast-gate",
+  "name": "Leyawiin, northeast gate",
+  "kind": "gate",
+  "x": 96689,
+  "y": -138967,
+  "z": 80
+ },
+ {
+  "id": "skingrad-east-gate",
+  "name": "Skingrad, east gate",
+  "kind": "gate",
+  "x": -64150,
+  "y": 4798,
+  "z": 5856
+ },
+ {
+  "id": "skingrad-west-gate",
+  "name": "Skingrad, west gate",
+  "kind": "gate",
+  "x": -72208,
+  "y": 3109,
+  "z": 5842
+ },
+ {
+  "id": "skingrad-northeast-gate",
+  "name": "Skingrad, northeast gate",
+  "kind": "gate",
+  "x": -62880,
+  "y": 7365,
+  "z": 6679
+ },
+ {
+  "id": "aleswell",
+  "name": "Aleswell",
+  "kind": "settlement",
+  "x": 13009,
+  "y": 102949,
+  "z": 9056
+ },
+ {
+  "id": "anvil-lighthouse",
+  "name": "Anvil Lighthouse",
+  "kind": "city",
+  "x": -196733,
+  "y": -37483,
+  "z": 876
+ },
+ {
+  "id": "applewatch",
+  "name": "Applewatch",
+  "kind": "settlement",
+  "x": 6064,
+  "y": 150297,
+  "z": 26881
+ },
+ {
+  "id": "bay-roan-stables",
+  "name": "Bay Roan Stables",
+  "kind": "inn",
+  "x": 65907,
+  "y": -28276,
+  "z": 898
+ },
+ {
+  "id": "black-waterside-stables",
+  "name": "Black Waterside Stables",
+  "kind": "inn",
+  "x": 112352,
+  "y": 92083,
+  "z": 7149
+ },
+ {
+  "id": "blankenmarch",
+  "name": "Blankenmarch",
+  "kind": "settlement",
+  "x": 109164,
+  "y": -120857,
+  "z": 2090
+ },
+ {
+  "id": "bleakers-way",
+  "name": "Bleaker's Way",
+  "kind": "settlement",
+  "x": 28506,
+  "y": 119103,
+  "z": 9771
+ },
+ {
+  "id": "border-watch",
+  "name": "Border Watch",
+  "kind": "settlement",
+  "x": 72100,
+  "y": -112809,
+  "z": 2205
+ },
+ {
+  "id": "brina-cross-inn",
+  "name": "Brina Cross Inn",
+  "kind": "inn",
+  "x": -186045,
+  "y": -10372,
+  "z": 6911
+ },
+ {
+  "id": "brindle-home",
+  "name": "Brindle Home",
+  "kind": "settlement",
+  "x": -55105,
+  "y": 43030,
+  "z": 7870
+ },
+ {
+  "id": "cadlew-chapel",
+  "name": "Cadlew Chapel",
+  "kind": "settlement",
+  "x": 112467,
+  "y": -19491,
+  "z": 869
+ },
+ {
+  "id": "castle-skingrad",
+  "name": "Castle Skingrad",
+  "kind": "city",
+  "x": -62547,
+  "y": -1419,
+  "z": 8791
+ },
+ {
+  "id": "chestnut-handy-stables",
+  "name": "Chestnut Handy Stables",
+  "kind": "inn",
+  "x": 17138,
+  "y": 63460,
+  "z": 2807
+ },
+ {
+  "id": "cloud-ruler-temple",
+  "name": "Cloud Ruler Temple",
+  "kind": "settlement",
+  "x": 13391,
+  "y": 160255,
+  "z": 31610
+ },
+ {
+  "id": "cropsford",
+  "name": "Cropsford",
+  "kind": "settlement",
+  "x": 88670,
+  "y": 20963,
+  "z": 1287
+ },
+ {
+  "id": "drakelowe",
+  "name": "Drakelowe",
+  "kind": "settlement",
+  "x": 126172,
+  "y": 44026,
+  "z": 1776
+ },
+ {
+  "id": "faregyl-inn",
+  "name": "Faregyl Inn",
+  "kind": "inn",
+  "x": 22058,
+  "y": 1388,
+  "z": 1401
+ },
+ {
+  "id": "five-riders-stables",
+  "name": "Five Riders Stables",
+  "kind": "inn",
+  "x": 83033,
+  "y": -138193,
+  "z": 495
+ },
+ {
+  "id": "gottlesfont-priory",
+  "name": "Gottlesfont Priory",
+  "kind": "settlement",
+  "x": -43211,
+  "y": 44170,
+  "z": 8070
+ },
+ {
+  "id": "gottshaw-inn",
+  "name": "Gottshaw Inn",
+  "kind": "inn",
+  "x": -162375,
+  "y": -16046,
+  "z": 6390
+ },
+ {
+  "id": "grateful-pass-stables",
+  "name": "Grateful Pass Stables",
+  "kind": "inn",
+  "x": -74012,
+  "y": 4150,
+  "z": 5701
+ },
+ {
+  "id": "greyland",
+  "name": "Greyland",
+  "kind": "settlement",
+  "x": 79815,
+  "y": -145008,
+  "z": 1277
+ },
+ {
+  "id": "gweden-farm",
+  "name": "Gweden Farm",
+  "kind": "settlement",
+  "x": -169688,
+  "y": -42808,
+  "z": 4438
+ },
+ {
+  "id": "hackdirt",
+  "name": "Hackdirt",
+  "kind": "settlement",
+  "x": -67107,
+  "y": 64130,
+  "z": 9792
+ },
+ {
+  "id": "harluns-watch",
+  "name": "Harlun's Watch",
+  "kind": "settlement",
+  "x": 119838,
+  "y": 80270,
+  "z": 6366
+ },
+ {
+  "id": "harms-folly",
+  "name": "Harm's Folly",
+  "kind": "settlement",
+  "x": 78518,
+  "y": 106584,
+  "z": 12024
+ },
+ {
+  "id": "horse-whisperer-stables",
+  "name": "Horse Whisperer Stables",
+  "kind": "inn",
+  "x": -191210,
+  "y": -25774,
+  "z": 564
+ },
+ {
+  "id": "imperial-bridge-inn",
+  "name": "Imperial Bridge Inn",
+  "kind": "inn",
+  "x": 134790,
+  "y": -22092,
+  "z": 726
+ },
+ {
+  "id": "imperial-city-waterfront",
+  "name": "Imperial City Waterfront",
+  "kind": "city",
+  "x": 17816,
+  "y": 44588,
+  "z": 319
+ },
+ {
+  "id": "inn-of-ill-omen",
+  "name": "Inn of Ill Omen",
+  "kind": "inn",
+  "x": 30400,
+  "y": -2580,
+  "z": 3950
+ },
+ {
+  "id": "knights-of-the-thorn-lodge",
+  "name": "Knights of the Thorn Lodge",
+  "kind": "settlement",
+  "x": 110810,
+  "y": 95985,
+  "z": 8368
+ },
+ {
+  "id": "lord-drads-estate",
+  "name": "Lord Drad's Estate",
+  "kind": "settlement",
+  "x": -194890,
+  "y": 3173,
+  "z": 4688
+ },
+ {
+  "id": "lord-rugdumphs-estate",
+  "name": "Lord Rugdumph's Estate",
+  "kind": "settlement",
+  "x": 121678,
+  "y": 127784,
+  "z": 14436
+ },
+ {
+  "id": "north-country-stables",
+  "name": "North Country Stables",
+  "kind": "inn",
+  "x": -64237,
+  "y": 88546,
+  "z": 14072
+ },
+ {
+  "id": "odiil-farm",
+  "name": "Odiil Farm",
+  "kind": "settlement",
+  "x": -50069,
+  "y": 82399,
+  "z": 10531
+ },
+ {
+  "id": "pells-gate",
+  "name": "Pell's Gate",
+  "kind": "settlement",
+  "x": 21348,
+  "y": 24504,
+  "z": 558
+ },
+ {
+  "id": "roland-jenserics-cabin",
+  "name": "Roland Jenseric's Cabin",
+  "kind": "settlement",
+  "x": 75723,
+  "y": 83177,
+  "z": 5661
+ },
+ {
+  "id": "roxey-inn",
+  "name": "Roxey Inn",
+  "kind": "inn",
+  "x": 48479,
+  "y": 102739,
+  "z": 3036
+ },
+ {
+  "id": "shardrock",
+  "name": "Shardrock",
+  "kind": "settlement",
+  "x": -108307,
+  "y": 9418,
+  "z": 6801
+ },
+ {
+  "id": "shetcombe-farm",
+  "name": "Shetcombe Farm",
+  "kind": "settlement",
+  "x": -130594,
+  "y": -4229,
+  "z": 8426
+ },
+ {
+  "id": "temple-of-the-ancestor-moths",
+  "name": "Temple of the Ancestor Moths",
+  "kind": "settlement",
+  "x": 118870,
+  "y": 146791,
+  "z": 20009
+ },
+ {
+  "id": "the-drunken-dragon-inn",
+  "name": "The Drunken Dragon Inn",
+  "kind": "inn",
+  "x": 127900,
+  "y": -89560,
+  "z": 6228
+ },
+ {
+  "id": "waters-edge",
+  "name": "Water's Edge",
+  "kind": "settlement",
+  "x": 81881,
+  "y": -112732,
+  "z": 48
+ },
+ {
+  "id": "wawnet-inn",
+  "name": "Wawnet Inn",
+  "kind": "inn",
+  "x": -2088,
+  "y": 62990,
+  "z": 1117
+ },
+ {
+  "id": "weatherleah",
+  "name": "Weatherleah",
+  "kind": "settlement",
+  "x": -75742,
+  "y": 53615,
+  "z": 9702
+ },
+ {
+  "id": "weye",
+  "name": "Weye",
+  "kind": "settlement",
+  "x": 1152,
+  "y": 63488,
+  "z": 831
+ },
+ {
+  "id": "weynon-priory",
+  "name": "Weynon Priory",
+  "kind": "settlement",
+  "x": -56998,
+  "y": 85907,
+  "z": 13311
+ },
+ {
+  "id": "white-stallion-lodge",
+  "name": "White Stallion Lodge",
+  "kind": "settlement",
+  "x": 82556,
+  "y": -126520,
+  "z": 227
+ },
+ {
+  "id": "whitmond-farm",
+  "name": "Whitmond Farm",
+  "kind": "settlement",
+  "x": -190992,
+  "y": -23136,
+  "z": 1148
+ },
+ {
+  "id": "wildeye-stables",
+  "name": "Wildeye Stables",
+  "kind": "inn",
+  "x": 30554,
+  "y": 148711,
+  "z": 25788
+ }
+]

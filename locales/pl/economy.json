@@ -1,0 +1,17 @@
+{
+  "economy.carrying": {
+    "one": "Masz przy sobie {count} sztukę złota.",
+    "few": "Masz przy sobie {count} sztuki złota.",
+    "many": "Masz przy sobie {count} sztuk złota.",
+    "other": "Masz przy sobie {count} sztuki złota."
+  },
+  "economy.not_in_world": "Twojej postaci nie ma jeszcze w świecie.",
+  "economy.cmd.gold": "/gold - ile złota masz przy sobie",
+  "economy.delivered": {
+    "one": "Otrzymano {count} sztukę złota",
+    "few": "Otrzymano {count} sztuki złota",
+    "many": "Otrzymano {count} sztuk złota",
+    "other": "Otrzymano {count} sztuki złota"
+  },
+  "economy.option.gold": "Moje złoto"
+}

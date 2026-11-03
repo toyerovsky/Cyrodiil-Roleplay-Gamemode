@@ -1,0 +1,17 @@
+<Project>
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <!-- Needed for IDE0005 (unused usings) to run in the build. No XML doc comments are required. -->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <!-- CS8524: a switch naming every member of an enum still warns about values outside it, which throw. -->
+        <NoWarn>$(NoWarn);CS1591;CS1573;CS1572;CS8524</NoWarn>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    </PropertyGroup>
+
+</Project>

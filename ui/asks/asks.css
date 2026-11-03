@@ -1,0 +1,142 @@
+/* At the top, in the middle, over nothing of the game's own: the compass and the bars are at the bottom, the notices at
+   the top left. Only to be read: the game's Y and N answer. */
+.asks {
+  position: fixed;
+  top: 72px;
+  left: 50%;
+  display: grid;
+  gap: 10px;
+  width: 460px;
+  transform: translateX(-50%);
+}
+
+.ask {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: start;
+  padding: 14px 18px 18px;
+  overflow: hidden;
+  color: var(--night-text);
+  background: var(--night);
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 28px var(--shadow-deep);
+  animation: ask-enter var(--duration-stamp) ease-out;
+}
+
+.ask--answerable {
+  border-color: var(--gold-bright);
+  box-shadow: 0 10px 28px var(--shadow-deep), 0 0 18px var(--glow);
+}
+
+.ask__icon {
+  width: 34px;
+  height: 34px;
+  margin-top: 2px;
+  color: var(--gold-bright);
+}
+
+.ask:not(.ask--incoming) .ask__icon {
+  color: var(--night-muted);
+}
+
+.ask__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ask__title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-family: var(--font-title);
+  color: var(--gold-light);
+}
+
+.ask__text {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ask:not(.ask--incoming) .ask__text {
+  font-size: 16px;
+  color: var(--night-muted);
+}
+
+.ask__keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 8px;
+}
+
+.ask__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ask__keycap {
+  display: inline-grid;
+  place-items: center;
+  min-width: 32px;
+  height: 30px;
+  padding: 0 8px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--parchment-light), var(--parchment-deep));
+  border: 1px solid var(--gold-dark);
+  border-bottom-width: 3px;
+  border-radius: var(--radius-small);
+}
+
+.ask__next {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--night-muted);
+}
+
+.ask__seconds {
+  margin: 2px 0 0;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--night-muted);
+}
+
+.ask__time {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: rgba(201, 162, 89, 0.15);
+}
+
+.ask__time-left {
+  height: 100%;
+  background: var(--gold-bright);
+  transform-origin: left;
+  transition: transform var(--duration-hover) linear;
+}
+
+.ask:not(.ask--incoming) .ask__time-left {
+  background: var(--night-muted);
+}
+
+@keyframes ask-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}

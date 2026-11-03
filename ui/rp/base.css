@@ -1,0 +1,75 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  height: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* A page is the game's screen, not a document: a drag selects nothing but what a player types. Alegreya's own figures
+   sit low and its 0 reads as an o, so figures stand at full height. Inherited by every element, which is why no style
+   uses the font shorthand: it resets the setting (tests/typography.test.js). */
+body {
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.5;
+  font-family: var(--font-body);
+  font-feature-settings: "lnum" 1;
+  color: var(--ink);
+  user-select: none;
+}
+
+input,
+textarea {
+  user-select: text;
+}
+
+::selection {
+  background: var(--gold-light);
+  color: var(--ink);
+}
+
+/* A thin rail with a gold handle, never the browser's grey. A page leaves scrollbar-width and scrollbar-color unset:
+   either one turns this look off in Chromium. */
+::-webkit-scrollbar {
+  width: var(--size-scrollbar);
+  height: var(--size-scrollbar);
+}
+
+::-webkit-scrollbar-track {
+  background: linear-gradient(90deg, transparent calc(50% - 1px), var(--night-line) calc(50% - 1px), var(--night-line) calc(50% + 1px), transparent calc(50% + 1px));
+}
+
+::-webkit-scrollbar-thumb {
+  min-height: 32px;
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold-bright) 50%, var(--gold-dark)) padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+  }
+}

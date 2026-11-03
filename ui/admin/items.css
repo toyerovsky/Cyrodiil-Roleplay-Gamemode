@@ -1,0 +1,74 @@
+/* The items tab: what to look for and for whom on top, the types under it, the items found beside the ones given last. */
+.admin-stock {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+}
+
+.admin-stock__controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 4px 18px;
+  align-items: end;
+}
+
+/* How many on a row of its own, so its quick counts never squeeze the field. */
+.admin-stock__count {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-stock__count .rp-field {
+  grid-template-columns: minmax(0, 1fr);
+  width: 120px;
+}
+
+.admin-stock__count .rp-field__input {
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-stock__count .admin-chips {
+  padding-bottom: 6px;
+}
+
+.admin-select {
+  min-width: 0;
+  height: 44px;
+  cursor: pointer;
+}
+
+.admin-stock__types {
+  margin-top: 14px;
+}
+
+.admin-stock__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 22px;
+  min-height: 0;
+  margin-top: 12px;
+}
+
+.admin-stock__found,
+.admin-stock__recent {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.admin-stock__recent .admin__heading {
+  margin-top: 0;
+}
+
+.admin-stock__item {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 200px) auto;
+}
+
+.admin-stock__item--recent {
+  grid-template-columns: minmax(0, 1fr) auto;
+}

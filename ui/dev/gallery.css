@@ -1,0 +1,68 @@
+html,
+body {
+  overflow: auto;
+}
+
+body {
+  background: #2a2620;
+  color: #eee;
+  font-size: 16px;
+  line-height: 1.6;
+  font-family: system-ui, sans-serif;
+  user-select: text;
+}
+
+.gallery {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 16px;
+}
+
+.gallery a {
+  color: var(--gold-bright);
+}
+
+.gallery__pages nav {
+  display: inline-flex;
+  gap: 12px;
+  margin-left: 16px;
+}
+
+/* The components as the pages show them, not in the gallery's own font. */
+.gallery__parts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  gap: 24px;
+  place-items: start;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.5;
+  font-family: var(--font-body);
+  color: var(--ink);
+}
+
+.gallery__wheel {
+  padding: 24px;
+  border-radius: var(--radius);
+  background: #4a5a46;
+}
+
+.gallery__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.gallery__tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.gallery__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}

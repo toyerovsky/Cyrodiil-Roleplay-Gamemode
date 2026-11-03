@@ -1,0 +1,23 @@
+{
+  "database": {
+    "connectionString": "Host=localhost;Port=5433;Database=cyrodiilrp;Username=cyrodiilrp;Password=cyrodiilrp"
+  },
+
+  // ReadyM account ids (the admin panel's Players view) holding every permission.
+  "owners": [],
+
+  "startingGold": 50,
+
+  // Game units, roughly centimetres.
+  "chat": {
+    "say": 1500,
+    "shout": 4000,
+    "whisper": 300,
+    "emote": 1500
+  },
+
+  // The most gold one trade or /agold moves.
+  "economy": {
+    "maxPayment": 100000
+  }
+}

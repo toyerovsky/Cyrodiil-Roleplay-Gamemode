@@ -1,0 +1,254 @@
+/* Over the whole screen, so no click goes past it to the game. Its rows are as tall as the screen, so the letter's
+   height in percent holds and a long tab scrolls inside it. */
+.menu {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+  height: 100%;
+  padding: 16px;
+  background: radial-gradient(ellipse at center, var(--backdrop-shade) 0%, var(--backdrop-edge) 100%);
+  pointer-events: auto;
+}
+
+/* The crest stands on the letter's top edge, as on the name form. The letter fills the screen, edge to edge on a 16:9
+   one. A wider screen keeps that width, with the scene dimmed at the sides: a line of help across 2400 px of an
+   ultrawide would be read with the head, not the eyes. */
+.menu__document {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  justify-items: center;
+  width: min(1888px, 100%);
+  height: 100%;
+  padding-top: 56px;
+}
+
+.menu__crest {
+  position: absolute;
+  top: 0;
+  z-index: 1;
+  height: 112px;
+  filter: drop-shadow(0 0 16px var(--glow)) drop-shadow(0 8px 10px var(--shadow-deep));
+  pointer-events: none;
+  animation: rp-descend var(--duration-enter) calc(var(--delay-enter) * 2) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.menu__panel.rp-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  padding-top: 70px;
+  padding-bottom: 76px;
+  overflow: hidden;
+  animation: menu-rise var(--duration-enter) var(--delay-enter) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.menu__name.rp-illuminated {
+  display: inline-block;
+  line-height: 56px;
+}
+
+.menu__name .rp-illuminated__initial {
+  height: 56px;
+  margin: 0 2px 0 0;
+}
+
+.menu__body {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: 40px;
+  min-height: 0;
+  margin-top: 22px;
+}
+
+.menu__content {
+  min-height: 0;
+  padding: 4px 16px 12px 4px;
+  font-size: 18px;
+  overflow-y: auto;
+  border-radius: var(--radius-small);
+}
+
+.menu__content:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Two columns of facts where the letter is wide enough, one where it is not. */
+.menu__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(560px, 100%), 1fr));
+  gap: 18px 48px;
+  margin: 0;
+}
+
+.menu__fact {
+  display: grid;
+  grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--ink-line);
+}
+
+.menu__fact dt {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.menu__fact dd {
+  margin: 0;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+
+.menu__heading {
+  margin: 26px 0 10px;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 21px;
+  letter-spacing: 0.05em;
+  color: var(--gold-dark);
+}
+
+.menu__heading::after {
+  content: "";
+  display: block;
+  height: 2px;
+  margin-top: 6px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+.menu__group:first-of-type .menu__heading {
+  margin-top: 14px;
+}
+
+.menu__note {
+  margin: 0;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.menu__sanctions {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu__sanction {
+  display: grid;
+  gap: 2px;
+  padding: 10px 14px;
+  background: var(--problem-wash);
+  border-left: 4px solid var(--problem);
+  border-radius: var(--radius-small);
+}
+
+.menu__sanction-title {
+  font-size: 19px;
+  color: var(--problem);
+}
+
+.menu__sanction-end {
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.menu__languages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.menu__commands {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+/* One column, as the tab scrolls: two would have the reader scroll down the first and back up for the second. */
+.menu__command {
+  display: grid;
+  grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+  gap: 24px;
+  padding: 6px 8px;
+  border-radius: var(--radius-small);
+}
+
+.menu__command:nth-child(odd) {
+  background: var(--ink-wash);
+}
+
+.menu__syntax {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.menu__description {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.menu__keys {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(560px, 100%), 1fr));
+  gap: 14px 48px;
+  margin: 16px 0 0;
+}
+
+.menu__key {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+}
+
+.menu__key dd {
+  margin: 0;
+}
+
+.menu__keycap {
+  display: inline-grid;
+  place-items: center;
+  min-width: 56px;
+  height: 44px;
+  padding: 0 10px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--parchment-light), var(--parchment-deep));
+  border: 1px solid var(--gold-dark);
+  border-bottom-width: 3px;
+  border-radius: var(--radius-small);
+}
+
+.menu__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-top: 14px;
+  padding: 12px 16px 0;
+  border-top: 1px solid var(--ink-line);
+}
+
+.menu__hint {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+@keyframes menu-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+}

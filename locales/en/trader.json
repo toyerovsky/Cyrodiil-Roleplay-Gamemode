@@ -1,0 +1,26 @@
+{
+  "trader.cmd.trader": "/atrader here <shop> | remove | list - stand a trader where you stand, take away the one in front of you, or list them",
+  "trader.unknown_shop": "No shop \"{shop}\". The shops: {shops}.",
+  "trader.not_in_world": "You have to be in the world to stand a trader.",
+  "trader.not_settled": "The server still has you in cell {seen}, but you stand in cell {here}: the game has not caught up after a long jump. Walk a few steps, or rejoin, and try again.",
+  "trader.placed": "A {shop} trader stands here now (#{id}). They appear in a moment.",
+  "trader.place_failed": "The trader could not be saved, so none stands here. Try again in a moment.",
+  "trader.none_in_front": "No trader stands in front of you.",
+  "trader.removed": "Trader #{id} is gone.",
+  "trader.remove_failed": "Trader #{id} could not be taken away and still stands. Try again in a moment.",
+  "trader.list_empty": "No trader stands anywhere.",
+  "trader.list_entry": "#{id} {shop}: {area} {cell} ({x}, {y}, {z})",
+  "trader.label": "Trader",
+  "trader.nothing_to_sell": "This trader has nothing to sell.",
+  "trader.unknown_ware": "This trader does not sell that.",
+  "trader.count": "Buy from 1 to {max} at a time.",
+  "trader.too_poor": "That costs {price} gold and you carry {gold}.",
+  "trader.failed": "The purchase could not be completed. You kept your gold.",
+  "trader.bought": {
+    "one": "Paid {count} gold coin.",
+    "other": "Paid {count} gold coins."
+  },
+  "trader.closed_far": "You walked more than {metres} m away from the trader.",
+  "trader.closed_gone": "The trader is gone.",
+  "trader.closed_not_in_world": "You left the world, so the trader's window closed."
+}

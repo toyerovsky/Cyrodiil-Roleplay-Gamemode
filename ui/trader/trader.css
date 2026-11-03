@@ -1,0 +1,204 @@
+.trader {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 24px;
+  background: radial-gradient(ellipse at center, var(--backdrop-shade) 0%, var(--backdrop-edge) 100%);
+}
+
+.trader__panel.rp-panel {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+  width: min(1000px, 100%);
+  height: min(900px, 100%);
+  overflow: hidden;
+}
+
+.trader__purse {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 6px 0 12px;
+  font-size: 17px;
+  color: var(--ink-soft);
+}
+
+.trader__purse strong {
+  font-size: 21px;
+  color: var(--ink);
+}
+
+.trader__coin {
+  width: 24px;
+  height: 24px;
+  color: var(--gold);
+}
+
+.trader__categories {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.trader__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 24px;
+  min-height: 0;
+}
+
+.trader__wares {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-height: 0;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+}
+
+.trader__wares:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.trader__ware {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 10px 4px 4px;
+  font-size: 17px;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+}
+
+.trader__ware:hover {
+  background: rgba(156, 122, 60, 0.12);
+}
+
+.trader__ware--on {
+  background: rgba(156, 122, 60, 0.28);
+  box-shadow: inset 3px 0 0 var(--gold-dark);
+}
+
+.trader__ware--dear .trader__price {
+  color: var(--problem);
+}
+
+/* A cell of the atlas: --columns, --col and --row come from wares.js, the cell's size is the icon's. */
+.trader__icon {
+  --cell: 48px;
+  width: var(--cell);
+  height: var(--cell);
+  background-image: url("./wares.webp");
+  background-size: calc(var(--columns) * var(--cell)) auto;
+  background-position: calc(var(--col) * -1 * var(--cell)) calc(var(--row) * -1 * var(--cell));
+  background-repeat: no-repeat;
+}
+
+.trader__icon--large {
+  --cell: 96px;
+  filter: drop-shadow(0 4px 6px rgba(43, 29, 14, 0.35));
+}
+
+.trader__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trader__price {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.trader__detail {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 16px;
+  text-align: center;
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+}
+
+.trader__detail-name {
+  margin: 6px 0 0;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.25;
+  font-family: var(--font-title);
+  overflow-wrap: anywhere;
+}
+
+.trader__facts,
+.trader__each {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.trader__count {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.trader__step.rp-button {
+  min-width: 44px;
+  padding: 4px 0;
+  font-size: 22px;
+}
+
+.trader__amount {
+  min-width: 48px;
+  font-weight: 700;
+  font-size: 26px;
+}
+
+.trader__total {
+  margin: 8px 0 4px;
+  font-weight: 700;
+  font-size: 19px;
+}
+
+.trader__total--dear {
+  color: var(--problem);
+}
+
+.trader__buy {
+  width: 100%;
+}
+
+.trader__status {
+  min-height: 46px;
+  margin: 14px 0 0;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.trader__status--bought {
+  font-weight: 700;
+  color: var(--confirmed);
+}
+
+.trader__status--refused {
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.trader__footer {
+  display: flex;
+  justify-content: flex-end;
+}

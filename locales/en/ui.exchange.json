@@ -1,0 +1,17 @@
+{
+  "ui.exchange.title": "Trade with {name}",
+  "ui.exchange.yours": "Your offer",
+  "ui.exchange.theirs": "{name} offers",
+  "ui.exchange.gold": "Gold",
+  "ui.exchange.carried": "You carry {count} gold.",
+  "ui.exchange.confirm": "Confirm",
+  "ui.exchange.confirm_in": "Confirm in {seconds} s",
+  "ui.exchange.waiting": "Waiting for {name}",
+  "ui.exchange.confirmed": "Confirmed",
+  "ui.exchange.not_confirmed": "Not confirmed",
+  "ui.exchange.cancel": "Call off",
+  "ui.exchange.digits": "Give the gold in whole coins, from 0 to {max}.",
+  "ui.exchange.hint": "Any change takes both confirmations back. Esc calls the trade off.",
+  "ui.exchange.done": "Done",
+  "ui.exchange.amount": "{count} gold"
+}

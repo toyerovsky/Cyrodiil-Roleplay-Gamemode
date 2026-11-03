@@ -1,0 +1,82 @@
+# Cyrodiil RP: context and instructions for agents
+
+The instructions apply to the whole repository. Before a change, read the description below and the docs for the task.
+
+## What the project is
+
+**Cyrodiil RP is a roleplay mode for OblivionMP**, multiplayer Oblivion on the ReadyM platform. A player makes a
+character of their own, a resident of Cyrodiil, and plays it among other players. The mode is a server mod with a
+client half (`client/`) and a server half (`server/`), built on the platform's SDK 1.0.
+
+- **A character instead of an account:** the mode's form gives the first name and surname, the game's creator the
+  look. The name is unique on the server.
+- **Welcome screen:** every visit starts with it: the account's character (last played, time played) and Play, an
+  empty slot with New character, the second slot locked until the platform keeps a game save per character. For now
+  one character per account, so that nobody gains anything from the save.
+- **RP chat:** speech in range, `/me` (also over the character's head), `/do`, shout, whisper, rolls, local and
+  global OOC, private messages.
+- **Names over heads:** the character's name over other players, `[Staff]` in another colour on duty, drawn by the
+  mode.
+- **Interaction wheels:** G opens the actions of your own character, H the actions towards the player in front of
+  you.
+- **Party:** an invitation from the H wheel, taken up with Y from the card at the top of the screen (N declines), a
+  leader, kicking, leaving from the G wheel, the `/p` chat, a panel of the members on screen with their health and
+  distance.
+- **Trader:** an NPC placed with the staff command `/atrader`, without the game's services (the game's trading and
+  rooms do not apply to it). H over it opens a shop window with the game's icons: food, drinks, clothes, potions,
+  tools, weapons, armour, books. It only sells. It cannot be killed for good.
+- **Spawn:** the staff set it in the outside world (`/aspawn here`, a button in the panel), a new character goes
+  there after closing the game's creator.
+- **Exchange:** an offer from the H wheel, taken up with Y as for a party, gold from hand to hand in a window, both
+  sides see both offers and confirm. Items will come when the SDK gives their names.
+- **Player menu (F10):** tabs with the game's medallions: character (name, since when, time played, gold), account
+  (ReadyM nick, previous visit, sanctions in force, the language choice when the server knows a second one), help
+  with the player's commands under headings (`/help` opens this tab) and the mode's keys.
+- **In-game administration:** staff roles from the database (moderator, administrator, owner), duty with `/duty`
+  (staff actions only on duty, which shows in the name over the head), sanctions with a reason and an audit log
+  (kick, ban, mute, freeze, warning, lifting them also for offline players), care of a character (healing, health,
+  reviving, gold, the game's items by name and kind, for oneself and for players), a message to a player, teleports
+  (to a player, to the gates of cities and settlements, back), the area's time and weather. The `/admin` panel (also
+  from the G and H wheels for the staff): players with a card, items, sanctions in force, the audit log by pages, the
+  world.
+- **Language:** English (`locales/en`) and Polish (`locales/pl`), chosen in the F10 menu, saved on the account. The
+  game's item names are in English in both, because the Polish ones are in the remaster's `Game.locres`, readable
+  only with Oodle.
+
+## Where to find information
+
+| Topic | Source |
+|---|---|
+| Architecture, running, tests, deployment | [DEVELOPMENT.md](DEVELOPMENT.md) |
+| The OblivionMP platform and SDK | [.claude/skills/oblivionmp-platform/SKILL.md](.claude/skills/oblivionmp-platform/SKILL.md), the docs at https://docs.ready.mp/oblivion-mp/docs/what-is-oblivion-mp |
+
+Infer behaviour from the code and the tests. A description in the docs does not confirm that a feature works on the
+server.
+
+## Working on the repository
+
+The mode in **C#** (`src/`), the pages in **Vue 3 / Vite** (`ui/`), **PostgreSQL / EF Core** with a migrator of its
+own. The commands are in `DEVELOPMENT.md`. Before working in an area, read:
+
+- The C# coding standard: [CODING-STANDARD.md](CODING-STANDARD.md). Claude Code loads it on its own in `src/` and
+  `tests/`.
+- Code and code review: [.claude/skills/code-rules/SKILL.md](.claude/skills/code-rules/SKILL.md).
+- Tests and verifying a change: [.claude/skills/testing/SKILL.md](.claude/skills/testing/SKILL.md).
+- Texts for players and pages: [.claude/skills/game-ui/SKILL.md](.claude/skills/game-ui/SKILL.md).
+- Previewing pages without the game and Playwright: [.claude/skills/ui-playwright/SKILL.md](.claude/skills/ui-playwright/SKILL.md).
+- The server's performance and what a player receives: [.claude/skills/performance/SKILL.md](.claude/skills/performance/SKILL.md).
+- Integration with the platform: [.claude/skills/oblivionmp-platform/SKILL.md](.claude/skills/oblivionmp-platform/SKILL.md).
+
+### Mandatory verification of every new interface
+
+1. An E2E test in headless Playwright through a real player's flow, run once at the end of the work on a page. In
+   between, Vitest tests are enough. A build, a render test or a unit test alone does not replace E2E.
+2. Screenshots of the states that matter at 1366x768, 1920x1080, 1280x1024 and 2560x1080 (`E2E_SIZES=all`), **opened
+   and judged by eye**: readability, wrapping, nothing cut off, scrolling, visible focus.
+3. Fixes, verification again, and in the summary a list of the scenarios and resolutions checked and of what cannot
+   be checked without the game.
+
+Screenshots, traces and reports stay in `ui/test-results/` and `ui/playwright-report/` (in `.gitignore`).
+
+Do not commit or deploy unless the user asks. `./pack.ps1` builds the mod and installs it on the local server,
+`-PackOnly` only builds it.

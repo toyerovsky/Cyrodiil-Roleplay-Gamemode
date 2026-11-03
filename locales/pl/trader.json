@@ -1,0 +1,28 @@
+{
+  "trader.cmd.trader": "/atrader here <sklep> | remove | list - postaw handlarza tam, gdzie stoisz, zabierz tego przed tobą albo wypisz wszystkich",
+  "trader.unknown_shop": "Nie ma sklepu „{shop}”. Sklepy: {shops}.",
+  "trader.not_in_world": "Musisz być w świecie, żeby postawić handlarza.",
+  "trader.not_settled": "Serwer widzi cię jeszcze w komórce {seen}, a stoisz w komórce {here}: gra nie nadążyła po dalekim skoku. Przejdź kilka kroków albo wejdź ponownie i spróbuj jeszcze raz.",
+  "trader.placed": "Handlarz ({shop}) stoi tu teraz (#{id}). Pojawi się za chwilę.",
+  "trader.place_failed": "Nie udało się zapisać handlarza, więc nikt tu nie stanął. Spróbuj ponownie za chwilę.",
+  "trader.none_in_front": "Przed tobą nie stoi żaden handlarz.",
+  "trader.removed": "Handlarz #{id} zniknął.",
+  "trader.remove_failed": "Nie udało się zabrać handlarza #{id}, więc wciąż stoi. Spróbuj ponownie za chwilę.",
+  "trader.list_empty": "Nigdzie nie stoi żaden handlarz.",
+  "trader.list_entry": "#{id} {shop}: {area} {cell} ({x}, {y}, {z})",
+  "trader.label": "Handlarz",
+  "trader.nothing_to_sell": "Ten handlarz nie ma nic na sprzedaż.",
+  "trader.unknown_ware": "Ten handlarz tego nie sprzedaje.",
+  "trader.count": "Kupuj od 1 do {max} naraz.",
+  "trader.too_poor": "To kosztuje {price} szt. złota, a masz przy sobie {gold}.",
+  "trader.failed": "Nie udało się dokończyć zakupu. Złoto zostaje u ciebie.",
+  "trader.bought": {
+    "one": "Zapłacono {count} sztukę złota.",
+    "few": "Zapłacono {count} sztuki złota.",
+    "many": "Zapłacono {count} sztuk złota.",
+    "other": "Zapłacono {count} sztuki złota."
+  },
+  "trader.closed_far": "Oddalasz się od handlarza o ponad {metres} m.",
+  "trader.closed_gone": "Handlarza już nie ma.",
+  "trader.closed_not_in_world": "Opuszczasz świat, więc okno handlarza się zamyka."
+}

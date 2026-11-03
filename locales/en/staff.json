@@ -1,0 +1,24 @@
+{
+  "staff.chat": "[Staff] {name}: {text}",
+  "staff.example_chat": "/a can someone look at the market?",
+  "staff.no_account": "No account has the id {id}.",
+  "staff.roles_of": "{name}: {roles}",
+  "staff.unknown_role": "There is no role {role}. Roles: {roles}",
+  "staff.cannot_grant": "You cannot give or take the role {role}.",
+  "staff.roles_set": "{name} now has: {roles}",
+  "staff.cmd.chat": "/a <text> - the staff's own chat",
+  "staff.cmd.roles": "/aroles <number|account id> [roles|-] - show a player's staff roles, or set them (- for none)",
+  "staff.cmd.message": "/amsg <number> <text> - a message from the staff to one player",
+  "staff.example_message": "/amsg 3 please come to the chapel, we need a word",
+  "staff.message_received": "[Staff to you] {name}: {text}",
+  "staff.message_notice": "A message from the staff ({name}): read it in the chat. Answer with /pm.",
+  "staff.message_sent": "[Staff to {name}] {text}",
+  "staff.option.chat": "Staff chat",
+  "staff.cmd.duty": "/duty - go on duty or off it: the staff act only on duty, where everyone sees it",
+  "staff.duty_on": "You are on duty: your name shows it.",
+  "staff.duty_off": {
+    "one": "You are off duty, after {count} minute.",
+    "other": "You are off duty, after {count} minutes."
+  },
+  "staff.off_duty": "Go on duty first: /duty"
+}

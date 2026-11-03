@@ -1,0 +1,26 @@
+{
+  "staff.chat": "[Administracja] {name}: {text}",
+  "staff.example_chat": "/a czy ktoś może zajrzeć na targ?",
+  "staff.no_account": "Żadne konto nie ma id {id}.",
+  "staff.roles_of": "{name}: {roles}",
+  "staff.unknown_role": "Nie ma roli {role}. Role: {roles}",
+  "staff.cannot_grant": "Nie możesz nadać ani odebrać roli {role}.",
+  "staff.roles_set": "{name} ma teraz: {roles}",
+  "staff.cmd.chat": "/a <tekst> - czat administracji",
+  "staff.cmd.roles": "/aroles <numer|id konta> [role|-] - pokaż role gracza w administracji albo je ustaw (- odbiera wszystkie)",
+  "staff.cmd.message": "/amsg <numer> <tekst> - wiadomość od administracji do jednego gracza",
+  "staff.example_message": "/amsg 3 podejdź proszę do kaplicy, musimy porozmawiać",
+  "staff.message_received": "[Administracja do ciebie] {name}: {text}",
+  "staff.message_notice": "Wiadomość od administracji ({name}): przeczytaj ją na czacie. Odpowiedz przez /pm.",
+  "staff.message_sent": "[Administracja do: {name}] {text}",
+  "staff.option.chat": "Czat administracji",
+  "staff.cmd.duty": "/duty - wejdź na służbę albo z niej zejdź: administracja działa tylko na służbie, a wszyscy to widzą",
+  "staff.duty_on": "Jesteś na służbie: widać to przy twoim imieniu.",
+  "staff.duty_off": {
+    "one": "Schodzisz ze służby po {count} minucie.",
+    "few": "Schodzisz ze służby po {count} minutach.",
+    "many": "Schodzisz ze służby po {count} minutach.",
+    "other": "Schodzisz ze służby po {count} minutach."
+  },
+  "staff.off_duty": "Najpierw wejdź na służbę: /duty"
+}

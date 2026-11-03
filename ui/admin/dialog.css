@@ -1,0 +1,45 @@
+/* A dialog over the panel: what a button needs before it runs. */
+.admin-dialog {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--backdrop-shade);
+}
+
+.admin-dialog__box {
+  display: grid;
+  gap: 10px;
+  width: min(560px, calc(100% - 48px));
+  padding: 24px 28px;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--parchment-light), var(--parchment));
+  border: 2px solid var(--parchment-edge);
+  border-radius: var(--radius);
+  box-shadow: 0 18px 48px var(--shadow-deep);
+}
+
+.admin-dialog__title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+
+.admin-dialog__problem {
+  margin: 0;
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.admin-dialog__buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.admin-dialog__presets {
+  margin-top: -2px;
+}

@@ -1,0 +1,10 @@
+{
+  "spawn.cmd.spawn": "/aspawn [here | go] - pokaż punkt startowy nowych postaci, ustaw go tam, gdzie stoisz, albo idź do niego",
+  "spawn.none": "Punkt startowy nie jest ustawiony: nowe postacie zostają tam, gdzie postawi je gra.",
+  "spawn.at": "Nowe postacie zaczynają tu: {area}, {position} cm.",
+  "spawn.not_in_world": "Musisz być w świecie, żeby ustawić punkt startowy.",
+  "spawn.outside_only": "Punkt startowy musi być w świecie zewnętrznym, tam gdzie zaczynają nowe postacie. Najpierw wyjdź na zewnątrz.",
+  "spawn.set": "Od teraz nowe postacie zaczynają tutaj.",
+  "spawn.set_failed": "Nie udało się zapisać punktu startowego, więc zostaje tam, gdzie był. Spróbuj ponownie za chwilę.",
+  "spawn.went": "Jesteś w punkcie startowym."
+}

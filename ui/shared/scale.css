@@ -1,0 +1,4 @@
+/* The build turns every px into rem, so a page scales with the window: 16px at 1080p, the size it was drawn for. */
+html {
+  font-size: calc(1.26vmin + 0.125vmax);
+}

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <RootNamespace>CyrodiilRP.Client</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="ReadyM.SDK.Oblivion.Client" />
+        <ProjectReference Include="..\CyrodiilRP.Common\CyrodiilRP.Common.csproj" />
+    </ItemGroup>
+
+</Project>

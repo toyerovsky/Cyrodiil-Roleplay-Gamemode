@@ -1,0 +1,12 @@
+{
+  "ui.creator.title": "New character",
+  "ui.creator.lead": "Before you set foot in Cyrodiil, give your character a name. You choose the race, sex and looks right after, in the game's creator.",
+  "ui.creator.first_name": "First name",
+  "ui.creator.last_name": "Last name",
+  "ui.creator.first_placeholder": "e.g. Marius",
+  "ui.creator.last_placeholder": "e.g. Varro",
+  "ui.creator.hint": "{min} to {max} letters each. An apostrophe or a hyphen is fine, as in Ra'jirr or Gro-Malog.",
+  "ui.creator.submit": "Next: appearance",
+  "ui.creator.checking": "Checking…",
+  "ui.creator.note": "The name cannot be changed later, so take your time."
+}

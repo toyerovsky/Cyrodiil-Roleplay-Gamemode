@@ -1,0 +1,104 @@
+:root {
+  --say: var(--night-text);
+  --shout: #ffb27a;
+  --whisper: #cfc6b6;
+  --action: #c8a2e0;
+  --ambient: #a78bd0;
+  --attempt: #8fd3c7;
+  --ooc: #b0b0b0;
+  --private: #f5d76e;
+  --system: #e6c36a;
+  --reply: #a7e8a0;
+  --rejection: #ff8a7a;
+  --announcement: #ff6b6b;
+  --staff: #7fc4ff;
+  --party: #c9a7ff;
+}
+
+/* Transparent to the pointer while closed: the mouse stays the game's. Open, the log and the entry take it, so the wheel
+   scrolls the log. */
+.chat--open .chat__lines,
+.chat--open .chat__entry {
+  pointer-events: auto;
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  height: 100%;
+  padding: 12px 16px;
+  line-height: 1.45;
+  color: var(--say);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 1px #000;
+}
+
+.chat__lines {
+  max-width: 900px;
+  max-height: 280px;
+  margin: 0;
+  padding: 8px 10px;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--night);
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius);
+  overflow-wrap: anywhere;
+  transition: opacity var(--duration-fade) ease;
+}
+
+/* Idle: nothing happened for a while and chat is closed. The log keeps its space, so a new line does not shift it. */
+.chat--idle .chat__lines {
+  opacity: 0;
+}
+
+.chat-line {
+  padding: 1px 0;
+}
+
+.chat-line__time {
+  color: var(--night-muted);
+}
+
+.chat-line--Say { color: var(--say); }
+.chat-line--Shout { color: var(--shout); font-weight: 700; }
+.chat-line--Whisper { color: var(--whisper); font-style: italic; }
+.chat-line--Action { color: var(--action); }
+.chat-line--Ambient { color: var(--ambient); font-style: italic; }
+.chat-line--Attempt { color: var(--attempt); }
+.chat-line--LocalOoc,
+.chat-line--GlobalOoc { color: var(--ooc); }
+.chat-line--Private { color: var(--private); }
+.chat-line--System { color: var(--system); }
+.chat-line--CommandReply { color: var(--reply); }
+.chat-line--Rejection { color: var(--rejection); }
+.chat-line--Announcement { color: var(--announcement); font-weight: 700; }
+.chat-line--Staff { color: var(--staff); }
+.chat-line--Party { color: var(--party); }
+
+/* Hidden rather than removed, so opening chat does not move the log and the entry can take focus at once. */
+.chat__entry {
+  max-width: 900px;
+  visibility: hidden;
+  padding: 7px 10px;
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius);
+  background: var(--night);
+  color: var(--say);
+  font: inherit;
+  text-shadow: inherit;
+  outline: none;
+}
+
+.chat--open .chat__entry {
+  visibility: visible;
+}
+
+.chat__entry:focus {
+  border-color: var(--gold-bright);
+}
+
+.chat__entry::placeholder {
+  color: var(--night-muted);
+}

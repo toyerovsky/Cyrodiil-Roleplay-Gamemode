@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <RootNamespace>CyrodiilRP.Server</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="ReadyM.SDK.Oblivion.Server" />
+        <ProjectReference Include="..\CyrodiilRP.Common\CyrodiilRP.Common.csproj" />
+        <ProjectReference Include="..\CyrodiilRP.Data\CyrodiilRP.Data.csproj" />
+        <ProjectReference Include="..\CyrodiilRP.Texts\CyrodiilRP.Texts.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <!-- The pages' groups (ui.*) belong to the pages, the server speaks the rest. -->
+    <ItemGroup>
+        <AdditionalFiles Include="..\..\locales\**\*.json" Exclude="..\..\locales\**\ui.*.json" />
+        <None Include="..\..\locales\**\*.json" Exclude="..\..\locales\**\ui.*.json" LinkBase="locales" CopyToOutputDirectory="PreserveNewest" />
+        <None Update="config.json" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <!-- The shops and the game's values of their wares (tools/ui/export_wares.py of the research writes wares.json). -->
+    <ItemGroup>
+        <EmbeddedResource Include="Traders\wares.json" LogicalName="wares.json" />
+        <EmbeddedResource Include="Traders\stocks.json" LogicalName="stocks.json" />
+    </ItemGroup>
+
+    <!-- The game's items, places and weathers for the staff (tools/esm/export_admin_data.py of the research). -->
+    <ItemGroup>
+        <EmbeddedResource Include="Admin\items.json" LogicalName="items.json" />
+        <EmbeddedResource Include="Admin\places.json" LogicalName="places.json" />
+        <EmbeddedResource Include="Admin\weathers.json" LogicalName="weathers.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="CyrodiilRP.Tests" />
+    </ItemGroup>
+
+</Project>

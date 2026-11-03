@@ -1,0 +1,30 @@
+{
+  "prices": {
+    "Torch02": 3
+  },
+  "shops": {
+    "general": {
+      "food": ["Breadloaf", "Apple", "Pear", "Carrot", "Potato", "Onion", "Leek", "Tomato", "CheeseWedge", "CheeseWheel", "Ham", "Venison", "Mutton", "Beef", "Sweetroll", "Sweetcake"],
+      "drink": ["DrinkBeer", "DrinkAle", "DrinkMead", "DrinkWine0Cheap", "DrinkWine1SurilieGood", "DrinkWine2TamikaGood"],
+      "clothing": [
+        "LowerShirt05", "LowerPants05", "LowerShoes05", "LowerShirt04", "LowerPants04", "LowerShoes04",
+        "LowerShirt01", "LowerPants01", "LowerShoes01", "LowerShirt03", "LowerPants03", "LowerShoes03",
+        "MiddleShirt01", "MiddlePants01", "MiddleShoes01", "MiddleShirt02", "MiddleShirt05",
+        "LowerRobe01", "LowerRobe03", "LowerRobe03hood"
+      ],
+      "potions": ["PotionRestoreHealthW", "PotionRestoreFatigueW", "PotionRestoreMagickaW", "PotionCurePoison", "PotionCureDisease"],
+      "tools": ["Torch02", "Lockpick", "RepairHammer", "MortarPestle", "Alembic", "Retort", "Calcinator", "SoulGemEmpty1Petty", "SoulGemEmpty2Lesser"],
+      "weapons": ["WeapIronDagger", "WeapIronShortsword", "WeapIronLongsword", "WeapIronWarAxe", "WeapIronMace", "WeapIronClaymore", "WeapIronBow", "Arrow1Iron"],
+      "armor": [
+        "FurHelmet", "FurCuirass", "FurGauntlets", "FurGreaves", "FurBoots", "FurShield",
+        "LeatherHelmet", "LeatherCuirass", "LeatherGauntlets", "LeatherGreaves", "LeatherBoots", "LeatherShield", "IronShield"
+      ],
+      "books": [
+        "Book1CheapGuideImperialCity", "Book1CheapGuideAnvil", "Book1CheapGuideBravil", "Book1CheapGuideBruma",
+        "Book1CheapGuideCheydinhal", "Book1CheapGuideChorrol", "Book1CheapGuideLeyawiin", "Book1CheapGuideSkingrad",
+        "Book1CheapBriefHistoryoftheEmpirev1", "Book1CheapBriefHistoryoftheEmpirev2", "Book1CheapBriefHistoryoftheEmpirev3",
+        "Book1CheapBriefHistoryoftheEmpirev4"
+      ]
+    }
+  }
+}

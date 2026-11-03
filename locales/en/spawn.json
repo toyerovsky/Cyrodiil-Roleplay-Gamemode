@@ -1,0 +1,10 @@
+{
+  "spawn.cmd.spawn": "/aspawn [here | go] - show where new characters begin, set it where you stand, or go there",
+  "spawn.none": "No spawn is set: new characters stay where the game puts them.",
+  "spawn.at": "New characters begin at {position} cm in {area}.",
+  "spawn.not_in_world": "You have to be in the world to set the spawn.",
+  "spawn.outside_only": "The spawn has to be in the outside world, where new characters begin. Go outside first.",
+  "spawn.set": "New characters begin here now.",
+  "spawn.set_failed": "The spawn could not be saved and stays where it was. Try again in a moment.",
+  "spawn.went": "You are at the spawn."
+}

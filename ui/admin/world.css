@@ -1,0 +1,96 @@
+/* The sky and the spawn beside the places, the traders under them. */
+.admin-world {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0 26px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.admin-world__side {
+  display: grid;
+  align-content: start;
+  gap: 22px;
+  grid-row: span 2;
+}
+
+.admin-world__spawn-at {
+  margin: 0 0 10px;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.admin-world__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-world__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.admin-world__places {
+  min-height: 0;
+}
+
+.admin-world__kind {
+  margin: 14px 0 6px;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.admin-world__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-place {
+  min-height: 34px;
+  padding: 3px 12px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+}
+
+.admin-place:hover:not(:disabled) {
+  background: rgba(156, 122, 60, 0.2);
+}
+
+.admin-place:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.admin-place:disabled {
+  color: var(--disabled-text);
+  background: var(--disabled-fill);
+  cursor: default;
+}
+
+.admin-world__traders {
+  grid-column: 2;
+}
+
+.admin-world__row--spot {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+}
+
+.admin-world__places {
+  grid-column: 2;
+}

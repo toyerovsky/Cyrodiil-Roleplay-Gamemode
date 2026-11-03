@@ -1,0 +1,14 @@
+{
+  "ui.asks.label": "Zaproszenia",
+  "ui.asks.title.party": "Zaproszenie do drużyny",
+  "ui.asks.title.trade": "Propozycja wymiany",
+  "ui.asks.incoming.party": "{name} zaprasza cię do drużyny.",
+  "ui.asks.incoming.trade": "{name} proponuje ci wymianę.",
+  "ui.asks.outgoing.party": "Czekasz na odpowiedź na zaproszenie: {name}.",
+  "ui.asks.outgoing.trade": "Czekasz na odpowiedź na wymianę: {name}.",
+  "ui.asks.accept.party": "Dołącz",
+  "ui.asks.accept.trade": "Handluj",
+  "ui.asks.decline": "Odmów",
+  "ui.asks.next": "Najpierw odpowiedz na zaproszenie wyżej.",
+  "ui.asks.seconds": "{seconds} s"
+}

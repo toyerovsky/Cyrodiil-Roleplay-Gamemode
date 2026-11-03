@@ -1,0 +1,30 @@
+[
+ {
+  "id": "clear",
+  "form": "00038EEE"
+ },
+ {
+  "id": "cloudy",
+  "form": "00038EF0"
+ },
+ {
+  "id": "overcast",
+  "form": "00038EEC"
+ },
+ {
+  "id": "fog",
+  "form": "00038EEF"
+ },
+ {
+  "id": "rain",
+  "form": "00038EF2"
+ },
+ {
+  "id": "thunderstorm",
+  "form": "00038EF1"
+ },
+ {
+  "id": "snow",
+  "form": "00038EED"
+ }
+]

@@ -1,0 +1,196 @@
+/* The list beside the card, each scrolling on its own. */
+.admin-players {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.75fr) minmax(0, 1.5fr);
+  gap: 22px;
+  height: 100%;
+}
+
+.admin-players__list {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 0;
+}
+
+.admin-players__rows {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 0;
+  margin: 0;
+  padding: 0 6px 0 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.admin-player {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 10px;
+  width: 100%;
+  padding: 8px 12px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+}
+
+.admin-player:hover {
+  background: rgba(156, 122, 60, 0.14);
+}
+
+.admin-player:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.admin-player--on {
+  background: rgba(156, 122, 60, 0.3);
+  box-shadow: inset 4px 0 0 var(--gold-dark);
+}
+
+.admin-player__number {
+  grid-row: span 3;
+  font-weight: 700;
+  color: var(--gold-dark);
+}
+
+.admin-player__name {
+  font-weight: 700;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.admin-player__nickname,
+.admin-player__where {
+  font-size: 15px;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.admin-player__marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  grid-column: 2;
+}
+
+.admin-mark {
+  padding: 0 8px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--parchment-light);
+  background: var(--problem);
+  border-radius: var(--radius-pill);
+}
+
+.admin-mark--duty {
+  background: var(--confirmed);
+}
+
+.admin-players__pick {
+  align-self: center;
+  justify-self: center;
+}
+
+/* The card scrolls whole: the buttons, the facts, the inventory and the history. */
+.admin-card {
+  min-height: 0;
+  padding: 0 10px 12px 4px;
+  overflow-y: auto;
+}
+
+.admin-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+}
+
+.admin-card__name {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+
+.admin-card__nickname,
+.admin-card__roles {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.admin-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 4px;
+}
+
+.admin-card__actions .rp-button {
+  padding: 6px 14px;
+  font-size: 16px;
+}
+
+.admin-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px 18px;
+  margin: 14px 0 0;
+}
+
+.admin-fact {
+  min-width: 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--ink-line);
+}
+
+.admin-fact dt {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.admin-fact dd {
+  margin: 0;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.admin-fact__code {
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-sanctions {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-sanction {
+  display: grid;
+  gap: 2px;
+  padding: 8px 12px;
+  background: var(--problem-wash);
+  border-left: 4px solid var(--problem);
+  border-radius: var(--radius-small);
+}
+
+.admin-sanction strong {
+  color: var(--problem);
+}
+
+.admin-sanction__meta {
+  font-size: 15px;
+  color: var(--ink-soft);
+}

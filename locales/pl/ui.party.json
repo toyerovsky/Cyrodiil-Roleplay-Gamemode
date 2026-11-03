@@ -1,0 +1,9 @@
+{
+  "ui.party.title": "Drużyna",
+  "ui.party.count": "{count}/{max}",
+  "ui.party.you": "ty",
+  "ui.party.leader": "prowadzi",
+  "ui.party.away": "daleko",
+  "ui.party.down": "powalony",
+  "ui.party.health": "Zdrowie: {name}"
+}

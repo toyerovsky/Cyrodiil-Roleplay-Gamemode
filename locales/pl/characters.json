@@ -1,0 +1,15 @@
+{
+  "characters.first_name": "Imię",
+  "characters.last_name": "Nazwisko",
+  "characters.name_length": "{part} musi mieć od {min} do {max} znaków.",
+  "characters.name_shape": "{part} może zawierać tylko litery łacińskie, a apostrof albo łącznik tylko między nimi.",
+  "characters.name_reserved": "{part} nie może brzmieć jak funkcja na serwerze.",
+  "characters.name_taken": "Ktoś w Cyrodiil nosi już imię {name}.",
+  "characters.already_created": "Masz już postać: {name}.",
+  "characters.save_failed": "Nie udało się zapisać twojej postaci. Spróbuj ponownie za chwilę.",
+  "characters.creator_hint": "Wybierz rasę, płeć i wygląd",
+  "characters.welcome_back": "Witaj ponownie, {name}.",
+  "characters.welcome": "Witaj w Cyrodiil, {name}. Zwykły czat (K) to mowa twojej postaci.",
+  "characters.help_hint": "/help pokazuje komendy, /ooc to rozmowa poza postacią.",
+  "characters.busy": "Twoja postać wciąż się zapisuje."
+}

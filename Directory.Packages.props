@@ -1,0 +1,23 @@
+<Project>
+  <ItemGroup>
+    <!-- One version for the three SDK packages. It must match the server the mod is deployed to. -->
+    <PackageVersion Include="ReadyM.SDK.Oblivion.Common" Version="1.0.0" />
+    <PackageVersion Include="ReadyM.SDK.Oblivion.Client" Version="1.0.0" />
+    <PackageVersion Include="ReadyM.SDK.Oblivion.Server" Version="1.0.0" />
+
+    <!-- EF Core 10 builds against Microsoft.Extensions 10.0.0.0, the version the relay server ships and the mod reuses. -->
+    <PackageVersion Include="Npgsql" Version="10.0.3" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
+
+    <!-- The texts generator runs in the compiler: an older Roslyn than the SDK's works. -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.16.0" />
+  </ItemGroup>
+</Project>

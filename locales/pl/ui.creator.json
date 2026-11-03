@@ -1,0 +1,12 @@
+{
+  "ui.creator.title": "Nowa postać",
+  "ui.creator.lead": "Zanim postawisz stopę w Cyrodiil, nadaj postaci imię. Rasę, płeć i wygląd wybierzesz zaraz potem, w kreatorze gry.",
+  "ui.creator.first_name": "Imię",
+  "ui.creator.last_name": "Nazwisko",
+  "ui.creator.first_placeholder": "np. Marius",
+  "ui.creator.last_placeholder": "np. Varro",
+  "ui.creator.hint": "Każde od {min} do {max} liter. Apostrof albo łącznik są w porządku, jak w Ra'jirr albo Gro-Malog.",
+  "ui.creator.submit": "Dalej: wygląd",
+  "ui.creator.checking": "Sprawdzam…",
+  "ui.creator.note": "Imienia nie da się później zmienić, więc nie spiesz się."
+}

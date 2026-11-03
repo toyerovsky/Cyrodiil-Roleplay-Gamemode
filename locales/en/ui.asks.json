@@ -1,0 +1,14 @@
+{
+  "ui.asks.label": "Invitations",
+  "ui.asks.title.party": "Party invitation",
+  "ui.asks.title.trade": "Trade offer",
+  "ui.asks.incoming.party": "{name} invites you to their party.",
+  "ui.asks.incoming.trade": "{name} wants to trade with you.",
+  "ui.asks.outgoing.party": "Waiting for {name} to answer your invitation.",
+  "ui.asks.outgoing.trade": "Waiting for {name} to take up your trade.",
+  "ui.asks.accept.party": "Join",
+  "ui.asks.accept.trade": "Trade",
+  "ui.asks.decline": "Decline",
+  "ui.asks.next": "Answer the one above first.",
+  "ui.asks.seconds": "{seconds} s"
+}

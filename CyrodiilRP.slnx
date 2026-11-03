@@ -1,0 +1,21 @@
+<Solution>
+    <Folder Name="/Solution Items/">
+        <File Path="Directory.Build.props" />
+        <File Path="Directory.Packages.props" />
+        <File Path="global.json" />
+        <File Path="infra/docker-compose.yml" />
+        <File Path="mod/manifest.json" />
+        <File Path="scripts/pack.ps1" />
+    </Folder>
+    <Folder Name="/src/">
+        <Project Path="src/CyrodiilRP.Common/CyrodiilRP.Common.csproj" />
+        <Project Path="src/CyrodiilRP.Client/CyrodiilRP.Client.csproj" />
+        <Project Path="src/CyrodiilRP.Server/CyrodiilRP.Server.csproj" />
+        <Project Path="src/CyrodiilRP.Data/CyrodiilRP.Data.csproj" />
+        <Project Path="src/CyrodiilRP.Migrator/CyrodiilRP.Migrator.csproj" />
+        <Project Path="src/CyrodiilRP.Texts/CyrodiilRP.Texts.csproj" />
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/CyrodiilRP.Tests/CyrodiilRP.Tests.csproj" />
+    </Folder>
+</Solution>

@@ -1,0 +1,140 @@
+/* Under the game's own count of the players near, at the top left. Only to be read: the mouse stays the game's. */
+.party {
+  --health: #c0392b;
+  --health-low: #ff6b4a;
+  --health-away: #7d6a5a;
+
+  position: fixed;
+  top: 112px;
+  left: 20px;
+  width: 280px;
+  padding: 10px 14px 12px;
+  color: var(--night-text);
+  background: var(--night);
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius-small);
+  box-shadow: 0 8px 24px var(--shadow-deep);
+}
+
+.party__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--night-line);
+}
+
+.party__title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-family: var(--font-title);
+  color: var(--gold-light);
+}
+
+.party__count {
+  margin: 0;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--night-muted);
+}
+
+.party__members {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.party__member {
+  display: grid;
+  gap: 4px;
+}
+
+.party__line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+.party__rank {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 18px;
+}
+
+.party__crown {
+  width: 18px;
+  height: 18px;
+  color: var(--gold-bright);
+}
+
+.party__hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.party__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.party__member--self .party__name {
+  color: var(--gold-light);
+}
+
+.party__member--away .party__name {
+  color: var(--night-muted);
+}
+
+.party__member--down .party__name {
+  color: var(--night-refusal);
+}
+
+.party__mark {
+  flex: none;
+  margin-left: auto;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--night-muted);
+}
+
+.party__member--down .party__mark {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--night-refusal);
+}
+
+.party__health {
+  height: 5px;
+  margin-left: 24px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-pill);
+}
+
+.party__health-left {
+  height: 100%;
+  background: linear-gradient(90deg, var(--health), var(--health-low));
+  border-radius: inherit;
+  transition: width var(--duration-fade) ease-out;
+}
+
+.party__member--away .party__health-left {
+  background: var(--health-away);
+}

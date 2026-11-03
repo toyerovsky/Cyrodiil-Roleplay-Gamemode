@@ -1,0 +1,13 @@
+{
+  "economy.carrying": {
+    "one": "You carry {count} gold coin.",
+    "other": "You carry {count} gold coins."
+  },
+  "economy.not_in_world": "Your character is not in the world yet.",
+  "economy.cmd.gold": "/gold - how much gold you carry",
+  "economy.delivered": {
+    "one": "Received {count} gold coin",
+    "other": "Received {count} gold coins"
+  },
+  "economy.option.gold": "My gold"
+}

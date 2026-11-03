@@ -1,0 +1,21 @@
+{
+  "ui.welcome.title_first": "Welcome to Cyrodiil",
+  "ui.welcome.title_back": "Welcome back, {name}",
+  "ui.welcome.title_back_unnamed": "Welcome back",
+  "ui.welcome.lead_first": "Here you play one of the people of Cyrodiil, among other players. Start with your character: a name first, then the looks, in the game's creator.",
+  "ui.welcome.lead_back": "Your character goes on from where you left off.",
+  "ui.welcome.slots": "Your characters",
+  "ui.welcome.last_played": "Last played",
+  "ui.welcome.time_played": "Time played",
+  "ui.welcome.hours_minutes": "{hours} h {minutes} min",
+  "ui.welcome.minutes": "{minutes} min",
+  "ui.welcome.play": "Play",
+  "ui.welcome.entering": "Entering…",
+  "ui.welcome.empty": "Empty slot",
+  "ui.welcome.empty_note": "A character of your own, named here and shaped in the game's creator.",
+  "ui.welcome.new": "New character",
+  "ui.welcome.starting": "Starting…",
+  "ui.welcome.locked": "Second character",
+  "ui.welcome.keys_play": "E or Enter: play",
+  "ui.welcome.keys_new": "N or Enter: new character"
+}

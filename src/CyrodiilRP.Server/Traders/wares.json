@@ -1,0 +1,536 @@
+[
+  {
+    "id": "Alembic",
+    "form": "00010604",
+    "value": 50,
+    "weight": 7.0
+  },
+  {
+    "id": "Apple",
+    "form": "0003365D",
+    "value": 1,
+    "weight": 0.2
+  },
+  {
+    "id": "Arrow1Iron",
+    "form": "00017829",
+    "value": 1,
+    "weight": 0.1
+  },
+  {
+    "id": "Beef",
+    "form": "0003365F",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Book1CheapBriefHistoryoftheEmpirev1",
+    "form": "00024554",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Book1CheapBriefHistoryoftheEmpirev2",
+    "form": "00024555",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Book1CheapBriefHistoryoftheEmpirev3",
+    "form": "00024556",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Book1CheapBriefHistoryoftheEmpirev4",
+    "form": "00024557",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Book1CheapGuideAnvil",
+    "form": "0002455B",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Book1CheapGuideBravil",
+    "form": "0002455F",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Book1CheapGuideBruma",
+    "form": "0002455E",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Book1CheapGuideCheydinhal",
+    "form": "00024561",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Book1CheapGuideChorrol",
+    "form": "0002455D",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Book1CheapGuideImperialCity",
+    "form": "00024562",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Book1CheapGuideLeyawiin",
+    "form": "00024560",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Book1CheapGuideSkingrad",
+    "form": "0002455C",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "Breadloaf",
+    "form": "00023D89",
+    "value": 1,
+    "weight": 0.5
+  },
+  {
+    "id": "Calcinator",
+    "form": "0001057D",
+    "value": 50,
+    "weight": 5.0
+  },
+  {
+    "id": "Carrot",
+    "form": "00033666",
+    "value": 1,
+    "weight": 0.2
+  },
+  {
+    "id": "CheeseWedge",
+    "form": "00033668",
+    "value": 1,
+    "weight": 0.2
+  },
+  {
+    "id": "CheeseWheel",
+    "form": "00033669",
+    "value": 1,
+    "weight": 3.0
+  },
+  {
+    "id": "DrinkAle",
+    "form": "000B1200",
+    "value": 5,
+    "weight": 1.0
+  },
+  {
+    "id": "DrinkBeer",
+    "form": "000B1202",
+    "value": 2,
+    "weight": 1.0
+  },
+  {
+    "id": "DrinkMead",
+    "form": "000B1201",
+    "value": 2,
+    "weight": 1.0
+  },
+  {
+    "id": "DrinkWine0Cheap",
+    "form": "00037F7F",
+    "value": 2,
+    "weight": 1.0
+  },
+  {
+    "id": "DrinkWine1SurilieGood",
+    "form": "00037F80",
+    "value": 5,
+    "weight": 1.0
+  },
+  {
+    "id": "DrinkWine2TamikaGood",
+    "form": "00037F81",
+    "value": 8,
+    "weight": 1.0
+  },
+  {
+    "id": "FurBoots",
+    "form": "00024767",
+    "value": 4,
+    "weight": 1.5
+  },
+  {
+    "id": "FurCuirass",
+    "form": "00024766",
+    "value": 15,
+    "weight": 5.0
+  },
+  {
+    "id": "FurGauntlets",
+    "form": "00024765",
+    "value": 4,
+    "weight": 1.0
+  },
+  {
+    "id": "FurGreaves",
+    "form": "00024764",
+    "value": 8,
+    "weight": 3.0
+  },
+  {
+    "id": "FurHelmet",
+    "form": "00024768",
+    "value": 4,
+    "weight": 1.0
+  },
+  {
+    "id": "FurShield",
+    "form": "00025056",
+    "value": 8,
+    "weight": 2.0
+  },
+  {
+    "id": "Ham",
+    "form": "0003367C",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "IronShield",
+    "form": "000352C1",
+    "value": 45,
+    "weight": 12.0
+  },
+  {
+    "id": "LeatherBoots",
+    "form": "0002319B",
+    "value": 10,
+    "weight": 1.5
+  },
+  {
+    "id": "LeatherCuirass",
+    "form": "0002319A",
+    "value": 35,
+    "weight": 7.5
+  },
+  {
+    "id": "LeatherGauntlets",
+    "form": "00023199",
+    "value": 10,
+    "weight": 1.5
+  },
+  {
+    "id": "LeatherGreaves",
+    "form": "00023198",
+    "value": 20,
+    "weight": 4.5
+  },
+  {
+    "id": "LeatherHelmet",
+    "form": "0002319C",
+    "value": 10,
+    "weight": 1.5
+  },
+  {
+    "id": "LeatherShield",
+    "form": "00025058",
+    "value": 20,
+    "weight": 3.0
+  },
+  {
+    "id": "Leek",
+    "form": "00033680",
+    "value": 3,
+    "weight": 0.1
+  },
+  {
+    "id": "Lockpick",
+    "form": "0000000A",
+    "value": 3,
+    "weight": 0.0
+  },
+  {
+    "id": "LowerPants01",
+    "form": "000229A7",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "LowerPants03",
+    "form": "00000857",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "LowerPants04",
+    "form": "0001C82C",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "LowerPants05",
+    "form": "00027318",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "LowerRobe01",
+    "form": "0001E7FF",
+    "value": 1,
+    "weight": 2.0
+  },
+  {
+    "id": "LowerRobe03",
+    "form": "00071019",
+    "value": 1,
+    "weight": 2.0
+  },
+  {
+    "id": "LowerRobe03hood",
+    "form": "0007101A",
+    "value": 1,
+    "weight": 2.0
+  },
+  {
+    "id": "LowerShirt01",
+    "form": "000229A6",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "LowerShirt03",
+    "form": "00000883",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "LowerShirt04",
+    "form": "0001C82E",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "LowerShirt05",
+    "form": "00027319",
+    "value": 1,
+    "weight": 1.0
+  },
+  {
+    "id": "LowerShoes01",
+    "form": "000229A8",
+    "value": 1,
+    "weight": 2.0
+  },
+  {
+    "id": "LowerShoes03",
+    "form": "0001C82B",
+    "value": 1,
+    "weight": 2.0
+  },
+  {
+    "id": "LowerShoes04",
+    "form": "0001C82F",
+    "value": 1,
+    "weight": 2.0
+  },
+  {
+    "id": "LowerShoes05",
+    "form": "0002731A",
+    "value": 1,
+    "weight": 2.0
+  },
+  {
+    "id": "MiddlePants01",
+    "form": "000229AE",
+    "value": 2,
+    "weight": 1.0
+  },
+  {
+    "id": "MiddleShirt01",
+    "form": "000229AD",
+    "value": 2,
+    "weight": 1.0
+  },
+  {
+    "id": "MiddleShirt02",
+    "form": "0001C831",
+    "value": 2,
+    "weight": 1.0
+  },
+  {
+    "id": "MiddleShirt05",
+    "form": "000352BA",
+    "value": 2,
+    "weight": 1.0
+  },
+  {
+    "id": "MiddleShoes01",
+    "form": "000229AF",
+    "value": 1,
+    "weight": 2.0
+  },
+  {
+    "id": "MortarPestle",
+    "form": "000105E3",
+    "value": 25,
+    "weight": 1.0
+  },
+  {
+    "id": "Mutton",
+    "form": "00033686",
+    "value": 2,
+    "weight": 2.0
+  },
+  {
+    "id": "Onion",
+    "form": "0003368A",
+    "value": 1,
+    "weight": 0.2
+  },
+  {
+    "id": "Pear",
+    "form": "0003368B",
+    "value": 1,
+    "weight": 0.2
+  },
+  {
+    "id": "Potato",
+    "form": "0003368C",
+    "value": 1,
+    "weight": 0.2
+  },
+  {
+    "id": "PotionCureDisease",
+    "form": "0000920E",
+    "value": 140,
+    "weight": 0.5
+  },
+  {
+    "id": "PotionCurePoison",
+    "form": "0000920F",
+    "value": 60,
+    "weight": 0.5
+  },
+  {
+    "id": "PotionRestoreFatigueW",
+    "form": "0000930E",
+    "value": 17,
+    "weight": 0.5
+  },
+  {
+    "id": "PotionRestoreHealthW",
+    "form": "00009310",
+    "value": 53,
+    "weight": 0.5
+  },
+  {
+    "id": "PotionRestoreMagickaW",
+    "form": "0000931A",
+    "value": 88,
+    "weight": 0.5
+  },
+  {
+    "id": "RepairHammer",
+    "form": "0000000C",
+    "value": 10,
+    "weight": 1.0
+  },
+  {
+    "id": "Retort",
+    "form": "00000C4F",
+    "value": 50,
+    "weight": 3.0
+  },
+  {
+    "id": "SoulGemEmpty1Petty",
+    "form": "00023D67",
+    "value": 10,
+    "weight": 0.1
+  },
+  {
+    "id": "SoulGemEmpty2Lesser",
+    "form": "00023D69",
+    "value": 25,
+    "weight": 0.2
+  },
+  {
+    "id": "Sweetcake",
+    "form": "0003369A",
+    "value": 1,
+    "weight": 0.2
+  },
+  {
+    "id": "Sweetroll",
+    "form": "0003369B",
+    "value": 1,
+    "weight": 0.2
+  },
+  {
+    "id": "Tomato",
+    "form": "0003369E",
+    "value": 2,
+    "weight": 0.2
+  },
+  {
+    "id": "Torch02",
+    "form": "0002CF9F",
+    "value": 0,
+    "weight": 0.0
+  },
+  {
+    "id": "Venison",
+    "form": "0002229B",
+    "value": 1,
+    "weight": 2.0
+  },
+  {
+    "id": "WeapIronBow",
+    "form": "00025231",
+    "value": 11,
+    "weight": 8.0
+  },
+  {
+    "id": "WeapIronClaymore",
+    "form": "0001C6CD",
+    "value": 40,
+    "weight": 22.0
+  },
+  {
+    "id": "WeapIronDagger",
+    "form": "00019171",
+    "value": 6,
+    "weight": 3.0
+  },
+  {
+    "id": "WeapIronLongsword",
+    "form": "00000C0C",
+    "value": 20,
+    "weight": 20.0
+  },
+  {
+    "id": "WeapIronMace",
+    "form": "00000D82",
+    "value": 17,
+    "weight": 15.0
+  },
+  {
+    "id": "WeapIronShortsword",
+    "form": "00000C0D",
+    "value": 10,
+    "weight": 8.0
+  },
+  {
+    "id": "WeapIronWarAxe",
+    "form": "00000D81",
+    "value": 13,
+    "weight": 12.0
+  }
+]

@@ -1,0 +1,6 @@
+/* A page's viewport covers the game before anything of the page shows, so html and body let the game's clicks through.
+   The property is inherited: a part of the page that takes clicks says so (pointer-events: auto). */
+html,
+body {
+  pointer-events: none;
+}

@@ -1,0 +1,3 @@
+[submodule "external/OblivionVoice"]
+	path = external/OblivionVoice
+	url = https://github.com/QueenlyDObnkey7/OblivionVoice.git

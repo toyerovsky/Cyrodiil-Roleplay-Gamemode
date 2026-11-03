@@ -1,0 +1,34 @@
+{
+  "exchange.option": "Wymiana",
+  "exchange.asked": "{name} proponuje wymianę. Naciśnij Y, żeby handlować, albo N, żeby odmówić, w ciągu {seconds} s.",
+  "exchange.timeout": "{name} nie przyjmuje wymiany.",
+  "exchange.declined": "{name} odrzuca wymianę.",
+  "exchange.you_declined": "Odrzucasz wymianę z: {name}.",
+  "exchange.accept_far": "Za daleko do wymiany ({name}). Podejdź na {metres} m i naciśnij Y jeszcze raz.",
+  "exchange.self_busy": "Już się wymieniasz albo czekasz na odpowiedź.",
+  "exchange.target_busy": "{name} jest w trakcie innej wymiany.",
+  "exchange.cooldown": "Kolejną wymianę możesz zaproponować za {seconds} s.",
+  "exchange.not_in_world": "Do wymiany oboje musicie być w świecie.",
+  "exchange.amount": "Zaoferuj od 0 do {max} sztuk złota.",
+  "exchange.changed": "Oferta się zmieniła. Przejrzyj ją jeszcze raz i potwierdź.",
+  "exchange.wait": "Potwierdzisz za {seconds} s, gdy oboje zobaczycie ofertę.",
+  "exchange.cancel_self": "Odwołujesz wymianę. Nic nie zmieniło właściciela.",
+  "exchange.cancel_other": "{name} odwołuje wymianę. Nic nie zmieniło właściciela.",
+  "exchange.cancel_gone": "{name} wychodzi z gry. Wymiana odwołana, nic nie zmieniło właściciela.",
+  "exchange.cancel_far": "Oddalacie się od siebie o ponad {metres} m. Wymiana odwołana, nic nie zmieniło właściciela.",
+  "exchange.cancel_not_in_world": "Jedno z was opuszcza świat. Wymiana odwołana, nic nie zmieniło właściciela.",
+  "exchange.cancel_failed": "Nie udało się dokończyć wymiany. Nic nie zmieniło właściciela.",
+  "exchange.received": {
+    "one": "Wymiana zakończona: otrzymano {count} sztukę złota",
+    "few": "Wymiana zakończona: otrzymano {count} sztuki złota",
+    "many": "Wymiana zakończona: otrzymano {count} sztuk złota",
+    "other": "Wymiana zakończona: otrzymano {count} sztuki złota"
+  },
+  "exchange.gave": {
+    "one": "Wymiana zakończona: oddano {count} sztukę złota",
+    "few": "Wymiana zakończona: oddano {count} sztuki złota",
+    "many": "Wymiana zakończona: oddano {count} sztuk złota",
+    "other": "Wymiana zakończona: oddano {count} sztuki złota"
+  },
+  "exchange.even": "Wymiana zakończona: złoto nie zmieniło właściciela"
+}

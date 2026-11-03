@@ -1,0 +1,50 @@
+:root {
+  --font-body: "Alegreya", "Palatino Linotype", Georgia, serif;
+  --font-title: "Cinzel", "Alegreya", Georgia, serif;
+
+  --ink: #2b1d0e;
+  --ink-soft: #5a4630;
+  --parchment: #e9dcbc;
+  --parchment-light: #f3ead3;
+  --parchment-deep: #dfcfa8;
+  --parchment-edge: #c9b285;
+  --gold: #9c7a3c;
+  --gold-bright: #c9a259;
+  --gold-pale: #d8b46b;
+  --gold-light: #e4c483;
+  --gold-dark: #6e5328;
+  --problem: #8f1d14;
+  --confirmed: #2f5d26;
+
+  --ink-line: rgba(43, 29, 14, 0.45);
+  --ink-wash: rgba(255, 250, 236, 0.5);
+  --problem-wash: rgba(143, 29, 20, 0.07);
+
+  --night: rgba(12, 9, 6, 0.85);
+  --night-line: rgba(201, 162, 89, 0.25);
+  --night-text: #f4ecdc;
+  --night-muted: #a89c88;
+  --night-refusal: #ff9c8c;
+  --night-disabled: #6f665a;
+
+  --backdrop-shade: rgba(12, 8, 4, 0.58);
+  --backdrop-edge: rgba(5, 3, 1, 0.96);
+  --shadow-deep: rgba(0, 0, 0, 0.7);
+  --glow: rgba(255, 190, 110, 0.45);
+
+  --disabled-fill: #d6c9a8;
+  --disabled-text: var(--ink-soft);
+
+  --radius: 6px;
+  --radius-small: 4px;
+  --radius-pill: 999px;
+  --focus-ring: 0 0 0 3px rgba(201, 162, 89, 0.4);
+  --size-scrollbar: 10px;
+
+  --duration-hover: 160ms;
+  --duration-fade: 600ms;
+  --duration-enter: 700ms;
+  --duration-stamp: 360ms;
+  --delay-enter: 180ms;
+  --duration-drift: 40s;
+}

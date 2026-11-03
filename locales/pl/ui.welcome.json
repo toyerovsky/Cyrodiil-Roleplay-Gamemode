@@ -1,0 +1,21 @@
+{
+  "ui.welcome.title_first": "Witaj w Cyrodiil",
+  "ui.welcome.title_back": "Witaj ponownie, {name}",
+  "ui.welcome.title_back_unnamed": "Witaj ponownie",
+  "ui.welcome.lead_first": "Grasz tu jednym z mieszkańców Cyrodiil, wśród innych graczy. Zacznij od postaci: najpierw imię, potem wygląd w kreatorze gry.",
+  "ui.welcome.lead_back": "Twoja postać rusza dalej z miejsca, w którym ostatnio skończyła.",
+  "ui.welcome.slots": "Twoje postacie",
+  "ui.welcome.last_played": "Ostatnia gra",
+  "ui.welcome.time_played": "Czas gry",
+  "ui.welcome.hours_minutes": "{hours} godz. {minutes} min",
+  "ui.welcome.minutes": "{minutes} min",
+  "ui.welcome.play": "Graj",
+  "ui.welcome.entering": "Wchodzę…",
+  "ui.welcome.empty": "Wolne miejsce",
+  "ui.welcome.empty_note": "Twoja własna postać: imię nadasz tutaj, wygląd w kreatorze gry.",
+  "ui.welcome.new": "Nowa postać",
+  "ui.welcome.starting": "Zaczynam…",
+  "ui.welcome.locked": "Druga postać",
+  "ui.welcome.keys_play": "E albo Enter: graj",
+  "ui.welcome.keys_new": "N albo Enter: nowa postać"
+}

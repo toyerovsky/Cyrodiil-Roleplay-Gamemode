@@ -1,0 +1,13 @@
+{
+  "uniqueId": "CyrodiilRP",
+  "version": "0.1.0",
+  "name": "Cyrodiil Roleplay",
+  "author": "Cyrodiil RP",
+  "description": "Roleplay gamemode: characters, proximity chat, gold, admin commands.",
+  "dependencies": [
+    {
+      "uniqueId": "OblivionMP.SDK",
+      "minimumVersion": "1.0.0"
+    }
+  ]
+}

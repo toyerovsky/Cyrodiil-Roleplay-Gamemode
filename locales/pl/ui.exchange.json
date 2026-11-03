@@ -1,0 +1,17 @@
+{
+  "ui.exchange.title": "Wymiana: {name}",
+  "ui.exchange.yours": "Twoja oferta",
+  "ui.exchange.theirs": "{name} oferuje",
+  "ui.exchange.gold": "Złoto",
+  "ui.exchange.carried": "Masz przy sobie {count} szt. złota.",
+  "ui.exchange.confirm": "Potwierdź",
+  "ui.exchange.confirm_in": "Potwierdź za {seconds} s",
+  "ui.exchange.waiting": "Czekam na: {name}",
+  "ui.exchange.confirmed": "Potwierdzone",
+  "ui.exchange.not_confirmed": "Niepotwierdzone",
+  "ui.exchange.cancel": "Odwołaj",
+  "ui.exchange.digits": "Podaj złoto w całych sztukach, od 0 do {max}.",
+  "ui.exchange.hint": "Każda zmiana cofa oba potwierdzenia. Esc odwołuje wymianę.",
+  "ui.exchange.done": "Gotowe",
+  "ui.exchange.amount": "{count} szt. złota"
+}

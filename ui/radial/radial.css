@@ -1,0 +1,19 @@
+/* A darker middle, so the wheel reads over a bright scene, and the edges stay the game's. */
+.radial {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 16px;
+  background: radial-gradient(circle at 50% 50%, rgba(8, 6, 4, 0.55), transparent 65%);
+}
+
+.radial__hint {
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  background: var(--night);
+  color: var(--night-text);
+  font-size: 15px;
+}

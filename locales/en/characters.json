@@ -1,0 +1,15 @@
+{
+  "characters.first_name": "First name",
+  "characters.last_name": "Last name",
+  "characters.name_length": "{part} must be {min} to {max} characters long.",
+  "characters.name_shape": "{part} may hold only Latin letters, with an apostrophe or a hyphen only between them.",
+  "characters.name_reserved": "{part} must not sound like a role on the server.",
+  "characters.name_taken": "Someone in Cyrodiil already goes by {name}.",
+  "characters.already_created": "You already have a character: {name}.",
+  "characters.save_failed": "Your character could not be saved. Try again in a moment.",
+  "characters.creator_hint": "Choose your race, sex and looks",
+  "characters.welcome_back": "Welcome back, {name}.",
+  "characters.welcome": "Welcome to Cyrodiil, {name}. Plain chat (K) is your character speaking.",
+  "characters.help_hint": "/help lists the commands, /ooc talks out of character.",
+  "characters.busy": "Your character is still being saved."
+}

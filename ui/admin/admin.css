@@ -1,0 +1,250 @@
+/* Over the whole screen, so no click goes past it to the game. A long tab scrolls inside the panel. */
+.admin {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+  height: 100%;
+  padding: 24px;
+  background: radial-gradient(ellipse at center, var(--backdrop-shade) 0%, var(--backdrop-edge) 100%);
+  pointer-events: auto;
+}
+
+/* A desk of the staff, not a letter: the plain parchment, wide enough for a list beside a card. The body takes what
+   the title, the duty's note and the footer leave. */
+.admin__panel.rp-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(1560px, 100%);
+  height: min(1000px, 100%);
+  padding: 22px 28px 18px;
+  overflow: hidden;
+}
+
+.admin__panel .rp-panel__title {
+  text-align: left;
+}
+
+.admin__panel .rp-panel__title::after {
+  margin-left: 0;
+  width: 320px;
+}
+
+/* The duty sits by the title, where the staff member looks first. */
+.admin__duty {
+  position: absolute;
+  top: 20px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin__duty-state {
+  padding: 4px 14px;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--parchment-edge);
+  color: var(--ink-soft);
+  background: var(--ink-wash);
+}
+
+.admin__duty--on .admin__duty-state {
+  color: var(--parchment-light);
+  background: var(--confirmed);
+  border-color: var(--confirmed);
+}
+
+.admin__duty--free .admin__duty-state {
+  color: var(--parchment-light);
+  background: var(--gold-dark);
+  border-color: var(--gold-dark);
+}
+
+.admin__needed {
+  margin: 8px 0 0;
+  padding: 8px 14px;
+  font-weight: 700;
+  color: var(--problem);
+  background: var(--problem-wash);
+  border-left: 4px solid var(--problem);
+  border-radius: var(--radius-small);
+}
+
+.admin__body {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: 188px minmax(0, 1fr);
+  gap: 22px;
+  min-height: 0;
+  margin-top: 14px;
+}
+
+.admin__content {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.admin__heading {
+  margin: 20px 0 8px;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: 0.05em;
+  color: var(--gold-dark);
+}
+
+.admin__heading::after {
+  content: "";
+  display: block;
+  height: 2px;
+  margin-top: 5px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+.admin__note {
+  margin: 8px 0;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.admin__problem {
+  margin: 8px 0 0;
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.admin__hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.admin__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ink-line);
+}
+
+.admin__status {
+  min-height: 26px;
+  margin: 0;
+  font-size: 17px;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.admin__status--done {
+  font-weight: 700;
+  color: var(--confirmed);
+}
+
+.admin__status--refused {
+  font-weight: 700;
+  color: var(--problem);
+}
+
+/* The pieces more than one tab uses. */
+.admin-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-items {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-items--found {
+  margin-top: 8px;
+}
+
+.admin-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px;
+  border-radius: var(--radius-small);
+}
+
+.admin-item:nth-child(odd) {
+  background: var(--ink-wash);
+}
+
+.admin-item__name {
+  overflow-wrap: anywhere;
+}
+
+.admin-item__count,
+.admin-item__code {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.admin-item__worn {
+  font-size: 15px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.admin-item__button.rp-button {
+  padding: 4px 12px;
+  font-size: 15px;
+}
+
+.admin-entries {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-entry {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 220px) minmax(0, 1fr);
+  gap: 2px 14px;
+  padding: 6px 8px;
+  font-size: 16px;
+  border-radius: var(--radius-small);
+}
+
+.admin-entry:nth-child(odd) {
+  background: var(--ink-wash);
+}
+
+.admin-entry__at {
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-entry__action {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.admin-entry__who {
+  overflow-wrap: anywhere;
+}
+
+.admin-entry__details {
+  grid-column: 2 / -1;
+  font-size: 15px;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}

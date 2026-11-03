@@ -1,0 +1,133 @@
+/* Shown, it covers the whole screen, so no click goes past it to the game: the map of Cyrodiil drifting behind a
+   letter, dark at the edges. */
+.creator {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 24px;
+  visibility: hidden;
+}
+
+.creator--shown {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.creator--shown::before,
+.creator--shown::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  animation: rp-fade var(--duration-fade) ease-out both;
+}
+
+.creator--shown::before {
+  inset: -4%;
+  background: url("../rp/art/cyrodiil-map.webp") center 40% / cover;
+  animation: rp-fade var(--duration-fade) ease-out both, rp-drift var(--duration-drift) ease-in-out infinite alternate;
+}
+
+.creator--shown::after {
+  inset: 0;
+  background: radial-gradient(ellipse 70% 75% at center, transparent 0%, var(--backdrop-edge) 100%), var(--backdrop-shade);
+}
+
+.creator__document {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  max-height: 100%;
+  padding: 58px 0 50px;
+}
+
+.creator--shown .creator__panel {
+  animation: rp-rise var(--duration-enter) var(--delay-enter) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.creator__panel {
+  padding-top: 82px;
+}
+
+.creator__crest {
+  position: absolute;
+  top: 0;
+  z-index: 1;
+  height: 128px;
+  filter: drop-shadow(0 0 16px var(--glow)) drop-shadow(0 8px 10px var(--shadow-deep));
+  pointer-events: none;
+}
+
+.creator--shown .creator__crest {
+  animation: rp-descend var(--duration-enter) calc(var(--delay-enter) * 2) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.creator__seal {
+  position: absolute;
+  bottom: 0;
+  z-index: 1;
+  width: 104px;
+  transform: rotate(-10deg);
+  filter: saturate(0.35) brightness(0.6) drop-shadow(0 6px 8px var(--shadow-deep));
+  opacity: 0.75;
+  transition: filter var(--duration-hover), opacity var(--duration-hover);
+  pointer-events: none;
+}
+
+.creator--shown .creator__seal {
+  animation: rp-fade var(--duration-enter) calc(var(--delay-enter) * 3) ease-out both;
+}
+
+.creator--shown .creator__seal--pressed {
+  filter: drop-shadow(0 6px 8px var(--shadow-deep));
+  opacity: 1;
+  animation: creator-stamp var(--duration-stamp) cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+.creator__lead {
+  margin: 16px 0 20px;
+  color: var(--ink-soft);
+}
+
+.creator__form {
+  display: grid;
+  gap: 6px;
+}
+
+.creator__hint {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.creator__problem {
+  min-height: 24px;
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.creator__submit {
+  margin-top: 8px;
+}
+
+.creator__note {
+  margin: 18px 0 0;
+  font-size: 14px;
+  font-style: italic;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+@keyframes creator-stamp {
+  from {
+    opacity: 0.5;
+    transform: rotate(-10deg) scale(1.45);
+  }
+
+  to {
+    transform: rotate(-10deg) scale(1);
+  }
+}

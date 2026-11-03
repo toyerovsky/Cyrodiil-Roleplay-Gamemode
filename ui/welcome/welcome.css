@@ -1,0 +1,188 @@
+/* Opaque over the whole screen: the game, its loading and its HUD stay behind the map of Cyrodiil until the player
+   takes their character over. */
+.welcome {
+  position: fixed;
+  inset: 0;
+  isolation: isolate;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+  padding: 24px;
+  overflow: hidden;
+  background-color: var(--ink);
+  pointer-events: auto;
+}
+
+.welcome::before,
+.welcome::after {
+  content: "";
+  position: absolute;
+  animation: rp-fade var(--duration-fade) ease-out both;
+}
+
+.welcome::before {
+  inset: -4%;
+  z-index: -2;
+  background: url("../rp/art/cyrodiil-map.webp") center 40% / cover;
+  animation: rp-fade var(--duration-fade) ease-out both, rp-drift var(--duration-drift) ease-in-out infinite alternate;
+}
+
+.welcome::after {
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(ellipse 70% 75% at center, transparent 0%, var(--backdrop-edge) 100%), var(--backdrop-shade);
+}
+
+/* The crest stands on the letter's top edge, as on the name form. */
+.welcome__document {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  justify-items: center;
+  width: min(1080px, 100%);
+  max-height: 100%;
+  padding-top: 58px;
+}
+
+.welcome__crest {
+  position: absolute;
+  top: 0;
+  z-index: 1;
+  height: 128px;
+  filter: drop-shadow(0 0 16px var(--glow)) drop-shadow(0 8px 10px var(--shadow-deep));
+  pointer-events: none;
+  animation: rp-descend var(--duration-enter) calc(var(--delay-enter) * 2) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.welcome__panel.rp-panel {
+  width: 100%;
+  padding-top: 82px;
+  animation: rp-rise var(--duration-enter) var(--delay-enter) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.welcome__lead {
+  max-width: 760px;
+  margin: 16px auto 28px;
+  font-size: 19px;
+  font-style: italic;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.welcome__slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.welcome__slot {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 250px;
+  padding: 22px 26px 24px;
+  border: 1px solid var(--ink-line);
+  border-radius: var(--radius);
+  background: var(--ink-wash);
+}
+
+.welcome__slot--empty {
+  border-style: dashed;
+}
+
+/* Sealed: the slot waits for the platform, nothing on it to press. */
+.welcome__slot--locked {
+  align-items: center;
+  text-align: center;
+  color: var(--ink-soft);
+  background: none;
+  border-style: dashed;
+}
+
+.welcome__seal {
+  width: 72px;
+  transform: rotate(-10deg);
+  filter: saturate(0.35) brightness(0.6) drop-shadow(0 6px 8px var(--shadow-deep));
+}
+
+.welcome__name {
+  margin: 0;
+  font-weight: 600;
+  font-size: 28px;
+  font-family: var(--font-title);
+  line-height: 56px;
+  letter-spacing: 0.04em;
+}
+
+.welcome__name .rp-illuminated {
+  display: inline-block;
+}
+
+.welcome__name .rp-illuminated__initial {
+  height: 56px;
+  margin-top: 0;
+}
+
+.welcome__slot-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 24px;
+  font-family: var(--font-title);
+  letter-spacing: 0.04em;
+}
+
+.welcome__facts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.welcome__fact {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 16px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--ink-line);
+}
+
+.welcome__fact dt {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.welcome__fact dd {
+  margin: 0;
+  font-size: 19px;
+}
+
+.welcome__note {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.welcome__action {
+  margin-top: auto;
+}
+
+/* The keyboard starts on it, and the gold of the button swallows the usual ring. */
+.welcome__action:focus-visible {
+  box-shadow: 0 0 0 2px var(--parchment-light), 0 0 0 4px var(--gold-dark);
+}
+
+.welcome__keys {
+  margin: 22px 0 0;
+  font-size: 15px;
+  font-style: italic;
+  text-align: center;
+  color: var(--ink-soft);
+}

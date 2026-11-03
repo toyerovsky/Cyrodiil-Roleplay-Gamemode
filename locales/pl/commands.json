@@ -1,0 +1,13 @@
+{
+  "commands.unknown": "Nie ma komendy /{name}. Wpisz /help.",
+  "commands.failed": "Komenda /{name} się nie powiodła.",
+  "commands.target": "Podaj numer gracza, /players je wypisuje.",
+  "commands.no_player": "Nie ma gracza o numerze {number}.",
+  "commands.number": "Podaj liczbę.",
+  "commands.target_account": "Podaj numer gracza z /players albo id konta ReadyM.",
+  "commands.minutes": "Podaj minuty, od 0 (do odwołania) do {max}.",
+  "commands.reason": "Podaj powód, minimum znaków: {min}.",
+  "commands.outranked": "Wobec gracza {name} nie możesz tego zrobić.",
+  "commands.target_joining": "{name} jeszcze wchodzi do gry. Spróbuj za chwilę.",
+  "commands.not_yourself": "Nie na sobie."
+}

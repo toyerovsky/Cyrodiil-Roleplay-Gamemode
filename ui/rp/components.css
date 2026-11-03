@@ -1,0 +1,460 @@
+.rp-panel {
+  width: min(480px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 32px 36px 26px;
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255, 250, 235, 0.55), transparent 60%),
+    linear-gradient(180deg, var(--parchment-light), var(--parchment) 40%, var(--parchment-deep));
+  border: 2px solid var(--parchment-edge);
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 18px 48px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(120, 90, 40, 0.25);
+}
+
+.rp-panel__title {
+  margin: 0 0 6px;
+  font-weight: 600;
+  font-size: 30px;
+  line-height: 1.2;
+  font-family: var(--font-title);
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.rp-panel__title::after {
+  content: "";
+  display: block;
+  width: 60%;
+  height: 2px;
+  margin: 10px auto 0;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+/* The game's message window: its parchment with the torn edge, its gold frame inside, its ornament under the title.
+   The edges keep their size and the middle stretches with the text. */
+.rp-panel--letter {
+  position: relative;
+  width: min(600px, 100%);
+  padding: 66px 78px 66px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  border-image: url("./art/parchment.webp") 48 fill / 48px stretch;
+  box-shadow: none;
+  filter: drop-shadow(0 22px 34px var(--shadow-deep));
+}
+
+.rp-panel--letter::before {
+  content: "";
+  position: absolute;
+  inset: 24px 26px;
+  border-image: url("./art/letter-frame.webp") 110 100 / 72px 66px stretch;
+  pointer-events: none;
+}
+
+.rp-panel--letter .rp-panel__title {
+  font-size: 34px;
+  letter-spacing: 0.06em;
+}
+
+.rp-panel--letter .rp-panel__title::after {
+  width: 300px;
+  height: 13px;
+  margin-top: 12px;
+  background: url("./art/divider.webp") center / contain no-repeat;
+}
+
+/* A name on a letter is written in ink on a line, not typed into a box. */
+.rp-panel--letter .rp-field__label {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.rp-panel--letter .rp-field__input {
+  padding: 8px 6px 6px;
+  border: 0;
+  border-bottom: 2px solid var(--ink-line);
+  border-radius: var(--radius-small) var(--radius-small) 0 0;
+  background: var(--ink-wash);
+  font-size: 21px;
+}
+
+.rp-panel--letter .rp-field__input::placeholder {
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.rp-panel--letter .rp-field__input:focus {
+  border-bottom-color: var(--gold-dark);
+  box-shadow: 0 2px 0 var(--gold), 0 8px 18px -10px var(--gold-bright);
+}
+
+.rp-panel--letter .rp-field__input[aria-invalid="true"] {
+  border-bottom-color: var(--problem);
+  background: var(--problem-wash);
+}
+
+/* The letter's picture floats beside the first lines, and the letter it draws leaves the text: still read, not seen
+   twice. A short text still holds its picture, so what follows starts below it. */
+.rp-illuminated {
+  display: flow-root;
+  margin: 0;
+}
+
+.rp-illuminated__initial {
+  float: left;
+  height: 64px;
+  margin: 5px 3px 0 -2px;
+}
+
+.rp-illuminated--initial::first-letter {
+  font-size: 0;
+}
+
+.rp-field {
+  display: grid;
+  gap: 6px;
+}
+
+.rp-field__label {
+  margin-top: 6px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.rp-field__input {
+  padding: 9px 12px;
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+  background: rgba(255, 252, 242, 0.85);
+  color: var(--ink);
+  font: inherit;
+  outline: none;
+  transition: border-color var(--duration-hover), box-shadow var(--duration-hover);
+}
+
+.rp-field__input:focus {
+  border-color: var(--gold);
+  box-shadow: var(--focus-ring);
+}
+
+.rp-field__input[aria-invalid="true"] {
+  border-color: var(--problem);
+}
+
+.rp-button {
+  padding: 11px 16px;
+  border: 1px solid var(--gold-dark);
+  border-radius: var(--radius-small);
+  background: linear-gradient(180deg, var(--parchment-light), var(--parchment-deep));
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 17px;
+  font-family: var(--font-body);
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background var(--duration-hover), box-shadow var(--duration-hover);
+}
+
+.rp-button--primary {
+  background: linear-gradient(180deg, var(--gold-pale), var(--gold-bright));
+}
+
+.rp-button:hover:not(:disabled),
+.rp-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.rp-button--primary:hover:not(:disabled),
+.rp-button--primary:focus-visible {
+  background: linear-gradient(180deg, var(--gold-light), var(--gold-pale));
+}
+
+/* Its own colours rather than a fade, which would leave the label under 4.5:1. */
+.rp-button:disabled {
+  border-color: var(--parchment-edge);
+  background: var(--disabled-fill);
+  color: var(--disabled-text);
+  cursor: default;
+}
+
+/* One of a few choices side by side: a kind of wares, a filter, a language, a weather. The one picked takes the dark
+   gold of the selected tab's edge. */
+.rp-chip {
+  min-height: 36px;
+  padding: 4px 14px;
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-pill);
+  background: var(--ink-wash);
+  color: var(--ink-soft);
+  font-size: 16px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background var(--duration-hover), border-color var(--duration-hover), color var(--duration-hover);
+}
+
+.rp-chip:hover:not(:disabled, .rp-chip--on) {
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
+.rp-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.rp-chip--on {
+  border-color: var(--gold-dark);
+  background: var(--gold-dark);
+  color: var(--parchment-light);
+  font-weight: 700;
+}
+
+.rp-chip:disabled {
+  background: var(--disabled-fill);
+  color: var(--disabled-text);
+  cursor: default;
+}
+
+/* The medallions of the game's own menus down the side of a page, a tab each. */
+.rp-tabs {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.rp-tabs__tab {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 8px 14px 8px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-small);
+  background: none;
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 20px;
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-hover), color var(--duration-hover);
+}
+
+.rp-tabs__tab:hover:not(.rp-tabs__tab--on) {
+  background: rgba(156, 122, 60, 0.12);
+  color: var(--ink);
+}
+
+/* A line of its own round the tab, as the tab picked already has the wash. */
+.rp-tabs__tab:focus-visible {
+  outline: 2px solid var(--gold-dark);
+  outline-offset: 2px;
+}
+
+.rp-tabs__tab--on {
+  border-color: var(--parchment-edge);
+  background: rgba(156, 122, 60, 0.28);
+  color: var(--ink);
+  box-shadow: inset 4px 0 0 var(--gold-dark);
+}
+
+/* The medallions' own size at 1080p. */
+.rp-tabs__medallion {
+  width: 64px;
+  height: 64px;
+  filter: saturate(0.6) brightness(0.92);
+  transition: filter var(--duration-hover);
+}
+
+.rp-tabs__tab--on .rp-tabs__medallion,
+.rp-tabs__tab:hover .rp-tabs__medallion {
+  filter: drop-shadow(0 0 6px var(--glow));
+}
+
+.rp-tabs__label {
+  overflow-wrap: anywhere;
+}
+
+.rp-tabs--small {
+  gap: 8px;
+}
+
+.rp-tabs--small .rp-tabs__tab {
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 10px;
+  padding: 6px 10px 6px 6px;
+  font-size: 18px;
+}
+
+.rp-tabs--small .rp-tabs__medallion {
+  width: 52px;
+  height: 52px;
+}
+
+.rp-icon {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The wheel's own size at 1080p: the drawing inside scales with it. */
+.rp-radial {
+  position: relative;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  outline: none;
+  color: var(--night-text);
+  user-select: none;
+}
+
+.rp-radial:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.rp-radial__wheel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.rp-radial__wedge {
+  fill: var(--night);
+  stroke: var(--night-line);
+  stroke-width: 1;
+  transition: fill var(--duration-hover);
+}
+
+.rp-radial__wedge--on {
+  fill: rgba(201, 162, 89, 0.38);
+  stroke: var(--gold-bright);
+}
+
+.rp-radial__wedge--disabled {
+  fill: rgba(12, 9, 6, 0.7);
+}
+
+.rp-radial__wedge--disabled.rp-radial__wedge--on {
+  fill: rgba(143, 29, 20, 0.45);
+  stroke: var(--night-refusal);
+}
+
+.rp-radial__ring {
+  fill: none;
+  stroke: var(--night-line);
+  stroke-width: 2;
+}
+
+.rp-radial__hub-ring {
+  fill: var(--night);
+  stroke: var(--gold-dark);
+  stroke-width: 2;
+}
+
+.rp-radial__arc {
+  fill: none;
+  stroke: var(--gold-light);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.rp-radial__item {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: color var(--duration-hover);
+}
+
+.rp-radial__item--on {
+  color: var(--gold-light);
+}
+
+.rp-radial__item--disabled {
+  color: var(--night-disabled);
+}
+
+.rp-radial__number {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+  font-family: var(--font-body);
+  color: var(--night-muted);
+  pointer-events: none;
+}
+
+.rp-radial__hub {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  gap: 6px;
+  width: 230px;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.rp-radial__title {
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.2;
+  font-family: var(--font-title);
+  color: var(--gold-pale);
+  overflow-wrap: anywhere;
+}
+
+.rp-radial__label {
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.25;
+  font-family: var(--font-body);
+}
+
+.rp-radial__reason {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.3;
+  font-family: var(--font-body);
+  color: var(--night-refusal);
+}
+
+@keyframes rp-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rp-drift {
+  to {
+    transform: scale(1.07) translate(-1.5%, -1%);
+  }
+}
+
+@keyframes rp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.97);
+  }
+}
+
+@keyframes rp-descend {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.86);
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "commands.unknown": "There is no /{name}. Type /help.",
+  "commands.failed": "/{name} failed.",
+  "commands.target": "Give a player number, /players lists them.",
+  "commands.no_player": "There is no player number {number}.",
+  "commands.number": "Give a number.",
+  "commands.target_account": "Give a player number from /players, or a ReadyM account id.",
+  "commands.minutes": "Give the minutes, from 0 (until lifted) to {max}.",
+  "commands.reason": "Give a reason of at least {min} characters.",
+  "commands.outranked": "{name} is not someone you may do that to.",
+  "commands.target_joining": "{name} is still joining. Try again in a moment.",
+  "commands.not_yourself": "Not on yourself."
+}
