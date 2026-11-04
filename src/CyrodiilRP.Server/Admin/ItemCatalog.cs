@@ -3,7 +3,8 @@ using System.Text.Json;
 
 namespace CyrodiilRP.Server.Admin;
 
-// The game's named items (items.json), for /aitem and the player's card: the SDK knows an item only by its form id.
+// The game's named items (items.json), for /aitem, the player's card and the trade: the SDK knows an item only by its
+// form id.
 internal sealed class ItemCatalog
 {
     private readonly Dictionary<uint, GameItem> _byForm;

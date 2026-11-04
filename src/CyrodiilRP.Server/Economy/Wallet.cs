@@ -46,12 +46,6 @@ internal sealed partial class Wallet(IEntities entities, Inventories inventories
            && entities.TryLookup(player, out MainCharacter main)
            && inventories.TryTake(GetInventory(main), CreateGoldStack(amount));
 
-    public bool TryTransfer(PlayerId from, PlayerId to, int amount)
-        => amount > 0
-           && entities.TryLookup(from, out MainCharacter payer)
-           && entities.TryLookup(to, out MainCharacter payee)
-           && inventories.TryMove(GetInventory(payer), GetInventory(payee), CreateGoldStack(amount));
-
     private static Equipment GetInventory(in MainCharacter main) => EntityHandle.Of(main).As<Equipment>();
 
     private static ItemStackData CreateGoldStack(int count) => new()

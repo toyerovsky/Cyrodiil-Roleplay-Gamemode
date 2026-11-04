@@ -10,6 +10,8 @@
   "exchange.cooldown": "Kolejną wymianę możesz zaproponować za {seconds} s.",
   "exchange.not_in_world": "Do wymiany oboje musicie być w świecie.",
   "exchange.amount": "Zaoferuj od 0 do {max} sztuk złota.",
+  "exchange.item_gone": "Już tego nie masz przy sobie.",
+  "exchange.item_amount": "Zaoferuj od 0 do {max}: {item}.",
   "exchange.changed": "Oferta się zmieniła. Przejrzyj ją jeszcze raz i potwierdź.",
   "exchange.wait": "Potwierdzisz za {seconds} s, gdy oboje zobaczycie ofertę.",
   "exchange.cancel_self": "Odwołujesz wymianę. Nic nie zmieniło właściciela.",
@@ -18,17 +20,30 @@
   "exchange.cancel_far": "Oddalacie się od siebie o ponad {metres} m. Wymiana odwołana, nic nie zmieniło właściciela.",
   "exchange.cancel_not_in_world": "Jedno z was opuszcza świat. Wymiana odwołana, nic nie zmieniło właściciela.",
   "exchange.cancel_failed": "Nie udało się dokończyć wymiany. Nic nie zmieniło właściciela.",
-  "exchange.received": {
-    "one": "Wymiana zakończona: otrzymano {count} sztukę złota",
-    "few": "Wymiana zakończona: otrzymano {count} sztuki złota",
-    "many": "Wymiana zakończona: otrzymano {count} sztuk złota",
-    "other": "Wymiana zakończona: otrzymano {count} sztuki złota"
+  "exchange.result": "Wymiana zakończona: {what}",
+  "exchange.part.gold_received": {
+    "one": "otrzymano {count} sztukę złota",
+    "few": "otrzymano {count} sztuki złota",
+    "many": "otrzymano {count} sztuk złota",
+    "other": "otrzymano {count} sztuki złota"
   },
-  "exchange.gave": {
-    "one": "Wymiana zakończona: oddano {count} sztukę złota",
-    "few": "Wymiana zakończona: oddano {count} sztuki złota",
-    "many": "Wymiana zakończona: oddano {count} sztuk złota",
-    "other": "Wymiana zakończona: oddano {count} sztuki złota"
+  "exchange.part.gold_gave": {
+    "one": "oddano {count} sztukę złota",
+    "few": "oddano {count} sztuki złota",
+    "many": "oddano {count} sztuk złota",
+    "other": "oddano {count} sztuki złota"
   },
-  "exchange.even": "Wymiana zakończona: złoto nie zmieniło właściciela"
+  "exchange.part.items_received": {
+    "one": "otrzymano {count} przedmiot",
+    "few": "otrzymano {count} przedmioty",
+    "many": "otrzymano {count} przedmiotów",
+    "other": "otrzymano {count} przedmiotu"
+  },
+  "exchange.part.items_gave": {
+    "one": "oddano {count} przedmiot",
+    "few": "oddano {count} przedmioty",
+    "many": "oddano {count} przedmiotów",
+    "other": "oddano {count} przedmiotu"
+  },
+  "exchange.even": "Wymiana zakończona: nic nie zmieniło właściciela"
 }

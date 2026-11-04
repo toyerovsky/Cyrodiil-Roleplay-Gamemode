@@ -8,12 +8,12 @@ using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
+using Microsoft.Extensions.Logging;
 using ReadyM.Api.Idents;
 using ReadyM.SDK.Attributes;
 
 namespace CyrodiilRP.Server.Exchange;
 
-// The SDK gives no names of items yet, so only gold is traded.
 [Service]
 internal sealed partial class Exchanges(
     RpcHandlers rpc,
@@ -21,24 +21,28 @@ internal sealed partial class Exchanges(
     InteractionMenu interactions,
     Proximity proximity,
     Wallet wallet,
+    ExchangeInventory inventory,
     RpChat chat,
     Asks asks,
     Audit audit,
     Timers timers,
     SystemClock clock,
-    RpConfig config)
+    RpConfig config,
+    ILogger logger)
 {
     private const string TradeOption = "player.trade";
     private const string TradeAction = "economy.trade";
     private const string AskJob = "exchange.ask";
     private const string WatchJob = "exchange.watch";
     private const string DoneJob = "exchange.done";
+    private const string ResultSeparator = ", ";
     private const int TradeOrder = 30;
 
     private static readonly TimeSpan WatchEvery = TimeSpan.FromSeconds(1);
 
     private readonly ExchangeBook _book = new();
     private readonly AskPacing _pacing = new(AskJob, timers, clock);
+    private readonly ExchangeSettlement _settlement = new(inventory.TryMove, logger);
 
     private long NowMs => clock.MonotonicMs;
 
@@ -55,6 +59,7 @@ internal sealed partial class Exchanges(
             Run = Trade,
         });
         rpc.ExchangeOffered += OnOffered;
+        rpc.ExchangeItemOffered += OnItemOffered;
         rpc.ExchangeConfirmed += OnConfirmed;
         rpc.ExchangeCancelled += OnCancelled;
         online.Left += OnLeft;
@@ -157,7 +162,7 @@ internal sealed partial class Exchanges(
         if (!TryDeal(id, out var player, out var deal))
             return;
 
-        var most = ComputeMaxOffer(player);
+        var most = ComputeMaxOffer(ReadHoldings(player));
         if (gold < 0 || gold > most)
         {
             Refuse(player, deal, ExchangeText.Amount(most));
@@ -165,6 +170,27 @@ internal sealed partial class Exchanges(
         }
 
         if (deal.Offer(player, gold, NowMs))
+            Refresh(deal);
+    }
+
+    private void OnItemOffered(PlayerId id, string key, int count)
+    {
+        if (!TryDeal(id, out var player, out var deal))
+            return;
+
+        var held = ReadHoldings(player);
+        var carried = held.Find(key);
+        var outcome = deal.OfferItem(player, held, key, count, NowMs);
+        Phrase? refusal = outcome switch
+        {
+            ItemOfferOutcome.NotCarried => ExchangeText.ItemGone,
+            ItemOfferOutcome.OutOfRange => ExchangeText.ItemAmount(max: carried!.Count, item: carried.Item.Name),
+            ItemOfferOutcome.Unchanged or ItemOfferOutcome.Changed => null,
+        };
+
+        if (refusal is not null)
+            Refuse(player, deal, refusal);
+        else if (outcome == ItemOfferOutcome.Changed)
             Refresh(deal);
     }
 
@@ -214,7 +240,7 @@ internal sealed partial class Exchanges(
             return;
         }
 
-        if (deal.Trim(CountCarried, NowMs))
+        if (deal.Trim(ReadHoldings, NowMs))
         {
             foreach (var side in deal.Sides)
                 Refuse(side.Player, deal, ExchangeText.Changed);
@@ -222,31 +248,22 @@ internal sealed partial class Exchanges(
             return;
         }
 
-        var net = deal.Net;
-        var moved = net switch
-        {
-            > 0 => wallet.TryTransfer(deal.Asker.Player.Id, deal.Asked.Player.Id, net),
-            < 0 => wallet.TryTransfer(deal.Asked.Player.Id, deal.Asker.Player.Id, -net),
-            _ => true,
-        };
-        if (!moved)
+        if (!_settlement.TryRun(deal.ListMoves()))
         {
             End(deal, _ => ExchangeText.CancelFailed);
             return;
         }
 
-        audit.Log(TradeAction, deal.Asker.Player.Ref, deal.Asked.Player.Ref, new TradeDetails(deal.Asker.Gold, deal.Asked.Gold));
+        audit.Log(
+            TradeAction,
+            deal.Asker.Player.Ref,
+            deal.Asked.Player.Ref,
+            new TradeDetails(deal.Asker.Gold, deal.Asked.Gold, deal.Asker.DescribeItems(), deal.Asked.DescribeItems()));
         _book.Close(deal);
 
         foreach (var side in deal.Sides)
         {
-            var received = deal.GetOtherSide(side.Player).Gold - side.Gold;
-            var result = received switch
-            {
-                > 0 => ExchangeText.Received(received),
-                < 0 => ExchangeText.Gave(-received),
-                _ => ExchangeText.Even,
-            };
+            var result = DescribeResult(deal, side.Player);
             rpc.SendExchangeDone(side.Player.Id, chat.Translate(side.Player, result));
             chat.Notify(side.Player, result);
         }
@@ -256,6 +273,12 @@ internal sealed partial class Exchanges(
             foreach (var side in deal.Sides.Where(side => side.Player.IsLive && !_book.IsTrading(side.Player)))
                 rpc.SendExchangeClosed(side.Player.Id);
         });
+    }
+
+    private Phrase DescribeResult(ExchangeDeal deal, OnlinePlayer player)
+    {
+        var parts = deal.ListResults(player).Select(part => chat.Translate(player, part)).ToList();
+        return parts.Count == 0 ? ExchangeText.Even : ExchangeText.Result(string.Join(ResultSeparator, parts));
     }
 
     private void Watch()
@@ -271,13 +294,13 @@ internal sealed partial class Exchanges(
                 continue;
             }
 
-            if (deal.Trim(CountCarried, NowMs))
+            if (deal.Trim(ReadHoldings, NowMs))
             {
                 Refresh(deal);
                 continue;
             }
 
-            foreach (var side in deal.Sides.Where(side => side.SeenCarried != CountCarried(side.Player)))
+            foreach (var side in deal.Sides.Where(side => side.Seen?.Matches(ReadHoldings(side.Player)) != true))
                 SendState(deal, side.Player);
         }
     }
@@ -344,21 +367,26 @@ internal sealed partial class Exchanges(
     {
         var side = deal.GetSide(player);
         var other = deal.GetOtherSide(player);
-        side.SeenCarried = CountCarried(player);
+        var held = ReadHoldings(player);
+        side.Seen = held;
         var view = new ExchangeView(
             deal.Version,
             other.Player.Name,
-            side.SeenCarried,
-            ComputeMaxOffer(player),
+            held.Gold,
+            ComputeMaxOffer(held),
             (long)deal.ComputeConfirmWait(NowMs).TotalMilliseconds,
-            new ExchangeOfferView(side.Gold, side.Confirmed),
-            new ExchangeOfferView(other.Gold, other.Confirmed));
+            CreateItemViews(held.Items),
+            new ExchangeOfferView(side.Gold, CreateItemViews(side.Items), side.Confirmed),
+            new ExchangeOfferView(other.Gold, CreateItemViews(other.Items), other.Confirmed));
         rpc.SendExchangeState(player.Id, JsonSerializer.Serialize(view, ExchangeJson.Default.ExchangeView));
     }
 
-    private int CountCarried(OnlinePlayer player) => wallet.TryCount(player.Id, out var gold) ? gold : 0;
+    private static List<ExchangeItemView> CreateItemViews(IEnumerable<ExchangeItem> items) =>
+        items.Select(item => new ExchangeItemView(item.Stack.Key, item.Item.Name, item.Stack.IsUsed, item.Count)).ToList();
 
-    private int ComputeMaxOffer(OnlinePlayer player) => Math.Min(CountCarried(player), config.Economy.MaxPayment);
+    private ExchangeHoldings ReadHoldings(OnlinePlayer player) => inventory.Read(player.Id);
 
-    private sealed record TradeDetails(int AskerGave, int AskedGave);
+    private int ComputeMaxOffer(ExchangeHoldings held) => Math.Min(held.Gold, config.Economy.MaxPayment);
+
+    private sealed record TradeDetails(int AskerGave, int AskedGave, string? AskerItems, string? AskedItems);
 }

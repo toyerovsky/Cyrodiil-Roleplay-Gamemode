@@ -26,6 +26,8 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId, int>? ExchangeOffered;
 
+    public event Action<PlayerId, string, int>? ExchangeItemOffered;
+
     public event Action<PlayerId, int>? ExchangeConfirmed;
 
     public event Action<PlayerId>? ExchangeCancelled;
@@ -69,6 +71,9 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnCloseWheel(RpcContext context) => callbacks.Raise("rpc.close_wheel", WheelClosed, context.Sender);
 
     partial void OnExchangeOffer(RpcContext context, int gold) => callbacks.Raise("rpc.exchange_offer", ExchangeOffered, context.Sender, gold);
+
+    partial void OnExchangeOfferItem(RpcContext context, string stack, int count) =>
+        callbacks.Raise("rpc.exchange_offer_item", ExchangeItemOffered, context.Sender, stack, count);
 
     partial void OnExchangeConfirm(RpcContext context, int version) =>
         callbacks.Raise("rpc.exchange_confirm", ExchangeConfirmed, context.Sender, version);

@@ -77,9 +77,13 @@ public static partial class RpContracts
     [ServerToClient]
     public static partial void ExchangeClosed();
 
-    // The whole offer, which replaces the one before.
+    // The gold of the offer, which replaces the amount before.
     [ClientToServer]
     public static partial void ExchangeOffer(int gold);
+
+    // How many of a stack the offer holds, 0 for none, by the key the page got for it.
+    [ClientToServer]
+    public static partial void ExchangeOfferItem(string stack, int count);
 
     // Counts only for the version its player saw.
     [ClientToServer]

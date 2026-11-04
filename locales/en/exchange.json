@@ -10,6 +10,8 @@
   "exchange.cooldown": "You can offer another trade in {seconds} s.",
   "exchange.not_in_world": "Both of you have to be in the world to trade.",
   "exchange.amount": "Offer from 0 to {max} gold.",
+  "exchange.item_gone": "You no longer carry that.",
+  "exchange.item_amount": "Offer from 0 to {max} of {item}.",
   "exchange.changed": "The offer changed. Look at it again and confirm.",
   "exchange.wait": "You can confirm in {seconds} s, once both of you have seen the offer.",
   "exchange.cancel_self": "You called off the trade. Nothing changed hands.",
@@ -18,13 +20,22 @@
   "exchange.cancel_far": "You walked more than {metres} m apart. The trade is off and nothing changed hands.",
   "exchange.cancel_not_in_world": "One of you left the world. The trade is off and nothing changed hands.",
   "exchange.cancel_failed": "The trade could not be completed. Nothing changed hands.",
-  "exchange.received": {
-    "one": "Trade done: received {count} gold coin",
-    "other": "Trade done: received {count} gold coins"
+  "exchange.result": "Trade done: {what}",
+  "exchange.part.gold_received": {
+    "one": "received {count} gold coin",
+    "other": "received {count} gold coins"
   },
-  "exchange.gave": {
-    "one": "Trade done: gave {count} gold coin",
-    "other": "Trade done: gave {count} gold coins"
+  "exchange.part.gold_gave": {
+    "one": "gave {count} gold coin",
+    "other": "gave {count} gold coins"
   },
-  "exchange.even": "Trade done: no gold changed hands"
+  "exchange.part.items_received": {
+    "one": "received {count} item",
+    "other": "received {count} items"
+  },
+  "exchange.part.items_gave": {
+    "one": "gave {count} item",
+    "other": "gave {count} items"
+  },
+  "exchange.even": "Trade done: nothing changed hands"
 }
