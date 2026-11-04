@@ -55,6 +55,9 @@ internal sealed partial class ExchangeOverlay(CefHost cef, WebPages pages, PageI
     private void OnExchangeOffer(BrowserHandle browser, int gold) => rpc.SendExchangeOffer(gold);
 
     [ReceiveFromCef]
+    private void OnExchangeOfferItem(BrowserHandle browser, string stack, int count) => rpc.SendExchangeOfferItem(stack, count);
+
+    [ReceiveFromCef]
     private void OnExchangeConfirm(BrowserHandle browser, int version) => rpc.SendExchangeConfirm(version);
 
     [ReceiveFromCef]

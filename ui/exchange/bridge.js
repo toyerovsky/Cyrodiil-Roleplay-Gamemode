@@ -1,4 +1,5 @@
-// A state arrives as JSON: {version, other, carried, max, confirmInMs, mine: {gold, confirmed}, theirs: {gold, confirmed}}.
+// A state arrives as JSON: {version, other, carried, max, confirmInMs, items, mine, theirs}. An offer is
+// {gold, items, confirmed}, an item {key, name, used, count}, and `items` on its own is what the player can offer.
 export function createBridge(readym) {
   return {
     onLocale: (handler) => readym.on("Locale", handler),
@@ -8,6 +9,7 @@ export function createBridge(readym) {
     onClosed: (handler) => readym.on("Closed", handler),
     signalReady: () => readym.sendExchangeReady(),
     offer: (gold) => readym.sendExchangeOffer(gold),
+    offerItem: (key, count) => readym.sendExchangeOfferItem(key, count),
     confirm: (version) => readym.sendExchangeConfirm(version),
     cancel: () => readym.sendExchangeCancel(),
   };

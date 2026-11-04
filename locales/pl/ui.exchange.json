@@ -13,5 +13,18 @@
   "ui.exchange.digits": "Podaj złoto w całych sztukach, od 0 do {max}.",
   "ui.exchange.hint": "Każda zmiana cofa oba potwierdzenia. Esc odwołuje wymianę.",
   "ui.exchange.done": "Gotowe",
-  "ui.exchange.amount": "{count} szt. złota"
+  "ui.exchange.amount": "{count} szt. złota",
+  "ui.exchange.your_items": "Twoje przedmioty",
+  "ui.exchange.filter": "Znajdź przedmiot",
+  "ui.exchange.empty": "Nie masz przy sobie nic, czym można handlować.",
+  "ui.exchange.no_match": "Nie ma przedmiotu o takiej nazwie.",
+  "ui.exchange.not_listed": "Nie widać tu tego, co masz na sobie, ani rzeczy zrobionych przez graczy.",
+  "ui.exchange.no_items": "Bez przedmiotów.",
+  "ui.exchange.used": "{name} (ślady zużycia)",
+  "ui.exchange.times": "×{count}",
+  "ui.exchange.add": "Dodaj do oferty: {name}",
+  "ui.exchange.fewer": "Mniej: {name}",
+  "ui.exchange.more": "Więcej: {name}",
+  "ui.exchange.pieces": "Ile sztuk: {name}",
+  "ui.exchange.pieces_digits": "Podaj całe sztuki ({name}), od 0 do {max}."
 }

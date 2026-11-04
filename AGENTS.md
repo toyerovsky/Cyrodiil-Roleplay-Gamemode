@@ -27,8 +27,9 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   tools, weapons, armour, books. It only sells. It cannot be killed for good.
 - **Spawn:** the staff set it in the outside world (`/aspawn here`, a button in the panel), a new character goes
   there after closing the game's creator.
-- **Exchange:** an offer from the H wheel, taken up with Y as for a party, gold from hand to hand in a window, both
-  sides see both offers and confirm. Items will come when the SDK gives their names.
+- **Exchange:** an offer from the H wheel, taken up with Y as for a party, gold and items from hand to hand in a
+  window, both sides see both offers and confirm. Names come from the catalogue the mode ships, so what a player wears
+  and what players made (their potions and enchanted items) stay out of it.
 - **Player menu (F10):** tabs with the game's medallions: character (name, since when, time played, gold), account
   (ReadyM nick, previous visit, sanctions in force, the language choice when the server knows a second one), help
   with the player's commands under headings (`/help` opens this tab) and the mode's keys.

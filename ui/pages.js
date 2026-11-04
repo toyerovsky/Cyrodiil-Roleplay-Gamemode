@@ -3,7 +3,7 @@ export const PAGES = [
   { name: "chat", title: "Chat", scenarios: ["", "open", "long", "draft"], game: "Chat/ChatOverlay.cs" },
   { name: "creator", title: "New character", scenarios: ["", "waiting"], game: "Creator/NameFormOverlay.cs" },
   { name: "radial", title: "Wheel", scenarios: ["", "interaction", "staff"], game: "Interactions/RadialOverlay.cs" },
-  { name: "exchange", title: "Trade", scenarios: ["", "offered"], game: "Exchange/ExchangeOverlay.cs" },
+  { name: "exchange", title: "Trade", scenarios: ["", "offered", "bare"], game: "Exchange/ExchangeOverlay.cs" },
   { name: "party", title: "Party", scenarios: ["", "member"], game: "Party/PartyOverlay.cs" },
   { name: "asks", title: "Invitations", scenarios: ["", "trade", "outgoing"], game: "Asks/AsksOverlay.cs" },
   { name: "trader", title: "Shop", scenarios: ["", "poor"], game: "Traders/TraderOverlay.cs" },

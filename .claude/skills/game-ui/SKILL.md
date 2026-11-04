@@ -16,7 +16,7 @@ description: How Cyrodiil RP shows anything to a player. Use before writing play
 | A form (the character's name) | a page in `ui/<page>` over its own viewport | `NameFormOverlay` |
 | An action on oneself (G) or on the player in front (H) | the wheel, `ui/radial` | a `SelfOption` or an `InteractionOption` added to `SelfMenu` or `InteractionMenu` |
 | An action that needs more from the player (a reason, a message) | the chat, the command started for them | `RpChat.Prefill(player, "/pm 3 ")` |
-| Gold from one player to another | the trade window, `ui/exchange`, both sides confirm | `Exchanges`, from the wheel's Trade |
+| Gold and items from one player to another | the trade window, `ui/exchange`, both sides confirm | `Exchanges`, from the wheel's Trade |
 | Who is in the player's party | the panel at the top left, `ui/party`, only to be read | `Parties` sends `PartyState` |
 | Buying from a trader | the trader's window, `ui/trader`, the game's icons and names | `TraderShops`, H over the trader |
 | The player's own record, the commands, the keys | the player's menu, `ui/menu`, F10 or `/help` | `PlayerMenus` sends `MenuState` |
