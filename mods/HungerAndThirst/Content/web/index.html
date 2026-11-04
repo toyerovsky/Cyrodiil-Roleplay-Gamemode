@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hunger and Thirst</title>
+  <link rel="stylesheet" href="hud.css">
+</head>
+<body>
+  <!-- Browser preview of both pages at once. The game loads hud.html and satchel.html, one viewport each. -->
+  <!-- Always on screen: the two meters. -->
+  <section id="hud" class="hud hidden" aria-label="Hunger and thirst">
+    <div class="meter" id="satiety">
+      <!-- A drumstick: drawn upright (meat on top, bone below), then turned to point up and right. -->
+      <svg class="icon" viewBox="0 0 512 512" aria-hidden="true">
+        <g transform="rotate(45 256 256) translate(256 256) scale(0.9) translate(-256 -256)">
+          <path d="M256 28C342 28 384 108 384 174C384 250 324 300 294 340H218C188 300 128 250 128 174C128 108 170 28 256 28Z"/>
+          <rect x="236" y="356" width="40" height="78"/>
+          <circle cx="224" cy="452" r="32"/>
+          <circle cx="288" cy="452" r="32"/>
+        </g>
+      </svg>
+      <div class="bar"><div class="body"><div class="trail"></div><div class="fill"></div></div></div>
+    </div>
+    <div class="meter" id="hydration">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3c3 4.5 6 7.8 6 11a6 6 0 0 1-12 0c0-3.2 3-6.5 6-11z"/>
+      </svg>
+      <div class="bar"><div class="body"><div class="trail"></div><div class="fill"></div></div></div>
+    </div>
+  </section>
+
+  <!-- Alt+H: what you carry that can be eaten or drunk. Keys only. -->
+  <section id="satchel" class="satchel hidden" aria-label="Satchel">
+    <header>
+      <h1>Satchel</h1>
+      <p id="outlook"></p>
+    </header>
+    <ol id="items"></ol>
+    <p id="empty" class="empty hidden">Nothing to eat or drink.</p>
+    <p id="message" class="message"></p>
+    <footer>
+      <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> choose</span>
+      <span><kbd>Enter</kbd> eat or drink</span>
+      <span><kbd>Esc</kbd> close</span>
+      <p class="note">Food eaten from the inventory menu does not fill you up. Eat from the satchel.</p>
+    </footer>
+  </section>
+
+  <script src="hud.js"></script>
+</body>
+</html>

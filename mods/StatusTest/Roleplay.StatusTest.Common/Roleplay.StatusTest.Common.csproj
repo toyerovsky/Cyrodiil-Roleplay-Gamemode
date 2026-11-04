@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <ProjectReference Include="$(OblivionModRoot)OblivionMp.Sdk.Common\OblivionMp.Sdk.Common.csproj" />
+    </ItemGroup>
+
+</Project>

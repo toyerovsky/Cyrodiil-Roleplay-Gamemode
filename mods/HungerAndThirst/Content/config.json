@@ -1,0 +1,92 @@
+// Hunger and Thirst, server settings. Every key is optional: delete one to go back to its default.
+// Meters run from 0 (starving, parched) to 1000 (full). Times are real minutes.
+{
+  // Full to empty while standing around.
+  "minutesToStarve": 180,
+  "minutesToDehydrate": 120,
+
+  // Faster while doing these. When several apply, the largest wins.
+  "runningMultiplier": 1.5,
+  "swimmingMultiplier": 1.5,
+  "combatMultiplier": 2,
+
+  // A character the server has never seen starts here.
+  "startSatiety": 1000,
+  "startHydration": 1000,
+
+  // After a death the meters come back to at least this.
+  "respawnSatiety": 500,
+  "respawnHydration": 500,
+
+  // What a low meter does, as effects the game lists with the character's active effects under the tier's name.
+  // A tier applies below belowPercent of full; 0 means once the meter is empty. Only the deepest tier a meter is in
+  // counts, so each tier lists all of its effects. Hunger's and thirst's add up.
+  //   effect: "<Kind> <Stat>" with Fortify, Drain, Damage or Restore ("Drain Fatigue", "Damage Health",
+  //           "Drain Strength"), "Burden", "Feather", or any magic effect's four letter code.
+  //   points: the magnitude. Damage and Restore take or give it every second, the others hold it.
+  //   percent: instead of points, a share of the character's own maximum (Health, Magicka and Fatigue only).
+  // Fatigue never drains below 1, counting both meters and the attributes that make up its maximum (Strength,
+  // Willpower, Agility, Endurance). Strength also sets carry weight (x 5), Intelligence the magicka maximum (x 2),
+  // Willpower magicka regeneration, Agility aim and sneaking, Speed how fast the character moves.
+  //
+  // Hunger: low blood sugar first (tired, short-tempered), then the body eating its own muscle, then organs failing.
+  "hunger": [
+    { "name": "Hungry", "belowPercent": 50, "effects": [
+      { "effect": "Drain Fatigue", "percent": 20 },
+      { "effect": "Drain Willpower", "points": 5 } ] },
+    { "name": "Starving", "belowPercent": 25, "effects": [
+      { "effect": "Drain Fatigue", "percent": 40 },
+      { "effect": "Drain Strength", "points": 10 },
+      { "effect": "Drain Endurance", "points": 10 },
+      { "effect": "Drain Willpower", "points": 10 } ] },
+    { "name": "Wasting Away", "belowPercent": 0, "effects": [
+      { "effect": "Drain Fatigue", "percent": 60 },
+      { "effect": "Drain Strength", "points": 25 },
+      { "effect": "Drain Endurance", "points": 25 },
+      { "effect": "Drain Willpower", "points": 15 },
+      { "effect": "Drain Health", "percent": 25 } ] }
+  ],
+  // Thirst: the head first (headache, poor focus), then dizziness and clumsiness, then a body that can barely walk and
+  // starts to fail. Slow, not stopped: a dehydrated character can still crawl to water.
+  "thirst": [
+    { "name": "Thirsty", "belowPercent": 50, "effects": [
+      { "effect": "Drain Fatigue", "percent": 20 },
+      { "effect": "Drain Intelligence", "points": 5 } ] },
+    { "name": "Parched", "belowPercent": 25, "effects": [
+      { "effect": "Drain Fatigue", "percent": 50 },
+      { "effect": "Drain Intelligence", "points": 15 },
+      { "effect": "Drain Agility", "points": 10 },
+      { "effect": "Drain Willpower", "points": 10 } ] },
+    { "name": "Dehydrated", "belowPercent": 0, "effects": [
+      { "effect": "Drain Fatigue", "percent": 80 },
+      { "effect": "Drain Intelligence", "points": 25 },
+      { "effect": "Drain Agility", "points": 20 },
+      { "effect": "Drain Speed", "points": 30 },
+      { "effect": "Damage Health", "points": 1 } ] }
+  ],
+
+  // The effects never take health below this: a Drain Health stops short of it, and a Damage Health comes off when
+  // the character gets there. 0 lets hunger and thirst kill. Keep it above a few seconds of Damage Health, since the
+  // server sees health a moment late.
+  "healthFloor": 10,
+
+  // Seconds between two meals or sips.
+  "consumeCooldownSeconds": 1.5,
+
+  // One sip from a lake or river, while swimming.
+  "waterHydration": 150,
+
+  // How often everyone's meters are saved, and where (next to the server DLL).
+  "saveIntervalMinutes": 5,
+  "saveFile": "sustenance.json",
+
+  // false starts from an empty food table, so only the lines below count.
+  "useDefaultFoods": true,
+
+  // Changes to the food table. "item" is an editor id from the game ("Apple", "DrinkAle", "Breadloaf")
+  // or a form id in hex ("0x00033680"). Examples:
+  //   { "item": "Apple", "satiety": 80, "hydration": 40 }            new values for a default
+  //   { "item": "Ambrosia", "name": "Ambrosia", "satiety": 600 }     a new food
+  //   { "item": "PotionCyrodiilicBrandy", "remove": true }          drop a default
+  "foods": []
+}

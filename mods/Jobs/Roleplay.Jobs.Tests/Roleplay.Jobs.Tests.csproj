@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- Unit tests for the tree filter and the felled-tree save file. Never shipped. -->
+
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+        <PackageReference Include="xunit" Version="2.9.3" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Roleplay.Jobs.Server\Roleplay.Jobs.Server.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit" />
+    </ItemGroup>
+
+    <!-- The shipped server config, parsed the way the SDK parses it. -->
+    <ItemGroup>
+        <None Include="..\Content\config.json" Link="config.json" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+</Project>

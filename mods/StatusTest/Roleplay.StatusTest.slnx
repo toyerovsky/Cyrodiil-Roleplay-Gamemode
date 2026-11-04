@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Roleplay.StatusTest.Common/Roleplay.StatusTest.Common.csproj" />
+  <Project Path="Roleplay.StatusTest.Client/Roleplay.StatusTest.Client.csproj" />
+  <Project Path="Roleplay.StatusTest.Server/Roleplay.StatusTest.Server.csproj" />
+</Solution>

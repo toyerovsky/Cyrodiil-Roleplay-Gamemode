@@ -1,0 +1,14 @@
+{
+  "uniqueId": "Roleplay.HungerAndThirst",
+  "version": "0.1.0",
+  "name": "Hunger and Thirst",
+  "author": "ReadyM",
+  "description": "Survival needs for roleplay: characters get hungry and thirsty over time, eat and drink from their satchel (Alt+H), and suffer when a meter runs out. Server-authoritative.",
+  "link": "https://ready.mp",
+  "dependencies": [
+    {
+      "uniqueId": "OblivionMP.SDK",
+      "minimumVersion": "1.0.0"
+    }
+  ]
+}

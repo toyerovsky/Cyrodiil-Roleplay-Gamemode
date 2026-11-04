@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <ProjectReference Include="..\Roleplay.Jobs.Common\Roleplay.Jobs.Common.csproj" />
+        <ProjectReference Include="$(OblivionModRoot)OblivionMp.Sdk.Serverside\OblivionMp.Sdk.Serverside.csproj" />
+        <ProjectReference Include="$(CoreSdkSrc)ReadyM.Relay.Server.Sdk\ReadyM.Relay.Server.Sdk.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Roleplay.Jobs.Tests" />
+    </ItemGroup>
+
+</Project>

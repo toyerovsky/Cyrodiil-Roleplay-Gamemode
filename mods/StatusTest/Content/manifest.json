@@ -1,0 +1,14 @@
+{
+  "uniqueId": "Roleplay.StatusTest",
+  "version": "0.1.0",
+  "name": "Status test",
+  "author": "ReadyM",
+  "description": "Test bench for the SDK's statuses: numpad keys apply Fortify, Drain, Damage, Restore, Feather and Burden statuses through the server and the client. For testing only.",
+  "link": "https://ready.mp",
+  "dependencies": [
+    {
+      "uniqueId": "OblivionMP.SDK",
+      "minimumVersion": "1.0.0"
+    }
+  ]
+}
