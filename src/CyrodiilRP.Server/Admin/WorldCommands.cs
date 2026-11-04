@@ -18,6 +18,7 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
 {
     private const int HoursInDay = 24;
     private const int MinutesInHour = 60;
+    private const float OneDay = 1f;
     private const char HourSeparator = ':';
     private const string TimeAction = "admin.time";
     private const string WeatherAction = "admin.weather";
@@ -43,6 +44,7 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
         if (!TryArea(call, out var area))
             return;
 
+        area.SetGameDaysPassed(DaysPassedAt(area.GameDaysPassed, area.GameHour, hour));
         area.SetGameHour(hour);
         audit.Log(TimeAction, call.Sender.Ref, details: new AreaDetails(area.AreaId.ToString(), call.Words[0]));
         call.Reply(AdminText.TimeSet(area: area.AreaId.ToString(), time: call.Words[0]));
@@ -64,6 +66,9 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
         audit.Log(WeatherAction, call.Sender.Ref, details: new AreaDetails(area.AreaId.ToString(), call.Words[0]));
         call.Reply(AdminText.WeatherSet(area: area.AreaId.ToString(), weather: call.Words[0]));
     }
+
+    // A game does not take a clock going back, so an hour already gone by is the next day's.
+    public static float DaysPassedAt(float daysPassed, float now, float hour) => hour < now ? daysPassed + OneDay : daysPassed;
 
     // "13" or "13:30", from 0:00 to 23:59.
     public static bool TryHour(string text, out float hour)

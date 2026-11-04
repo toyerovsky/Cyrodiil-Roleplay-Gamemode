@@ -28,6 +28,15 @@ public sealed class AdminRulesTests
         Assert.False(WorldCommands.TryHour(text, out _));
     }
 
+    [Theory]
+    [InlineData(23.8f, 12f, 4f)]
+    [InlineData(1.5f, 13f, 3f)]
+    [InlineData(12f, 12f, 3f)]
+    public void An_hour_already_gone_by_is_the_next_days(float now, float hour, float daysPassed)
+    {
+        Assert.Equal(daysPassed, WorldCommands.DaysPassedAt(3f, now, hour));
+    }
+
     // A button runs a command the registry knows by a permission, so its checks and the audit are the command's own.
     [Fact]
     public void Every_button_runs_a_staff_command()

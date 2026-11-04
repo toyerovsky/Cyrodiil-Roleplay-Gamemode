@@ -68,6 +68,8 @@ Each fact below was checked in this repo.
   the platform's rebirth: a heal and a quick load.
 - An area's `Time` (`SetGameHour`) and `Weather` (`SetWeatherFormId`, `SetTransitionRatio`) are the server's to write,
   but the area's master client also sends its own (`RequestTimeChange`), so a value set may not hold.
+- A game does not take a clock going back, and the master client then sends its own time over the one set. An hour
+  earlier than the clock needs `SetGameDaysPassed` a day on, as waiting past midnight does.
 - Nothing in the SDK stops a player walking: a freeze holds the input on a page (`FrozenOverlay`) and the server puts
   the character back.
 
