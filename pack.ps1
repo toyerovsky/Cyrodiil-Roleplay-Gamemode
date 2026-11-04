@@ -26,9 +26,9 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $root = $PSScriptRoot
-$out = Join-Path $root 'out\mods\CyrodiilRP'
-$publish = Join-Path $root 'out\publish'
-$tests = Join-Path $root 'tests\CyrodiilRP.Tests'
+$out = Join-Path $root 'out/mods/CyrodiilRP'
+$publish = Join-Path $root 'out/publish'
+$tests = Join-Path $root 'tests/CyrodiilRP.Tests'
 
 function Write-Step([string] $text) { Write-Host "`n== $text" -ForegroundColor Cyan }
 
@@ -38,7 +38,7 @@ function Invoke-Checked([string] $what, [scriptblock] $command)
     if ($LASTEXITCODE -ne 0) { throw "$what failed (exit code $LASTEXITCODE)." }
 }
 
-# The new mod is put together beside mods\, where the server does not look, with the deployed server\config.json
+# The new mod is put together beside mods/, where the server does not look, with the deployed server/config.json
 # (database, owners) copied in as it is, then swapped in whole. Until the swap the deployed folder stays as it was, and
 # one that stops half way leaves the mod deployed before in the staging folder, config and all.
 function Install-Mod([string] $from, [string] $mods, [string] $staging)
@@ -48,16 +48,16 @@ function Install-Mod([string] $from, [string] $mods, [string] $staging)
     $previous = Join-Path $staging 'CyrodiilRP.previous'
     if (Test-Path $previous)
     {
-        throw "$previous is left by a deploy that stopped half way: it is the mod deployed before, with its server\config.json. Take what $target needs from it, delete it and deploy again."
+        throw "$previous is left by a deploy that stopped half way: it is the mod deployed before, with its server/config.json. Take what $target needs from it, delete it and deploy again."
     }
 
     if (Test-Path $fresh) { Remove-Item $fresh -Recurse -Force }
     New-Item -ItemType Directory -Force $staging | Out-Null
     Copy-Item $from $fresh -Recurse
 
-    $config = Join-Path $target 'server\config.json'
+    $config = Join-Path $target 'server/config.json'
     $kept = Test-Path $config
-    if ($kept) { Copy-Item $config (Join-Path $fresh 'server\config.json') -Force }
+    if ($kept) { Copy-Item $config (Join-Path $fresh 'server/config.json') -Force }
 
     # A clean folder, so a file removed from the repository does not stay behind in the server.
     if (Test-Path $target) { Move-Item $target $previous }
@@ -73,7 +73,7 @@ function Install-Mod([string] $from, [string] $mods, [string] $staging)
 
     if (Test-Path $previous) { Remove-Item $previous -Recurse -Force }
     if (-not (Get-ChildItem $staging -Force)) { Remove-Item $staging }
-    if ($kept) { Write-Host '  server\config.json kept' }
+    if ($kept) { Write-Host '  server/config.json kept' }
 }
 
 # "oblivion-server-win64-1.0.0-rc.2": by version, a release is newer than its release candidates, and rc.10 comes
@@ -96,7 +96,8 @@ function Find-NewestServer
 
 if (-not $ServerDir) { $ServerDir = Find-NewestServer }
 $ServerDir = (Resolve-Path $ServerDir).Path
-if (-not (Test-Path (Join-Path $ServerDir 'server.exe'))) { throw "No OblivionMP server in $ServerDir (server.exe is missing)." }
+$serverBinary = if ($IsWindows) { 'server.exe' } else { 'server' }
+if (-not (Test-Path (Join-Path $ServerDir $serverBinary))) { throw "No OblivionMP server in $ServerDir ($serverBinary is missing)." }
 Write-Host "Server: $ServerDir" -ForegroundColor Green
 
 # The running server holds the mod's DLLs, and a half copied mod is worse than none.
@@ -124,8 +125,8 @@ if ($Test)
 }
 
 Write-Step "Mod into $out"
-Invoke-Checked 'The server publish' { dotnet publish (Join-Path $root 'src\CyrodiilRP.Server') -c $Configuration -o (Join-Path $publish 'server') --nologo }
-Invoke-Checked 'The client build' { dotnet build (Join-Path $root 'src\CyrodiilRP.Client') -c $Configuration -o (Join-Path $publish 'client') --nologo }
+Invoke-Checked 'The server publish' { dotnet publish (Join-Path $root 'src/CyrodiilRP.Server') -c $Configuration -o (Join-Path $publish 'server') --nologo }
+Invoke-Checked 'The client build' { dotnet build (Join-Path $root 'src/CyrodiilRP.Client') -c $Configuration -o (Join-Path $publish 'client') --nologo }
 
 # What the server and its other mods already load: a second copy in our load context is refused.
 $shipped = @{}
@@ -140,11 +141,11 @@ $client = Join-Path $out 'client'
 $server = Join-Path $out 'server'
 New-Item -ItemType Directory -Force $client, $server | Out-Null
 
-Copy-Item (Join-Path $root 'mod\manifest.json') $out
+Copy-Item (Join-Path $root 'mod/manifest.json') $out
 
 $clientBuild = Join-Path $publish 'client'
 Copy-Item (Join-Path $clientBuild 'CyrodiilRP.Client.dll'), (Join-Path $clientBuild 'CyrodiilRP.Common.dll') $client
-Copy-Item (Join-Path $root 'ui\dist') (Join-Path $client 'web') -Recurse
+Copy-Item (Join-Path $root 'ui/dist') (Join-Path $client 'web') -Recurse
 
 # The SDK and what it is built on come with the server, whether or not the server folder names each file.
 $sdkFamily = 'ReadyM.*', 'OblivionMp.*', 'Friflo.*', 'Yooni.*', 'LiteNetLib*', 'DryIoc*', 'Serilog*', 'Superpower*'
@@ -171,8 +172,8 @@ if ($PackOnly)
 if (-not $SkipDatabase)
 {
     Write-Step 'Database'
-    Invoke-Checked 'docker compose' { docker compose -f (Join-Path $root 'infra\docker-compose.yml') up -d --wait }
-    Invoke-Checked 'The migrations' { dotnet run --project (Join-Path $root 'src\CyrodiilRP.Migrator') -c $Configuration }
+    Invoke-Checked 'docker compose' { docker compose -f (Join-Path $root 'infra/docker-compose.yml') up -d --wait }
+    Invoke-Checked 'The migrations' { dotnet run --project (Join-Path $root 'src/CyrodiilRP.Migrator') -c $Configuration }
 }
 
 $mods = Join-Path $ServerDir 'mods'
@@ -186,11 +187,11 @@ foreach ($platformMod in 'OblivionMP.Chat', 'OblivionMp.MarkerMod')
     $installed = Join-Path $mods $platformMod
     if (-not (Test-Path $installed)) { continue }
 
-    $parked = Join-Path $ServerDir "mods-disabled\$platformMod"
+    $parked = Join-Path $ServerDir "mods-disabled/$platformMod"
     New-Item -ItemType Directory -Force (Split-Path $parked) | Out-Null
     if (Test-Path $parked) { Remove-Item $parked -Recurse -Force }
     Move-Item $installed $parked
-    Write-Host "  $platformMod moved to mods-disabled\"
+    Write-Host "  $platformMod moved to mods-disabled/"
 }
 
 Write-Host "`nReady: $target" -ForegroundColor Green

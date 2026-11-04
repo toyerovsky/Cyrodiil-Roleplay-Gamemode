@@ -30,8 +30,8 @@ cd ui; npm ci; npx playwright install chromium
 ./pack.ps1 -PackOnly       # only build the mod into out/mods/CyrodiilRP
 ```
 
-`pack.ps1` needs PowerShell 7. It refuses while that server runs and keeps the deployed `server/config.json`: the new
-mod is put together in `<server>/mods-staging`, the deployed config copied into it as it is (an empty one too), and the
+`pack.ps1` needs PowerShell 7, on Linux `pwsh`, where the server's file is `server` and not `server.exe`. It refuses
+while that server runs and keeps the deployed `server/config.json`: the new mod is put together in `<server>/mods-staging`, the deployed config copied into it as it is (an empty one too), and the
 folders are swapped. Until the swap the deployed mod stays as it was. A deploy that stops half way leaves the mod
 deployed before, config and all, in `mods-staging/CyrodiilRP.previous`, and the next one refuses until it is gone.
 The server refuses a config without a connection string and a database at another migration than its own build

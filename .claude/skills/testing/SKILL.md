@@ -27,7 +27,7 @@ description: How to write and run the tests of Cyrodiil RP (C# xUnit with Postgr
   (`Seeds.CreateAccountAsync`, `Seeds.CreateCharacterAsync`, `Names.CreateUnique()`) and never leans on another test's.
 - Every database step on a context of its own (`pg.RunAsync(db => ...)`), as the writer gives every job: a reused
   context hands back what it tracks, and the test passes for the wrong reason.
-- `Server/`: the packed mod (`out/mods/CyrodiilRP`) on a copy of the real `server.exe` and a database of its own. It
+- `Server/`: the packed mod (`out/mods/CyrodiilRP`) on a copy of the real server and a database of its own. It
   fails on any `[ERR]` or `[FTL]` line, the first seconds after start included. The newest `oblivion-server-*` folder is
   used, or `OBLIVIONMP_SERVER`.
 - `Database/MigratorTests` runs the built migrator as a process, `Localization/TextsGeneratorTests` the texts generator

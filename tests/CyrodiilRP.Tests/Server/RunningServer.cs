@@ -9,12 +9,12 @@ namespace CyrodiilRP.Tests.Server;
 // asks once for each new path of server.exe.
 public sealed class RunningServer : IAsyncDisposable
 {
-    private const string Executable = "server.exe";
     private const string ModName = "CyrodiilRP";
     private const string PortVariable = "RELAY_Server__Port";
     private const int Slots = 4;
     private const int DeleteTries = 10;
 
+    private static readonly string Executable = OperatingSystem.IsWindows() ? "server.exe" : "server";
     private static readonly TimeSpan DeletePause = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan PollPause = TimeSpan.FromMilliseconds(100);
 
