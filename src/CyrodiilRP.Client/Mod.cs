@@ -5,6 +5,7 @@ using CyrodiilRP.Client.Creator;
 using CyrodiilRP.Client.Dice;
 using CyrodiilRP.Client.Exchange;
 using CyrodiilRP.Client.Interactions;
+using CyrodiilRP.Client.Lore;
 using CyrodiilRP.Client.Party;
 using CyrodiilRP.Client.PlayerMenu;
 using CyrodiilRP.Client.Traders;
@@ -31,6 +32,7 @@ internal sealed partial class Mod(IDependencyContainer services, ILogger logger)
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<TraderOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<PlayerMenuOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<DiceOverlay>());
+        services.RegisterSingleton<ICefRpcHandler>(services.Resolve<LoreOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<AdminOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<FrozenOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<WelcomeOverlay>());

@@ -4,12 +4,15 @@ import { RpButton, RpField } from "../rp/index.js";
 import { fill } from "../shared/locale.js";
 import { PLAYER_ACTIONS, WORLD_ACTIONS } from "./actions.js";
 import { isUnknownItem, SEARCH_FROM } from "./items.js";
+import LoreSection from "./LoreSection.vue";
 import { formatPlayed } from "../shared/format.js";
 import { formatDate, formatMoment } from "./format.js";
 
 const props = defineProps({
   player: { type: Object, required: true },
   card: { type: Object, default: null },
+  lore: { type: Object, default: null },
+  loreAsked: Boolean,
   found: { type: Array, required: true },
   t: { type: Object, required: true },
   locale: { type: String, required: true },
@@ -17,7 +20,7 @@ const props = defineProps({
   can: { type: Function, required: true },
 });
 
-const emit = defineEmits(["act", "search"]);
+const emit = defineEmits(["act", "search", "lore"]);
 
 // Of a pair, the one that fits the player shows: a frozen player gets Unfreeze, not Freeze. Revive only for the dead,
 // health only for the living.
@@ -116,6 +119,17 @@ const act = (action, values = {}) => emit("act", action, { number: props.player.
         </li>
       </ul>
       <p v-else class="admin__note">{{ t["card.no_sanctions"] }}</p>
+
+      <LoreSection
+        :lore="lore"
+        :asked="loreAsked"
+        :t="t"
+        :locale="locale"
+        :may="may"
+        :can="can"
+        @read="emit('lore')"
+        @clear="(field) => act('loreClear', { field })"
+      />
 
       <h3 class="admin__heading">{{ t["card.inventory"] }}</h3>
       <p v-if="card.inventory === null" class="admin__note">{{ t["card.inventory_away"] }}</p>

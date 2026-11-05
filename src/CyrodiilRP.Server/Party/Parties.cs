@@ -5,6 +5,7 @@ using CyrodiilRP.Server.Commands;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
+using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
 using OblivionMp.Sdk.Common.Archetypes;
@@ -25,6 +26,7 @@ internal sealed partial class Parties(
     CommandRegistry commands,
     RpChat chat,
     Asks asks,
+    ShownNames names,
     Timers timers,
     SystemClock clock)
 {
@@ -127,13 +129,13 @@ internal sealed partial class Parties(
         var invite = _book.Invite(inviter, invitee);
         _pacing.Start(invite, Expire);
         asks.Open(invite, AskKinds.Party, new AskAnswers(Accept, Decline));
-        chat.SendTo(invitee, ChatLineKind.System, PartyText.Asked(inviter.Name, AskPacing.TimeoutSeconds));
+        chat.SendTo(invitee, ChatLineKind.System, PartyText.Asked(new ShownName(inviter), AskPacing.TimeoutSeconds));
     }
 
     private void Expire(PlayerAsk invite)
     {
         if (Withdraw(invite) && invite.Asker.IsLive)
-            chat.Notify(invite.Asker, PartyText.Timeout(invite.Asked.Name));
+            chat.Notify(invite.Asker, PartyText.Timeout(new ShownName(invite.Asked)));
     }
 
     private bool Withdraw(PlayerAsk invite)
@@ -155,9 +157,9 @@ internal sealed partial class Parties(
         if (!Withdraw(invite))
             return;
 
-        chat.Notify(invite.Asked, PartyText.YouDeclined(invite.Asker.Name));
+        chat.Notify(invite.Asked, PartyText.YouDeclined(new ShownName(invite.Asker)));
         if (invite.Asker.IsLive)
-            chat.Notify(invite.Asker, PartyText.Declined(invite.Asked.Name));
+            chat.Notify(invite.Asker, PartyText.Declined(new ShownName(invite.Asked)));
     }
 
     private void Join(OnlinePlayer invitee, OnlinePlayer inviter)
@@ -167,7 +169,7 @@ internal sealed partial class Parties(
         {
             Withdraw(invite);
             chat.Notify(invitee, refused);
-            chat.Notify(inviter, PartyText.JoinFailed(invitee.Name));
+            chat.Notify(inviter, PartyText.JoinFailed(new ShownName(invitee)));
             return;
         }
 
@@ -175,7 +177,7 @@ internal sealed partial class Parties(
         var party = _book.Join(invite);
         chat.Notify(invitee, PartyText.Joined);
         foreach (var member in party.Members.Where(member => member != invitee))
-            chat.Notify(member, PartyText.MemberJoined(invitee.Name));
+            chat.Notify(member, PartyText.MemberJoined(new ShownName(invitee)));
 
         Show(party);
     }
@@ -185,7 +187,7 @@ internal sealed partial class Parties(
         var going = _book.Leave(member);
         chat.Notify(member, PartyText.Kicked);
         Clear(member);
-        Tell(going, PartyText.MemberKicked(member.Name));
+        Tell(going, PartyText.MemberKicked(new ShownName(member)));
     }
 
     private void HandLead(OnlinePlayer leader, OnlinePlayer member)
@@ -193,7 +195,7 @@ internal sealed partial class Parties(
         var party = _book.Find(leader)!;
         party.Leader = member;
         foreach (var each in party.Members)
-            chat.Notify(each, each == member ? PartyText.YouLead : PartyText.NewLeader(member.Name));
+            chat.Notify(each, each == member ? PartyText.YouLead : PartyText.NewLeader(new ShownName(member)));
 
         Show(party);
     }
@@ -203,7 +205,7 @@ internal sealed partial class Parties(
         var going = _book.Leave(player);
         chat.Notify(player, PartyText.Left);
         Clear(player);
-        Tell(going, PartyText.MemberLeft(player.Name));
+        Tell(going, PartyText.MemberLeft(new ShownName(player)));
     }
 
     // To the ones still in it, or to the last one, who hears it broke up.
@@ -222,7 +224,7 @@ internal sealed partial class Parties(
         {
             chat.Notify(member, news);
             if (going.LeadPassed)
-                chat.Notify(member, member == going.Party.Leader ? PartyText.YouLead : PartyText.NewLeader(going.Party.Leader.Name));
+                chat.Notify(member, member == going.Party.Leader ? PartyText.YouLead : PartyText.NewLeader(new ShownName(going.Party.Leader)));
         }
 
         Show(going.Party);
@@ -243,7 +245,7 @@ internal sealed partial class Parties(
         }
 
         foreach (var member in party.Members)
-            chat.SendTo(member, ChatLineKind.Party, PartyText.Chat(call.Sender.Name, call.Arguments));
+            chat.SendTo(member, ChatLineKind.Party, PartyText.Chat(new ShownName(call.Sender), call.Arguments));
     }
 
     private void OnLeft(OnlinePlayer player)
@@ -252,13 +254,13 @@ internal sealed partial class Parties(
         {
             Withdraw(invite);
             if (invite.Asked == player && invite.Asker.IsLive)
-                chat.Notify(invite.Asker, PartyText.Timeout(player.Name));
+                chat.Notify(invite.Asker, PartyText.Timeout(new ShownName(player)));
         }
 
         _pacing.Forget(player);
         _shown.Remove(player);
         if (_book.Find(player) is not null)
-            Tell(_book.Leave(player), PartyText.MemberGone(player.Name));
+            Tell(_book.Leave(player), PartyText.MemberGone(new ShownName(player)));
     }
 
     // The members' health and whereabouts change without a word from them.
@@ -277,7 +279,7 @@ internal sealed partial class Parties(
         foreach (var reader in party.Members)
         {
             var members = party.Listed
-                .Select(member => new PartyMemberView(member.Name, member == party.Leader, member == reader, health[member],
+                .Select(member => new PartyMemberView(names.Shown(reader, member), member == party.Leader, member == reader, health[member],
                     member != reader && !proximity.AreNear(reader.Id, member.Id, PartyRules.Near)))
                 .ToList();
             if (_shown.TryGetValue(reader, out var shown) && shown.SequenceEqual(members))

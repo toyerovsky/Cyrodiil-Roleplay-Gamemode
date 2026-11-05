@@ -502,3 +502,48 @@ describe("the items tab", () => {
     expect(game.readSent("AdminRun")).toEqual([]);
   });
 });
+
+describe("the staff's panel and a lore card", () => {
+  const LORE = {
+    number: 4, header: "Brannoc", level: "staff",
+    fields: [
+      { id: "race", part: "heritage", label: "Race", text: "Breton", long: false },
+      { id: "notes", part: "story", label: "Notes", text: "Owes Glarthir 300 gold.", long: true },
+    ],
+  };
+
+  it("reads a player's lore card on request and clears a field on the second click, through /alore", async () => {
+    const { game, page } = await mountPage(App, createBridge);
+    await game.emit("State", state({ allowed: [...EVERYTHING, "alore"] }));
+    await page.find('[data-player="4"]').trigger("click");
+    await game.emit("Part", "card", card(4));
+    expect(game.readSent("AdminAsk").filter(([kind]) => kind === "lore")).toEqual([]);
+
+    await page.find('.admin-lore [data-action="lore"]').trigger("click");
+    expect(game.readSent("AdminAsk").at(-1)).toEqual(["lore", "4"]);
+    await game.emit("Part", "lore", JSON.stringify(LORE));
+    expect(page.findAll(".admin-lore .lore-view__heading").map((heading) => heading.text())).toEqual(["Background", "Story"]);
+
+    const clear = () => page.find('[data-clear="notes"]');
+    await clear().trigger("click");
+    expect(clear().text()).toBe("Clear it? Click again");
+    expect(game.readSent("AdminRun")).toEqual([]);
+    await clear().trigger("click");
+    expect(game.readSent("AdminRun")).toEqual([["/alore 4 clear notes"]]);
+
+    await game.emit("Answer", "Cleared Notes of Brannoc.", true);
+    expect(game.readSent("AdminAsk").at(-1)).toEqual(["lore", "4"]);
+  });
+
+  it("offers no Clear to roles without /alore, and says when a player has no card", async () => {
+    const { game, page } = await mountPage(App, createBridge);
+    await game.emit("State", state());
+    await page.find('[data-player="3"]').trigger("click");
+    await game.emit("Part", "card", card(3));
+    await page.find('.admin-lore [data-action="lore"]').trigger("click");
+    await game.emit("Part", "lore", JSON.stringify({ ...LORE, number: 3 }));
+    expect(page.find("[data-clear]").exists()).toBe(false);
+    await game.emit("Part", "lore", JSON.stringify({ number: 3, header: "Lucia", level: "staff", fields: [] }));
+    expect(page.find(".admin-lore").text()).toContain("No lore card yet.");
+  });
+});

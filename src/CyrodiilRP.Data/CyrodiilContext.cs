@@ -22,6 +22,10 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<DiceRoll> DiceRolls => Set<DiceRoll>();
 
+    public DbSet<LoreField> LoreFields => Set<LoreField>();
+
+    public DbSet<LoreIntroduction> LoreIntroductions => Set<LoreIntroduction>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -110,6 +114,27 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.Property(x => x.Area).HasMaxLength(ColumnLengths.WorldId);
             entity.HasIndex(x => new { x.CharacterId, x.Id });
             entity.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<LoreField>(entity =>
+        {
+            entity.ToTable("lore_fields", t => t.HasCheckConstraint("ck_lore_fields_number", "number IS NULL OR number BETWEEN 5 AND 100"));
+            entity.HasKey(x => new { x.CharacterId, x.FieldId });
+            entity.Property(x => x.FieldId).HasMaxLength(ColumnLengths.LoreFieldId);
+            entity.Property(x => x.CatalogId).HasMaxLength(ColumnLengths.LoreCatalogId);
+            entity.Property(x => x.Text).HasMaxLength(ColumnLengths.LoreText);
+            entity.Property(x => x.Rolls).HasMaxLength(ColumnLengths.LoreRolls);
+            entity.Property(x => x.Visibility).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<LoreIntroduction>(entity =>
+        {
+            entity.ToTable("lore_introductions", t => t.HasCheckConstraint("ck_lore_introductions_other", "knower_character_id <> known_character_id"));
+            entity.HasKey(x => new { x.KnowerCharacterId, x.KnownCharacterId });
+            entity.HasIndex(x => x.KnownCharacterId);
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.KnowerCharacterId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.KnownCharacterId).OnDelete(DeleteBehavior.Cascade);
         });
 
         SnakeCase.Apply(modelBuilder);

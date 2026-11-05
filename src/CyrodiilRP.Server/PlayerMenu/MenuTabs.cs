@@ -10,4 +10,6 @@ internal static class MenuTabs
     public const string Help = "help";
 
     public const string Dice = "dice";
+
+    public const string Lore = "lore";
 }

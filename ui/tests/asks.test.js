@@ -54,4 +54,12 @@ describe("the invitations", () => {
     await game.emit("State", state([], 0));
     expect(page.find(".asks").exists()).toBe(false);
   });
+
+  it("shows an introduction under the name a stranger sees", async () => {
+    const { game, page } = await mountPage(App, createBridge);
+    await game.emit("State", state([{ id: 4, kind: "introduce", name: "Dunmer", incoming: true, leftMs: 25000 }], 4));
+    expect(page.find(".ask__title").text()).toBe("Introduction");
+    expect(page.find(".ask__text").text()).toBe("Dunmer wants to introduce themselves to you.");
+    expect(page.find(".ask__key").text()).toContain("Accept");
+  });
 });

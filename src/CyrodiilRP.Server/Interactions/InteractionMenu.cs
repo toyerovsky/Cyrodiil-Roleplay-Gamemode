@@ -1,4 +1,5 @@
 using CyrodiilRP.Server.Localization;
+using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
 using ReadyM.Api.Idents;
@@ -13,7 +14,8 @@ internal sealed partial class InteractionMenu(
     OnlinePlayers online,
     Proximity proximity,
     RadialWheel wheel,
-    WheelRules rules)
+    WheelRules rules,
+    ShownNames names)
 {
     // A few steps ahead, within a quarter turn either side of where the character faces.
     public const float Reach = 300f;
@@ -66,7 +68,7 @@ internal sealed partial class InteractionMenu(
             return;
         }
 
-        wheel.Open(actor, new WheelRequest(target.Name, items, (picker, itemId) => _options.Pick(picker, target, itemId)));
+        wheel.Open(actor, new WheelRequest(names.Shown(actor, target), items, (picker, itemId) => _options.Pick(picker, target, itemId)));
     }
 
     // Another thing in front, when it stands nearer than the player in front, or there is none.

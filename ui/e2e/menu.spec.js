@@ -36,7 +36,7 @@ test("the menu opens on the character and goes round its tabs from the keyboard 
   await expect(tab(page, "character")).toHaveAttribute("aria-selected", "true");
 
   await tab(page, "keys").click();
-  await expect(page.getByRole("tabpanel").locator("kbd")).toHaveText(["G", "H", "Y", "N", "K", "F10", "Home", "Esc"]);
+  await expect(page.getByRole("tabpanel").locator("kbd")).toHaveText(["G", "H", "Y", "N", "K", "F10", "Home", "End", "Shift+End", "Esc"]);
   await screenshot(page, testInfo, "menu-keys");
 });
 
@@ -133,4 +133,26 @@ test("the close button closes it too", async ({ page }) => {
   await page.goto("/menu/index.html");
   await page.getByRole("button", { name: t("close") }).click();
   await expect(page.locator(".menu")).toHaveCount(0);
+});
+
+test("the lore tab shows how strangers see the character, makes the name public and opens the card", async ({ page }, testInfo) => {
+  await page.goto("/menu/index.html#lore");
+  await expect(tab(page, "lore")).toHaveAttribute("aria-selected", "true");
+  const lore = readTexts("ui.lore");
+  const content = page.getByRole("tabpanel");
+  await expect(content.locator(".menu__lore-header")).toHaveText("Imperial");
+  await expect(content.locator(".menu__lore-person")).toHaveText(["[3]Lucia Gallus", "[12]Dravyn Sadri"]);
+  await expect(content.locator(".lore-view__field")).toHaveCount(4);
+  await expectNoHorizontalOverflow(page, ".menu__content");
+  await screenshot(page, testInfo, "menu-lore");
+
+  await content.getByRole("button", { name: lore("vis.public") }).click();
+  await expect(content.getByRole("button", { name: lore("vis.public") })).toHaveAttribute("aria-pressed", "true");
+  await expect(content.locator(".menu__lore-header")).toHaveText("Marcus Varro");
+  expect(await readSent(page, "MenuLoreName")).toEqual([[true]]);
+  await screenshot(page, testInfo, "menu-lore-public");
+
+  await content.getByRole("button", { name: t("lore.open") }).click();
+  expect(await readSent(page, "MenuLore")).toEqual([[]]);
+  await expect(page.locator(".menu")).toBeHidden();
 });

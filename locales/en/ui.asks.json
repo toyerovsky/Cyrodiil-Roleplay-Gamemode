@@ -10,5 +10,9 @@
   "ui.asks.accept.trade": "Trade",
   "ui.asks.decline": "Decline",
   "ui.asks.next": "Answer the one above first.",
-  "ui.asks.seconds": "{seconds} s"
+  "ui.asks.seconds": "{seconds} s",
+  "ui.asks.title.introduce": "Introduction",
+  "ui.asks.incoming.introduce": "{name} wants to introduce themselves to you.",
+  "ui.asks.outgoing.introduce": "Waiting for {name} to accept your introduction.",
+  "ui.asks.accept.introduce": "Accept"
 }

@@ -19,6 +19,10 @@ const PAGES = [
   { url: "/admin/index.html#audit", root: ".admin", text: ["ui.admin", "audit.older"] },
   { url: "/admin/index.html#world", root: ".admin", text: ["ui.admin", "world.spawn"] },
   { url: "/frozen/index.html", root: ".frozen", text: ["ui.frozen", "title"] },
+  { url: "/menu/index.html#lore", root: ".menu", text: ["ui.menu", "lore.open"] },
+  { url: "/lore/index.html", root: ".lore", text: ["ui.lore", "part.identity"] },
+  { url: "/lore/index.html#view", root: ".lore", text: ["ui.lore", "viewer_lead"] },
+  { url: "/asks/index.html#introduce", root: ".asks", text: ["ui.asks", "title.introduce"] },
 ];
 
 for (const each of PAGES) {

@@ -1,0 +1,875 @@
+/* Over the whole screen, so no click goes past it to the game. The card is a letter as tall as the screen, the book
+   standing on its top edge as the crest does on the menu, the list of fields beside the field picked. */
+.lore {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+  height: 100%;
+  padding: 16px;
+  background: radial-gradient(ellipse at center, var(--backdrop-shade) 0%, var(--backdrop-edge) 100%);
+  pointer-events: auto;
+}
+
+.lore__document {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  justify-items: center;
+  width: min(1760px, 100%);
+  height: 100%;
+  padding-top: 58px;
+}
+
+.lore--view .lore__document {
+  width: min(1180px, 100%);
+}
+
+.lore__medallion {
+  position: absolute;
+  top: 0;
+  z-index: 1;
+  height: 118px;
+  filter: drop-shadow(0 0 14px var(--glow)) drop-shadow(0 8px 10px var(--shadow-deep));
+  pointer-events: none;
+  animation: rp-descend var(--duration-enter) calc(var(--delay-enter) * 2) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.lore__panel.rp-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 74px 74px 64px;
+  overflow: hidden;
+  animation: lore-rise var(--duration-enter) var(--delay-enter) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.lore__panel .rp-panel__title {
+  overflow-wrap: anywhere;
+}
+
+.lore__subtitle {
+  margin: 4px 0 0;
+  font-style: italic;
+  font-size: 19px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.lore__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px 24px;
+}
+
+.lore__head .lore__subtitle {
+  text-align: left;
+}
+
+.lore__name {
+  font-style: normal;
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--ink);
+}
+
+.lore__seen {
+  margin-left: 14px;
+}
+
+.lore__usage {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  min-width: 240px;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.lore__usage-bar {
+  display: block;
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-pill);
+}
+
+.lore__usage-bar span {
+  display: block;
+  height: 100%;
+  background: var(--gold-dark);
+  transition: width var(--duration-hover);
+}
+
+/* The sections in one row under the head, the one picked underlined in dark gold. */
+.lore__sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 4px;
+  margin-top: 12px;
+  border-bottom: 1px solid var(--ink-line);
+}
+
+.lore__section {
+  flex: 1 1 0;
+  min-width: max-content;
+  padding: 8px 12px 9px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: var(--radius-small) var(--radius-small) 0 0;
+  background: none;
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 19px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background var(--duration-hover), color var(--duration-hover);
+}
+
+.lore__section:hover:not(.lore__section--on) {
+  background: rgba(156, 122, 60, 0.12);
+  color: var(--ink);
+}
+
+.lore__section:focus-visible {
+  outline: 2px solid var(--gold-dark);
+  outline-offset: -2px;
+}
+
+.lore__section--on {
+  border-bottom-color: var(--gold-dark);
+  background: rgba(156, 122, 60, 0.2);
+  color: var(--ink);
+}
+
+.lore__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  margin-left: 6px;
+  padding: 0 6px;
+  font-size: 14px;
+  line-height: 1;
+  vertical-align: 2px;
+  color: var(--ink);
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-pill);
+}
+
+.lore__section--alert .lore__count {
+  color: var(--parchment-light);
+  background: var(--problem);
+  border-color: var(--problem);
+}
+
+.lore__body {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 40px;
+  min-height: 0;
+  margin-top: 12px;
+}
+
+.lore__detail {
+  min-height: 0;
+  padding: 4px 12px 8px 4px;
+  overflow-y: auto;
+}
+
+.lore__viewer {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 16px;
+  padding: 4px 14px 8px 4px;
+  overflow-y: auto;
+  border-radius: var(--radius-small);
+}
+
+.lore__viewer:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.lore__footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "status buttons"
+    "keys buttons";
+  align-items: center;
+  gap: 4px 20px;
+  margin-top: 12px;
+  padding: 10px 8px 0;
+  border-top: 1px solid var(--ink-line);
+}
+
+.lore__status {
+  grid-area: status;
+  min-height: 27px;
+  margin: 0;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.lore__status--busy {
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.lore__status--done {
+  color: var(--confirmed);
+}
+
+.lore__status--warn {
+  font-weight: 700;
+  color: var(--gold-dark);
+}
+
+.lore__status--error {
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.lore__keys {
+  grid-area: keys;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.lore__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.lore kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 6px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--parchment-light), var(--parchment-deep));
+  border: 1px solid var(--gold-dark);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-small);
+}
+
+.lore__buttons {
+  grid-area: buttons;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* --- the list of fields, and of the players around ------------------------------------------------------------------ */
+
+.lore-list {
+  min-height: 0;
+  padding: 2px 6px 6px 2px;
+  overflow-y: auto;
+  border-radius: var(--radius-small);
+  outline: none;
+}
+
+.lore-list:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.lore-list__group {
+  margin: 12px 0 2px;
+  padding: 0 10px 4px;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.05em;
+  color: var(--gold-dark);
+  border-bottom: 1px solid var(--ink-line);
+}
+
+.lore-list__group:first-child {
+  margin-top: 2px;
+}
+
+.lore-list__note {
+  margin: 12px 10px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.lore-row {
+  display: grid;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 46px;
+  padding: 4px 10px;
+  border-bottom: 1px solid rgba(43, 29, 14, 0.12);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  transition: background var(--duration-hover);
+}
+
+.lore-row:hover:not(.lore-row--cursor) {
+  background: rgba(156, 122, 60, 0.1);
+}
+
+.lore-row--cursor {
+  background: rgba(156, 122, 60, 0.26);
+  box-shadow: inset 4px 0 0 var(--gold-dark);
+}
+
+/* The cursor's row says where the keys go while the list holds the focus. */
+.lore-list:focus-visible .lore-row--cursor {
+  outline: 2px solid var(--gold-dark);
+  outline-offset: -2px;
+}
+
+.lore-row--person {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.lore-row__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.lore-row__mark {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--gold-dark);
+}
+
+.lore-row__value {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lore-row__value--unset {
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.lore-row__value--name {
+  font-weight: 700;
+}
+
+.lore-row__meters {
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.lore-vis {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.lore-vis .lore-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.lore-vis--public {
+  color: var(--confirmed);
+}
+
+.lore-vis--private {
+  color: var(--gold-dark);
+}
+
+.lore-vis--owner {
+  color: var(--problem);
+}
+
+.lore-vis--pill {
+  justify-self: start;
+  margin: 0;
+  padding: 4px 12px;
+  font-size: 15px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  background: var(--ink-wash);
+}
+
+.lore-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--gold-dark);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-small);
+  background: var(--ink-wash);
+}
+
+.lore-tag--incoming {
+  color: var(--parchment-light);
+  background: var(--problem);
+  border-color: var(--problem);
+}
+
+.lore-tag--known,
+.lore-tag--half,
+.lore-tag--game {
+  color: var(--confirmed);
+  border-color: var(--confirmed);
+}
+
+.lore-tag--old {
+  color: var(--ink-soft);
+  border-color: var(--ink-line);
+}
+
+.lore-tag--chosen {
+  color: var(--parchment-light);
+  background: var(--gold-dark);
+  border-color: var(--gold-dark);
+}
+
+/* A trait: its number, a bar out of 100 and the word for how strongly it drives the character. */
+.lore-trait {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lore-trait__number {
+  min-width: 32px;
+  font-size: 19px;
+}
+
+.lore-trait__bar {
+  display: block;
+  flex: 0 1 120px;
+  height: 6px;
+  overflow: hidden;
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-pill);
+}
+
+.lore-trait__bar span {
+  display: block;
+  height: 100%;
+  background: var(--gold-dark);
+}
+
+.lore-trait__word {
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+/* --- the field picked ---------------------------------------------------------------------------------------------- */
+
+.lore-detail__field {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.lore-detail__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+.lore-detail__mark {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  color: var(--gold-dark);
+}
+
+.lore-detail__kind {
+  margin: -6px 0 2px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.lore-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.lore-who__caption {
+  margin-right: 6px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.lore-who__chip.rp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lore-who__chip .lore-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.lore-who__locked {
+  font-style: italic;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.lore-detail__help {
+  margin: 0;
+  font-size: 17px;
+  color: var(--ink-soft);
+}
+
+.lore-detail__current {
+  padding: 12px 0 4px;
+  border-top: 1px solid var(--ink-line);
+}
+
+.lore-detail__value {
+  margin: 0;
+  font-size: 21px;
+  overflow-wrap: anywhere;
+}
+
+.lore-detail__value--long {
+  font-size: 19px;
+  white-space: pre-line;
+}
+
+.lore-detail__value--picked,
+.lore-detail__value--name {
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 24px;
+}
+
+.lore-detail__summary,
+.lore-detail__seen {
+  margin: 6px 0 0;
+}
+
+.lore-detail__seen {
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.lore-detail__none {
+  margin: 0;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.lore-detail__rolls {
+  display: grid;
+  gap: 2px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 17px;
+  color: var(--ink-soft);
+}
+
+.lore-detail__game,
+.lore-detail__fixed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--ink-wash);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius-small);
+}
+
+.lore-detail__game .lore-icon,
+.lore-detail__fixed .lore-icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  color: var(--gold-dark);
+}
+
+.lore-detail__warn {
+  margin: 0;
+  font-style: italic;
+  font-size: 17px;
+  color: var(--gold-dark);
+}
+
+.lore-detail__hint {
+  margin: 4px 0 0;
+  font-size: 17px;
+  color: var(--ink-soft);
+}
+
+.lore-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.lore-detail__actions--column {
+  display: grid;
+  justify-items: start;
+}
+
+.lore-detail__actions .rp-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lore-detail__button-die {
+  width: 26px;
+  height: 26px;
+  margin: -4px 0;
+}
+
+.lore-detail__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lore-trait-big {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.lore-trait-big__number {
+  font-family: var(--font-title);
+  font-size: 54px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.lore-trait-big__words {
+  display: grid;
+  gap: 8px;
+  font-style: italic;
+  font-size: 20px;
+}
+
+.lore-trait-big__words .lore-trait__bar {
+  width: 220px;
+}
+
+.lore-trait-big--rolling {
+  font-style: italic;
+  font-size: 20px;
+  color: var(--ink-soft);
+}
+
+/* Pete's d20 turns while the dice fly on the dice board. */
+.lore-trait-big__die {
+  width: 64px;
+  height: 64px;
+  animation: lore-spin 1.2s linear infinite;
+}
+
+/* --- writing a field ----------------------------------------------------------------------------------------------- */
+
+.lore-edit {
+  display: grid;
+  gap: 8px;
+}
+
+.lore-edit__label {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.lore-edit__box {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+  background: rgba(255, 252, 242, 0.85);
+  color: var(--ink);
+  font: inherit;
+  font-size: 20px;
+  outline: none;
+  transition: border-color var(--duration-hover), box-shadow var(--duration-hover);
+}
+
+.lore-edit__box:focus {
+  border-color: var(--gold);
+  box-shadow: var(--focus-ring);
+}
+
+.lore-edit__box[aria-invalid="true"] {
+  border-color: var(--problem);
+  background: var(--problem-wash);
+}
+
+.lore-edit__box--long {
+  min-height: 260px;
+  resize: none;
+  line-height: 1.5;
+}
+
+.lore-edit__box--number {
+  width: 160px;
+  font-size: 28px;
+  text-align: center;
+}
+
+.lore-edit__count {
+  margin: 0;
+  font-size: 15px;
+  text-align: right;
+  color: var(--ink-soft);
+}
+
+.lore-edit__error {
+  margin: 0;
+  font-weight: 700;
+  color: var(--problem);
+}
+
+/* --- picking from the lore list ------------------------------------------------------------------------------------ */
+
+/* The picker fills the column: the list takes what the search, the entry's summary and the buttons leave. */
+.lore-detail__field--fill {
+  height: 100%;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.lore-pick {
+  display: grid;
+  grid-template-rows: auto minmax(120px, 1fr) auto auto;
+  gap: 10px;
+  min-height: 0;
+}
+
+.lore-pick__list {
+  min-height: 0;
+  padding: 2px 6px 4px 2px;
+  overflow-y: auto;
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+  background: var(--ink-wash);
+}
+
+.lore-pick__note {
+  margin: 8px 10px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.lore-option {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  min-height: 40px;
+  padding: 4px 10px;
+  border-bottom: 1px solid rgba(43, 29, 14, 0.1);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+}
+
+.lore-option:hover:not(.lore-option--cursor) {
+  background: rgba(156, 122, 60, 0.1);
+}
+
+.lore-option--cursor {
+  background: rgba(156, 122, 60, 0.28);
+  box-shadow: inset 4px 0 0 var(--gold-dark);
+}
+
+.lore-option__name small {
+  margin-left: 8px;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.lore-option__tags {
+  display: flex;
+  gap: 6px;
+}
+
+.lore-pick__about {
+  max-height: 170px;
+  padding: 10px 12px;
+  overflow-y: auto;
+  border-top: 1px solid var(--ink-line);
+}
+
+.lore-pick__about-name {
+  font-family: var(--font-title);
+  font-size: 20px;
+}
+
+.lore-pick__summary {
+  margin: 4px 0 0;
+}
+
+.lore__seen-card {
+  padding: 10px 14px;
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+}
+
+@keyframes lore-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+}
+
+@keyframes lore-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

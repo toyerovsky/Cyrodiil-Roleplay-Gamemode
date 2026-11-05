@@ -1,5 +1,6 @@
-// The menu arrives as JSON: {tab, character, account, help, dice, languages, language}, again after a language or a dice
-// set is picked. The page closes on Closed, whoever closed it. Its dice tab opens the dice board, which closes the menu.
+// The menu arrives as JSON: {tab, character, account, help, dice, lore, languages, language}, again after a language, a
+// dice set or the name's visibility is picked. The page closes on Closed, whoever closed it. Its dice tab opens the dice
+// board and its lore tab the lore card, each closing the menu.
 export function createBridge(readym) {
   return {
     onLocale: (handler) => readym.on("Locale", handler),
@@ -10,5 +11,7 @@ export function createBridge(readym) {
     setLanguage: (locale) => readym.sendMenuLanguage(locale),
     openDice: () => readym.sendMenuDice(),
     chooseDiceSet: (set) => readym.sendMenuDiceSet(set),
+    openLore: () => readym.sendMenuLore(),
+    setNamePublic: (isPublic) => readym.sendMenuLoreName(isPublic),
   };
 }

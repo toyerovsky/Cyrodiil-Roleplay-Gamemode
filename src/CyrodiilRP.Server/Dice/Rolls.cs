@@ -33,8 +33,8 @@ internal sealed partial class Rolls(
         var asked = DiceFormat.FormatAsked(result.Groups);
         var dice = DiceFormat.FormatDice(result.Dice);
         var line = reason is null
-            ? DiceText.Rolled(roller.Name, asked, dice, result.Total)
-            : DiceText.RolledFor(roller.Name, asked, reason, dice, result.Total);
+            ? DiceText.Rolled(new ShownName(roller), asked, dice, result.Total)
+            : DiceText.RolledFor(new ShownName(roller), asked, reason, dice, result.Total);
         chat.SendAround(roller, config.Chat.Emote, ChatLineKind.Attempt, line);
         Keep(roller, result);
         return result;
@@ -48,7 +48,7 @@ internal sealed partial class Rolls(
         var against = DiceRoller.Roll(RollNotation.Default, reason, clock.UtcNow, DiceRoller.RollDie);
         var winner = rolled.Total > against.Total ? actor : target;
         chat.SendAround(actor, config.Chat.Emote, ChatLineKind.Attempt,
-            DiceText.Contest(actor.Name, target.Name, rolled.Total, against.Total, winner.Name));
+            DiceText.Contest(new ShownName(actor), new ShownName(target), rolled.Total, against.Total, new ShownName(winner)));
         Keep(actor, rolled);
         Keep(target, against);
     }

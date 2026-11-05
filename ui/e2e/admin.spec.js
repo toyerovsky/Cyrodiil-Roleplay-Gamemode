@@ -231,3 +231,22 @@ test("the spawn: none yet, set where the staff member stands, then gone to", asy
   await spawn.getByRole("button", { name: t("action.go") }).click();
   expect((await readSent(page, "AdminRun")).at(-1)).toEqual(["/aspawn go"]);
 });
+
+test("a player's lore card, read on request, a field cleared on the second click", async ({ page }, testInfo) => {
+  await page.goto("/admin/index.html#card");
+  const card = page.getByRole("region", { name: /\[4\] Brannoc/ });
+  await card.getByRole("button", { name: t("card.lore_read") }).click();
+  const lore = card.getByRole("region", { name: t("card.lore") });
+  await expect(lore.locator(".lore-view__field")).toHaveCount(9);
+  await lore.locator('[data-field="notes"]').scrollIntoViewIfNeeded();
+  await expectNoHorizontalOverflow(page, ".admin-card");
+  await screenshot(page, testInfo, "admin-lore");
+
+  await lore.locator('[data-clear="notes"]').click();
+  await expect(lore.locator('[data-clear="notes"]')).toHaveText(t("card.lore_clear_again"));
+  expect(await readSent(page, "AdminRun")).toEqual([]);
+  await lore.locator('[data-clear="notes"]').click();
+  expect(await readSent(page, "AdminRun")).toEqual([["/alore 4 clear notes"]]);
+  await expect(lore.locator(".lore-view__field")).toHaveCount(8);
+  await expect(lore.locator('[data-field="notes"]')).toHaveCount(0);
+});

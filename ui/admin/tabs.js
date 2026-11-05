@@ -17,4 +17,4 @@ export const TABS = [
 ];
 
 // What the panel asks the server for apart from its state, named as AdminParts.cs names them (a test ties the two).
-export const PARTS = { card: "card", sanctions: "sanctions", audit: "audit", items: "items", rolls: "rolls" };
+export const PARTS = { card: "card", sanctions: "sanctions", audit: "audit", items: "items", rolls: "rolls", lore: "lore" };

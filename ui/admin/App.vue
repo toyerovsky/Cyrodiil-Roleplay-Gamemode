@@ -22,6 +22,9 @@ const view = ref(null);
 const tab = ref(TABS[0].id);
 const selected = ref(null);
 const card = ref(null);
+// The lore card of the player picked, asked for on request.
+const lore = ref(null);
+const loreAsked = ref(false);
 const sanctions = ref(null);
 const audit = ref(null);
 const rolls = ref(null);
@@ -82,9 +85,16 @@ function confirm(values) {
   run(buildLine(action, values));
 }
 
+function askLore() {
+  loreAsked.value = true;
+  props.bridge.ask(PARTS.lore, String(selected.value));
+}
+
 function select(number) {
   selected.value = number;
   card.value = null;
+  lore.value = null;
+  loreAsked.value = false;
   found.value = [];
   props.bridge.ask(PARTS.card, String(number));
 }
@@ -131,6 +141,7 @@ async function onState(next) {
 
 function onPart(kind, data) {
   if (kind === PARTS.card && data.number === selected.value) card.value = data;
+  else if (kind === PARTS.lore && (data.number ?? selected.value) === selected.value) lore.value = data;
   else if (kind === PARTS.sanctions) sanctions.value = data;
   else if (kind === PARTS.items) found.value = data;
   else if (kind === PARTS.audit) audit.value = data.appended && audit.value ? { ...data, entries: [...audit.value.entries, ...data.entries] } : data;
@@ -142,6 +153,7 @@ function onAnswer(text, done) {
   waiting.value = false;
   answer.value = { text, done };
   if (selected.value !== null) props.bridge.ask(PARTS.card, String(selected.value));
+  if (selected.value !== null && loreAsked.value) props.bridge.ask(PARTS.lore, String(selected.value));
   if (tab.value === "sanctions") props.bridge.ask(PARTS.sanctions, "");
   if (tab.value === "audit") searchAudit(auditFilter);
 }
@@ -150,6 +162,8 @@ function reset() {
   view.value = null;
   selected.value = null;
   card.value = null;
+  lore.value = null;
+  loreAsked.value = false;
   sanctions.value = null;
   audit.value = null;
   rolls.value = null;
@@ -212,6 +226,8 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             :players="view.players"
             :selected="selected"
             :card="card"
+            :lore="lore"
+            :lore-asked="loreAsked"
             :found="found"
             :t="t"
             :locale="locale"
@@ -220,6 +236,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             @select="select"
             @act="act"
             @search="searchItems"
+            @lore="askLore"
           />
           <ItemsTab
             v-else-if="tab === 'items'"

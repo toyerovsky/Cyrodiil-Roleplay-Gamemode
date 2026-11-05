@@ -32,6 +32,7 @@ export const ACTIONS = {
   weather: { command: "aweather", line: "/aweather {weather}" },
   spawnHere: { command: "aspawn", line: "/aspawn here" },
   spawnGo: { command: "aspawn", line: "/aspawn go" },
+  loreClear: { command: "alore", line: "/alore {number} clear {field}" },
 };
 
 // The card's buttons in their order. A pair shows the one that fits: a frozen player gets Unfreeze, not Freeze.

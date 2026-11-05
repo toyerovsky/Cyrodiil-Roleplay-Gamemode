@@ -1,23 +1,21 @@
+using System.Text.Json;
 using CyrodiilRP.Common.Players;
+using Microsoft.Extensions.Logging;
 using OblivionMp.Sdk;
 using OblivionMp.Sdk.Archetypes.Mixins;
 using OblivionMp.Sdk.Common.Archetypes;
-using OblivionMp.Sdk.Common.Archetypes.Mixins;
 using OblivionMp.Sdk.Values;
-using ReadyM.SDK.Archetypes.Core;
 using ReadyM.SDK.Attributes;
-using ReadyM.SDK.Client.Entities;
 
 namespace CyrodiilRP.Client.Nameplates;
 
 // The names over the other players, in place of the platform's MarkerMod, which writes a name once, as its marker is
-// made: the character's name and the staff's mark come later. Over a name, a while, what that player last did (/me).
+// made. The server sends each player the names they see (KnownNames): a character's name once introduced, otherwise its
+// race. A player the server has not named yet shows nothing, so a name never shows before it should. Over a name, a
+// while, what that player last did (/me).
 [Service]
-internal sealed partial class Nameplates(IEntities entities, IPlayers players, IMarkers markers, RpcHandlers rpc)
+internal sealed partial class Nameplates(IPlayers players, IMarkers markers, RpcHandlers rpc, ILogger logger)
 {
-    // A name changes seldom: looked at twice a second, not every frame.
-    private const float ReadNamesEverySeconds = 0.5f;
-
     // An action fades out over its last second.
     private const float FadeSeconds = 1f;
 
@@ -59,13 +57,19 @@ internal sealed partial class Nameplates(IEntities entities, IPlayers players, I
 
     private readonly List<ushort> _gone = [];
 
-    private float _lastRead = float.NegativeInfinity;
+    // By the player's number, as the server last named them.
+    private Dictionary<ushort, string> _names = [];
 
-    private void Start() => rpc.OverheadShown += OnOverheadShown;
+    private void Start()
+    {
+        rpc.OverheadShown += OnOverheadShown;
+        rpc.KnownNamesChanged += OnKnownNames;
+    }
 
     private void Stop()
     {
         rpc.OverheadShown -= OnOverheadShown;
+        rpc.KnownNamesChanged -= OnKnownNames;
         foreach (var plate in _plates.Values)
             Destroy(plate);
         _plates.Clear();
@@ -79,12 +83,37 @@ internal sealed partial class Nameplates(IEntities entities, IPlayers players, I
             _actions[(ushort)speaker] = new PendingAction(ActionMark + text + UnderAction, Time.Elapsed + showMs / MillisecondsPerSecond);
     }
 
+    // The server's own JSON: one that does not read is a bug, and the names stay as they were.
+    private void OnKnownNames(string json)
+    {
+        Dictionary<string, string>? named;
+        try
+        {
+            named = JsonSerializer.Deserialize(json, NameplateJson.Default.DictionaryStringString);
+        }
+        catch (JsonException exception)
+        {
+            logger.LogError(exception, "[CyrodiilRP] The names over the players' heads did not read.");
+            return;
+        }
+
+        var names = new Dictionary<ushort, string>();
+        foreach (var (number, name) in named ?? [])
+        {
+            if (!ushort.TryParse(number, out var parsed))
+            {
+                logger.LogError("[CyrodiilRP] The names over the players' heads hold {Number}, which is no player's number.", number);
+                return;
+            }
+
+            names[parsed] = name;
+        }
+
+        _names = names;
+    }
+
     private void Update()
     {
-        var readNames = Time.Elapsed - _lastRead >= ReadNamesEverySeconds;
-        if (readNames)
-            _lastRead = Time.Elapsed;
-
         _seen.Clear();
         var local = players.LocalPlayer?.PlayerId.RawValue;
         foreach (var character in players.AreaPlayers)
@@ -105,11 +134,19 @@ internal sealed partial class Nameplates(IEntities entities, IPlayers players, I
                 plate = null;
             }
 
+            if (!_names.TryGetValue(number, out var nickname))
+            {
+                if (plate is not null)
+                {
+                    Destroy(plate);
+                    _plates.Remove(number);
+                }
+
+                continue;
+            }
+
             if (plate is null)
             {
-                if (ReadNickname(character) is not { } nickname)
-                    continue;
-
                 var handle = markers.CreateMarker(character, nickname, ColorOf(nickname), NameStyle);
                 if (handle.IsNone)
                     continue;
@@ -117,7 +154,7 @@ internal sealed partial class Nameplates(IEntities entities, IPlayers players, I
                 plate = new Plate(pawn, handle, nickname);
                 _plates[number] = plate;
             }
-            else if (readNames && ReadNickname(character) is { } nickname && nickname != plate.Nickname)
+            else if (nickname != plate.Nickname)
             {
                 plate.Nickname = nickname;
                 markers.SetMarkerText(plate.Name, nickname, ColorOf(nickname));
@@ -203,9 +240,6 @@ internal sealed partial class Nameplates(IEntities entities, IPlayers players, I
         foreach (var number in _gone)
             _actions.Remove(number);
     }
-
-    private string? ReadNickname(MainCharacter character) =>
-        entities.TryLookup(character.PlayerId, out Player player) && player.Nickname.ToString() is { Length: > 0 } nickname ? nickname : null;
 
     private void Destroy(Plate plate)
     {

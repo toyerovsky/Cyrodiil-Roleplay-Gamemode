@@ -194,3 +194,16 @@
   font-size: 15px;
   color: var(--ink-soft);
 }
+
+/* The player's lore card, each field with its Clear at the end of the row. */
+.admin-lore__card .lore-view__field {
+  align-items: center;
+}
+
+.admin-lore__clear.rp-button {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  padding: 4px 12px;
+  font-size: 15px;
+}

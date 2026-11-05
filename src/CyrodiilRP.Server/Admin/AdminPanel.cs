@@ -7,6 +7,7 @@ using CyrodiilRP.Server.Dice;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
+using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
 using CyrodiilRP.Server.Staff;
@@ -31,6 +32,8 @@ internal sealed partial class AdminPanel(
     InteractionMenu interactions,
     Fire fire,
     DiceLog rolls,
+    LoreCardViews lore,
+    LoreCards cards,
     ILogger logger) : ICommandOutput
 {
     private const string PanelOption = "self.admin";
@@ -162,6 +165,12 @@ internal sealed partial class AdminPanel(
                     fire.Run(RollsJob, () => SendRollsAsync(player, rollFilter));
                 break;
 
+            case AdminParts.Lore:
+                if (int.TryParse(argument, out var owner) && owner is >= 0 and <= ushort.MaxValue && online.TryFind((ushort)owner, out var subject)
+                    && subject.Character is not null)
+                    SendLore(player, subject);
+                break;
+
             case AdminParts.Items:
                 if (Parse(argument, AdminJson.Default.AdminItemFilter) is { } items)
                     rpc.SendAdminPart(player.Id, AdminParts.Items, JsonSerializer.Serialize(AdminViews.SearchItems(items), AdminJson.Default.ListAdminItemView));
@@ -234,6 +243,13 @@ internal sealed partial class AdminPanel(
             return;
 
         rpc.SendAdminPart(staff.Id, AdminParts.Rolls, JsonSerializer.Serialize(page, AdminJson.Default.AdminRollsView));
+    }
+
+    private void SendLore(OnlinePlayer staff, OnlinePlayer subject)
+    {
+        cards.Find(subject, out var card);
+        var view = new AdminLoreView(subject.Number, subject.Name, card.NamePublic, lore.BuildStaffView(staff, subject));
+        rpc.SendAdminPart(staff.Id, AdminParts.Lore, JsonSerializer.Serialize(view, AdminJson.Letters.AdminLoreView));
     }
 
     private T? Parse<T>(string json, JsonTypeInfo<T> type) where T : class

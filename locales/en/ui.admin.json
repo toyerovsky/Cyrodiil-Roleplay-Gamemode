@@ -179,5 +179,10 @@
   "ui.admin.dice.none": "No rolls.",
   "ui.admin.dice.older": "Older rolls",
   "ui.admin.dice.for": "for {reason}",
-  "ui.admin.dice.lead": "Every roll on the server, newest first, as those around saw it."
+  "ui.admin.dice.lead": "Every roll on the server, newest first, as those around saw it.",
+  "ui.admin.card.lore": "Lore card",
+  "ui.admin.card.lore_read": "Read the lore card",
+  "ui.admin.card.lore_none": "No lore card yet.",
+  "ui.admin.card.lore_clear_again": "Clear it? Click again",
+  "ui.admin.action.loreClear": "Clear"
 }

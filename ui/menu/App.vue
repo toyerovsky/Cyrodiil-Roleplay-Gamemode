@@ -9,6 +9,7 @@ import CharacterTab from "./CharacterTab.vue";
 import DiceTab from "./DiceTab.vue";
 import HelpTab from "./HelpTab.vue";
 import KeysTab from "./KeysTab.vue";
+import LoreTab from "./LoreTab.vue";
 import { TABS } from "./tabs.js";
 
 const props = defineProps({ bridge: { type: Object, required: true } });
@@ -53,6 +54,10 @@ function pickLanguage(code) {
 
 function pickDiceSet(set) {
   if (set !== menu.value.dice.set) props.bridge.chooseDiceSet(set);
+}
+
+function pickNameVisibility(isPublic) {
+  if (isPublic !== menu.value.lore.namePublic) props.bridge.setNamePublic(isPublic);
 }
 
 function leave() {
@@ -114,6 +119,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             />
             <HelpTab v-else-if="tab === 'help'" :help="menu.help" :t="t" />
             <DiceTab v-else-if="tab === 'dice'" :dice="menu.dice" :t="t" :locale="locale" @open="bridge.openDice" @pick="pickDiceSet" />
+            <LoreTab v-else-if="tab === 'lore'" :lore="menu.lore" :t="t" :locale="locale" @open="bridge.openLore" @name="pickNameVisibility" />
             <KeysTab v-else :t="t" />
           </div>
         </div>

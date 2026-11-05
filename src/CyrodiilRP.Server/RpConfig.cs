@@ -16,4 +16,6 @@ internal sealed partial class RpConfig
     public ChatRanges Chat { get; set; } = new();
 
     public EconomySettings Economy { get; set; } = new();
+
+    public LoreSettings Lore { get; set; } = new();
 }

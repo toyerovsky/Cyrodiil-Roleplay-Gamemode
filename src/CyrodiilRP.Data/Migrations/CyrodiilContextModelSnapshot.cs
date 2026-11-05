@@ -175,6 +175,10 @@ namespace CyrodiilRP.Data.Migrations
                         .HasColumnType("character varying(81)")
                         .HasColumnName("name_key");
 
+                    b.Property<bool>("NamePublic")
+                        .HasColumnType("boolean")
+                        .HasColumnName("name_public");
+
                     b.Property<long>("PlayedSeconds")
                         .HasColumnType("bigint")
                         .HasColumnName("played_seconds");
@@ -335,6 +339,85 @@ namespace CyrodiilRP.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.LoreField", b =>
+                {
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("character_id");
+
+                    b.Property<string>("FieldId")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("field_id");
+
+                    b.Property<string>("CatalogId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("catalog_id");
+
+                    b.Property<bool>("Fixed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("fixed");
+
+                    b.Property<int?>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<string>("Rolls")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("rolls");
+
+                    b.Property<string>("Text")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("text");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("visibility");
+
+                    b.HasKey("CharacterId", "FieldId")
+                        .HasName("pk_lore_fields");
+
+                    b.ToTable("lore_fields", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_lore_fields_number", "number IS NULL OR number BETWEEN 5 AND 100");
+                        });
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.LoreIntroduction", b =>
+                {
+                    b.Property<long>("KnowerCharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("knower_character_id");
+
+                    b.Property<long>("KnownCharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("known_character_id");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.HasKey("KnowerCharacterId", "KnownCharacterId")
+                        .HasName("pk_lore_introductions");
+
+                    b.HasIndex("KnownCharacterId")
+                        .HasDatabaseName("ix_lore_introductions_known_character_id");
+
+                    b.ToTable("lore_introductions", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_lore_introductions_other", "knower_character_id <> known_character_id");
+                        });
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.SpawnPoint", b =>
                 {
                     b.Property<int>("Id")
@@ -422,14 +505,14 @@ namespace CyrodiilRP.Data.Migrations
                             Name = "admin",
                             GrantsAll = false,
                             Label = "Administrator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "atrader", "aspawn" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "atrader", "aspawn" }
                         },
                         new
                         {
                             Name = "moderator",
                             GrantsAll = false,
                             Label = "Moderator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore" }
                         });
                 });
 
@@ -536,6 +619,33 @@ namespace CyrodiilRP.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_gold_deliveries_characters_character_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.LoreField", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_lore_fields_characters_character_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.LoreIntroduction", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("KnowerCharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_lore_introductions_characters_knower_character_id");
+
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("KnownCharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_lore_introductions_characters_known_character_id");
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.Account", b =>

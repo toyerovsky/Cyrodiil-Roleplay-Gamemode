@@ -179,5 +179,10 @@
   "ui.admin.dice.none": "Brak rzutów.",
   "ui.admin.dice.older": "Starsze rzuty",
   "ui.admin.dice.for": "na {reason}",
-  "ui.admin.dice.lead": "Każdy rzut na serwerze, najnowsze pierwsze, tak jak widzieli go ci w pobliżu."
+  "ui.admin.dice.lead": "Każdy rzut na serwerze, najnowsze pierwsze, tak jak widzieli go ci w pobliżu.",
+  "ui.admin.card.lore": "Karta lore",
+  "ui.admin.card.lore_read": "Przeczytaj kartę lore",
+  "ui.admin.card.lore_none": "Nie ma jeszcze karty lore.",
+  "ui.admin.card.lore_clear_again": "Wyczyścić? Kliknij jeszcze raz",
+  "ui.admin.action.loreClear": "Wyczyść"
 }

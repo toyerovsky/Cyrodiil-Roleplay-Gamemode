@@ -20,8 +20,10 @@ function readSources(folder) {
 
 describe("the menu and the server", () => {
   it("lists every key the client binds, and only those", () => {
-    const bound = [...readSources("CyrodiilRP.Client").matchAll(/RegisterKeyBind\(Key\.(\w+)/g)].map(([, key]) => key).sort();
-    const listed = KEYS.map(({ key }) => key).filter((key) => key !== CLOSE_KEY).sort();
+    // A key the client binds once may be listed twice, as End and Shift+End.
+    const unique = (keys) => [...new Set(keys)].sort();
+    const bound = unique([...readSources("CyrodiilRP.Client").matchAll(/RegisterKeyBind\(Key\.(\w+)/g)].map(([, key]) => key));
+    const listed = unique(KEYS.map(({ key }) => key).filter((key) => key !== CLOSE_KEY));
     expect(listed).toEqual(bound);
   });
 

@@ -36,12 +36,14 @@ function group(category, keys) {
 }
 
 // Marcus Varro, three days in Cyrodiil. #help opens on the help of an owner, every staff command in it. #account: muted
-// for a while, with a second language to pick. #dice: the dice tab, three rolls behind him.
+// for a while, with a second language to pick. #dice: the dice tab, three rolls behind him. #lore: the lore tab, his name
+// private, two players online who know him.
 export function pretendGame(readym) {
   const scenario = location.hash.slice(1);
   const now = Date.now();
   let language = "en";
   let diceSet = "imperial";
+  let namePublic = false;
   const dice = () => ({
     set: diceSet,
     sets: DICE_SETS,
@@ -51,6 +53,24 @@ export function pretendGame(readym) {
       { at: now - DAY_MS, asked: "5d20", dice: [6, 1, 17, 11, 15].map((value) => ({ sides: 20, value })), total: 50, reason: "Lazy" },
     ],
     maxDice: 5,
+  });
+  const lore = () => ({
+    namePublic,
+    header: namePublic ? "Marcus Varro" : "Imperial",
+    preview: {
+      header: namePublic ? "Marcus Varro" : "Imperial",
+      level: "public",
+      fields: [
+        { id: "race", part: "heritage", label: "Race", text: "Imperial", long: false },
+        { id: "build", part: "look", label: "Build", text: "Broad shoulders, a soldier's stance", long: false },
+        { id: "hair", part: "look", label: "Hair", text: "Short, greying at the temples", long: false },
+        { id: "currently", part: "status", label: "Currently", text: "Guarding a caravan bound for Chorrol, waiting on the merchant.", long: false },
+      ],
+    },
+    known: [
+      { number: 3, name: "Lucia Gallus" },
+      { number: 12, name: "Dravyn Sadri" },
+    ],
   });
   const staffMember = scenario === "help";
   const view = (tab) => ({
@@ -63,6 +83,7 @@ export function pretendGame(readym) {
       sanctions: scenario === "account" ? [mute(now)] : [],
     },
     dice: dice(),
+    lore: lore(),
     help: [
       ...Object.entries(PLAYER_COMMANDS).map(([category, keys]) => group(category, keys)),
       ...(staffMember ? [group("staff", STAFF_COMMANDS)] : []),
@@ -73,8 +94,12 @@ export function pretendGame(readym) {
   const send = (tab) => setTimeout(() => readym.emit("State", JSON.stringify(view(tab))), ANSWER_MS);
 
   readym.onSend((name, args) => {
-    if (name === "MenuReady") send(["help", "account", "dice"].includes(scenario) ? scenario : "character");
-    if (name === "MenuClose" || name === "MenuDice") setTimeout(() => readym.emit("Closed"), 0);
+    if (name === "MenuReady") send(["help", "account", "dice", "lore"].includes(scenario) ? scenario : "character");
+    if (name === "MenuClose" || name === "MenuDice" || name === "MenuLore") setTimeout(() => readym.emit("Closed"), 0);
+    if (name === "MenuLoreName") {
+      [namePublic] = args;
+      send("lore");
+    }
     if (name === "MenuDiceSet") {
       [diceSet] = args;
       send("dice");

@@ -81,6 +81,17 @@ internal sealed partial class PlayerMenuOverlay(
     [ReceiveFromCef]
     private void OnMenuDiceSet(BrowserHandle browser, string set) => rpc.SendChooseDiceSet(set, true);
 
+    // The lore tab's button: the player's own card takes the menu's place.
+    [ReceiveFromCef]
+    private void OnMenuLore(BrowserHandle browser)
+    {
+        Window.Close();
+        rpc.SendOpenLore(false);
+    }
+
+    [ReceiveFromCef]
+    private void OnMenuLoreName(BrowserHandle browser, bool namePublic) => rpc.SendChooseNamePublic(namePublic);
+
     [SendToCef]
     private partial void SendLocale(BrowserHandle browser, string locale);
 

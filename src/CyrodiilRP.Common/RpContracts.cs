@@ -231,4 +231,35 @@ public static partial class RpContracts
     // One of the dice sets the board and the menu offer. FromMenu: the menu asked, so it is the menu that comes back.
     [ClientToServer]
     public static partial void ChooseDiceSet(string set, bool fromMenu);
+
+    // The lore card's keys: End (look false) opens the player's own card, Shift+End (look true) the card of the player in
+    // front. The server answers with LoreAnswer, request id 0.
+    [ClientToServer]
+    public static partial void OpenLore(bool look);
+
+    // A request of the lore card's page, JSON with an "op". The answer comes back under the same id, above 0.
+    [ClientToServer]
+    public static partial void LoreAsk(int requestId, string json);
+
+    // The answer to a request, or with id 0 the server's own: {"op":"edit"} opens the editor, {"op":"view",...} a card.
+    // The page opens on the server's own.
+    [ServerToClient]
+    public static partial void LoreAnswer(int requestId, string json);
+
+    // The lore card was closed on the player's side.
+    [ClientToServer]
+    public static partial void CloseLore();
+
+    // /mylore with the card open: the server closes it.
+    [ServerToClient]
+    public static partial void CloseLoreCard();
+
+    // The names over the other players' heads, as this player sees them: JSON from a player's number to the name. A
+    // player not in it shows no name.
+    [ServerToClient]
+    public static partial void KnownNames(string json);
+
+    // The menu's lore tab: whether everyone sees the character's name. The server answers with the menu on that tab.
+    [ClientToServer]
+    public static partial void ChooseNamePublic(bool namePublic);
 }

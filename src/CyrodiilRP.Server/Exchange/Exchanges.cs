@@ -6,6 +6,7 @@ using CyrodiilRP.Server.Economy;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
+using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
 using Microsoft.Extensions.Logging;
@@ -24,6 +25,7 @@ internal sealed partial class Exchanges(
     ExchangeInventory inventory,
     RpChat chat,
     Asks asks,
+    ShownNames names,
     Audit audit,
     Timers timers,
     SystemClock clock,
@@ -81,7 +83,7 @@ internal sealed partial class Exchanges(
             return ExchangeText.Cooldown(wait);
 
         if (_book.IsTrading(target) || _book.HasAsk(target))
-            return ExchangeText.TargetBusy(target.Name);
+            return ExchangeText.TargetBusy(new ShownName(target));
 
         return wallet.IsInWorld(actor.Id) && wallet.IsInWorld(target.Id) ? null : ExchangeText.NotInWorld;
     }
@@ -104,13 +106,13 @@ internal sealed partial class Exchanges(
         var ask = _book.Ask(asker, asked);
         _pacing.Start(ask, Expire);
         asks.Open(ask, AskKinds.Trade, new AskAnswers(Accept, Decline));
-        chat.SendTo(asked, ChatLineKind.System, ExchangeText.Asked(asker.Name, AskPacing.TimeoutSeconds));
+        chat.SendTo(asked, ChatLineKind.System, ExchangeText.Asked(new ShownName(asker), AskPacing.TimeoutSeconds));
     }
 
     private void Expire(PlayerAsk ask)
     {
         if (Drop(ask) && ask.Asker.IsLive)
-            chat.Notify(ask.Asker, ExchangeText.Timeout(ask.Asked.Name));
+            chat.Notify(ask.Asker, ExchangeText.Timeout(new ShownName(ask.Asked)));
     }
 
     // False when the ask was answered or dropped already.
@@ -142,7 +144,7 @@ internal sealed partial class Exchanges(
         if (!wallet.IsInWorld(ask.Asker.Id) || !wallet.IsInWorld(ask.Asked.Id))
             chat.Notify(ask.Asked, ExchangeText.NotInWorld);
         else if (!proximity.AreNear(ask.Asker.Id, ask.Asked.Id, ExchangeRules.WalkAway))
-            chat.Notify(ask.Asked, ExchangeText.AcceptFar(ask.Asker.Name, ExchangeRules.WalkAwayMetres));
+            chat.Notify(ask.Asked, ExchangeText.AcceptFar(new ShownName(ask.Asker), ExchangeRules.WalkAwayMetres));
         else
             Begin(ask);
     }
@@ -152,9 +154,9 @@ internal sealed partial class Exchanges(
         if (!Drop(ask))
             return;
 
-        chat.Notify(ask.Asked, ExchangeText.YouDeclined(ask.Asker.Name));
+        chat.Notify(ask.Asked, ExchangeText.YouDeclined(new ShownName(ask.Asker)));
         if (ask.Asker.IsLive)
-            chat.Notify(ask.Asker, ExchangeText.Declined(ask.Asked.Name));
+            chat.Notify(ask.Asker, ExchangeText.Declined(new ShownName(ask.Asked)));
     }
 
     private void OnOffered(PlayerId id, int gold)
@@ -226,7 +228,7 @@ internal sealed partial class Exchanges(
             return;
 
         if (_book.FindDeal(player) is { } deal)
-            End(deal, side => side == player ? ExchangeText.CancelSelf : ExchangeText.CancelOther(player.Name));
+            End(deal, side => side == player ? ExchangeText.CancelSelf : ExchangeText.CancelOther(new ShownName(player)));
         else
             rpc.SendExchangeClosed(id);
     }
@@ -309,7 +311,7 @@ internal sealed partial class Exchanges(
     private Func<OnlinePlayer, Phrase>? CheckDeal(ExchangeDeal deal)
     {
         if (deal.Sides.FirstOrDefault(side => !side.Player.IsLive) is { } gone)
-            return _ => ExchangeText.CancelGone(gone.Player.Name);
+            return _ => ExchangeText.CancelGone(new ShownName(gone.Player));
 
         if (deal.Sides.Any(side => !wallet.IsInWorld(side.Player.Id)))
             return _ => ExchangeText.CancelNotInWorld;
@@ -336,11 +338,11 @@ internal sealed partial class Exchanges(
         {
             Drop(ask);
             if (ask.Asked == player && ask.Asker.IsLive)
-                chat.Notify(ask.Asker, ExchangeText.Timeout(player.Name));
+                chat.Notify(ask.Asker, ExchangeText.Timeout(new ShownName(player)));
         }
 
         if (_book.FindDeal(player) is { } deal)
-            End(deal, _ => ExchangeText.CancelGone(player.Name));
+            End(deal, _ => ExchangeText.CancelGone(new ShownName(player)));
 
         _pacing.Forget(player);
     }
@@ -371,7 +373,7 @@ internal sealed partial class Exchanges(
         side.Seen = held;
         var view = new ExchangeView(
             deal.Version,
-            other.Player.Name,
+            names.Shown(player, other.Player),
             held.Gold,
             ComputeMaxOffer(held),
             (long)deal.ComputeConfirmWait(NowMs).TotalMilliseconds,

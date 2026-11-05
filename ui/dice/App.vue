@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
+import d20 from "../rp/art/d20.webp";
 import { RpButton, RpChip, RpPanel } from "../rp/index.js";
 import { fill, usePageTexts } from "../shared/locale.js";
 import { isComposing, isHeldPress, readCode } from "../shared/press.js";
@@ -342,7 +343,7 @@ onUnmounted(() => {
 
     <div v-if="open" class="dice__layout">
       <header class="dice__top">
-        <h1 class="dice__title">{{ t.title }}</h1>
+        <h1 class="dice__title"><img class="dice__medallion" :src="d20" alt="">{{ t.title }}</h1>
         <p class="dice__banner" :class="banner?.kind && `dice__banner--${banner.kind}`" role="status" aria-live="polite">
           {{ failed ? t.no_board : banner?.text }}
           <span v-if="banner?.kind === 'high'" class="dice__natural">{{ t.natural_20 }}</span>

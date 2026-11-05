@@ -26,6 +26,12 @@ const state = (changes = {}) =>
       ],
       maxDice: 5,
     },
+    lore: {
+      namePublic: false,
+      header: "Imperial",
+      preview: { header: "Imperial", level: "public", fields: [{ id: "race", part: "heritage", label: "Race", text: "Imperial", long: false }] },
+      known: [{ number: 3, name: "Lucia Gallus" }],
+    },
     languages: ["en"],
     language: "en",
     ...changes,
@@ -79,14 +85,16 @@ describe("the player's menu", () => {
     await press("ArrowRight");
     expect(selected()).toBe("dice");
     await press("e", "KeyE");
+    expect(selected()).toBe("lore");
+    await press("e", "KeyE");
     expect(selected()).toBe("keys");
     await press("e", "KeyE");
     expect(selected()).toBe("character");
     await press("q", "KeyQ");
     expect(selected()).toBe("keys");
     await press("ArrowUp");
-    expect(selected()).toBe("dice");
-    expect(document.activeElement.dataset.tab).toBe("dice");
+    expect(selected()).toBe("lore");
+    expect(document.activeElement.dataset.tab).toBe("lore");
   });
 
   it("goes round the tabs with the keys as the game sends them, whatever has the focus, in either case", async () => {
@@ -125,7 +133,7 @@ describe("the player's menu", () => {
     await game.emit("State", state());
     await page.find('[data-tab="keys"]').trigger("click");
     expect(selected()).toBe("keys");
-    expect(page.findAll(".menu__keycap").map((key) => key.text())).toEqual(["G", "H", "Y", "N", "K", "F10", "Home", "Esc"]);
+    expect(page.findAll(".menu__keycap").map((key) => key.text())).toEqual(["G", "H", "Y", "N", "K", "F10", "Home", "End", "Shift+End", "Esc"]);
   });
 
   it("shows the dice set and the last rolls, picks another set and opens the board", async () => {
@@ -237,5 +245,30 @@ describe("the player's menu", () => {
     expect(page.find('[data-tab="character"]').text()).toBe(polish["tab.character"]);
     expect(page.find(".menu__close").text()).toBe(polish.close);
     expect(languages().map((language) => language.text())).toEqual(["English", "Polski"]);
+  });
+
+  it("shows the lore card at a glance, makes the name public and opens the card", async () => {
+    await game.emit("State", state({ tab: "lore" }));
+    expect(selected()).toBe("lore");
+    expect(page.find('[data-tab="lore"] img').attributes("src")).toMatch(/lore/);
+    expect(page.find(".menu__lore-header").text()).toBe("Imperial");
+    expect(page.find(".menu__lore-person").text()).toBe("[3]Lucia Gallus");
+    expect(page.find(".lore-view__field").text()).toBe("RaceImperial");
+    expect(page.find('[data-vis="private"]').attributes("aria-pressed")).toBe("true");
+
+    await page.find('[data-vis="private"]').trigger("click");
+    expect(game.readSent("MenuLoreName")).toEqual([]);
+    await page.find('[data-vis="public"]').trigger("click");
+    expect(game.readSent("MenuLoreName")).toEqual([[true]]);
+    await page.find(".menu__lore-open").trigger("click");
+    expect(game.readSent("MenuLore")).toEqual([[]]);
+  });
+
+  it("says so when nobody knows the character and nothing on the card is public", async () => {
+    await game.emit("State", state({ tab: "lore", lore: { namePublic: true, header: "Marcus Varro", preview: { header: "Marcus Varro", level: "public", fields: [] }, known: [] } }));
+    const texts = pickTexts("en", "ui.menu.");
+    expect(page.find(".menu__content").text()).toContain(texts["lore.known_none"]);
+    expect(page.find(".menu__content").text()).toContain(texts["lore.preview_none"]);
+    expect(page.find('[data-vis="public"]').attributes("aria-pressed")).toBe("true");
   });
 });

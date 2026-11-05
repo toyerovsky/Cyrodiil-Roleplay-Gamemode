@@ -2,6 +2,7 @@ using CyrodiilRP.Common.Chat;
 using CyrodiilRP.Server.Commands;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Localization;
+using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,7 @@ internal sealed partial class RpChat(
     Proximity proximity,
     CommandRegistry commands,
     Localizer texts,
+    ShownNames names,
     RpConfig config,
     SystemClock clock,
     ILogger logger) : ICommandOutput
@@ -65,7 +67,8 @@ internal sealed partial class RpChat(
 
     public void Refuse(OnlinePlayer to, Phrase text) => SendTo(to, ChatLineKind.Rejection, text);
 
-    public string Translate(OnlinePlayer reader, Phrase text) => texts.Get(reader.Locale, text);
+    // A name in the text is written as this reader sees it.
+    public string Translate(OnlinePlayer reader, Phrase text) => texts.Get(reader.Locale, names.Resolve(reader, text));
 
     private void Start() => rpc.MessageSubmitted += OnSubmitted;
 
@@ -105,7 +108,7 @@ internal sealed partial class RpChat(
             return;
         }
 
-        SendAround(sender, config.Chat.Say, ChatLineKind.Say, ChatText.Say(sender.Name, cleaned));
+        SendAround(sender, config.Chat.Say, ChatLineKind.Say, ChatText.Say(new ShownName(sender), cleaned));
     }
 
     // A sliding window per player, so a held key or a script cannot flood the server.
@@ -123,8 +126,12 @@ internal sealed partial class RpChat(
         return true;
     }
 
+    // A text that names someone is written per reader, as each sees the name.
     private Func<OnlinePlayer, string> TranslateOncePerLocale(Phrase text)
     {
+        if (ShownName.IsIn(text))
+            return reader => Translate(reader, text);
+
         var byLocale = new Dictionary<string, string>(StringComparer.Ordinal);
         return reader => byLocale.TryGetValue(reader.Locale, out var written)
             ? written

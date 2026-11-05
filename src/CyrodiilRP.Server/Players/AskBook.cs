@@ -21,7 +21,8 @@ internal sealed class AskBook
     public OpenAsk? FindAnswerable(OnlinePlayer player, int id) =>
         _open.FirstOrDefault(open => open.Id == id && open.Ask.Asked == player);
 
-    public AsksView BuildView(OnlinePlayer reader, long nowMs, long totalMs)
+    // Name: the other player's name as the reader sees it.
+    public AsksView BuildView(OnlinePlayer reader, long nowMs, long totalMs, Func<OnlinePlayer, OnlinePlayer, string> name)
     {
         var asks = _open
             .Where(open => open.Ask.Asked == reader || open.Ask.Asker == reader)
@@ -29,7 +30,7 @@ internal sealed class AskBook
             {
                 var incoming = open.Ask.Asked == reader;
                 var other = incoming ? open.Ask.Asker : open.Ask.Asked;
-                return new AskView(open.Id, open.Kind, other.Name, incoming, Math.Max(0, open.ExpiresAtMs - nowMs), totalMs);
+                return new AskView(open.Id, open.Kind, name(reader, other), incoming, Math.Max(0, open.ExpiresAtMs - nowMs), totalMs);
             })
             .ToList();
         return new AsksView(asks, asks.FirstOrDefault(ask => ask.Incoming)?.Id ?? 0);

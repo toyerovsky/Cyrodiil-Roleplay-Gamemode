@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using CyrodiilRP.Server.Players;
 using Microsoft.Extensions.Logging;
 using ReadyM.SDK.Attributes;
 
@@ -149,6 +150,7 @@ internal sealed partial class Localizer
         {
             null => "",
             Phrase phrase => Get(locale, phrase),
+            ShownName => throw new InvalidOperationException("A shown name is written per reader (ShownNames.Resolve) before the text is translated."),
             decimal d => d.ToString("0.##", CultureInfo.InvariantCulture),
             double d => d.ToString("0.##", CultureInfo.InvariantCulture),
             float f => f.ToString("0.##", CultureInfo.InvariantCulture),

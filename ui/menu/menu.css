@@ -324,3 +324,63 @@
   font-size: 16px;
   color: var(--ink-soft);
 }
+
+/* The lore tab: the button to the card, the name's visibility as two chips, who knows the character, the public card. */
+.menu__lore-open.rp-button {
+  margin-top: 16px;
+}
+
+.menu__lore-name {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.menu__lore-chip.rp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.menu__lore-chip .lore-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.menu__lore-help {
+  margin: 10px 0 0;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.menu__lore-header {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 24px;
+}
+
+.menu__lore-known {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu__lore-person {
+  padding: 4px 14px;
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-pill);
+}
+
+.menu__lore-number {
+  margin-right: 6px;
+  color: var(--ink-soft);
+}
+
+.menu__lore-card {
+  max-width: 1100px;
+}

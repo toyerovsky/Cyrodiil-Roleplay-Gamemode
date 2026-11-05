@@ -64,7 +64,7 @@ internal sealed partial class ChatCommands(
     private void RunCommand(OnlinePlayer player, string line) => commands.Run(player, line, chat);
 
     private void Greet(OnlinePlayer actor, OnlinePlayer target) =>
-        chat.SendAround(actor, config.Chat.Emote, ChatLineKind.Action, ChatText.Greet(actor.Name, target.Name));
+        chat.SendAround(actor, config.Chat.Emote, ChatLineKind.Action, ChatText.Greet(new ShownName(actor), new ShownName(target)));
 
     // Out of character too: a mute is held by the character.
     private void AddSpeech(string name, Phrase usage, CommandCategory category, CommandHandler run, params string[] aliases) =>
@@ -75,26 +75,26 @@ internal sealed partial class ChatCommands(
         if (!HasText(call, ChatText.ExampleMe))
             return;
 
-        chat.SendAround(call.Sender, config.Chat.Emote, ChatLineKind.Action, ChatText.Me(call.Sender.Name, call.Arguments));
+        chat.SendAround(call.Sender, config.Chat.Emote, ChatLineKind.Action, ChatText.Me(new ShownName(call.Sender), call.Arguments));
         chat.ShowOverhead(call.Sender, config.Chat.Emote, call.Arguments);
     }
 
     private void Do(CommandCall call)
     {
         if (HasText(call, ChatText.ExampleDo))
-            chat.SendAround(call.Sender, config.Chat.Emote, ChatLineKind.Ambient, ChatText.Do(call.Arguments, call.Sender.Name));
+            chat.SendAround(call.Sender, config.Chat.Emote, ChatLineKind.Ambient, ChatText.Do(call.Arguments, new ShownName(call.Sender)));
     }
 
     private void Shout(CommandCall call)
     {
         if (HasText(call, ChatText.ExampleShout))
-            chat.SendAround(call.Sender, config.Chat.Shout, ChatLineKind.Shout, ChatText.Shout(call.Sender.Name, call.Arguments));
+            chat.SendAround(call.Sender, config.Chat.Shout, ChatLineKind.Shout, ChatText.Shout(new ShownName(call.Sender), call.Arguments));
     }
 
     private void Whisper(CommandCall call)
     {
         if (HasText(call, ChatText.ExampleWhisper))
-            chat.SendAround(call.Sender, config.Chat.Whisper, ChatLineKind.Whisper, ChatText.Whisper(call.Sender.Name, call.Arguments));
+            chat.SendAround(call.Sender, config.Chat.Whisper, ChatLineKind.Whisper, ChatText.Whisper(new ShownName(call.Sender), call.Arguments));
     }
 
     private void Try(CommandCall call)
@@ -103,8 +103,8 @@ internal sealed partial class ChatCommands(
             return;
 
         var text = Random.Shared.Next(2) == 0
-            ? ChatText.TrySuccess(call.Sender.Name, call.Arguments)
-            : ChatText.TryFailure(call.Sender.Name, call.Arguments);
+            ? ChatText.TrySuccess(new ShownName(call.Sender), call.Arguments)
+            : ChatText.TryFailure(new ShownName(call.Sender), call.Arguments);
         chat.SendAround(call.Sender, config.Chat.Emote, ChatLineKind.Attempt, text);
     }
 
@@ -143,7 +143,7 @@ internal sealed partial class ChatCommands(
             .OrderBy(player => player.Number)
             .Select(player => chat.Translate(call.Sender, player.Character is null
                 ? ChatText.PlayerEntryNew(player.Number, player.OocName)
-                : ChatText.PlayerEntry(player.Number, player.Name, player.OocName)))
+                : ChatText.PlayerEntry(player.Number, new ShownName(player), player.OocName)))
             .ToList();
 
         call.Reply(ChatText.Players(entries.Count, string.Join(", ", entries)));

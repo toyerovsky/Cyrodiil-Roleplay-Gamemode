@@ -11,5 +11,6 @@ internal sealed record MenuView(
     [property: JsonPropertyName("account")] MenuAccountView Account,
     [property: JsonPropertyName("help")] IReadOnlyList<MenuHelpGroupView> Help,
     [property: JsonPropertyName("dice")] DiceView Dice,
+    [property: JsonPropertyName("lore")] MenuLoreView Lore,
     [property: JsonPropertyName("languages")] IReadOnlyList<string> Languages,
     [property: JsonPropertyName("language")] string Language);

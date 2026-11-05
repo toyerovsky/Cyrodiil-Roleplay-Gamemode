@@ -81,6 +81,12 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action<string, int, int, int, int, int[]>? DicePresented;
 
+    public event Action<int, string>? LoreAnswered;
+
+    public event Action? LoreCardClosed;
+
+    public event Action<string>? KnownNamesChanged;
+
     partial void OnDeliverMessage(ChatLine line) => MessageDelivered?.Invoke(line);
 
     partial void OnNotify(string text) => ui.ShowMessage(text, MessagePosition.TopLeft, NoticeSeconds);
@@ -151,4 +157,10 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     partial void OnPresentDice(string reason, int d6, int d10, int d20, int d100, int[] values) =>
         DicePresented?.Invoke(reason, d6, d10, d20, d100, values);
+
+    partial void OnLoreAnswer(int requestId, string json) => LoreAnswered?.Invoke(requestId, json);
+
+    partial void OnCloseLoreCard() => LoreCardClosed?.Invoke();
+
+    partial void OnKnownNames(string json) => KnownNamesChanged?.Invoke(json);
 }

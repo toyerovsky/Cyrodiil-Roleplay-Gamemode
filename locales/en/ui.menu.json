@@ -43,5 +43,16 @@
   "ui.menu.dice.recent": "Your last rolls",
   "ui.menu.dice.none": "No rolls yet.",
   "ui.menu.dice.for": "for {reason}",
-  "ui.menu.key.dice": "Open or close the dice board"
+  "ui.menu.key.dice": "Open or close the dice board",
+  "ui.menu.tab.lore": "Lore",
+  "ui.menu.lore.lead": "Your lore card says who your character is. You decide who sees each part of it.",
+  "ui.menu.lore.open": "Open my lore card",
+  "ui.menu.lore.name": "Your name",
+  "ui.menu.lore.seen_as": "How strangers see you",
+  "ui.menu.lore.known": "Who knows you",
+  "ui.menu.lore.known_none": "Nobody online knows you yet.",
+  "ui.menu.lore.preview": "Your card as everyone sees it",
+  "ui.menu.lore.preview_none": "Nothing on your card is public yet.",
+  "ui.menu.key.lore": "Open or close your lore card",
+  "ui.menu.key.lore_look": "Read the lore card of the player in front of you"
 }

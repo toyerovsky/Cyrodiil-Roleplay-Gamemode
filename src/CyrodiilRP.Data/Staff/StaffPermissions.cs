@@ -31,4 +31,5 @@ public static class StaffPermissions
     public const string Why = "awhy";
     public const string Trader = "atrader";
     public const string Spawn = "aspawn";
+    public const string Lore = "alore";
 }

@@ -39,9 +39,9 @@ internal sealed class PartyBook
         }
 
         if (Find(target) is not null)
-            return PartyText.ErrTargetInParty(target.Name);
+            return PartyText.ErrTargetInParty(new ShownName(target));
 
-        return _byInvitee.ContainsKey(target) ? PartyText.ErrTargetAsked(target.Name) : null;
+        return _byInvitee.ContainsKey(target) ? PartyText.ErrTargetAsked(new ShownName(target)) : null;
     }
 
     public PlayerAsk Invite(OnlinePlayer inviter, OnlinePlayer invitee)
@@ -68,7 +68,7 @@ internal sealed class PartyBook
         if (Find(invite.Asker) is { } party)
         {
             if (party.Leader != invite.Asker)
-                return PartyText.ErrInviterNotLeader(invite.Asker.Name);
+                return PartyText.ErrInviterNotLeader(new ShownName(invite.Asker));
 
             if (party.Members.Count >= PartyRules.MaxMembers)
                 return PartyText.ErrFull(PartyRules.MaxMembers);

@@ -44,6 +44,17 @@ internal static class ColumnLengths
     // A roll's reason is cut to 40 where it is made.
     public const int DiceReason = 64;
 
+    public const int LoreFieldId = 32;
+
+    // The catalog's longest id is 48.
+    public const int LoreCatalogId = 64;
+
+    // The longest field of the card, a long text.
+    public const int LoreText = 2000;
+
+    // A roll and its one reroll: "5d20:20,20,20,20,20=100" twice.
+    public const int LoreRolls = 128;
+
     // Never between the two halves of a surrogate pair, which PostgreSQL refuses to store.
     public static string Cut(string value, int length)
     {

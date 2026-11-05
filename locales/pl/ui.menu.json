@@ -43,5 +43,16 @@
   "ui.menu.dice.recent": "Twoje ostatnie rzuty",
   "ui.menu.dice.none": "Jeszcze bez rzutów.",
   "ui.menu.dice.for": "na {reason}",
-  "ui.menu.key.dice": "Otwórz albo zamknij planszę do kości"
+  "ui.menu.key.dice": "Otwórz albo zamknij planszę do kości",
+  "ui.menu.tab.lore": "Lore",
+  "ui.menu.lore.lead": "Twoja karta lore mówi, kim jest twoja postać. Ty decydujesz, kto widzi każdą jej część.",
+  "ui.menu.lore.open": "Otwórz moją kartę lore",
+  "ui.menu.lore.name": "Twoje imię",
+  "ui.menu.lore.seen_as": "Jak widzą cię obcy",
+  "ui.menu.lore.known": "Kto cię zna",
+  "ui.menu.lore.known_none": "Nikt z obecnych jeszcze cię nie zna.",
+  "ui.menu.lore.preview": "Twoja karta tak, jak widzą ją wszyscy",
+  "ui.menu.lore.preview_none": "Nic na twojej karcie nie jest jeszcze publiczne.",
+  "ui.menu.key.lore": "Otwórz lub zamknij swoją kartę lore",
+  "ui.menu.key.lore_look": "Przeczytaj kartę lore gracza przed tobą"
 }

@@ -4,6 +4,7 @@ using CyrodiilRP.Server.Conditions;
 using CyrodiilRP.Server.Dice;
 using CyrodiilRP.Server.Economy;
 using CyrodiilRP.Server.Localization;
+using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
 using ReadyM.Api.Idents;
@@ -20,6 +21,10 @@ internal sealed partial class PlayerMenus(
     CharacterConditions conditions,
     Wallet wallet,
     Rolls dice,
+    LoreCards cards,
+    LoreCardViews lore,
+    Introductions introductions,
+    ShownNames names,
     Localizer translations)
 {
     private void Start()
@@ -65,8 +70,19 @@ internal sealed partial class PlayerMenus(
             MenuCards.BuildAccount(player, conditions.ListTitled(player), Translate),
             HelpListing.Build(commands.ListAvailable(player), Translate),
             dice.BuildView(player),
+            BuildLore(player),
             translations.Locales,
             player.Locale);
         rpc.SendMenuState(player.Id, JsonSerializer.Serialize(view, MenuJson.Default.MenuView));
+    }
+
+    private MenuLoreView BuildLore(OnlinePlayer player)
+    {
+        cards.Find(player, out var card);
+        var known = introductions.ListKnowers(player)
+            .OrderBy(other => other.Number)
+            .Select(other => new MenuKnownView(other.Number, names.Shown(player, other)))
+            .ToList();
+        return new MenuLoreView(card.NamePublic, lore.BuildStrangerHeader(player), lore.BuildPreview(player, LoreViewer.Stranger), known);
     }
 }

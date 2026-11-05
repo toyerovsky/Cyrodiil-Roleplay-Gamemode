@@ -1,3 +1,5 @@
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace CyrodiilRP.Server.Admin;
@@ -9,6 +11,11 @@ namespace CyrodiilRP.Server.Admin;
 [JsonSerializable(typeof(AdminAuditFilter))]
 [JsonSerializable(typeof(AdminRollFilter))]
 [JsonSerializable(typeof(AdminRollsView))]
+[JsonSerializable(typeof(AdminLoreView))]
 [JsonSerializable(typeof(AdminItemFilter))]
 [JsonSerializable(typeof(List<AdminItemView>))]
-internal sealed partial class AdminJson : JsonSerializerContext;
+internal sealed partial class AdminJson : JsonSerializerContext
+{
+    // A whole lore card in letters as they are: in escapes six bytes long one written in Polish would not fit a message.
+    public static AdminJson Letters { get; } = new(new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+}

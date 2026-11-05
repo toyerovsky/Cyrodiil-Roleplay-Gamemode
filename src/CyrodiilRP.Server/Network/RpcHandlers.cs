@@ -61,6 +61,14 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId, string, bool>? DiceSetChosen;
 
+    public event Action<PlayerId, bool>? LoreOpenAsked;
+
+    public event Action<PlayerId, int, string>? LoreAsked;
+
+    public event Action<PlayerId>? LoreLeft;
+
+    public event Action<PlayerId, bool>? NamePublicChosen;
+
     partial void OnSubmitMessage(RpcContext context, string text) =>
         callbacks.Raise("rpc.submit_message", MessageSubmitted, context.Sender, text);
 
@@ -120,4 +128,14 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     partial void OnChooseDiceSet(RpcContext context, string set, bool fromMenu) =>
         callbacks.Raise("rpc.choose_dice_set", DiceSetChosen, context.Sender, set, fromMenu);
+
+    partial void OnOpenLore(RpcContext context, bool look) => callbacks.Raise("rpc.open_lore", LoreOpenAsked, context.Sender, look);
+
+    partial void OnLoreAsk(RpcContext context, int requestId, string json) =>
+        callbacks.Raise("rpc.lore_ask", LoreAsked, context.Sender, requestId, json);
+
+    partial void OnCloseLore(RpcContext context) => callbacks.Raise("rpc.close_lore", LoreLeft, context.Sender);
+
+    partial void OnChooseNamePublic(RpcContext context, bool namePublic) =>
+        callbacks.Raise("rpc.choose_name_public", NamePublicChosen, context.Sender, namePublic);
 }

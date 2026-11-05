@@ -1,0 +1,73 @@
+/* A card as another player sees it: its header line and the fields under their sections. The lore page's viewer and
+   preview, the player's menu and the staff's panel show it alike. */
+.lore-view {
+  display: grid;
+  gap: 4px;
+}
+
+.lore-view__header {
+  margin: 0 0 6px;
+  font-style: italic;
+  font-size: 21px;
+  color: var(--ink);
+}
+
+.lore-view__none {
+  margin: 0;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.lore-view__heading {
+  margin: 14px 0 6px;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+  color: var(--gold-dark);
+}
+
+.lore-view__heading::after {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-top: 4px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+.lore-view__fields {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.lore-view__field {
+  display: grid;
+  grid-template-columns: minmax(0, 220px) minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 4px 16px;
+  padding: 5px 8px;
+  border-radius: var(--radius-small);
+}
+
+.lore-view__field:nth-child(odd) {
+  background: var(--ink-wash);
+}
+
+.lore-view__field dt {
+  font-weight: 700;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.lore-view__field dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* A long text reads under its label, its lines kept. */
+.lore-view__field--long dd {
+  grid-column: 1 / 3;
+  grid-row: 2;
+  white-space: pre-line;
+}

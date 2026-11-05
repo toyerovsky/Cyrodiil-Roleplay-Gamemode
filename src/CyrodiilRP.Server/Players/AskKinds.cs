@@ -6,4 +6,6 @@ internal static class AskKinds
     public const string Party = "party";
 
     public const string Trade = "trade";
+
+    public const string Introduction = "introduce";
 }

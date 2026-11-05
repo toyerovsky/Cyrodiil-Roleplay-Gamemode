@@ -8,6 +8,8 @@ const props = defineProps({
   players: { type: Array, required: true },
   selected: { type: Number, default: null },
   card: { type: Object, default: null },
+  lore: { type: Object, default: null },
+  loreAsked: Boolean,
   found: { type: Array, required: true },
   t: { type: Object, required: true },
   locale: { type: String, required: true },
@@ -15,7 +17,7 @@ const props = defineProps({
   can: { type: Function, required: true },
 });
 
-const emit = defineEmits(["select", "act", "search"]);
+const emit = defineEmits(["select", "act", "search", "lore"]);
 
 const FILTERS = {
   all: () => true,
@@ -86,6 +88,8 @@ const describeStatus = (player) => {
       v-if="picked"
       :player="picked"
       :card="card"
+      :lore="lore"
+      :lore-asked="loreAsked"
       :found="found"
       :t="t"
       :locale="locale"
@@ -93,6 +97,7 @@ const describeStatus = (player) => {
       :can="can"
       @act="(action, values, name) => emit('act', action, values, name)"
       @search="(text) => emit('search', text)"
+      @lore="emit('lore')"
     />
     <p v-else class="admin-players__pick admin__note">{{ t["card.pick"] }}</p>
   </div>

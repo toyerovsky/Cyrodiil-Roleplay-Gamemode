@@ -10,5 +10,9 @@
   "ui.asks.accept.trade": "Handluj",
   "ui.asks.decline": "Odmów",
   "ui.asks.next": "Najpierw odpowiedz na zaproszenie wyżej.",
-  "ui.asks.seconds": "{seconds} s"
+  "ui.asks.seconds": "{seconds} s",
+  "ui.asks.title.introduce": "Przedstawienie się",
+  "ui.asks.incoming.introduce": "{name} chce ci się przedstawić.",
+  "ui.asks.outgoing.introduce": "Czekasz, aż {name} przyjmie twoje przedstawienie się.",
+  "ui.asks.accept.introduce": "Przyjmij"
 }

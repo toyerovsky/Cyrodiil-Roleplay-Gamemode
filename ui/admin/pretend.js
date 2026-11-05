@@ -17,7 +17,7 @@ const SPAWN = { x: 25610, y: -91240, z: 1215 };
 const SPAWN_HERE = { x: 26002, y: -90418, z: 1198 };
 const ALL_COMMANDS = [
   "duty", "aheal", "ahp", "arevive", "agoto", "abring", "aback", "atp", "afreeze", "aunfreeze", "amute", "aunmute", "awarn", "akick",
-  "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "amsg",
+  "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "amsg", "alore",
 ];
 const ADMIN_COMMANDS = ["agold", "aitem", "aroles", "atime", "aweather", "aban", "aunban", "aspawn"];
 const SELF = 1;
@@ -73,6 +73,19 @@ const FROZEN = {
   until: null, reason: "Running from the guards mid scene", online: 4,
 };
 
+// Brannoc's lore card as the staff read it, every field whoever may see it. The others have none.
+const LORE = [
+  ["title", "identity", "Title", "the Unlucky"],
+  ["seenAs", "identity", "Seen as", "a ragged Breton with a limp and a stolen guard's helmet"],
+  ["race", "heritage", "Race", "Breton"],
+  ["homeland", "heritage", "Homeland", "High Rock"],
+  ["occupation", "heritage", "Former trade", "Fishmonger"],
+  ["glance", "look", "At a glance", "Smells of the docks. Will not stop talking about his cousin in Daggerfall."],
+  ["history", "story", "History", "Lost a boat, a wife and a bet in the same week.\nCame to Cyrodiil to start again, and lost again."],
+  ["notes", "story", "Notes", "Owes Glarthir 300 gold. Do not tell anyone."],
+  ["currently", "status", "Currently", "Hiding from the guards in a dungeon."],
+].map(([id, part, label, text]) => ({ id, part, label, text, long: text.includes("\n") || text.length > 60 }));
+
 const INVENTORY = [
   { id: "0001A2B3", name: "0001A2B3", type: "", count: 1, worn: false },
   { id: "ClothesShirt01", name: "Coarse Linen Shirt", type: "CLOT", count: 1, worn: true },
@@ -92,6 +105,7 @@ export function pretendGame(readym) {
   let onDuty = !moderator;
   // #nospawn: none set yet, until Set it where I stand.
   let spawn = scenario === "nospawn" ? null : SPAWN;
+  let lore = LORE;
   const emitLater = (name, ...args) => setTimeout(() => readym.emit(name, ...args), ANSWER_MS);
 
   const state = (focus = null) => ({
@@ -193,6 +207,11 @@ export function pretendGame(readym) {
       const [kind, argument] = args;
       if (kind === "card") emitLater("Part", kind, JSON.stringify(card(Number(argument))));
       if (kind === "sanctions") emitLater("Part", kind, JSON.stringify(sanctions));
+      if (kind === "lore") {
+        const number = Number(argument);
+        const header = PLAYERS.find((player) => player.number === number)?.name ?? "";
+        emitLater("Part", kind, JSON.stringify({ number, header, level: "staff", fields: number === 4 ? lore : [] }));
+      }
       if (kind === "items") {
         const { text, type } = JSON.parse(argument);
         const wanted = text.toLowerCase();
@@ -221,6 +240,7 @@ export function pretendGame(readym) {
       const [command, , ...rest] = line.slice(1).split(" ");
       if (command === "duty") onDuty = !onDuty;
       if (line === "/aspawn here") spawn = SPAWN_HERE;
+      if (command === "alore") lore = lore.filter((field) => field.id !== line.split(" ")[3]);
       const who = PLAYERS.find((player) => line.split(" ")[1] === String(player.number))?.name ?? rest.join(" ");
       const text = answers[command]?.(["atp", "aspawn"].includes(command) ? line.split(" ")[1] : who) ?? `${line}: done`;
       emitLater("Answer", text, true);

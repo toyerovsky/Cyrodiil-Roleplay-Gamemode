@@ -17,4 +17,7 @@ internal static class AdminParts
 
     // A page of the roll log, by an AdminRollFilter as JSON.
     public const string Rolls = "rolls";
+
+    // A player's lore card in full, every field, by number (an AdminLoreView).
+    public const string Lore = "lore";
 }

@@ -21,8 +21,8 @@ public sealed class AskBookTests
     {
         var open = _book.Open(new PlayerAsk(_marius, _lucia), AskKinds.Party, ExpiresAtMs, Ignored);
 
-        var asked = _book.BuildView(_lucia, NowMs, TotalMs);
-        var asker = _book.BuildView(_marius, NowMs, TotalMs);
+        var asked = _book.BuildView(_lucia, NowMs, TotalMs, RealName);
+        var asker = _book.BuildView(_marius, NowMs, TotalMs, RealName);
 
         Assert.Equal(new AskView(open.Id, AskKinds.Party, _marius.Name, true, TotalMs, TotalMs), Assert.Single(asked.Asks));
         Assert.Equal(open.Id, asked.Answerable);
@@ -30,7 +30,7 @@ public sealed class AskBookTests
         Assert.Equal(0, asker.Answerable);
         Assert.Same(open, _book.FindAnswerable(_lucia, open.Id));
         Assert.Null(_book.FindAnswerable(_marius, open.Id));
-        Assert.Empty(_book.BuildView(_rajirr, NowMs, TotalMs).Asks);
+        Assert.Empty(_book.BuildView(_rajirr, NowMs, TotalMs, RealName).Asks);
     }
 
     [Fact]
@@ -39,13 +39,13 @@ public sealed class AskBookTests
         var party = _book.Open(new PlayerAsk(_marius, _lucia), AskKinds.Party, ExpiresAtMs, Ignored);
         var trade = _book.Open(new PlayerAsk(_rajirr, _lucia), AskKinds.Trade, ExpiresAtMs + LaterMs, Ignored);
 
-        Assert.Equal([party.Id, trade.Id], _book.BuildView(_lucia, NowMs, TotalMs).Asks.Select(ask => ask.Id));
-        Assert.Equal(party.Id, _book.BuildView(_lucia, NowMs, TotalMs).Answerable);
+        Assert.Equal([party.Id, trade.Id], _book.BuildView(_lucia, NowMs, TotalMs, RealName).Asks.Select(ask => ask.Id));
+        Assert.Equal(party.Id, _book.BuildView(_lucia, NowMs, TotalMs, RealName).Answerable);
 
         Assert.True(_book.Close(party.Ask));
         Assert.False(_book.Close(party.Ask));
         Assert.Null(_book.FindAnswerable(_lucia, party.Id));
-        Assert.Equal(trade.Id, _book.BuildView(_lucia, NowMs, TotalMs).Answerable);
+        Assert.Equal(trade.Id, _book.BuildView(_lucia, NowMs, TotalMs, RealName).Answerable);
     }
 
     [Fact]
@@ -53,9 +53,11 @@ public sealed class AskBookTests
     {
         _book.Open(new PlayerAsk(_marius, _lucia), AskKinds.Trade, ExpiresAtMs, Ignored);
 
-        Assert.Equal(TotalMs - LaterMs, Assert.Single(_book.BuildView(_lucia, NowMs + LaterMs, TotalMs).Asks).LeftMs);
-        Assert.Equal(0, Assert.Single(_book.BuildView(_lucia, ExpiresAtMs + LaterMs, TotalMs).Asks).LeftMs);
+        Assert.Equal(TotalMs - LaterMs, Assert.Single(_book.BuildView(_lucia, NowMs + LaterMs, TotalMs, RealName).Asks).LeftMs);
+        Assert.Equal(0, Assert.Single(_book.BuildView(_lucia, ExpiresAtMs + LaterMs, TotalMs, RealName).Asks).LeftMs);
     }
+
+    private static string RealName(OnlinePlayer reader, OnlinePlayer subject) => subject.Name;
 
     private static OnlinePlayer CreatePlayer() => new(default, Guid.NewGuid(), DateTimeOffset.UnixEpoch) { IsLoaded = true };
 }

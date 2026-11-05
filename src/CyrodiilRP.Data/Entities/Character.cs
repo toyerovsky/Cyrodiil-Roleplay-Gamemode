@@ -25,5 +25,8 @@ public sealed class Character
     // The dice set the player picked, null for the default.
     public string? DiceSet { get; set; }
 
+    // Everyone sees the name, not only those the character introduced itself to.
+    public bool NamePublic { get; set; }
+
     public static string MakeNameKey(string firstName, string lastName) => $"{firstName} {lastName}".ToLowerInvariant();
 }
