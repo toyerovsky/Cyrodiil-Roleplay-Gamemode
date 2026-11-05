@@ -1,18 +1,21 @@
 import account from "../rp/art/icons/account.webp";
 import character from "../rp/art/icons/character.webp";
+import dice from "../rp/art/icons/dice.webp";
 import help from "../rp/art/icons/help.webp";
 import keys from "../rp/art/icons/keys.webp";
 
-// The tabs in their order, each under a medallion of the game's own menus. The server opens the menu on the first three
+// The tabs in their order, each under a medallion of the game's own menus. The server opens the menu on all but the keys
 // (MenuTabs.cs).
 export const TABS = [
   { id: "character", medallion: character },
   { id: "account", medallion: account },
   { id: "help", medallion: help },
+  { id: "dice", medallion: dice },
   { id: "keys", medallion: keys },
 ];
 
-// The keys the mode binds in the game (the client's Key.X), and Esc, which every window of it closes on.
+// The keys the mode binds in the game (the client's Key.X), and Esc, which every window of it closes on. Label: how the key
+// reads on the keyboard, where its name in the game's list does not.
 export const KEYS = [
   { id: "self_wheel", key: "G" },
   { id: "interaction_wheel", key: "H" },
@@ -20,5 +23,6 @@ export const KEYS = [
   { id: "decline", key: "N" },
   { id: "chat", key: "K" },
   { id: "menu", key: "F10" },
+  { id: "dice", key: "HOME", label: "Home" },
   { id: "close", key: "Esc" },
 ];

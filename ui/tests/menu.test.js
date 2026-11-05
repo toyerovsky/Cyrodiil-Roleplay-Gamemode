@@ -17,6 +17,15 @@ const state = (changes = {}) =>
       { category: "roleplay", commands: [{ syntax: "/me <action>", description: "what your character does" }] },
       { category: "general", commands: [{ syntax: "/players", description: "who is online, with their numbers" }] },
     ],
+    dice: {
+      set: "imperial",
+      sets: ["imperial", "daedric", "nord"],
+      recent: [
+        { at: CREATED, asked: "2d6", dice: [{ sides: 6, value: 2 }, { sides: 6, value: 5 }], total: 7, reason: null },
+        { at: CREATED - DAY_MS, asked: "5d20", dice: [6, 1, 17, 11, 15].map((value) => ({ sides: 20, value })), total: 50, reason: "Lazy" },
+      ],
+      maxDice: 5,
+    },
     languages: ["en"],
     language: "en",
     ...changes,
@@ -68,14 +77,16 @@ describe("the player's menu", () => {
     await press("ArrowDown");
     expect(selected()).toBe("help");
     await press("ArrowRight");
+    expect(selected()).toBe("dice");
+    await press("e", "KeyE");
     expect(selected()).toBe("keys");
     await press("e", "KeyE");
     expect(selected()).toBe("character");
     await press("q", "KeyQ");
     expect(selected()).toBe("keys");
     await press("ArrowUp");
-    expect(selected()).toBe("help");
-    expect(document.activeElement.dataset.tab).toBe("help");
+    expect(selected()).toBe("dice");
+    expect(document.activeElement.dataset.tab).toBe("dice");
   });
 
   it("goes round the tabs with the keys as the game sends them, whatever has the focus, in either case", async () => {
@@ -114,7 +125,32 @@ describe("the player's menu", () => {
     await game.emit("State", state());
     await page.find('[data-tab="keys"]').trigger("click");
     expect(selected()).toBe("keys");
-    expect(page.findAll(".menu__keycap").map((key) => key.text())).toEqual(["G", "H", "Y", "N", "K", "F10", "Esc"]);
+    expect(page.findAll(".menu__keycap").map((key) => key.text())).toEqual(["G", "H", "Y", "N", "K", "F10", "Home", "Esc"]);
+  });
+
+  it("shows the dice set and the last rolls, picks another set and opens the board", async () => {
+    await game.emit("State", state({ tab: "dice" }));
+    expect(selected()).toBe("dice");
+    expect(page.findAll(".menu__dice-set").map((chip) => chip.text())).toEqual(["Imperial", "Daedric", "Nord"]);
+    expect(page.find('[data-set="imperial"]').attributes("aria-pressed")).toBe("true");
+    expect(page.find(".menu__dice-text").text()).toBe("weathered gold, black numbers");
+    const rolls = page.findAll(".menu__roll");
+    expect(rolls.map((roll) => roll.find(".menu__roll-total").text())).toEqual(["7", "50"]);
+    expect(rolls[0].find(".menu__roll-dice").text()).toBe("d6 [2], d6 [5]");
+    expect(rolls[1].text()).toContain("for Lazy");
+
+    await page.find('[data-set="imperial"]').trigger("click");
+    await page.find('[data-set="nord"]').trigger("click");
+    expect(game.readSent("MenuDiceSet")).toEqual([["nord"]]);
+    await page.find(".menu__dice-open").trigger("click");
+    expect(game.readSent("MenuDice")).toEqual([[]]);
+  });
+
+  it("writes the dice the Polish way in Polish", async () => {
+    await game.emit("Locale", "pl");
+    await game.emit("State", state({ tab: "dice", language: "pl" }));
+    expect(page.findAll(".menu__roll")[0].find(".menu__roll-asked b").text()).toBe("2k6");
+    expect(page.find(".menu__dice-set").text()).toBe("Cesarski");
   });
 
   it("names the account and says a first visit is one", async () => {

@@ -148,6 +148,11 @@ namespace CyrodiilRP.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("DiceSet")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("dice_set");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(40)
@@ -223,6 +228,67 @@ namespace CyrodiilRP.Data.Migrations
                         .HasName("pk_character_conditions");
 
                     b.ToTable("character_conditions", (string)null);
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.DiceRoll", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Area")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("area");
+
+                    b.Property<string>("Asked")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("asked");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("character_id");
+
+                    b.Property<string>("CharacterName")
+                        .IsRequired()
+                        .HasMaxLength(81)
+                        .HasColumnType("character varying(81)")
+                        .HasColumnName("character_name");
+
+                    b.Property<string>("Dice")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("dice");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("reason");
+
+                    b.Property<int>("Total")
+                        .HasColumnType("integer")
+                        .HasColumnName("total");
+
+                    b.HasKey("Id")
+                        .HasName("pk_dice_rolls");
+
+                    b.HasIndex("CharacterId", "Id")
+                        .HasDatabaseName("ix_dice_rolls_character_id_id");
+
+                    b.ToTable("dice_rolls", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_dice_rolls_total", "total > 0");
+                        });
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.GoldDelivery", b =>
@@ -450,6 +516,16 @@ namespace CyrodiilRP.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_character_conditions_characters_character_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.DiceRoll", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_dice_rolls_characters_character_id");
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.GoldDelivery", b =>

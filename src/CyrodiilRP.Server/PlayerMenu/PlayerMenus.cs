@@ -1,6 +1,7 @@
 using System.Text.Json;
 using CyrodiilRP.Server.Commands;
 using CyrodiilRP.Server.Conditions;
+using CyrodiilRP.Server.Dice;
 using CyrodiilRP.Server.Economy;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
@@ -18,6 +19,7 @@ internal sealed partial class PlayerMenus(
     CommandRegistry commands,
     CharacterConditions conditions,
     Wallet wallet,
+    Rolls dice,
     Localizer translations)
 {
     private void Start()
@@ -26,13 +28,13 @@ internal sealed partial class PlayerMenus(
         rpc.MenuAsked += OnAsked;
         rpc.LanguageChosen += OnLanguageChosen;
         commands.Add(new CommandSpec { Name = "help", Usage = ChatText.CmdHelp, Category = CommandCategory.General, NeedsCharacter = true },
-            call => Open(call.Sender, MenuTabs.Help));
+            call => Show(call.Sender, MenuTabs.Help));
     }
 
     private void OnAsked(PlayerId id)
     {
         if (online.TryGet(id, out var player))
-            Open(player, MenuTabs.Character);
+            Show(player, MenuTabs.Character);
     }
 
     private void OnLanguageChosen(PlayerId id, string locale)
@@ -46,11 +48,11 @@ internal sealed partial class PlayerMenus(
             rpc.SendLocale(player.Id, locale);
         }
 
-        Open(player, MenuTabs.Account);
+        Show(player, MenuTabs.Account);
     }
 
     // Only with a character: before it, the name form holds the screen.
-    private void Open(OnlinePlayer player, string tab)
+    public void Show(OnlinePlayer player, string tab)
     {
         if (!player.IsLoaded || player.Character is not { } character)
             return;
@@ -62,6 +64,7 @@ internal sealed partial class PlayerMenus(
             MenuCards.BuildCharacter(player, character, gold, DateTimeOffset.UtcNow),
             MenuCards.BuildAccount(player, conditions.ListTitled(player), Translate),
             HelpListing.Build(commands.ListAvailable(player), Translate),
+            dice.BuildView(player),
             translations.Locales,
             player.Locale);
         rpc.SendMenuState(player.Id, JsonSerializer.Serialize(view, MenuJson.Default.MenuView));

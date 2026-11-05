@@ -172,5 +172,12 @@
   "ui.admin.place.inn": "Inns and stables",
   "ui.admin.hours_minutes": "{hours} h {minutes} min",
   "ui.admin.minutes": "{minutes} min",
-  "ui.admin.card.roles": "Staff roles: {roles}"
+  "ui.admin.card.roles": "Staff roles: {roles}",
+  "ui.admin.tab.dice": "Dice",
+  "ui.admin.dice.player": "Character",
+  "ui.admin.dice.search": "Search",
+  "ui.admin.dice.none": "No rolls.",
+  "ui.admin.dice.older": "Older rolls",
+  "ui.admin.dice.for": "for {reason}",
+  "ui.admin.dice.lead": "Every roll on the server, newest first, as those around saw it."
 }

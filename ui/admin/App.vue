@@ -6,6 +6,7 @@ import { isComposing, isHeldPress } from "../shared/press.js";
 import { ACTIONS, buildLine } from "./actions.js";
 import ActionDialog from "./ActionDialog.vue";
 import AuditTab from "./AuditTab.vue";
+import DiceTab from "./DiceTab.vue";
 import { RECENT_KEPT } from "./items.js";
 import ItemsTab from "./ItemsTab.vue";
 import PlayersTab from "./PlayersTab.vue";
@@ -23,6 +24,7 @@ const selected = ref(null);
 const card = ref(null);
 const sanctions = ref(null);
 const audit = ref(null);
+const rolls = ref(null);
 const found = ref([]);
 const answer = ref(null);
 const waiting = ref(false);
@@ -32,6 +34,7 @@ const recent = ref([]);
 const tabList = useTemplateRef("tabList");
 const panelId = `${useId()}-panel`;
 let auditFilter = {};
+let rollFilter = {};
 
 const tabs = computed(() =>
   TABS.filter((each) => view.value?.tabs.includes(each.id)).map((each) => ({ ...each, label: t.value[`tab.${each.id}`] })),
@@ -91,10 +94,16 @@ function searchAudit(filter, before = null) {
   props.bridge.ask(PARTS.audit, JSON.stringify({ ...auditFilter, before }));
 }
 
+function searchRolls(filter, before = null) {
+  if (!before) rollFilter = filter;
+  props.bridge.ask(PARTS.rolls, JSON.stringify({ ...rollFilter, before }));
+}
+
 // A tab shows what the server holds as it is now.
 function load(id) {
   if (id === "sanctions") props.bridge.ask(PARTS.sanctions, "");
   if (id === "audit") searchAudit(auditFilter);
+  if (id === "dice") searchRolls(rollFilter);
 }
 
 function pick(id) {
@@ -125,6 +134,7 @@ function onPart(kind, data) {
   else if (kind === PARTS.sanctions) sanctions.value = data;
   else if (kind === PARTS.items) found.value = data;
   else if (kind === PARTS.audit) audit.value = data.appended && audit.value ? { ...data, entries: [...audit.value.entries, ...data.entries] } : data;
+  else if (kind === PARTS.rolls) rolls.value = data.appended && rolls.value ? { ...data, rolls: [...rolls.value.rolls, ...data.rolls] } : data;
 }
 
 // What a command changed shows again: the card open, the sanctions in force and the audit, which it wrote to.
@@ -142,11 +152,13 @@ function reset() {
   card.value = null;
   sanctions.value = null;
   audit.value = null;
+  rolls.value = null;
   found.value = [];
   answer.value = null;
   waiting.value = false;
   dialog.value = null;
   auditFilter = {};
+  rollFilter = {};
 }
 
 function leave() {
@@ -221,6 +233,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
           />
           <SanctionsTab v-else-if="tab === 'sanctions'" :sanctions="sanctions" :t="t" :locale="locale" :may="may" :can="can" @act="act" />
           <AuditTab v-else-if="tab === 'audit'" :audit="audit" :t="t" :locale="locale" @search="searchAudit" />
+          <DiceTab v-else-if="tab === 'dice'" :rolls="rolls" :t="t" :locale="locale" @search="searchRolls" />
           <WorldTab v-else :view="view" :t="t" :may="may" :can="can" @act="act" />
         </div>
       </div>

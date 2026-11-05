@@ -70,6 +70,17 @@ internal sealed partial class PlayerMenuOverlay(
     [ReceiveFromCef]
     private void OnMenuLanguage(BrowserHandle browser, string language) => rpc.SendChooseLanguage(language);
 
+    // The dice tab's button: the board takes the menu's place.
+    [ReceiveFromCef]
+    private void OnMenuDice(BrowserHandle browser)
+    {
+        Window.Close();
+        rpc.SendOpenDice();
+    }
+
+    [ReceiveFromCef]
+    private void OnMenuDiceSet(BrowserHandle browser, string set) => rpc.SendChooseDiceSet(set, true);
+
     [SendToCef]
     private partial void SendLocale(BrowserHandle browser, string locale);
 

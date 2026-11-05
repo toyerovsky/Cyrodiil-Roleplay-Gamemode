@@ -252,3 +252,75 @@
     transform: translateY(24px) scale(0.98);
   }
 }
+
+/* The dice tab: the button to the board, the sets as chips with their d20, the last rolls. */
+.menu__dice-open.rp-button {
+  margin-top: 16px;
+}
+
+.menu__dice-sets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+.menu__dice-set.rp-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 12px 4px 6px;
+  font-size: 17px;
+  text-align: left;
+}
+
+.menu__dice-icon {
+  flex: none;
+  width: 34px;
+  height: 34px;
+}
+
+.menu__dice-text {
+  margin: 10px 0 0;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.menu__rolls {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu__roll {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 16px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--ink-line);
+}
+
+.menu__roll-asked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 10px;
+  font-size: 19px;
+}
+
+.menu__roll-asked small {
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.menu__roll-total {
+  font-size: 22px;
+}
+
+.menu__roll-dice {
+  grid-column: 1 / -1;
+  font-size: 16px;
+  color: var(--ink-soft);
+}

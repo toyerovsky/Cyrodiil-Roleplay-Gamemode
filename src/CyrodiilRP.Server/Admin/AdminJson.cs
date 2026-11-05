@@ -7,6 +7,8 @@ namespace CyrodiilRP.Server.Admin;
 [JsonSerializable(typeof(List<AdminSanctionView>))]
 [JsonSerializable(typeof(AdminAuditView))]
 [JsonSerializable(typeof(AdminAuditFilter))]
+[JsonSerializable(typeof(AdminRollFilter))]
+[JsonSerializable(typeof(AdminRollsView))]
 [JsonSerializable(typeof(AdminItemFilter))]
 [JsonSerializable(typeof(List<AdminItemView>))]
 internal sealed partial class AdminJson : JsonSerializerContext;

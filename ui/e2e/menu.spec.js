@@ -36,7 +36,7 @@ test("the menu opens on the character and goes round its tabs from the keyboard 
   await expect(tab(page, "character")).toHaveAttribute("aria-selected", "true");
 
   await tab(page, "keys").click();
-  await expect(page.getByRole("tabpanel").locator("kbd")).toHaveText(["G", "H", "Y", "N", "K", "F10", "Esc"]);
+  await expect(page.getByRole("tabpanel").locator("kbd")).toHaveText(["G", "H", "Y", "N", "K", "F10", "Home", "Esc"]);
   await screenshot(page, testInfo, "menu-keys");
 });
 
@@ -100,6 +100,25 @@ test("a sanction shows with its end, and a second language can be picked from th
   await expect(page.getByRole("button", { name: polish("close") })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "pl");
   await screenshot(page, testInfo, "menu-language");
+});
+
+test("the dice tab picks a set with the mouse and opens the dice board", async ({ page }, testInfo) => {
+  await page.goto("/menu/index.html#dice");
+  await expect(tab(page, "dice")).toHaveAttribute("aria-selected", "true");
+  const dice = readTexts("ui.dice");
+  await expect(page.getByRole("button", { name: dice("set.imperial") })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".menu__roll")).toHaveCount(3);
+  await expectNoHorizontalOverflow(page, ".menu__content");
+  await screenshot(page, testInfo, "menu-dice");
+
+  await page.getByRole("button", { name: dice("set.dunmer") }).click();
+  await expect(page.getByRole("button", { name: dice("set.dunmer") })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText(dice("set_text.dunmer"))).toBeVisible();
+  expect(await readSent(page, "MenuDiceSet")).toEqual([["dunmer"]]);
+
+  await page.getByRole("button", { name: t("dice.open") }).click();
+  expect(await readSent(page, "MenuDice")).toEqual([[]]);
+  await expect(page.locator(".menu")).toBeHidden();
 });
 
 test("Escape closes the menu", async ({ page }) => {

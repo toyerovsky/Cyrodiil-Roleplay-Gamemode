@@ -35,5 +35,13 @@
   "ui.menu.key.menu": "Open or close this menu",
   "ui.menu.key.close": "Close a window or the chat",
   "ui.menu.hint": "Q and E or the arrows switch tabs, Esc closes.",
-  "ui.menu.close": "Close"
+  "ui.menu.close": "Close",
+  "ui.menu.tab.dice": "Dice",
+  "ui.menu.dice.lead": "Your dice set shows on the dice board and in your rolls. Anyone may pick any set: it is only a look.",
+  "ui.menu.dice.set": "Dice set",
+  "ui.menu.dice.open": "Open the dice board",
+  "ui.menu.dice.recent": "Your last rolls",
+  "ui.menu.dice.none": "No rolls yet.",
+  "ui.menu.dice.for": "for {reason}",
+  "ui.menu.key.dice": "Open or close the dice board"
 }

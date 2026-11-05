@@ -6,6 +6,7 @@ import { usePageTexts } from "../shared/locale.js";
 import { isComposing, isHeldPress, readCode } from "../shared/press.js";
 import AccountTab from "./AccountTab.vue";
 import CharacterTab from "./CharacterTab.vue";
+import DiceTab from "./DiceTab.vue";
 import HelpTab from "./HelpTab.vue";
 import KeysTab from "./KeysTab.vue";
 import { TABS } from "./tabs.js";
@@ -48,6 +49,10 @@ async function onState(view) {
 
 function pickLanguage(code) {
   if (code !== menu.value.language) props.bridge.setLanguage(code);
+}
+
+function pickDiceSet(set) {
+  if (set !== menu.value.dice.set) props.bridge.chooseDiceSet(set);
 }
 
 function leave() {
@@ -108,6 +113,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
               @pick="pickLanguage"
             />
             <HelpTab v-else-if="tab === 'help'" :help="menu.help" :t="t" />
+            <DiceTab v-else-if="tab === 'dice'" :dice="menu.dice" :t="t" :locale="locale" @open="bridge.openDice" @pick="pickDiceSet" />
             <KeysTab v-else :t="t" />
           </div>
         </div>

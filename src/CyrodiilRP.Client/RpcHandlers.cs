@@ -69,6 +69,18 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action? WelcomeClosed;
 
+    public event Action<string>? DiceChanged;
+
+    public event Action? DiceBoardClosed;
+
+    public event Action<int, int[]>? DiceThrown;
+
+    public event Action<int, string>? DiceRefused;
+
+    public event Action<int, int, int, int>? DiceThrownOnBoard;
+
+    public event Action<string, int, int, int, int, int[]>? DicePresented;
+
     partial void OnDeliverMessage(ChatLine line) => MessageDelivered?.Invoke(line);
 
     partial void OnNotify(string text) => ui.ShowMessage(text, MessagePosition.TopLeft, NoticeSeconds);
@@ -126,4 +138,17 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnWelcome(string json) => WelcomeShown?.Invoke(json);
 
     partial void OnWelcomeClosed() => WelcomeClosed?.Invoke();
+
+    partial void OnDiceState(string json) => DiceChanged?.Invoke(json);
+
+    partial void OnCloseDiceBoard() => DiceBoardClosed?.Invoke();
+
+    partial void OnDiceThrown(int requestId, int[] values) => DiceThrown?.Invoke(requestId, values);
+
+    partial void OnDiceRefused(int requestId, string text) => DiceRefused?.Invoke(requestId, text);
+
+    partial void OnThrowOnBoard(int d6, int d10, int d20, int d100) => DiceThrownOnBoard?.Invoke(d6, d10, d20, d100);
+
+    partial void OnPresentDice(string reason, int d6, int d10, int d20, int d100, int[] values) =>
+        DicePresented?.Invoke(reason, d6, d10, d20, d100, values);
 }

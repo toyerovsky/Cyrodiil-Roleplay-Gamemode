@@ -20,6 +20,8 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<SpawnPoint> SpawnPoints => Set<SpawnPoint>();
 
+    public DbSet<DiceRoll> DiceRolls => Set<DiceRoll>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -37,6 +39,7 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.Property(x => x.FirstName).HasMaxLength(ColumnLengths.NamePart);
             entity.Property(x => x.LastName).HasMaxLength(ColumnLengths.NamePart);
             entity.Property(x => x.NameKey).HasMaxLength(ColumnLengths.NameKey);
+            entity.Property(x => x.DiceSet).HasMaxLength(ColumnLengths.DiceSet);
             entity.HasIndex(x => x.NameKey).IsUnique();
             entity.HasOne(x => x.Account).WithMany(a => a.Characters).HasForeignKey(x => x.AccountId).OnDelete(DeleteBehavior.Restrict);
         });
@@ -95,6 +98,18 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.Property(x => x.Id).ValueGeneratedNever();
             entity.Property(x => x.Area).HasMaxLength(ColumnLengths.WorldId);
             entity.Property(x => x.SetByRef).HasMaxLength(ColumnLengths.Reference);
+        });
+
+        modelBuilder.Entity<DiceRoll>(entity =>
+        {
+            entity.ToTable("dice_rolls", t => t.HasCheckConstraint("ck_dice_rolls_total", "total > 0"));
+            entity.Property(x => x.CharacterName).HasMaxLength(ColumnLengths.NameKey);
+            entity.Property(x => x.Asked).HasMaxLength(ColumnLengths.DiceAsked);
+            entity.Property(x => x.Dice).HasMaxLength(ColumnLengths.DiceValues);
+            entity.Property(x => x.Reason).HasMaxLength(ColumnLengths.DiceReason);
+            entity.Property(x => x.Area).HasMaxLength(ColumnLengths.WorldId);
+            entity.HasIndex(x => new { x.CharacterId, x.Id });
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
         });
 
         SnakeCase.Apply(modelBuilder);

@@ -190,4 +190,45 @@ public static partial class RpContracts
     // The server answers with StartNaming, to a player without a character only.
     [ClientToServer]
     public static partial void NewCharacter();
+
+    // The dice board's key (Home): the server answers with DiceState.
+    [ClientToServer]
+    public static partial void OpenDice();
+
+    // A DiceView as JSON: opens the dice board or brings it up to date.
+    [ServerToClient]
+    public static partial void DiceState(string json);
+
+    // The board was closed on the player's side.
+    [ClientToServer]
+    public static partial void CloseDice();
+
+    // /board with the board open: the server closes it.
+    [ServerToClient]
+    public static partial void CloseDiceBoard();
+
+    // Dice the board picked, counted in its order: d6, d10, d20, d100. The request id comes back in the answer.
+    [ClientToServer]
+    public static partial void ThrowDice(int requestId, int d6, int d10, int d20, int d100);
+
+    // The server's dice for the request, in the order d6s, d10s, d20s, d100s.
+    [ServerToClient]
+    public static partial void DiceThrown(int requestId, int[] values);
+
+    // No roll for the request, why not in the player's language.
+    [ServerToClient]
+    public static partial void DiceRefused(int requestId, string text);
+
+    // /roll with the board open: these dice into the tray and thrown. All zero: the tray as it is.
+    [ServerToClient]
+    public static partial void ThrowOnBoard(int d6, int d10, int d20, int d100);
+
+    // A roll the server already made for something else (a trait of the lore card): the dice landing on these values, in a
+    // small board that takes no input, or on the board if it is open. The reason in the player's language.
+    [ServerToClient]
+    public static partial void PresentDice(string reason, int d6, int d10, int d20, int d100, int[] values);
+
+    // One of the dice sets the board and the menu offer. FromMenu: the menu asked, so it is the menu that comes back.
+    [ClientToServer]
+    public static partial void ChooseDiceSet(string set, bool fromMenu);
 }

@@ -1,5 +1,6 @@
 import admin from "../../locales/en/admin.json";
 import chat from "../../locales/en/chat.json";
+import dice from "../../locales/en/dice.json";
 import economy from "../../locales/en/economy.json";
 import exchange from "../../locales/en/exchange.json";
 import sanctions from "../../locales/en/sanctions.json";
@@ -15,7 +16,7 @@ const option = (id, label, icon, reason = "") => ({ id, label, icon, disabled: r
 const selfWheel = (withStaff) => ({
   title: "Marius Varro",
   items: [
-    option("self.roll", chat["chat.option.roll"], "dice"),
+    option("self.roll", dice["dice.option.board"], "dice"),
     option("self.me", chat["chat.option.me"], "action"),
     option("self.ooc", chat["chat.option.local_ooc"], "bubble"),
     option("self.gold", economy["economy.option.gold"], "coins"),

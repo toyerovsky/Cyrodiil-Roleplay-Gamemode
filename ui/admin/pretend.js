@@ -9,6 +9,10 @@ const MINUTE_MS = 60_000;
 const DAY_MS = 24 * 60 * MINUTE_MS;
 const AUDIT_PAGE = 25;
 const AUDIT_ENTRIES = 40;
+const ROLL_PAGE = 25;
+const ROLL_COUNT = 34;
+const ROLLERS = ["Marius Varro", "Lucia Gallus", "Brannoc", "Elsia Ramaryn"];
+const ROLL_AREAS = ["L_ICMarketDistrict", "L_Tamriel", "L_PersistentDungeon-2C171"];
 const SPAWN = { x: 25610, y: -91240, z: 1215 };
 const SPAWN_HERE = { x: 26002, y: -90418, z: 1198 };
 const ALL_COMMANDS = [
@@ -80,7 +84,7 @@ const INVENTORY = [
 
 // The owner on duty with every tab, and the players online. #card opens on Brannoc, frozen in a dungeon with a long name.
 // #offduty is a moderator off duty: the buttons wait for the duty. #sanctions, #audit, #world and #items open on their
-// tab. The staff member stands outside, where the trader is.
+// tab, #dice on the roll log. The staff member stands outside, where the trader is.
 export function pretendGame(readym) {
   const scenario = location.hash.slice(1);
   const now = Date.now();
@@ -91,13 +95,13 @@ export function pretendGame(readym) {
   const emitLater = (name, ...args) => setTimeout(() => readym.emit(name, ...args), ANSWER_MS);
 
   const state = (focus = null) => ({
-    tab: ["sanctions", "audit", "world", "items"].includes(scenario) ? scenario : scenario === "nospawn" ? "world" : "players",
+    tab: ["sanctions", "audit", "world", "items", "dice"].includes(scenario) ? scenario : scenario === "nospawn" ? "world" : "players",
     focus,
     self: SELF,
     area: "L_Tamriel",
     acting: onDuty,
     onDuty,
-    tabs: moderator ? ["players", "sanctions", "audit", "world"] : ["players", "items", "sanctions", "audit", "world"],
+    tabs: moderator ? ["players", "sanctions", "audit", "world", "dice"] : ["players", "items", "sanctions", "audit", "world", "dice"],
     allowed: moderator ? MODERATOR_COMMANDS : ALL_COMMANDS,
     players: PLAYERS,
     places: PLACES,
@@ -114,6 +118,26 @@ export function pretendGame(readym) {
     "admin.mute": "minutes=30, reason=Shouting over the wedding at the chapel, again and again",
     "admin.teleport": "to=weye",
   };
+  // Newest first: a d20 now and then, two d6, and a lore card's trait rolled with five d20.
+  const rolls = Array.from({ length: ROLL_COUNT }, (_, index) => {
+    const dice =
+      index % 5 === 2
+        ? [6, 1, 17, 11, 15].map((value) => ({ sides: 20, value }))
+        : index % 3 === 1
+          ? [{ sides: 6, value: 1 + (index % 6) }, { sides: 6, value: 6 - (index % 6) }]
+          : [{ sides: 20, value: 1 + ((index * 7) % 20) }];
+    return {
+      id: ROLL_COUNT - index,
+      at: now - index * 11 * MINUTE_MS,
+      character: ROLLERS[index % ROLLERS.length],
+      asked: "",
+      dice,
+      total: dice.reduce((sum, die) => sum + die.value, 0),
+      reason: index % 5 === 2 ? "Lazy" : null,
+      area: ROLL_AREAS[index % ROLL_AREAS.length],
+    };
+  });
+
   const entries = Array.from({ length: AUDIT_ENTRIES }, (_, index) => ({
     id: 1000 - index,
     at: now - index * 37 * MINUTE_MS,
@@ -176,6 +200,14 @@ export function pretendGame(readym) {
           (item) => (!type || item.type === type) && (wanted.length < SEARCH_FROM || `${item.id} ${item.name}`.toLowerCase().includes(wanted)),
         );
         emitLater("Part", kind, JSON.stringify(found.sort((a, b) => a.name.localeCompare(b.name))));
+      }
+      if (kind === "rolls") {
+        const { player, before } = JSON.parse(argument);
+        const wanted = (player ?? "").toLowerCase();
+        const matching = rolls.filter((roll) => roll.character.toLowerCase().includes(wanted));
+        const from = before ? matching.findIndex((roll) => roll.id < before) : 0;
+        const page = matching.slice(from, from + ROLL_PAGE);
+        emitLater("Part", kind, JSON.stringify({ rolls: page, more: from + ROLL_PAGE < matching.length, appended: !!before }));
       }
       if (kind === "audit") {
         const { before } = JSON.parse(argument);

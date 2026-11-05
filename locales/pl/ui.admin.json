@@ -172,5 +172,12 @@
   "ui.admin.place.inn": "Karczmy i stajnie",
   "ui.admin.hours_minutes": "{hours} godz. {minutes} min",
   "ui.admin.minutes": "{minutes} min",
-  "ui.admin.card.roles": "Role w administracji: {roles}"
+  "ui.admin.card.roles": "Role w administracji: {roles}",
+  "ui.admin.tab.dice": "Kości",
+  "ui.admin.dice.player": "Postać",
+  "ui.admin.dice.search": "Szukaj",
+  "ui.admin.dice.none": "Brak rzutów.",
+  "ui.admin.dice.older": "Starsze rzuty",
+  "ui.admin.dice.for": "na {reason}",
+  "ui.admin.dice.lead": "Każdy rzut na serwerze, najnowsze pierwsze, tak jak widzieli go ci w pobliżu."
 }

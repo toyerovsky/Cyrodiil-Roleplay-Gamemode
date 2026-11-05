@@ -35,5 +35,13 @@
   "ui.menu.key.menu": "Otwórz albo zamknij to menu",
   "ui.menu.key.close": "Zamknij okno albo czat",
   "ui.menu.hint": "Q i E albo strzałki zmieniają zakładki, Esc zamyka.",
-  "ui.menu.close": "Zamknij"
+  "ui.menu.close": "Zamknij",
+  "ui.menu.tab.dice": "Kości",
+  "ui.menu.dice.lead": "Twój zestaw kości widać na planszy i w twoich rzutach. Każdy może wybrać dowolny zestaw: to tylko wygląd.",
+  "ui.menu.dice.set": "Zestaw kości",
+  "ui.menu.dice.open": "Otwórz planszę do kości",
+  "ui.menu.dice.recent": "Twoje ostatnie rzuty",
+  "ui.menu.dice.none": "Jeszcze bez rzutów.",
+  "ui.menu.dice.for": "na {reason}",
+  "ui.menu.key.dice": "Otwórz albo zamknij planszę do kości"
 }

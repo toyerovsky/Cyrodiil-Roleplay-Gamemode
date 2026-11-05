@@ -235,6 +235,36 @@ describe("the staff's panel", () => {
     expect(JSON.parse(game.readSent("AdminAsk").at(-1)[1])).toMatchObject({ action: "admin.", actor: "Toyer", target: null, before: null });
   });
 
+  it("reads the roll log a page at a time, by a character's name, in the dice's own words", async () => {
+    await game.emit("State", state({ tabs: ["players", "dice"] }));
+    await page.find('[data-tab="dice"]').trigger("click");
+    expect(game.readSent("AdminAsk")).toEqual([["rolls", JSON.stringify({ before: null })]]);
+
+    const roll = (id, changes = {}) => ({
+      id, at: NOW, character: "Lucia Gallus", asked: "1d20", dice: [{ sides: 20, value: 14 }], total: 14, reason: null, area: "L_Tamriel", ...changes,
+    });
+    const traits = { asked: "5d20", dice: [6, 1, 17, 11, 15].map((value) => ({ sides: 20, value })), total: 50, reason: "Lazy" };
+    await game.emit("Part", "rolls", JSON.stringify({ rolls: [roll(9, traits), roll(8)], more: true, appended: false }));
+    const rows = page.findAll(".admin-roll");
+    expect(rows[0].text()).toContain("Lucia Gallus");
+    expect(rows[0].find(".admin-roll__asked span").element.textContent).toBe("5d20 for Lazy");
+    expect(rows[0].find(".admin-roll__total").text()).toBe("50");
+    expect(rows[0].find(".admin-entry__details").text()).toBe("d20 [6], d20 [1], d20 [17], d20 [11], d20 [15] · L_Tamriel");
+    expect(rows[1].find(".admin-entry__details").text()).toBe("L_Tamriel");
+
+    await page.find(".admin-audit__older").trigger("click");
+    expect(JSON.parse(game.readSent("AdminAsk").at(-1)[1]).before).toBe(8);
+    await game.emit("Part", "rolls", JSON.stringify({ rolls: [roll(7)], more: false, appended: true }));
+    expect(page.findAll(".admin-roll")).toHaveLength(3);
+    expect(page.find(".admin-audit__older").exists()).toBe(false);
+
+    await page.find(".admin-dice__filter input").setValue(" Lucia ");
+    await page.find(".admin-dice__filter").trigger("submit");
+    expect(JSON.parse(game.readSent("AdminAsk").at(-1)[1])).toEqual({ player: "Lucia", before: null });
+    await game.emit("Part", "rolls", JSON.stringify({ rolls: [], more: false, appended: false }));
+    expect(page.find(".admin-dice").text()).toContain("No rolls.");
+  });
+
   it("clears the items found once the search is too short to look for", async () => {
     await game.emit("State", state());
     await open(4);

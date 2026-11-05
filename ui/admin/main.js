@@ -6,6 +6,7 @@ import "./admin.css";
 import "./players.css";
 import "./sanctions.css";
 import "./audit.css";
+import "./dice.css";
 import "./world.css";
 import "./items.css";
 import "./dialog.css";

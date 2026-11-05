@@ -1,0 +1,18 @@
+{
+  "dice.rolled": "* {name} rzuca {asked}: {dice} = {total}.",
+  "dice.rolled_for": "* {name} rzuca {asked} na {reason}: {dice} = {total}.",
+  "dice.contest": "* {actor} i {target} rzucają przeciw sobie: {actor} [{rolled}], {target} [{against}]. Wygrywa {winner}.",
+  "dice.usage": "Nie da się tak rzucić. Użyj d6, d10, d20 lub d100, na przykład /roll 1d20+2d6 (najwyżej {max} kości).",
+  "dice.too_many": "Za dużo kości: najwyżej {max} w jednym rzucie.",
+  "dice.no_modifiers": "Modyfikatorów typu +3 jeszcze nie ma. Użyj d6, d10, d20 lub d100, na przykład /roll 1d20+2d6.",
+  "dice.too_soon": "Kości jeszcze się toczą.",
+  "dice.pick": "Wybierz od 1 do {max} kości.",
+  "dice.unknown_set": "Nie ma zestawu kości „{set}”. Zestawy: {list}.",
+  "dice.set_chosen": "Twój zestaw kości: {set}.",
+  "dice.your_set": "Twój zestaw kości: {set}. Zestawy: {list}. Wybierz komendą /dice <zestaw>.",
+  "dice.cmd.roll": "/roll [kości] - rzut d6, d10, d20 lub d100 dla osób obok, na przykład /roll, /roll 2d6 albo /roll 1d20+2d6 (najwyżej 5 kości); przy otwartej planszy kości lądują na niej",
+  "dice.cmd.board": "/board - otwiera lub zamyka planszę do kości (Home)",
+  "dice.cmd.dice": "/dice [zestaw] - pokazuje lub zmienia Twój zestaw kości",
+  "dice.option.board": "Kości",
+  "dice.option.contest": "Rzut przeciw"
+}

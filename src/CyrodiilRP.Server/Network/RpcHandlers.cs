@@ -1,4 +1,5 @@
 using CyrodiilRP.Common;
+using CyrodiilRP.Server.Dice;
 using CyrodiilRP.Server.Infrastructure;
 using ReadyM.Api.Idents;
 using ReadyM.Relay.Server.Sdk.Rpc;
@@ -52,6 +53,14 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId>? NewCharacterAsked;
 
+    public event Action<PlayerId>? DiceAsked;
+
+    public event Action<PlayerId>? DiceLeft;
+
+    public event Action<PlayerId, DiceThrow>? DiceThrowAsked;
+
+    public event Action<PlayerId, string, bool>? DiceSetChosen;
+
     partial void OnSubmitMessage(RpcContext context, string text) =>
         callbacks.Raise("rpc.submit_message", MessageSubmitted, context.Sender, text);
 
@@ -101,4 +110,14 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnPlayCharacter(RpcContext context) => callbacks.Raise("rpc.play_character", CharacterPlayed, context.Sender);
 
     partial void OnNewCharacter(RpcContext context) => callbacks.Raise("rpc.new_character", NewCharacterAsked, context.Sender);
+
+    partial void OnOpenDice(RpcContext context) => callbacks.Raise("rpc.open_dice", DiceAsked, context.Sender);
+
+    partial void OnCloseDice(RpcContext context) => callbacks.Raise("rpc.close_dice", DiceLeft, context.Sender);
+
+    partial void OnThrowDice(RpcContext context, int requestId, int d6, int d10, int d20, int d100) =>
+        callbacks.Raise("rpc.throw_dice", DiceThrowAsked, context.Sender, new DiceThrow(requestId, new DicePick(d6, d10, d20, d100)));
+
+    partial void OnChooseDiceSet(RpcContext context, string set, bool fromMenu) =>
+        callbacks.Raise("rpc.choose_dice_set", DiceSetChosen, context.Sender, set, fromMenu);
 }

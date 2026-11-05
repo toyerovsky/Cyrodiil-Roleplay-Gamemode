@@ -1,0 +1,18 @@
+{
+  "dice.rolled": "* {name} rolls {asked}: {dice} = {total}.",
+  "dice.rolled_for": "* {name} rolls {asked} for {reason}: {dice} = {total}.",
+  "dice.contest": "* {actor} and {target} roll against each other: {actor} [{rolled}], {target} [{against}]. {winner} wins.",
+  "dice.usage": "Can't roll that. Use d6, d10, d20 or d100, for example /roll 1d20+2d6 (up to {max} dice).",
+  "dice.too_many": "Too many dice: up to {max} a roll.",
+  "dice.no_modifiers": "Modifiers like +3 are not rolled yet. Use d6, d10, d20 or d100, for example /roll 1d20+2d6.",
+  "dice.too_soon": "The dice are still rolling.",
+  "dice.pick": "Pick 1 to {max} dice.",
+  "dice.unknown_set": "There is no dice set \"{set}\". The sets: {list}.",
+  "dice.set_chosen": "Your dice set: {set}.",
+  "dice.your_set": "Your dice set: {set}. The sets: {list}. Pick one with /dice <set>.",
+  "dice.cmd.roll": "/roll [dice] - roll d6, d10, d20 or d100 for those around, for example /roll, /roll 2d6 or /roll 1d20+2d6 (up to 5 dice); with the board open, the dice land on it",
+  "dice.cmd.board": "/board - open or close the dice board (Home)",
+  "dice.cmd.dice": "/dice [set] - show or pick your dice set",
+  "dice.option.board": "Dice",
+  "dice.option.contest": "Roll against"
+}

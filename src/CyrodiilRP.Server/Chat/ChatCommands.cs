@@ -16,7 +16,6 @@ internal sealed partial class ChatCommands(
     InteractionMenu interactions,
     RpConfig config)
 {
-    private const string RollOption = "self.roll";
     private const string ActionOption = "self.me";
     private const string OocOption = "self.ooc";
     private const string PlayersOption = "self.players";
@@ -26,15 +25,10 @@ internal sealed partial class ChatCommands(
 
     private const int GreetOrder = 10;
     private const int MessageOrder = 20;
-    private const int RollOrder = 20;
     private const int ActionOrder = 30;
     private const int OocOrder = 40;
     private const int PlayersOrder = 60;
     private const int HelpOrder = 70;
-
-    private const int DefaultDieSides = 20;
-    private const int MinDieSides = 2;
-    private const int MaxDieSides = 1000;
 
     private void Start()
     {
@@ -43,14 +37,12 @@ internal sealed partial class ChatCommands(
         AddSpeech("s", ChatText.CmdShout, CommandCategory.Roleplay, Shout, "shout");
         AddSpeech("w", ChatText.CmdWhisper, CommandCategory.Roleplay, Whisper, "whisper");
         AddSpeech("try", ChatText.CmdTry, CommandCategory.Roleplay, Try);
-        AddSpeech("roll", ChatText.CmdRoll, CommandCategory.Roleplay, Roll);
         AddSpeech("b", ChatText.CmdLocalOoc, CommandCategory.Messages, SayLocalOoc);
         AddSpeech("ooc", ChatText.CmdGlobalOoc, CommandCategory.Messages, SayGlobalOoc, "o");
         AddSpeech("pm", ChatText.CmdPm, CommandCategory.Messages, SendPrivate);
         commands.Add(new CommandSpec { Name = "players", Usage = ChatText.CmdPlayers, Category = CommandCategory.General, Aliases = ["who"] },
             ListPlayers);
 
-        self.Add(new SelfOption { Id = RollOption, Label = ChatText.OptionRoll, Icon = WheelIcons.Dice, Order = RollOrder, Speaks = true, Run = p => RunCommand(p, "/roll") });
         self.Add(new SelfOption { Id = ActionOption, Label = ChatText.OptionMe, Icon = WheelIcons.Action, Order = ActionOrder, Speaks = true, Run = p => chat.Prefill(p, "/me ") });
         self.Add(new SelfOption { Id = OocOption, Label = ChatText.OptionLocalOoc, Icon = WheelIcons.Bubble, Order = OocOrder, Speaks = true, Run = p => chat.Prefill(p, "/b ") });
         self.Add(new SelfOption { Id = PlayersOption, Label = ChatText.OptionPlayers, Icon = WheelIcons.People, Order = PlayersOrder, Run = p => RunCommand(p, "/players") });
@@ -114,19 +106,6 @@ internal sealed partial class ChatCommands(
             ? ChatText.TrySuccess(call.Sender.Name, call.Arguments)
             : ChatText.TryFailure(call.Sender.Name, call.Arguments);
         chat.SendAround(call.Sender, config.Chat.Emote, ChatLineKind.Attempt, text);
-    }
-
-    private void Roll(CommandCall call)
-    {
-        var sides = DefaultDieSides;
-        if (call.Words.Count > 0 && (!CommandLine.TryNumber(call.Words[0], out sides) || sides < MinDieSides || sides > MaxDieSides))
-        {
-            call.Refuse(ChatText.RollSides(MinDieSides, MaxDieSides));
-            return;
-        }
-
-        var result = Random.Shared.Next(1, sides + 1);
-        chat.SendAround(call.Sender, config.Chat.Emote, ChatLineKind.Attempt, ChatText.Roll(call.Sender.Name, sides, result));
     }
 
     private void SayLocalOoc(CommandCall call)

@@ -1,0 +1,23 @@
+/* The roll log: the audit's layout, a filter of one name. */
+.admin-dice__filter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px) auto;
+  align-items: end;
+  gap: 10px 16px;
+}
+
+.admin-dice__filter .admin__note {
+  align-self: center;
+  margin: 0;
+}
+
+.admin-roll__asked {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  overflow-wrap: anywhere;
+}
+
+.admin-roll__total {
+  font-size: 18px;
+}

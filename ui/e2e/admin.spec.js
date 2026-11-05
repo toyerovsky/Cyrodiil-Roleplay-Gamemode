@@ -130,6 +130,26 @@ test("the audit, a page at a time", async ({ page }, testInfo) => {
   expect(scrolled).toBe(true);
 });
 
+test("the roll log, a page at a time and by a character's name", async ({ page }, testInfo) => {
+  await page.goto("/admin/index.html#dice");
+  await expect(tab(page, "dice")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(".admin-roll")).toHaveCount(25);
+  await expect(page.locator(".admin-roll").first()).toContainText("Marius Varro");
+  await expectNoHorizontalOverflow(page, ".admin-dice");
+  await screenshot(page, testInfo, "admin-dice");
+
+  await page.getByRole("button", { name: t("dice.older") }).click();
+  await expect(page.locator(".admin-roll")).toHaveCount(34);
+  await expect(page.getByRole("button", { name: t("dice.older") })).toHaveCount(0);
+
+  await page.getByLabel(t("dice.player")).fill("brannoc");
+  await page.getByRole("button", { name: t("dice.search") }).click();
+  await expect(page.locator(".admin-roll")).toHaveCount(8);
+  await expect(page.locator(".admin-roll").first()).toContainText("Brannoc");
+  expect(JSON.parse((await readSent(page, "AdminAsk")).at(-1)[1])).toEqual({ player: "brannoc", before: null });
+  await screenshot(page, testInfo, "admin-dice-filtered");
+});
+
 test("the world: the sky of the area, the places and the traders", async ({ page }, testInfo) => {
   await page.goto("/admin/index.html#world");
   await expect(page.getByRole("heading", { name: t("world.places") })).toBeVisible();

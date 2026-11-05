@@ -1,0 +1,516 @@
+/* The board fills the screen behind the panels, the tray on the left and the journal on the right. Shut, the page draws
+   nothing and takes no click. */
+.dice {
+  position: relative;
+  height: 100%;
+  visibility: hidden;
+}
+
+.dice--shown {
+  visibility: visible;
+}
+
+.dice--open {
+  background: radial-gradient(ellipse at center, rgba(12, 8, 4, 0.2) 0%, var(--backdrop-shade) 70%, var(--backdrop-edge) 100%);
+  pointer-events: auto;
+}
+
+.dice__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.dice__tags {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.dice-tag {
+  position: absolute;
+  min-width: 40px;
+  padding: 2px 10px;
+  transform: translate(-50%, -100%);
+  font-weight: 700;
+  font-size: 24px;
+  text-align: center;
+  color: var(--night-text);
+  background: var(--night);
+  border: 1px solid var(--gold-bright);
+  border-radius: var(--radius);
+  opacity: 0;
+  transition: opacity var(--duration-hover);
+}
+
+.dice-tag--on {
+  opacity: 1;
+}
+
+.dice-tag.dice-tag--crit {
+  color: var(--ink);
+  background: var(--gold-light);
+}
+
+.dice-tag.dice-tag--fumble {
+  background: var(--problem);
+}
+
+.dice__layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: 420px minmax(0, 1fr) 380px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "top top top"
+    "tray stage journal"
+    "tray bottom journal";
+  gap: 16px 24px;
+  height: 100%;
+  padding: 20px 24px;
+}
+
+.dice__top {
+  grid-area: top;
+  display: grid;
+  grid-template-columns: 420px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+}
+
+.dice__title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 32px;
+  letter-spacing: 0.06em;
+  color: var(--night-text);
+  text-shadow: 0 2px 6px var(--shadow-deep);
+}
+
+.dice__banner {
+  justify-self: center;
+  max-width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 8px 24px;
+  font-size: 22px;
+  text-align: center;
+  color: var(--night-text);
+  background: var(--night);
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius);
+}
+
+.dice__banner:empty {
+  visibility: hidden;
+}
+
+.dice__banner--warn {
+  color: var(--night-refusal);
+}
+
+.dice__banner--high {
+  border-color: var(--gold-bright);
+  color: var(--gold-light);
+}
+
+.dice__banner--low {
+  color: var(--night-refusal);
+}
+
+.dice__natural {
+  margin-left: 12px;
+  font-style: italic;
+  font-size: 18px;
+}
+
+.dice__tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dice__tools .rp-chip:not(.rp-chip--on) {
+  border-color: var(--night-line);
+  background: var(--night);
+  color: var(--night-text);
+}
+
+.dice__stage {
+  grid-area: stage;
+}
+
+.dice__panel.rp-panel {
+  align-self: start;
+  width: 100%;
+  max-height: 100%;
+  padding: 24px 24px 20px;
+}
+
+.dice__panel--tray {
+  grid-area: tray;
+}
+
+.dice__panel--journal {
+  grid-area: journal;
+}
+
+.dice__panel .rp-panel__title {
+  font-size: 24px;
+}
+
+/* Dark: the night plate the game's notices sit on. */
+.dice--dark .dice__panel.rp-panel {
+  color: var(--night-text);
+  background: var(--night);
+  border-color: var(--night-line);
+  box-shadow: 0 18px 48px var(--shadow-deep);
+}
+
+.dice__tiles {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dice__tile {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 40px 36px 40px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+}
+
+.dice__tile--cursor {
+  border-color: var(--gold-dark);
+  background: var(--ink-wash);
+}
+
+.dice--dark .dice__tile--cursor {
+  border-color: var(--gold-bright);
+  background: rgba(201, 162, 89, 0.12);
+}
+
+.dice__tile-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.dice__tile-name {
+  display: grid;
+  line-height: 1.2;
+}
+
+.dice__tile-name b {
+  font-size: 20px;
+}
+
+.dice__tile-name small {
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.dice--dark .dice__tile-name small,
+.dice--dark .dice__note,
+.dice--dark .dice__set-text,
+.dice--dark .dice__roll-asked small {
+  color: var(--night-muted);
+}
+
+.dice__tile-count {
+  font-weight: 700;
+  font-size: 22px;
+  text-align: center;
+}
+
+.dice__step {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--parchment-light), var(--parchment-deep));
+  border: 1px solid var(--gold-dark);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+}
+
+.dice__step:hover:not(:disabled),
+.dice__step:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.dice__step:disabled {
+  border-color: var(--parchment-edge);
+  background: var(--disabled-fill);
+  color: var(--disabled-text);
+  cursor: default;
+}
+
+.dice__asked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 12px 0 6px;
+}
+
+.dice__asked b {
+  font-size: 22px;
+}
+
+.dice__asked small {
+  font-size: 16px;
+}
+
+.dice__warn {
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.dice--dark .dice__warn {
+  color: var(--night-refusal);
+}
+
+.dice__capacity {
+  height: 6px;
+  overflow: hidden;
+  background: var(--ink-line);
+  border-radius: var(--radius-pill);
+}
+
+.dice__capacity span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold-bright));
+  transition: width var(--duration-hover);
+}
+
+.dice__clear {
+  margin-top: 12px;
+}
+
+.dice__heading {
+  margin: 20px 0 10px;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: 0.05em;
+  color: var(--gold-dark);
+}
+
+.dice--dark .dice__heading {
+  color: var(--gold-pale);
+}
+
+.dice__sets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.dice__set.rp-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 2px 8px 2px 4px;
+  font-size: 15px;
+  text-align: left;
+}
+
+.dice__set span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dice--dark .dice__set.rp-chip:not(.rp-chip--on) {
+  border-color: var(--night-line);
+  background: rgba(244, 236, 220, 0.06);
+  color: var(--night-text);
+}
+
+.dice--dark .dice__set.rp-chip:hover:not(.rp-chip--on) {
+  border-color: var(--gold-bright);
+}
+
+.dice__set-icon {
+  flex: none;
+  width: 30px;
+  height: 30px;
+}
+
+.dice__set-text {
+  margin: 8px 0 0;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.dice__note {
+  margin: 0;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.dice__recent {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dice__roll {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--ink-line);
+}
+
+.dice--dark .dice__roll {
+  border-bottom-color: var(--night-line);
+}
+
+.dice__roll-asked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.dice__roll-asked small {
+  font-weight: 400;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.dice__roll-total {
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.dice__roll-dice {
+  grid-column: 1 / -1;
+  font-size: 15px;
+}
+
+.dice__roll--high .dice__roll-total {
+  color: var(--gold-dark);
+}
+
+.dice--dark .dice__roll--high .dice__roll-total {
+  color: var(--gold-light);
+}
+
+.dice__roll--low .dice__roll-total {
+  color: var(--problem);
+}
+
+.dice--dark .dice__roll--low .dice__roll-total {
+  color: var(--night-refusal);
+}
+
+.dice__keys {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.dice__keys div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.dice__keys dt,
+.dice__keys dd {
+  margin: 0;
+}
+
+.dice kbd {
+  display: inline-block;
+  min-width: 26px;
+  margin-right: 3px;
+  padding: 0 6px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  text-align: center;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--parchment-light), var(--parchment-deep));
+  border: 1px solid var(--gold-dark);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-small);
+}
+
+.dice__bottom {
+  grid-area: bottom;
+  display: flex;
+  justify-content: center;
+}
+
+.dice__throw.rp-button {
+  min-width: 260px;
+  padding: 14px 28px;
+  font-size: 22px;
+}
+
+.dice__throw kbd {
+  margin-right: 10px;
+}
+
+/* A roll shown for something else: a small board in the bottom right, under its caption, taking no click. */
+.dice--present .dice__canvas {
+  inset: auto 24px 24px auto;
+  width: 480px;
+  height: 330px;
+  background: var(--night);
+  border: 1px solid var(--gold-bright);
+  border-radius: var(--radius);
+  box-shadow: 0 18px 48px var(--shadow-deep);
+}
+
+.dice__caption {
+  position: absolute;
+  right: 24px;
+  bottom: 366px;
+  width: 480px;
+  margin: 0;
+  padding: 8px 16px;
+  font-size: 20px;
+  text-align: center;
+  color: var(--night-text);
+  background: var(--night);
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius);
+}
+
+.dice__caption--high {
+  color: var(--gold-light);
+}
+
+.dice__caption--low,
+.dice__caption--warn {
+  color: var(--night-refusal);
+}

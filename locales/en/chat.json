@@ -6,7 +6,6 @@
   "chat.do": "* {description} (( {name} ))",
   "chat.try_success": "* {name} tries to {action}: success.",
   "chat.try_failure": "* {name} tries to {action}: failure.",
-  "chat.roll": "* {name} rolls a d{sides}: {result}.",
   "chat.local_ooc": "(( [{number}] {name}: {text} ))",
   "chat.global_ooc": "[OOC] [{number}] {name}: {text}",
   "chat.pm_from": "PM from [{number}] {name}: {text}",
@@ -17,7 +16,6 @@
   "chat.need_character": "Finish creating your character first.",
   "chat.empty": "Nothing to say. For example: {example}",
   "chat.pm_empty": "Nothing to send. For example: /pm 3 got a minute?",
-  "chat.roll_sides": "A die has {min} to {max} sides.",
   "chat.players": {
     "one": "{count} player online: {list}",
     "other": "{count} players online: {list}"
@@ -36,7 +34,6 @@
   "chat.cmd.shout": "/s <text> - shout, heard further away",
   "chat.cmd.whisper": "/w <text> - whisper, heard only up close",
   "chat.cmd.try": "/try <action> - an attempt that succeeds or fails",
-  "chat.cmd.roll": "/roll [sides] - roll a die, d20 unless told otherwise",
   "chat.cmd.local_ooc": "/b <text> - out of character, nearby",
   "chat.cmd.global_ooc": "/ooc <text> - out of character, to everyone",
   "chat.cmd.pm": "/pm <number> <text> - a private message",
@@ -45,7 +42,6 @@
   "chat.greet": "* {name} greets {target}.",
   "chat.option.greet": "Greet",
   "chat.option.pm": "Private message",
-  "chat.option.roll": "Roll a die",
   "chat.option.me": "Describe an action",
   "chat.option.local_ooc": "Out of character",
   "chat.option.players": "Who is online",

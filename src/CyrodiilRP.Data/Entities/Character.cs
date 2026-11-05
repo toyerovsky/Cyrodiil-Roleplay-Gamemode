@@ -22,5 +22,8 @@ public sealed class Character
 
     public long PlayedSeconds { get; set; }
 
+    // The dice set the player picked, null for the default.
+    public string? DiceSet { get; set; }
+
     public static string MakeNameKey(string firstName, string lastName) => $"{firstName} {lastName}".ToLowerInvariant();
 }

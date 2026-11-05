@@ -33,6 +33,17 @@ internal static class ColumnLengths
 
     public const int ShopName = 32;
 
+    public const int DiceSet = 32;
+
+    // Five dice at most: "1d6 + 1d10 + 1d20 + 1d100" and the like.
+    public const int DiceAsked = 64;
+
+    // "100:100," five times.
+    public const int DiceValues = 64;
+
+    // A roll's reason is cut to 40 where it is made.
+    public const int DiceReason = 64;
+
     // Never between the two halves of a surrogate pair, which PostgreSQL refuses to store.
     public static string Cut(string value, int length)
     {

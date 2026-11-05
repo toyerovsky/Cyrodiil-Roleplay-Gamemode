@@ -14,4 +14,7 @@ internal static class AdminParts
 
     // The game's items whose name or editor id holds the text, of a type or of any (an AdminItemFilter as JSON).
     public const string Items = "items";
+
+    // A page of the roll log, by an AdminRollFilter as JSON.
+    public const string Rolls = "rolls";
 }

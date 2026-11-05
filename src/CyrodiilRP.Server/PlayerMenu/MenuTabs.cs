@@ -8,4 +8,6 @@ internal static class MenuTabs
     public const string Account = "account";
 
     public const string Help = "help";
+
+    public const string Dice = "dice";
 }

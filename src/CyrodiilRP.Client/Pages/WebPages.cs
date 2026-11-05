@@ -15,6 +15,8 @@ internal sealed partial class WebPages(CefHost cef, PawnWatch pawn, ILogger logg
 
     public const int AsksLayer = 3;
 
+    public const int DiceLayer = 4;
+
     public const int WheelLayer = 5;
 
     public const int MenuLayer = 6;

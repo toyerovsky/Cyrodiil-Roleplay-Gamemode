@@ -31,6 +31,8 @@ internal static class AdminActions
         if (WorldTab.Any(allows))
             tabs.Add(AdminTabs.World);
 
+        // As the audit, the roll log is for everyone the panel opens for.
+        tabs.Add(AdminTabs.Dice);
         return tabs;
     }
 }

@@ -2,6 +2,7 @@ import { test, expect, readTexts, screenshot, readSent } from "./fixtures.js";
 
 const t = readTexts("ui.radial");
 const chat = readTexts("chat");
+const dice = readTexts("dice");
 const exchange = readTexts("exchange");
 
 test("the own wheel picks with the mouse, opens again on G and picks by number", async ({ page }, testInfo) => {
@@ -12,10 +13,10 @@ test("the own wheel picks with the mouse, opens again on G and picks by number",
   await expect(page.getByText("Marius Varro")).toBeVisible();
 
   // The icons let the pointer through: the wheel picks by the pointer's angle, as a player points.
-  await page.mouse.move(...(await findCentre(wheel.getByRole("option", { name: chat("option.roll") }))));
-  await expect(page.locator(".rp-radial__label")).toHaveText(chat("option.roll"));
+  await page.mouse.move(...(await findCentre(wheel.getByRole("option", { name: dice("option.board") }))));
+  await expect(page.locator(".rp-radial__label")).toHaveText(dice("option.board"));
   await screenshot(page, testInfo, "wheel-self");
-  await page.mouse.click(...(await findCentre(wheel.getByRole("option", { name: chat("option.roll") }))));
+  await page.mouse.click(...(await findCentre(wheel.getByRole("option", { name: dice("option.board") }))));
   await expect(wheel).toBeHidden();
 
   await page.keyboard.press("g");

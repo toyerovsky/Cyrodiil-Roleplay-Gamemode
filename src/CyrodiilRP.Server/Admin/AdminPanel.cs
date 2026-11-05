@@ -3,6 +3,7 @@ using System.Text.Json.Serialization.Metadata;
 using CyrodiilRP.Data.Staff;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Commands;
+using CyrodiilRP.Server.Dice;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
@@ -29,6 +30,7 @@ internal sealed partial class AdminPanel(
     SelfMenu self,
     InteractionMenu interactions,
     Fire fire,
+    DiceLog rolls,
     ILogger logger) : ICommandOutput
 {
     private const string PanelOption = "self.admin";
@@ -39,6 +41,7 @@ internal sealed partial class AdminPanel(
     private const string CardJob = "admin.card";
     private const string SanctionsJob = "admin.sanctions";
     private const string AuditJob = "admin.audit";
+    private const string RollsJob = "admin.rolls";
 
     // Whose panel is open: their answers go to it, and it follows the players, the duty and the roles.
     private readonly HashSet<PlayerId> _open = [];
@@ -154,6 +157,11 @@ internal sealed partial class AdminPanel(
                     fire.Run(AuditJob, () => SendAuditAsync(player, filter));
                 break;
 
+            case AdminParts.Rolls:
+                if (Parse(argument, AdminJson.Default.AdminRollFilter) is { } rollFilter)
+                    fire.Run(RollsJob, () => SendRollsAsync(player, rollFilter));
+                break;
+
             case AdminParts.Items:
                 if (Parse(argument, AdminJson.Default.AdminItemFilter) is { } items)
                     rpc.SendAdminPart(player.Id, AdminParts.Items, JsonSerializer.Serialize(AdminViews.SearchItems(items), AdminJson.Default.ListAdminItemView));
@@ -217,6 +225,15 @@ internal sealed partial class AdminPanel(
             return;
 
         rpc.SendAdminPart(staff.Id, AdminParts.Audit, JsonSerializer.Serialize(page, AdminJson.Default.AdminAuditView));
+    }
+
+    private async Task SendRollsAsync(OnlinePlayer staff, AdminRollFilter filter)
+    {
+        var page = await rolls.ReadPageAsync(filter);
+        if (!staff.IsLive)
+            return;
+
+        rpc.SendAdminPart(staff.Id, AdminParts.Rolls, JsonSerializer.Serialize(page, AdminJson.Default.AdminRollsView));
     }
 
     private T? Parse<T>(string json, JsonTypeInfo<T> type) where T : class
