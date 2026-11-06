@@ -2,7 +2,8 @@
 
 Three mods written for the ReadyM Roleplay server before this gamemode, brought over as they are: each is its own
 OblivionMP mod (its own `manifest.json`, client and server halves, tests and packaging script), not yet part of
-`CyrodiilRP`.
+`CyrodiilRP`. Jobs' code has moved to `src/Roleplay.Jobs.*` and `tests/Roleplay.Jobs.Tests`, in `CyrodiilRP.slnx` and
+under the repository's build rules; its folder here keeps the content, packaging, docs and tools.
 
 | Folder | Mod id | What |
 |---|---|---|
@@ -42,5 +43,6 @@ Release` lays it out in its `Output/mods/<id>/`, ready to copy into a server's `
 ## Not done
 
 - Folding them into `CyrodiilRP`: saving per character in its database instead of JSON files, its pages and texts
-  (`locales/`), its coding standard. Until then they keep their own style and are not in `CyrodiilRP.slnx`.
+  (`locales/`), its coding standard. Until then HungerAndThirst and StatusTest keep their own style and are not in
+  `CyrodiilRP.slnx`.
 - Switching to the packages once a release carries these SDK features.

@@ -1,0 +1,176 @@
+/* The Jobs panel: a small half-transparent grey plate at the top right, 30% down the screen. The page is a transparent
+   viewport of its own (JobsPanel.Placement: 78.5% to 98.5% across, 30% to 44% down); only the plate paints anything.
+   Everything is sized from the viewport's height, so the plate keeps its share of the screen at every resolution, and
+   never smaller than 14 px text. */
+
+@font-face {
+  font-family: "Alegreya";
+  font-weight: 400;
+  src: url("fonts/alegreya-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Alegreya";
+  font-weight: 700;
+  src: url("fonts/alegreya-latin-700-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Cinzel";
+  font-weight: 600;
+  src: url("fonts/cinzel-latin-600-normal.woff2") format("woff2");
+}
+
+:root {
+  --plate: rgba(28, 26, 24, 0.62);
+  --plate-line: rgba(201, 162, 89, 0.28);
+  --text: #f4ecdc;
+  --muted: #c9bfae;
+  --gain: #ecd9a4;
+  --refusal: #ff9c8c;
+  --track: rgba(255, 255, 255, 0.14);
+  --fill: #c9a359;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.6);
+  --fade: 400ms;
+  --body: "Alegreya", "Palatino Linotype", Georgia, serif;
+  --heading: "Cinzel", "Alegreya", Georgia, serif;
+  /* One eighth of the viewport's height: 19 px at 1080p; never under 15.6 px, so the 0.9em lines stay at 14 px */
+  font-size: max(15.6px, calc(100vh / 8));
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  pointer-events: none;
+  user-select: none;
+  cursor: none;
+}
+
+body {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 4px 6px;
+}
+
+.hidden { display: none !important; }
+
+.panel {
+  min-width: 11em;
+  max-width: 100%;
+  padding: 0.35em 0.75em 0.45em;
+  background: var(--plate);
+  border: 1px solid var(--plate-line);
+  border-radius: 2px;
+  color: var(--text);
+  font-family: var(--body);
+  font-weight: 400;
+  line-height: 1.25;
+  text-shadow: var(--shadow);
+  opacity: 1;
+  transition: opacity var(--fade) ease;
+}
+
+.panel.fading { opacity: 0; }
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1em;
+}
+
+.title {
+  font-family: var(--heading);
+  font-weight: 600;
+  font-size: 0.95em;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.count {
+  color: var(--muted);
+  font-size: 0.9em;
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
+}
+
+.bar {
+  height: 0.28em;
+  margin-top: 0.3em;
+  background: var(--track);
+  border-radius: 1px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.fill {
+  height: 100%;
+  width: 0;
+  background: var(--fill);
+  transition: width 200ms ease-out;
+}
+
+.lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lines li {
+  margin-top: 0.25em;
+  font-size: 0.9em;
+}
+
+.lines .gain { color: var(--gain); font-weight: 700; }
+.lines .note { color: var(--muted); }
+.lines .refusal { color: var(--refusal); }
+
+/* Only a hint or a refusal, with no work under way: no title, no bar */
+.panel.lines-only .head,
+.panel.lines-only .bar { display: none; }
+.panel.lines-only .lines li:first-child { margin-top: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .panel, .fill { transition: none; }
+}
+
+/* ---- the browser preview: a backdrop and the panel at its place on a whole screen ---- */
+
+.preview body {
+  display: block;
+  padding: 0;
+  pointer-events: auto;
+  cursor: default;
+  background: linear-gradient(170deg, #9fb6c9 0%, #c8d3c3 35%, #6f7d52 60%, #3b4528 100%);
+}
+
+.preview .stage {
+  position: fixed;
+  left: 78.5vw;
+  top: 30vh;
+  width: 20vw;
+  height: 14vh;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 4px 6px;
+  font-size: max(15.6px, calc(14vh / 8));
+  outline: 1px dashed rgba(255, 255, 255, 0.35);
+}
+
+.preview-note {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  max-width: 60vw;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-family: Georgia, serif;
+  font-size: 14px;
+}

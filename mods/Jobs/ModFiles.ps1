@@ -23,6 +23,7 @@ $manifestFiles = @(
 
 $clientContentFiles = @(
     "QuarryJob.esp"
+    "web"           # the progress panel, loaded as readym://jobs/panel.html
 )
 
 $serverContentFiles = @(

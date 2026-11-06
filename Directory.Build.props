@@ -16,6 +16,7 @@
 
     <!-- The SDK from an oblivion-mod checkout on rp-framework (the Roleplay mods need it, see mods/README.md): the folder next to this repository, or -p:OblivionModRoot=... -->
     <PropertyGroup>
+        <OblivionModRoot Condition="'$(OblivionModRoot)' == ''">$(OBLIVION_MOD_ROOT)</OblivionModRoot>
         <OblivionModRoot Condition="'$(OblivionModRoot)' == ''">$(MSBuildThisFileDirectory)..\oblivion-mod\</OblivionModRoot>
         <OblivionModRoot>$([MSBuild]::EnsureTrailingSlash('$(OblivionModRoot)'))</OblivionModRoot>
         <CoreSdkSrc>$(OblivionModRoot)readym-gameserver\src\readym-core-sdk\src\</CoreSdkSrc>

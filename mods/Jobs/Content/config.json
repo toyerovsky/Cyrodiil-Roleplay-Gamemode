@@ -7,31 +7,70 @@
     "treeMeshes": [ "tree" ],
     "excludedMeshes": [ "shrub", "bush", "stump", "branch", "bark" ],
 
-    // Woodcutting is hitting, as mining is: a power attack with one of the axes below that lands on a tree counts, from
-    // anyone. A hit counts within hitRadius centimeters of the trunk's middle on the ground plane, from a player
-    // standing within reach of where it landed; the server takes no two hits from one player closer than
-    // minSecondsBetweenHits. A tree's hits add up for everyone who strikes it, and are forgotten treeMemorySeconds after
-    // the last one; when it comes down, what it gives is shared by those hits (see drops).
+    // Woodcutting is hitting: an attack with one of the axes below that lands on a tree damages it, from anyone. A
+    // normal attack does normalDamage and always lands; a power attack does powerDamage, but often makes no impact on a
+    // trunk standing up (the game's hit box), so it is the bonus, not the way. A hit counts within hitRadius centimeters
+    // of the trunk's middle on the ground plane, from a player standing within reach of where it landed; the server
+    // takes no normal hit from one player sooner than minSecondsBetweenHits after their last, and no power hit sooner
+    // than minSecondsBetweenPowerHits. A tree's damage adds up for everyone who strikes it, and is forgotten
+    // treeMemorySeconds after the last hit; when it comes down, what it gives is shared by that damage (see drops).
     "reach": 400,
     "hitRadius": 150,
-    "minSecondsBetweenHits": 1,
+    "normalDamage": 1,
+    "powerDamage": 5,
+
+    // Strength adds to a hit: a normal attack does normalStrengthBonus more for every normalStrengthStep points of the
+    // character's Strength above normalStrengthFrom (1 for every 20 above 40: 2 at Strength 60), a power attack
+    // powerStrengthBonus more for every powerStrengthStep points above powerStrengthFrom (2 for every 10 above 40: 9 at
+    // 60). Strength as the character has it now, so a Fortify Strength potion helps and hunger's drains hurt. A step of
+    // 0 turns the bonus off.
+    "normalStrengthBonus": 1,
+    "normalStrengthStep": 20,
+    "normalStrengthFrom": 40,
+    "powerStrengthBonus": 2,
+    "powerStrengthStep": 10,
+    "powerStrengthFrom": 40,
+
+    "minSecondsBetweenHits": 0.3,
+    "minSecondsBetweenPowerHits": 0.8,
     "treeMemorySeconds": 120,
 
-    // A tree comes down after baseHits for a trunk as thick as a scale 1 oak, more for a thicker one (its kind's girth
-    // times its scale), rounded and kept between minHits and maxHits.
-    "baseHits": 4,
-    "minHits": 2,
-    "maxHits": 10,
+    // A tree comes down at its health: baseHealth for a trunk as thick as a scale 1 oak, more for a thicker one (its
+    // kind's girth times its scale), rounded and kept between minHealth and maxHealth. 20 is four power attacks or
+    // twenty normal ones.
+    "baseHealth": 20,
+    "minHealth": 10,
+    "maxHealth": 50,
 
-    // An axe of a lower tier than the tree's wood takes tierPenalty times the hits for every tier it falls short (2: an
-    // iron axe on oak, two tiers short, takes four times as many), past maxHits; one of a higher tier takes tierBonus
-    // times the hits for every tier above (never under minHits). 1 for either turns it off.
+    // An axe of a higher tier than the tree's wood hits harder: normalTierBonus more for a normal attack and
+    // powerTierBonus more for a power attack, for every tier above (an ebony axe, tier 4, on pine, tier 1: +3 and +6).
+    // The tree's health stays what it is. One of a lower tier makes the tree tierPenalty times as tough for every tier
+    // it falls short (2: an iron axe on oak, two tiers short, needs four times the damage), past maxHealth; 1 turns
+    // that off.
+    "normalTierBonus": 1,
+    "powerTierBonus": 2,
     "tierPenalty": 2,
-    "tierBonus": 0.85,
 
-    // Durability every counted hit takes off the axe, as the game counts it (an iron battle axe has a few hundred, a
-    // hammer repairs it). 0 turns it off.
-    "wearPerHit": 2,
+    // Durability a hit takes off the axe for every point of damage it does, as the game counts it (an iron battle axe
+    // has a few hundred, a hammer repairs it): 0.4 is 2 for a power attack. 0 turns it off.
+    "wearPerDamage": 0.4,
+
+    // A worn axe bites less: below dullBelow of its full durability ("durability" on each axe, as the game's data
+    // has it) a hit may glance off and do nothing, a chance rising evenly from none at dullBelow to maxGlanceChance just
+    // before it breaks (0.5 and 0.5: at a quarter of its durability, one hit in four). A broken one does nothing at
+    // all. dullBelow 0 turns glancing off.
+    "dullBelow": 0.5,
+    "maxGlanceChance": 0.5,
+
+    // Every counted hit throws chipsPerHit pieces of chipAssets off where it landed, one of them each, chipScale of the
+    // model, flying back towards the chopper at chipSpeed centimeters a second and lying where they land, at the
+    // chopper's feet, for the rest of chipSeconds, for every player within fallViewDistance. Plain props of each
+    // client's own: nothing to pick up. 0 turns them off. SM_gnarlbark is the Gnarl Bark ingredient's own model.
+    "chipsPerHit": 3,
+    "chipSpeed": 350,
+    "chipSeconds": 1.5,
+    "chipScale": 1,
+    "chipAssets": [ "/Game/Art/Environment/clutter/SM_gnarlbark.SM_gnarlbark" ],
 
     // Lumber camps: with lumberCampsOnly, a tree can only be felled within lumberCampRadius centimeters of a lumber
     // camp's middle; without, any tree anywhere. Camps come from lumberCamps below and, with lumberCampsFromMarkers,
@@ -46,19 +85,20 @@
     "lumberCamps": [],
 
     // The axes that chop, by form id, each with a tier by its material: against a tree whose kind has a higher tier it
-    // takes more hits (tierPenalty), a lower one fewer (tierBonus). The player needs one equipped; the best one
-    // equipped counts. [] lets any weapon's power attack chop, at the plain number of hits.
+    // makes it tougher (tierPenalty), a lower one hit harder (normalTierBonus, powerTierBonus). The player needs one
+    // equipped; the best one equipped counts. [] lets any weapon chop, at the plain health. durability is the axe's
+    // full durability, as the game's data has it.
     "axes": [
-      { "item": "0x00000D7F", "name": "Iron Battle Axe", "tier": 1 },
-      { "item": "0x0003A85F", "name": "Fine Iron Battle Axe", "tier": 1 },
-      { "item": "0x000229B6", "name": "Steel Battle Axe", "tier": 2 },
-      { "item": "0x0003A856", "name": "Fine Steel Battle Axe", "tier": 2 },
-      { "item": "0x00025221", "name": "Silver Battle Axe", "tier": 2 },
-      { "item": "0x00035DCD", "name": "Dwarven Battle Axe", "tier": 3 },
-      { "item": "0x00035E67", "name": "Elven Battle Axe", "tier": 3 },
-      { "item": "0x00035E60", "name": "Glass Battle Axe", "tier": 4 },
-      { "item": "0x00035E6F", "name": "Ebony Battle Axe", "tier": 4 },
-      { "item": "0x00035E77", "name": "Daedric Battle Axe", "tier": 5 }
+      { "item": "0x00000D7F", "name": "Iron Battle Axe", "tier": 1, "durability": 168 },
+      { "item": "0x0003A85F", "name": "Fine Iron Battle Axe", "tier": 1, "durability": 185 },
+      { "item": "0x000229B6", "name": "Steel Battle Axe", "tier": 2, "durability": 224 },
+      { "item": "0x0003A856", "name": "Fine Steel Battle Axe", "tier": 2, "durability": 246 },
+      { "item": "0x00025221", "name": "Silver Battle Axe", "tier": 2, "durability": 288 },
+      { "item": "0x00035DCD", "name": "Dwarven Battle Axe", "tier": 3, "durability": 360 },
+      { "item": "0x00035E67", "name": "Elven Battle Axe", "tier": 3, "durability": 440 },
+      { "item": "0x00035E60", "name": "Glass Battle Axe", "tier": 4, "durability": 528 },
+      { "item": "0x00035E6F", "name": "Ebony Battle Axe", "tier": 4, "durability": 624 },
+      { "item": "0x00035E77", "name": "Daedric Battle Axe", "tier": 5, "durability": 728 }
     ],
 
     // What a felled tree gives: every entry is rolled on its own. An entry drops at all with its chance (1 always).
@@ -68,7 +108,7 @@
     // giant from giving tenfold, 0 gives the same from any tree. A fraction is a chance of one more: 4.3 gives 5 three
     // times in ten. The count is kept between min and max. kinds, when not empty, limits the entry to trees whose mesh
     // name holds one of them, as the kinds below match. item is a form id, name what the message calls it, value its
-    // gold value as the game has it. A felled tree's yield is shared by everyone who hit it, by their hits, most
+    // gold value as the game has it. A felled tree's yield is shared by everyone who hit it, by their damage, most
     // valuable first: whoever did most of the work gets the best of it. Oblivion has no log item, so the wood is a
     // stand-in until the mod ships one. A second entry, for leaves from a tree's crown, half the time, more from a bigger
     // tree, oaks and maples only, would read:
@@ -123,40 +163,65 @@
   },
 
   "mining": {
-    // Mining is hitting: a warhammer's power attack that lands on an ore node, or on rock inside a quarry, counts. The
+    // Mining is hitting: a warhammer's attack that lands on an ore node, or on rock inside a quarry, damages it. The
     // warhammers that mine, by form id, each with a tier by its material, as the axes for trees: against a node whose kind
-    // has a higher tier it takes tierPenalty times the hits for every tier it falls short, against a lower one tierBonus
-    // times for every tier above (never under 1 hit). Empty lets any weapon's power attack mine, at the plain number of
-    // hits. The server takes no two hits from one player closer than minSecondsBetweenHits.
+    // has a higher tier it takes tierPenalty times the damage for every tier it falls short; against a lower one a power
+    // attack does powerTierBonus more for every tier above (a normal attack normalTierBonus more, 0 here: it always
+    // does 1). Empty lets any weapon mine, at the plain health.
     "hammers": [
-      { "item": "0x00019172", "name": "Iron Warhammer", "tier": 1 },
-      { "item": "0x000229BE", "name": "Steel Warhammer", "tier": 2 },
-      { "item": "0x0003A85E", "name": "Fine Steel Warhammer", "tier": 2 },
-      { "item": "0x00025225", "name": "Silver Warhammer", "tier": 2 },
-      { "item": "0x00035DD5", "name": "Dwarven Warhammer", "tier": 3 },
-      { "item": "0x00035E69", "name": "Elven Warhammer", "tier": 3 },
-      { "item": "0x00035E62", "name": "Glass Warhammer", "tier": 4 },
-      { "item": "0x00035E71", "name": "Ebony Warhammer", "tier": 4 },
-      { "item": "0x00035E79", "name": "Daedric Warhammer", "tier": 5 }
+      { "item": "0x00019172", "name": "Iron Warhammer", "tier": 1, "durability": 196 },
+      { "item": "0x000229BE", "name": "Steel Warhammer", "tier": 2, "durability": 256 },
+      { "item": "0x0003A85E", "name": "Fine Steel Warhammer", "tier": 2, "durability": 282 },
+      { "item": "0x00025225", "name": "Silver Warhammer", "tier": 2, "durability": 324 },
+      { "item": "0x00035DD5", "name": "Dwarven Warhammer", "tier": 3, "durability": 400 },
+      { "item": "0x00035E69", "name": "Elven Warhammer", "tier": 3, "durability": 484 },
+      { "item": "0x00035E62", "name": "Glass Warhammer", "tier": 4, "durability": 576 },
+      { "item": "0x00035E71", "name": "Ebony Warhammer", "tier": 4, "durability": 676 },
+      { "item": "0x00035E79", "name": "Daedric Warhammer", "tier": 5, "durability": 784 }
     ],
     "tierPenalty": 2,
-    "tierBonus": 0.85,
-    "minSecondsBetweenHits": 1,
+    "normalTierBonus": 0,
+    "powerTierBonus": 2,
 
-    // Durability every counted hit takes off the warhammer, as the game counts it. 0 turns it off.
-    "wearPerHit": 2,
+    // A normal attack does normalDamage and always lands; a power attack does powerDamage, but often makes no impact
+    // standing up, so it is the bonus. Strength adds to a power attack: powerStrengthBonus for every powerStrengthStep
+    // points of the character's Strength above powerStrengthFrom (2 for every 10 above 40: 9 at 60), as it is now,
+    // fortified or drained; the normal ones do the same for a normal attack, off here (a step of 0): a normal attack
+    // always does 1. The server takes no normal hit from one player sooner than minSecondsBetweenHits after their
+    // last, and no power hit sooner than minSecondsBetweenPowerHits.
+    "normalDamage": 1,
+    "powerDamage": 5,
+    "normalStrengthBonus": 0,
+    "normalStrengthStep": 0,
+    "normalStrengthFrom": 0,
+    "powerStrengthBonus": 2,
+    "powerStrengthStep": 10,
+    "powerStrengthFrom": 40,
+    "minSecondsBetweenHits": 0.3,
+    "minSecondsBetweenPowerHits": 0.8,
+
+    // Durability a hit takes off the warhammer for every point of damage it does, as the game counts it: 0.4 is 2 for
+    // a power attack. 0 turns it off.
+    "wearPerDamage": 0.4,
+
+    // A worn warhammer bites less: below dullBelow of its full durability ("durability" on each warhammer, as the game's data
+    // has it) a hit may glance off and do nothing, a chance rising evenly from none at dullBelow to maxGlanceChance just
+    // before it breaks (0.5 and 0.5: at a quarter of its durability, one hit in four). A broken one does nothing at
+    // all. dullBelow 0 turns glancing off.
+    "dullBelow": 0.5,
+    "maxGlanceChance": 0.5,
 
     // How far a player may stand from what they hit, in centimeters: the hammer's reach, with room for a big swing.
     "reach": 400,
 
     // A hit counts on a node when it lands within hitRadius centimeters (times the node's scale) of the node's origin
-    // on the ground plane. Its hits add up for everyone who strikes it, and are forgotten nodeMemorySeconds after the
-    // last one; when it is spent, what it gives is shared by those hits (see kinds).
+    // on the ground plane. Its damage adds up for everyone who strikes it, and is forgotten nodeMemorySeconds after the
+    // last hit; when it is spent, what it gives is shared by that damage (see kinds).
     "hitRadius": 200,
     "nodeMemorySeconds": 120,
 
-    // Quarries: rock within quarryRadius centimeters of a quarry's middle can be quarried, every quarryHitsPerYield
-    // counted hits giving quarryDrops (rolled as a node's drops, at scale 1). Quarries come from quarries below and, with
+    // Quarries: rock within quarryRadius centimeters of a quarry's middle can be quarried, every quarryDamagePerYield
+    // of a player's damage giving them quarryDrops (rolled as a node's drops, at scale 1). Quarries come from quarries below and, with
     // quarriesFromMarkers, from every map marker whose name holds quarryMarkerName in the plugins the server hands its
     // players (pluginFolders and markerWorldspaces at the bottom). Rock is foliage whose mesh name holds one of quarryMeshes and none of
     // excludedQuarryMeshes, ignoring case; with quarryLandscape the bare ground inside a quarry counts too. A quarry face
@@ -170,7 +235,7 @@
     "quarryMeshes": [ "rock", "cliff", "boulder", "stone" ],
     "excludedQuarryMeshes": [ "pebble", "path", "decal", "tree", "bush", "shrub" ],
     "quarryLandscape": false,
-    "quarryHitsPerYield": 3,
+    "quarryDamagePerYield": 15,
     "quarryDrops": [
       { "item": "0x00025946", "name": "Stone Brick", "value": 0, "chance": 0.4, "base": 1, "min": 1, "max": 1 },
       { "item": "0x00025947", "name": "Stone Brick", "value": 0, "chance": 0.4, "base": 1, "min": 1, "max": 1 },
@@ -190,7 +255,7 @@
     "burstScale": 0.9,
 
     // Experimental: every counted hit throws chipsPerHit chips off where it landed, one of chipAssets each, chipScale of
-    // the model, flying away from the miner at chipSpeed centimeters a second and lying where they land, at the miner's
+    // the model, flying back towards the miner at chipSpeed centimeters a second and lying where they land, at the miner's
     // feet, for the rest of chipSeconds. Plain props of each client's own: nothing to pick up. Off with experimentalChips
     // false.
     "experimentalChips": false,
@@ -201,15 +266,15 @@
     "chipAssets": [ "/Game/Art/Environment/Architecture/stonewall/SM_stonewallstone01.SM_stonewallstone01", "/Game/Art/Environment/Architecture/stonewall/SM_stonewallstone02.SM_stonewallstone02", "/Game/Art/Environment/Architecture/stonewall/SM_stonewallstone03.SM_stonewallstone03", "/Game/Art/Environment/Architecture/stonewall/SM_stonewallstone04.SM_stonewallstone04", "/Game/Art/Environment/Architecture/stonewall/SM_stonewallstone05.SM_stonewallstone05" ],
 
     // The kinds of node. asset is what stands there (KotN's iron vein container, a remastered gold rock, the Shivering
-    // Isles' madness ore deposit container), sized by scale; hits how many it takes, by tier as above; tier how hard it
+    // Isles' madness ore deposit container), sized by scale; health the damage it takes, by tier as above; tier how hard it
     // is, against the warhammer's. Every drop is rolled on its own: it drops at all with its chance, base of it for a
     // node of scale 1, times the node's scale, where a fraction is a chance of one more, kept between min and max. A
-    // spent node's yield is shared by everyone who hit it, by their hits, most valuable first (value, the item's gold
+    // spent node's yield is shared by everyone who hit it, by their damage, most valuable first (value, the item's gold
     // value as the game has it): whoever did most of the work gets the best of it. It grows back after respawnMinutes.
     // Oblivion has no stone or ore item but nuggets: the stone bricks of its walls are the common drop.
     "kinds": [
       {
-        "name": "Iron", "asset": "/Game/Forms/worldobjects/container/DL9IronVein01.DL9IronVein01", "scale": 1, "hits": 6, "tier": 1, "respawnMinutes": 20,
+        "name": "Iron", "asset": "/Game/Forms/worldobjects/container/DL9IronVein01.DL9IronVein01", "scale": 1, "health": 30, "tier": 1, "respawnMinutes": 20,
         "drops": [
           { "item": "0x040014C0", "name": "Iron Ore", "value": 5, "chance": 1, "base": 2, "min": 1, "max": 4 },
           { "item": "0x00025946", "name": "Stone Brick", "value": 0, "chance": 0.3, "base": 1, "min": 1, "max": 2 },
@@ -220,7 +285,7 @@
         ]
       },
       {
-        "name": "Rich", "asset": "/Game/Art/Environment/dungeons/misc/SM_goldrock02.SM_goldrock02", "scale": 1, "hits": 8, "tier": 2, "respawnMinutes": 30,
+        "name": "Rich", "asset": "/Game/Art/Environment/dungeons/misc/SM_goldrock02.SM_goldrock02", "scale": 1, "health": 40, "tier": 2, "respawnMinutes": 30,
         "drops": [
           { "item": "0x040014C0", "name": "Iron Ore", "value": 5, "chance": 1, "base": 1.5, "min": 1, "max": 3 },
           { "item": "0x00049809", "name": "Silver Nugget", "value": 15, "chance": 0.5, "base": 1, "min": 1, "max": 2 },
@@ -233,7 +298,7 @@
         ]
       },
       {
-        "name": "Madness", "asset": "/Game/Forms/worldobjects/container/SEMadnessRockDeposit.SEMadnessRockDeposit", "scale": 1, "hits": 6, "tier": 3, "respawnMinutes": 30,
+        "name": "Madness", "asset": "/Game/Forms/worldobjects/container/SEMadnessRockDeposit.SEMadnessRockDeposit", "scale": 1, "health": 30, "tier": 3, "respawnMinutes": 30,
         "drops": [
           { "item": "0x00012D33", "name": "Madness Ore", "value": 20, "chance": 1, "base": 2, "min": 1, "max": 3 },
           { "item": "0x00016568", "name": "Amber", "value": 10, "chance": 0.2, "base": 1, "min": 1, "max": 1 }

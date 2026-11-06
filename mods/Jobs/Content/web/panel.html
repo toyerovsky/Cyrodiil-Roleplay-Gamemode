@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jobs progress</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body class="jobs-page">
+  <!-- In the game: alone in a viewport at the top right, 30% down (JobsPanel.Placement). Shows the tree, vein or quarry
+       last hit, how far along it is, and what came of it; fades a few seconds after the last hit. -->
+  <section id="panel" class="panel hidden" aria-live="polite" aria-label="Work in progress">
+    <div class="head">
+      <span id="title" class="title"></span>
+      <span id="count" class="count"></span>
+    </div>
+    <div id="bar" class="bar"><div id="fill" class="fill"></div></div>
+    <ul id="lines" class="lines"></ul>
+  </section>
+
+  <script src="panel.js"></script>
+</body>
+</html>

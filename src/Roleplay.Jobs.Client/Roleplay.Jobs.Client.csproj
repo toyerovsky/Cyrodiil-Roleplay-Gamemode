@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <ProjectReference Include="..\Roleplay.Jobs.Common\Roleplay.Jobs.Common.csproj" />
+        <ProjectReference Include="$(OblivionModRoot)OblivionMP.SDK\OblivionMP.SDK.csproj" />
+        <ProjectReference Include="$(OblivionModRoot)ReadyM.Cef\ReadyM.Cef.csproj" />
+        <ProjectReference Include="$(OblivionModRoot)ReadyM.Cef.Generators\ReadyM.Cef.Generators.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+        <ProjectReference Include="$(CoreSdkSrc)ReadyM.Api.Generators\ReadyM.Api.Generators.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    </ItemGroup>
+
+</Project>

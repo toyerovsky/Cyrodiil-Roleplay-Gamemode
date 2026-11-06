@@ -2,18 +2,21 @@
 
 Roleplay jobs for the ReadyM Roleplay server on OblivionMP, from the game's own assets: no new model.
 
-- **Woodcutting:** hit a tree with a battle axe's power attack. There is no key: the game's own power attack is the
-  swing, in either view. Every hit that lands counts, from anyone; the tree falls and sinks into the ground for
-  everyone, a stump stays, and the tree grows back after a while. The wood is shared by everyone who hit it, as ore
+- **Woodcutting:** hit a tree with a battle axe. There is no key: the game's own attacks are the swings, in either
+  view. A tree has health: a normal attack does a little damage and always lands, a power attack does five times as
+  much. Every hit that lands counts, from anyone; the tree falls and sinks into the ground for everyone, a stump stays,
+  and the tree grows back after a while. The wood is shared by everyone who hit it, as ore
   is. A server can keep felling to lumber camps (off by default: any tree anywhere).
-- **Mining:** hit an ore node with a warhammer's power attack. There is no key: the game's own power attack is the
-  swing, in either view. Every hit that lands counts, from anyone, a better hammer needs fewer, and each wears it a
-  little. What a spent node gives is shared by everyone who hit it, by their hits, most valuable first: whoever did
+- **Mining:** hit an ore node with a warhammer. There is no key: the game's own attacks are the swings, in either
+  view. A node has health, as a tree does: a normal attack always does 1, a power attack 5, more with Strength (+2 for
+  every 10 above 40, and +2 for every tier the hammer is above the ore). Every hit that lands counts, from anyone, and
+  each wears the hammer by its damage. A worn warhammer glances off and a broken one does nothing, as a worn axe. What a spent node gives is shared by everyone who hit it, by their damage, most valuable first: whoever did
   most of the work gets the gems and nuggets, and one last hit snuck in gets a stone brick or nothing. The node bursts
   into pieces when it is spent, giving nuggets, stone bricks and now and then a gem, and grows back after a while.
-- **Quarrying:** the same on rock inside a quarry, which gives stone bricks every few hits and does not run out.
+- **Quarrying:** the same on rock inside a quarry, which gives stone bricks every 15 damage (three power attacks or
+  fifteen normal ones) and does not run out.
   Quarries are where a server says: around every map marker named "...Quarry..." in its plugins, or in its config.
-  Rock outside a quarry is left alone, and the first power attack on it says where stone can be had.
+  Rock outside a quarry is left alone, and the first attack on it says where stone can be had.
 
 The server decides everything. A felled tree, a spent node and a block of quarried stone are networked events
 (`TreeFelledEvent`, `OreMinedEvent`, `StoneQuarriedEvent`), so other mods can refuse or react to them.
@@ -38,26 +41,38 @@ real references, and are not handled yet.
 
 ## In game
 
-- **A battle axe's power attack on a tree:** every one that lands on the trunk counts ("Oak: 1 / 4", ...), anyone's,
-  and the tree comes down on the last hit needed, "Timber!" and the drops. A thicker trunk takes more hits (4 for an
-  average oak, up to 10), and so does a hard wood with a weak axe: every tier the axe falls short doubles them (an
-  iron axe on oak takes four times as many), every tier above saves 15%. Woods by hardness: pine, hemlock, redwood,
+- **A battle axe's attack on a tree:** every one that lands on the trunk does damage ("Oak: 5 / 20", ...), anyone's:
+  1 for a normal attack, 5 for a power attack, more with Strength above 40: a normal attack +1 for every 20, a power
+  attack +2 for every 10 (at Strength 45, 1 and 5; at 60, 2 and 9; at 100, 4 and 17). The tree comes down when it has taken its health, "Timber!" and the
+  drops. A thicker trunk has more health (20 for an average oak, four power attacks or twenty normal ones, up to 50),
+  and so does a hard wood with a weak axe: every tier the axe falls short doubles it (an iron axe on oak needs four
+  times the damage). An axe above the wood hits harder instead, +1 a normal attack and +2 a power attack for every
+  tier above (an ebony axe on pine: 4 and 11 at Strength 40), and the tree's health stays the same, so the panel's
+  numbers always mean the same. Woods by hardness: pine, hemlock, redwood,
   poplar and aspen 1, birch and holly 2, oak, maple and yew 3; axes by material from iron 1 to daedric 5. A bigger
   tree gives more wood: with the square of its size by default, so a tree twice the size gives four times as much,
   times its kind's wood (a birch gives less than an oak). Every drop is its own entry, so leaves, nuts or resin can
-  come with the wood, by chance, from some kinds only. Every counted hit wears the axe down a little (2 durability by
-  default); a hammer repairs it.
-- **Sharing:** a tree's hits add up for everyone who strikes it, and what it gives is shared by those hits, most
+  come with the wood, by chance, from some kinds only. Every counted hit wears the axe by its damage (0.4 durability a
+  point by default: 2 for a power attack); a hammer repairs it. A worn axe bites less: below half its durability a
+  hit may glance off and do nothing ("The blade glances off."), from no chance at half to one in two just before it
+  breaks (one in four at a quarter), and a broken one does nothing at all ("Your axe is too dull to bite."). Every counted hit throws a few pieces of bark (the
+  Gnarl Bark ingredient's own model) off the trunk, back towards the chopper, for everyone near (`chipsPerHit`).
+- **Why normal attacks:** a standing power attack with a battle axe often makes no impact on a trunk at all. The game's
+  hit box on the blade turns on for the swing but registers nothing, until some hit lands (a crouched one did); after
+  that every power attack connects. Normal attacks always land, so they are the way, and a power attack is the bonus
+  when it lands. `tools/HitBoxProbe` shows the hit box's state.
+- **Sharing:** a tree's damage adds up for everyone who strikes it, and what it gives is shared by that damage, most
   valuable first, as an ore node's is: whoever did most of the work gets the best of it, and one last hit snuck in
-  gets little or nothing. Gnarl Bark is worth 1 gold, so with bark alone the share is simply by hits.
+  gets little or nothing. Gnarl Bark is worth 1 gold, so with bark alone the share is simply by damage.
 - **Lumber camps** (`lumberCampsOnly`, off by default): a tree can only be felled within 30 m of a lumber camp, a map
-  marker named "...Lumber..." or one in the config. The first power attack on a tree outside every camp says where
-  wood can be had.
-- The animation is the battle axe's own power attack. The warhammer's suits chopping better, but a weapon's power
-  attack is the game's to choose: playing the warhammer's on a battle axe would mean replacing the game's attack
-  choice natively, for every battle axe in combat too, so it stays the battle axe's.
-- Messages in the top left say why a hit did not count: no axe, too far, outside a lumber camp, someone felled the
-  tree a moment before.
+  marker named "...Lumber..." or one in the config. The first attack on a tree outside every camp says where wood can
+  be had.
+- **The panel:** a small half-transparent plate at the top right, 30% down the screen, shows the tree, vein or quarry
+  last hit ("Oak", "Iron vein", "Aleswell Quarry"), its progress ("12 / 20" and a thin bar), and under it what came of
+  it: what the player got ("+3 Gnarl Bark"), a hint, or why a hit did not count (no axe, too far, outside a lumber
+  camp, someone felled it a moment before). It fades six seconds after the last hit and steps aside while a game menu
+  is open. Its page is `Content/web/panel.html` (plain HTML, Cinzel and Alegreya, the fonts' OFL licences beside
+  them), hosted by `JobsPanel`; opened in a browser it shows a preview with a mock game (C, P, M, R and Q).
 
 ## For other mods
 
@@ -66,10 +81,10 @@ A mod that draws its own woodcutting interface (a CEF page, a widget) injects `I
 
 | Member | What |
 |---|---|
-| `ShowMessages` | false hands the top-left messages over to the mod |
+| `ShowMessages` | false keeps woodcutting out of Jobs' own panel, for a mod that draws its own |
 | `LumberCampsOnly`, `LumberCamps` | whether trees are kept to lumber camps, and the camps (name, center, radius) |
-| `HitCounted` | a hit of this player's the server counted: the tree's `FoliageId`, `Kind` ("Oak", empty for an unlisted kind), `Hits` so far (everyone's), `HitsNeeded` |
-| `ChopEnded` | `Felled` (a tree this player hit came down; the message lists their share) or `Refused`, and the message Jobs would show |
+| `HitCounted` | a hit of this player's the server counted: the tree's `FoliageId`, `Kind` ("Oak", empty for an unlisted kind), `Damage` so far (everyone's), `Health` |
+| `ChopEnded` | `Felled` (a tree this player hit came down) or `Refused`, the sentence Jobs has for it, and `Gains`, what the player got, each such as "3 Gnarl Bark" |
 | `TreeFelled` | any tree coming down near this player, theirs included (`ByLocalPlayer`), with its kind, scale and `Feller` |
 | `TreeGrewBack` | a felled tree's `FoliageId` |
 
@@ -82,9 +97,9 @@ client cannot raise them), declared in `Roleplay.Jobs.Common`:
 
 | Event | When | Fields |
 |---|---|---|
-| `TreeFelledEvent` | a tree comes down | `Feller`, the tree (`Mesh`, `X`, `Y`, `Z`, or `Tree()`), `Kind`, `Scale`, `FallYaw` |
-| `OreMinedEvent` | an ore node is spent | `Miner`, `Node` (its id), `Kind`, `Position`, `Scale` |
-| `StoneQuarriedEvent` | a block comes loose in a quarry | `Quarrier`, `Quarry` (its name), `Position` |
+| `TreeFelledEvent` | a tree comes down | `Feller` (the character; `JobEvents.PlayerOf` gives its player), the tree (`Mesh`, `X`, `Y`, `Z`, or `Tree()`), `Kind`, `Scale`, `FallYaw` |
+| `OreMinedEvent` | an ore node is spent | `Miner` (the character), `Node` (its id), `Kind`, `Position`, `Scale` |
+| `StoneQuarriedEvent` | a block comes loose in a quarry | `Quarrier` (the character), `Quarry` (its name), `Position` |
 
 A server mod refuses one in `Stage.Validate` (`context.Cancel(HarvestRefusal.Other)`: a protected grove, a quest
 tree) and reacts to one in `Stage.Observe` on any machine (experience, a contract, a log). Jobs' own `Validate` refuses
@@ -96,7 +111,7 @@ tree or node out and shares or gives the yield, on the clients near it plays the
 
 1. `.\MakeModFolder.ps1 Release`
 2. Copy `Output/mods/Roleplay.Jobs/` into the server's `mods/` folder.
-3. Tune `mods/Roleplay.Jobs/server/config.json`: which meshes are trees, reach, hits, the axes, their tiers, the
+3. Tune `mods/Roleplay.Jobs/server/config.json`: which meshes are trees, reach, damage and health, the axes, their tiers, the
    drops, their values and how each grows with a tree's size, lumber camps, how long a tree takes to grow back, how a
    felled tree falls (`treesFall` and the `fall*` keys), and the kinds of tree: each one's stump width, wood, trunk
    thickness next to an oak's and hardness tier; and for mining, the warhammers and their tiers, the ore kinds and
@@ -123,7 +138,8 @@ entry), a felled tree gives Gnarl Bark; `drops` takes any form id.
 
 ## Not done yet
 
-- **Woodcutting by power attack is untested in game**, as are lumber camps and the three networked events. The
+- **Woodcutting by damage, normal attacks included, is untested in game**, as are lumber camps and the three
+  networked events. Power attacks counting was seen working, once they connect. The
   felling, the fall and the stump were seen working with the old G key.
 - The kinds' wood, girth, stump width and tiers, the axe tiers and the tier penalty are guesses: untested in game.
 - `tools/TreeProbe` is a UE4SS Lua mod for single player (a plain launch: under the ReadyM launcher UE4SS loads mods
@@ -131,9 +147,9 @@ entry), a felled tree gives Gnarl Bark; `drops` takes any form id.
   Numpad 1 lists the instanced meshes around the player (class, mesh path, distance) to `UE4SS.log`; 2 removes the
   nearest tree the way the SDK does; 3 puts it back; 4 and 5 play the chop and mine montages in both views.
 - `tools/HitBoxProbe` is a UE4SS Lua mod for finding out why a standing battle axe power attack often makes no impact
-  on a tree. It works in multiplayer too, from `%APPDATA%\ReadyM.Launcher\Oblivion\Mods\HitBoxProbe`. Numpad 6 draws
-  every weapon hit box near the player (red while it can hit) and logs the player's own to `UE4SS.log` whenever it
-  turns on or off: where it is, how far from the player, and what it already overlaps.
+  on a tree. It works in multiplayer too, from `%APPDATA%\ReadyM.Launcher\Oblivion\Mods\HitBoxProbe`. Numpad 6 logs
+  the player's weapon hit box to `UE4SS.log` whenever it turns on or off: where it is, how far from the player, and
+  what it already overlaps. Numpad 7 does the same and also shows every hit box near the player while it can hit.
 - Trees far away are drawn by the map's distant LOD (the foliage HLOD layer), which this does not touch because
   editing it costs too much: a felled tree may still show on the horizon.
 - A felled tree leaves a stump (Stump01, the game's chopping block, sunk into the ground, turned at random and sized
@@ -147,7 +163,8 @@ entry), a felled tree gives Gnarl Bark; `drops` takes any form id.
 - A tree is a foliage mesh whose name (not its folder) holds "tree" and not "branch", "bark", "shrub", "bush" or
   "stump": the fallen-branch meshes (`SM_Branches_TreeBark_*`) near Weye counted as trees before.
 - Firewood on a chopping block.
-- **Mining by power attack is untested in game.** Before it, seen working: iron (KotN's vein, whose mesh comes from
+- **Mining by damage, normal attacks included, is untested in game**, as are bark chips and chips flying back towards
+  the one who struck. Before it, seen working: iron (KotN's vein, whose mesh comes from
   its blueprint) and madness nodes, warhammer hits on them, the drops, the flying bricks. Not yet:
   - power attacks counting at all, and the line traced from the character that tells what the hammer struck;
   - quarries: the markers read from a plugin, the hits on cliff faces and rock inside one, the hint outside;
@@ -164,18 +181,22 @@ entry), a felled tree gives Gnarl Bark; `drops` takes any form id.
 
 ## Layout
 
+The code is in the repository's `src/` and `tests/`, beside the gamemode's, and builds by its rules
+(`Directory.Build.props`: warnings as errors, central package versions). This folder keeps the rest of the mod.
+
 | Path | What |
 |---|---|
-| `Roleplay.Jobs.Common/` | the RPC contracts, the networked events (`JobEvents.cs`), and `TreeFilter`, which both halves use to agree on what a tree is |
-| `Roleplay.Jobs.Server/` | `WoodcuttingService` and `MiningService` (the rules), `YieldShare` (who gets what), `JobAreas` (quarries and lumber camps), `FelledTreeStore` and `OreNodeStore` (the save files), `JobsConfig` |
-| `Roleplay.Jobs.Client/` | `WoodcuttingClient` and `MiningClient`: the power attacks; `TreeFallService`: the fall |
-| `Roleplay.Jobs.Tests/` | xUnit tests for the filters, the yields and shares, the areas, the save files and the shipped config |
-| `Content/config.json` | the server config shipped with the mod |
-| `tools/TreeProbe/` | the in-game probe above |
+| `src/Roleplay.Jobs.Common/` | the RPC contracts, the networked events (`JobEvents.cs`), and `TreeFilter`, which both halves use to agree on what a tree is |
+| `src/Roleplay.Jobs.Server/` | `WoodcuttingService` and `MiningService` (the rules), `YieldShare` (who gets what), `JobAreas` (quarries and lumber camps), `FelledTreeStore` and `OreNodeStore` (the save files), `JobsConfig` |
+| `src/Roleplay.Jobs.Client/` | `WoodcuttingClient` and `MiningClient`: the attacks; `TreeFallService`: the fall |
+| `tests/Roleplay.Jobs.Tests/` | xUnit tests for the filters, the yields and shares, the areas, the save files and the shipped config |
+| `mods/Jobs/Content/` | `config.json` (the server config shipped with the mod), `manifest.json`, `QuarryJob.esp`, the panel's page (`web/`) |
+| `mods/Jobs/MakeModFolder.ps1` | packs the mod into `mods/Jobs/Output/mods/Roleplay.Jobs/` |
+| `mods/Jobs/tools/` | the in-game probes (`TreeProbe`, `HitBoxProbe`) |
 
 ## Develop
 
 ```powershell
-dotnet test Roleplay.Jobs.sln
+dotnet test Roleplay.Jobs.sln   # or the whole CyrodiilRP.slnx
 .\MakeModFolder.ps1 Debug     # with .pdb files
 ```
