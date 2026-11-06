@@ -27,3 +27,6 @@ coverage/
 
 # The server package is a download, not source.
 oblivion-server-*/
+
+# The SDK packages pack.ps1 copies from the server. The folder stays: nuget.config names it.
+.sdk/*.nupkg

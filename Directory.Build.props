@@ -14,12 +14,19 @@
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     </PropertyGroup>
 
-    <!-- The SDK from an oblivion-mod checkout on rp-framework (the Roleplay mods need it, see mods/README.md): the folder next to this repository, or -p:OblivionModRoot=... -->
+    <!-- The SDK is the server's own: pack.ps1 copies the packages from the sdk/ folder of the server it builds for into .sdk/ (nuget.config's source), so the mod always compiles against what that server loads. The version is theirs. -->
     <PropertyGroup>
-        <OblivionModRoot Condition="'$(OblivionModRoot)' == ''">$(OBLIVION_MOD_ROOT)</OblivionModRoot>
-        <OblivionModRoot Condition="'$(OblivionModRoot)' == ''">$(MSBuildThisFileDirectory)..\oblivion-mod\</OblivionModRoot>
-        <OblivionModRoot>$([MSBuild]::EnsureTrailingSlash('$(OblivionModRoot)'))</OblivionModRoot>
-        <CoreSdkSrc>$(OblivionModRoot)readym-gameserver\src\readym-core-sdk\src\</CoreSdkSrc>
+        <OblivionSdkFeed>$(MSBuildThisFileDirectory).sdk</OblivionSdkFeed>
+        <OblivionSdkPackage>$([System.IO.Directory]::GetFiles('$(OblivionSdkFeed)', 'ReadyM.SDK.Oblivion.Common.*.nupkg'))</OblivionSdkPackage>
+        <OblivionSdkVersion Condition="'$(OblivionSdkPackage)' != ''">$([System.IO.Path]::GetFileNameWithoutExtension('$(OblivionSdkPackage)').Replace('ReadyM.SDK.Oblivion.Common.', ''))</OblivionSdkVersion>
     </PropertyGroup>
+
+    <Target Name="CheckOblivionSdk" BeforeTargets="Restore;Build" Condition="'$(OblivionSdkVersion)' == ''">
+        <ItemGroup>
+            <OblivionSdkReference Include="@(PackageReference)" Condition="$([System.String]::Copy('%(Identity)').StartsWith('ReadyM.SDK.Oblivion'))" />
+        </ItemGroup>
+        <Error Condition="'@(OblivionSdkReference)' != ''"
+               Text="No SDK in .sdk/: run ./pack.ps1 -PackOnly, which takes it from the server (see DEVELOPMENT.md)." />
+    </Target>
 
 </Project>

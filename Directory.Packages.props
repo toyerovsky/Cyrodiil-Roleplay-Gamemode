@@ -1,9 +1,9 @@
 <Project>
   <ItemGroup>
-    <!-- One version for the three SDK packages. It must match the server the mod is deployed to. -->
-    <PackageVersion Include="ReadyM.SDK.Oblivion.Common" Version="1.0.0" />
-    <PackageVersion Include="ReadyM.SDK.Oblivion.Client" Version="1.0.0" />
-    <PackageVersion Include="ReadyM.SDK.Oblivion.Server" Version="1.0.0" />
+    <!-- One version for the three SDK packages: the one in .sdk/, which came with the server (Directory.Build.props). -->
+    <PackageVersion Include="ReadyM.SDK.Oblivion.Common" Version="$(OblivionSdkVersion)" />
+    <PackageVersion Include="ReadyM.SDK.Oblivion.Client" Version="$(OblivionSdkVersion)" />
+    <PackageVersion Include="ReadyM.SDK.Oblivion.Server" Version="$(OblivionSdkVersion)" />
 
     <!-- EF Core 10 builds against Microsoft.Extensions 10.0.0.0, the version the relay server ships and the mod reuses. -->
     <PackageVersion Include="Npgsql" Version="10.0.3" />

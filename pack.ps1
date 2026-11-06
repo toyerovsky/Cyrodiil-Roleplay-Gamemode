@@ -2,16 +2,17 @@
 
 <#
     Builds everything and puts it into the server: the pages, the client half and the server half go to
-    <server>/mods/CyrodiilRP, the database gets the pending migrations, and the platform's chat and MarkerMod go to
-    mods-disabled/: both chats answer K, and the mode draws the names over heads itself. The deployed
-    server/config.json (database, owners) is kept.
+    <server>/mods/CyrodiilRP, the Hunger and Thirst and Jobs mods beside it, the database gets the pending migrations,
+    and the platform's chat and MarkerMod go to mods-disabled/: both chats answer K, and the mode draws the names over
+    heads itself. Each deployed server/config.json (database, owners) is kept.
 
-    The server is OBLIVIONMP_SERVER, or the newest oblivion-server-* folder next to this script, or -ServerDir.
+    The server is OBLIVIONMP_SERVER, or the newest oblivion-server-* folder next to this script, or -ServerDir. Its
+    sdk/ folder is the SDK the mods compile against, so they match the server whatever OS it runs on.
 
       ./pack.ps1                 build, migrate, install
       ./pack.ps1 -Test           run the tests first, and the packed mod on the real server before it is installed
       ./pack.ps1 -SkipDatabase   leave the database alone
-      ./pack.ps1 -PackOnly       only build the mod into out/mods/CyrodiilRP
+      ./pack.ps1 -PackOnly       only build the mods into out/mods
       ./pack.ps1 -ServerDir D:\other-server
 #>
 
@@ -26,9 +27,14 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $root = $PSScriptRoot
-$out = Join-Path $root 'out/mods/CyrodiilRP'
+$outMods = Join-Path $root 'out/mods'
+$out = Join-Path $outMods 'CyrodiilRP'
 $publish = Join-Path $root 'out/publish'
 $tests = Join-Path $root 'tests/CyrodiilRP.Tests'
+$sdkFeed = Join-Path $root '.sdk'
+
+# The mods with a folder of their own under mods/, by the id they deploy as.
+$roleplayMods = [ordered] @{ 'Roleplay.HungerAndThirst' = 'HungerAndThirst'; 'Roleplay.Jobs' = 'Jobs' }
 
 function Write-Step([string] $text) { Write-Host "`n== $text" -ForegroundColor Cyan }
 
@@ -43,9 +49,10 @@ function Invoke-Checked([string] $what, [scriptblock] $command)
 # one that stops half way leaves the mod deployed before in the staging folder, config and all.
 function Install-Mod([string] $from, [string] $mods, [string] $staging)
 {
-    $target = Join-Path $mods 'CyrodiilRP'
-    $fresh = Join-Path $staging 'CyrodiilRP'
-    $previous = Join-Path $staging 'CyrodiilRP.previous'
+    $name = Split-Path $from -Leaf
+    $target = Join-Path $mods $name
+    $fresh = Join-Path $staging $name
+    $previous = Join-Path $staging "$name.previous"
     if (Test-Path $previous)
     {
         throw "$previous is left by a deploy that stopped half way: it is the mod deployed before, with its server/config.json. Take what $target needs from it, delete it and deploy again."
@@ -73,7 +80,20 @@ function Install-Mod([string] $from, [string] $mods, [string] $staging)
 
     if (Test-Path $previous) { Remove-Item $previous -Recurse -Force }
     if (-not (Get-ChildItem $staging -Force)) { Remove-Item $staging }
-    if ($kept) { Write-Host '  server/config.json kept' }
+    if ($kept) { Write-Host "  $name/server/config.json kept" }
+}
+
+# The server's package carries the SDK it was built with: the feed holds that one and no other, so a mod cannot compile
+# against one server and be deployed to another.
+function Use-ServerSdk([string] $server)
+{
+    $packages = @(Get-ChildItem (Join-Path $server 'sdk') -Filter '*.nupkg' -ErrorAction Ignore)
+    if (-not $packages) { throw "No SDK in $server/sdk: take a server package from rp-framework CI, which carries one." }
+
+    Get-ChildItem $sdkFeed -Filter '*.nupkg' | Remove-Item
+    $packages | Copy-Item -Destination $sdkFeed
+    $common = $packages | Where-Object Name -Like 'ReadyM.SDK.Oblivion.Common.*'
+    Write-Host "SDK: $($common.BaseName -replace '^ReadyM\.SDK\.Oblivion\.Common\.', '')" -ForegroundColor Green
 }
 
 # "oblivion-server-win64-1.0.0-rc.2": by version, a release is newer than its release candidates, and rc.10 comes
@@ -96,9 +116,10 @@ function Find-NewestServer
 
 if (-not $ServerDir) { $ServerDir = Find-NewestServer }
 $ServerDir = (Resolve-Path $ServerDir).Path
-$serverBinary = if ($IsWindows) { 'server.exe' } else { 'server' }
-if (-not (Test-Path (Join-Path $ServerDir $serverBinary))) { throw "No OblivionMP server in $ServerDir ($serverBinary is missing)." }
+# Either OS's server: a Linux one can be packed for on Windows.
+if (-not ('server', 'server.exe' | Where-Object { Test-Path (Join-Path $ServerDir $_) -PathType Leaf })) { throw "No OblivionMP server in $ServerDir (no server or server.exe)." }
 Write-Host "Server: $ServerDir" -ForegroundColor Green
+Use-ServerSdk $ServerDir
 
 # The running server holds the mod's DLLs, and a half copied mod is worse than none.
 if (-not $PackOnly)
@@ -126,14 +147,13 @@ if ($Test)
 
 Write-Step "Mod into $out"
 Invoke-Checked 'The server publish' { dotnet publish (Join-Path $root 'src/CyrodiilRP.Server') -c $Configuration -o (Join-Path $publish 'server') --nologo }
-# Into the project's own bin: with -o the SDK's projects, built from source for several frameworks, write over each other.
 Invoke-Checked 'The client build' { dotnet build (Join-Path $root 'src/CyrodiilRP.Client') -c $Configuration --nologo }
 
 # What the server and its other mods already load: a second copy in our load context is refused.
 $shipped = @{}
 Get-ChildItem $ServerDir -Filter '*.dll' | ForEach-Object { $shipped[$_.Name] = $true }
 Get-ChildItem (Join-Path $ServerDir 'mods') -Directory |
-    Where-Object { $_.Name -ne 'CyrodiilRP' } |
+    Where-Object { $_.Name -ne 'CyrodiilRP' -and -not $roleplayMods.Contains($_.Name) } |
     ForEach-Object { Get-ChildItem $_.FullName -Filter '*.dll' -Recurse } |
     ForEach-Object { $shipped[$_.Name] = $true }
 
@@ -157,6 +177,15 @@ Get-ChildItem $serverPublish -Filter '*.dll' |
 Copy-Item (Join-Path $serverPublish 'locales') (Join-Path $server 'locales') -Recurse
 Copy-Item (Join-Path $serverPublish 'config.json') $server
 
+foreach ($id in $roleplayMods.Keys)
+{
+    $folder = Join-Path $root "mods/$($roleplayMods[$id])"
+    Invoke-Checked "The $id build" { & (Join-Path $folder 'MakeModFolder.ps1') -Configuration $Configuration -NoExplorer }
+    $packed = Join-Path $outMods $id
+    if (Test-Path $packed) { Remove-Item $packed -Recurse -Force }
+    Copy-Item (Join-Path $folder "Output/mods/$id") $outMods -Recurse
+}
+
 # The packed mod on a copy of the real server, before it goes into this one.
 if ($Test)
 {
@@ -166,7 +195,7 @@ if ($Test)
 
 if ($PackOnly)
 {
-    Write-Host "`nPacked: $out" -ForegroundColor Green
+    Write-Host "`nPacked: $outMods" -ForegroundColor Green
     return
 }
 
@@ -179,8 +208,8 @@ if (-not $SkipDatabase)
 
 $mods = Join-Path $ServerDir 'mods'
 $target = Join-Path $mods 'CyrodiilRP'
-Write-Step "Mod into $target"
-Install-Mod $out $mods (Join-Path $ServerDir 'mods-staging')
+Write-Step "Mods into $mods"
+foreach ($packed in Get-ChildItem $outMods -Directory) { Install-Mod $packed.FullName $mods (Join-Path $ServerDir 'mods-staging') }
 
 # The platform's chat answers K as ours does, and its MarkerMod writes a name over a head once and never again.
 foreach ($platformMod in 'OblivionMP.Chat', 'OblivionMp.MarkerMod')

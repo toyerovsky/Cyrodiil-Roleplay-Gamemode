@@ -2,9 +2,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Roleplay.Jobs.Common\Roleplay.Jobs.Common.csproj" />
-        <ProjectReference Include="$(OblivionModRoot)OblivionMP.SDK.Serverside\OblivionMP.SDK.Serverside.csproj" />
-        <ProjectReference Include="$(CoreSdkSrc)ReadyM.Relay.Server.Sdk\ReadyM.Relay.Server.Sdk.csproj" />
-        <ProjectReference Include="$(CoreSdkSrc)ReadyM.Api.Generators\ReadyM.Api.Generators.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+        <PackageReference Include="ReadyM.SDK.Oblivion.Server" />
     </ItemGroup>
 
     <ItemGroup>
