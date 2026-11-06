@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace CyrodiilRP.Server.Lore;
 
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(LoreCatalogFile))]
 [JsonSerializable(typeof(LoreLoadAnswer))]
 [JsonSerializable(typeof(LoreEditAnswer))]
@@ -21,6 +22,10 @@ internal sealed partial class LoreJson : JsonSerializerContext
     public const int MaxAnswerBytes = 64_000;
 
     // Letters as they are, not as escapes six bytes long, so a card written in Polish fits one message. The page parses
-    // the JSON and never puts it into HTML as it is.
-    public static LoreJson Page { get; } = new(new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+    // the JSON and never puts it into HTML as it is. Options built here do not take the context's naming policy.
+    public static LoreJson Page { get; } = new(new JsonSerializerOptions
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    });
 }

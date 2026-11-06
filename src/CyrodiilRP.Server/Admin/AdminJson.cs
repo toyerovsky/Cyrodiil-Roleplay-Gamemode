@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace CyrodiilRP.Server.Admin;
 
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(AdminView))]
 [JsonSerializable(typeof(AdminCardView))]
 [JsonSerializable(typeof(List<AdminSanctionView>))]
@@ -17,5 +18,10 @@ namespace CyrodiilRP.Server.Admin;
 internal sealed partial class AdminJson : JsonSerializerContext
 {
     // A whole lore card in letters as they are: in escapes six bytes long one written in Polish would not fit a message.
-    public static AdminJson Letters { get; } = new(new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+    // Options built here do not take the context's naming policy.
+    public static AdminJson Letters { get; } = new(new JsonSerializerOptions
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    });
 }
