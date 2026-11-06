@@ -62,13 +62,19 @@
   margin-top: 22px;
 }
 
-/* Seven tabs down the letter, close enough to fit an ultrawide screen, the shortest one for its scale. */
+/* Eight tabs down the letter, small and close enough to fit an ultrawide screen, the shortest one for its scale. */
 .menu__body .rp-tabs {
   gap: 4px;
 }
 
 .menu__body .rp-tabs__tab {
-  padding-block: 6px;
+  grid-template-columns: 56px minmax(0, 1fr);
+  padding-block: 4px;
+}
+
+.menu__body .rp-tabs__medallion {
+  width: 56px;
+  height: 56px;
 }
 
 .menu__content {
@@ -560,6 +566,7 @@
 
 .menu__faction-ranks + .menu__faction-form {
   margin-top: 16px;
+}
 
 /* The Sanctuary: the player's place under a shield, broken while they are an aggressor. */
 .menu__sanctuary {
