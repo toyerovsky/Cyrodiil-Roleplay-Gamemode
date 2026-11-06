@@ -19,6 +19,7 @@ public sealed class DicePickTests
     [InlineData(0, 0, 0, 0, false)]
     [InlineData(3, 3, 0, 0, false)]
     [InlineData(-1, 2, 0, 0, false)]
+    [InlineData(int.MaxValue, int.MaxValue, 3, 0, false)]
     public void Only_one_to_five_dice_are_a_throw(int d6, int d10, int d20, int d100, bool valid) =>
         Assert.Equal(valid, new DicePick(d6, d10, d20, d100).IsValid);
 }

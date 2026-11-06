@@ -7,7 +7,7 @@ internal sealed record DicePick(int D6, int D10, int D20, int D100)
 
     public int Total => D6 + D10 + D20 + D100;
 
-    public bool IsValid => D6 >= 0 && D10 >= 0 && D20 >= 0 && D100 >= 0 && Total is >= 1 and <= RollNotation.MaxDice;
+    public bool IsValid => Fits(D6) && Fits(D10) && Fits(D20) && Fits(D100) && Total is >= 1 and <= RollNotation.MaxDice;
 
     public static DicePick From(IEnumerable<DiceGroup> groups)
     {
@@ -26,6 +26,9 @@ internal sealed record DicePick(int D6, int D10, int D20, int D100)
 
         return pick;
     }
+
+    // Each count alone first: a sum of huge counts wraps round to a small number.
+    private static bool Fits(int count) => count is >= 0 and <= RollNotation.MaxDice;
 
     // In the board's order, so the values come back as the board lays the dice out.
     public IReadOnlyList<DiceGroup> ToGroups()
