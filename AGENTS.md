@@ -69,13 +69,11 @@ server.
 The mode in **C#** (`src/`), the pages in **Vue 3 / Vite** (`ui/`), **PostgreSQL / EF Core** with a migrator of its
 own. The commands are in `DEVELOPMENT.md`. Before working in an area, read:
 
-- The C# coding standard: [CODING-STANDARD.md](CODING-STANDARD.md). Claude Code loads it on its own in `src/` and
-  `tests/`.
-- Code and code review: [.claude/skills/code-rules/SKILL.md](.claude/skills/code-rules/SKILL.md).
+- Code and code review: the coding standard, [CODING-STANDARD.md](CODING-STANDARD.md), with this repo's rules for
+  C#, the update thread and what is sent to players. Claude Code loads it on its own in `src/` and `tests/`.
 - Tests and verifying a change: [.claude/skills/testing/SKILL.md](.claude/skills/testing/SKILL.md).
 - Texts for players and pages: [.claude/skills/game-ui/SKILL.md](.claude/skills/game-ui/SKILL.md).
 - Previewing pages without the game and Playwright: [.claude/skills/ui-playwright/SKILL.md](.claude/skills/ui-playwright/SKILL.md).
-- The server's performance and what a player receives: [.claude/skills/performance/SKILL.md](.claude/skills/performance/SKILL.md).
 - Integration with the platform: [.claude/skills/oblivionmp-platform/SKILL.md](.claude/skills/oblivionmp-platform/SKILL.md).
 
 ### Mandatory verification of every new interface
@@ -91,3 +89,6 @@ Screenshots, traces and reports stay in `ui/test-results/` and `ui/playwright-re
 
 Do not commit or deploy unless the user asks. `./pack.ps1` builds the mod and installs it on the local server,
 `-PackOnly` only builds it.
+
+Files end lines with LF. A script on Windows keeps them so (Python: `read_bytes` and `write_bytes`, not text mode).
+Never an em-dash, anywhere (code, texts, docs, commit messages).

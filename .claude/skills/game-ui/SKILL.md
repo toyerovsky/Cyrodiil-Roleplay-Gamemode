@@ -44,6 +44,12 @@ description: How Cyrodiil RP shows anything to a player. Use before writing play
 
 ## Pages
 
+- Vue 3 composition API (`<script setup>`), plain JavaScript. Names and comments as in `CODING-STANDARD.md` (`names`,
+  `comments`).
+- A page talks to the game only through its `bridge.js` (`readym.on("X")`, `readym.sendX(...)`). On the C# side the
+  `[Service]` that owns the page declares its messages itself and `Mod.Init` registers it as `ICefRpcHandler`.
+- The pages ship with the mod to every player: `check-dist` keeps them under its budget, and only the Latin font subsets
+  go in.
 - Components from `ui/rp`: `tokens.css` (palette, type, sizes), `base.css` (scrollbars, selection, reduced motion),
   `components.css` and a Vue file per component (`RpPanel`, `RpField`, `RpButton`, `RpChip`, `RpTabs`). A piece a page
   would build by hand becomes a component there, shown in the gallery (`ui/dev/Gallery.vue`).

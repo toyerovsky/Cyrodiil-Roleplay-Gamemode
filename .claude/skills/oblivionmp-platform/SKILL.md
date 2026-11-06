@@ -182,4 +182,4 @@ Each fact below was checked in this repo.
   `[ERR]`) on the console and in `logs/`.
 - `config.json` of the server is the host's own (port, server list, saves), not the mod's.
 
-See also the `code-rules` and `performance` skills.
+See also `CODING-STANDARD.md` (`update-thread`, `sent-to-players`).

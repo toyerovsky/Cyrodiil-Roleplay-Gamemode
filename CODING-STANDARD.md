@@ -1,8 +1,58 @@
 # Coding standard
 
-Conventions and invariants for this repo's C# code. These are hard rules. The repo's other rules for code, the update
-thread's among them, are in the `code-rules` skill (`.claude/skills/code-rules/SKILL.md`). Every part has a stable id
-in its heading: refer to a part by its id, never by its place.
+Conventions and invariants for this repo's C# code. These are hard rules. Simple, idiomatic code that a reader
+understands without the author: the user reads English as a second language. Every part has a stable id in its
+heading: refer to a part by its id, never by its place.
+
+## `names` Full English words
+- Full English words: `capabilities`, not `caps`. Accepted short names: `t` (texts), `ct`, `db`, `pg` (the tests'
+  database fixture), and one-line lambda parameters (`x => x.Id`).
+- Use the name the user gives a feature.
+
+## `csharp` This repo's C#
+- No tuples anywhere (types, returns, switch on tuples, dictionary keys): a named record or class.
+- One top-level type per file, named as the file (`CodeRulesTests` checks it). Private nested records are fine.
+- Named constants instead of magic numbers and strings.
+- Primary constructors, records, pattern matching. `internal` unless another assembly needs it (the tests see
+  internals).
+- Strings stored in a column are cut with `ColumnLengths.Cut`, which never splits a surrogate pair.
+- The container gives a service the clock as `SystemClock` (a `[Service]` is registered by its own type only). A class
+  the tests build takes it as `IClock`, so a test passes a `FakeClock` (`Scheduler`, `AskPacing`).
+
+## `common` `CyrodiilRP.Common` holds only what the client uses too
+`CyrodiilRP.Client.dll` and `CyrodiilRP.Common.dll` go to every player, so Common holds the RPC contract, `ChatLine`,
+`ChatLimits`, `TraderOrigin` and nothing only the server uses. A page's view (`*View`) and its JSON context (`*Json`)
+go in the server, beside the service that builds them: the client passes the JSON through as a string.
+
+## `update-thread` The update thread owns the entities
+- One update thread for every mod. Entities are read and written only on it.
+- Database work never runs on it: `Persistence.Reader` (16 reads at once) and `Persistence.Writer` (one queue, in
+  order) run it on the pool. Async work starts with `Fire.Run`, which brings the await back to a later tick. After an
+  await, check `player.IsLive`.
+- A handler of an event runs through `Callbacks.Raise`, a timer through `Timers` with a name of its own
+  (`timers.RunEvery("traders.keep", ...)`), so one that throws is logged by name and the others still run.
+- All of it runs through `Watchdog.Run`, which logs `[slow] <name> took N ms` past 5 ms, once per 30 s per name. A
+  `[slow]` line is a bug to look at. The name is given where the work starts: `timer exchange.watch`, `rpc.pick_wheel
+  RadialWheel` (the event, then the class that subscribed), `await accounts.join` (the name `Fire.Run` was given).
+- `GameThread` runs only the work queued when the tick began, so work that posts more cannot hold the tick.
+- A timer over every player runs only as often as its result can change: play time is written once a minute, expired
+  conditions are dropped once a second.
+- Anything that must survive a restart is a row with an expiry checked at load, not a timer.
+
+## `sent-to-players` A player gets only what is theirs, when it changes
+- Chat lines go only to the players in range (`Proximity`), never to everyone and filtered later.
+- A page gets a message on a change, not on a timer. The chat page asks for its history once, when it loads.
+
+## `player-texts` Texts for players come from the generated classes
+- Texts for players only through the generated `*Text` classes (`ChatText.Say(name, text)`), never a key as a string.
+- A refusal is a `Phrase`: `call.Refuse(...)`. What speaks says so (`Speaks` on a command or a wheel's option), and
+  the mute's refusal comes from `CommandRegistry.FindSpeechRefusal` (null when allowed).
+
+## `staff` Staff actions
+- A staff command's name is its permission: `StaffPermissions`, registered with `commands.AddStaff(...)`.
+- A sanction goes through `call.MayPunish(target)`, or `call.Outranks(name, roles.ResolveRoles(...))` for an offline
+  account, so the owners of the config are never left out.
+- What the staff do goes to `Audit.Log` with a details record of its own.
 
 ## `enum-status` Status is ALWAYS an enum, never a string
 There is NO reason to track status/state/kind with strings in C#. This is not JavaScript.
@@ -111,7 +161,8 @@ _plates[player] = plate with { Shown = true };
   library, in one short paragraph, at the one place it binds.
 
 Everything else belongs in docs or nowhere. A constant does not get a paragraph. A method whose name says what
-it does gets no comment at all.
+it does gets no comment at all. No file headers that list what a class does, no XML doc comments on internal code,
+no semicolon in the middle of a comment sentence.
 
 **A comment explains the code under it, and nothing else.** Not the feature it belongs to, not the alternative
 that was rejected, not what the code used to be, not when a bug was found or who found it. Those are a
@@ -155,32 +206,6 @@ before they can use it.
   is a registry and named one (`registry-naming`).
 - **The .NET framework's own adjective interfaces are the exception, not the pattern.** `IDisposable` and
   `IEnumerable` are capabilities the runtime and the language understand. Ours are not, so ours are nouns.
-
-## `attach-vs-install` `Attach` is undone often, `Install` is not
-Both put something in place, and which word is used tells a reader how long it stays. Choosing the wrong one
-tells them the opposite.
-
-- **`Attach` / `Detach` for what comes and goes during normal operation.** A page attaching to a player, a handler
-  binding to a live object. Reading `Attach` should prepare you for it happening again.
-- **`Install` / `Uninstall` for what is put in place once and stays.** Process-wide hooks, a mechanism a module
-  is built around. `Uninstall` may exist for shutdown, and it is not part of any normal flow.
-- **Neither word is decoration.** If nothing is ever undone, the pair is `Install` alone, and a reader who never
-  finds a caller for `Uninstall` outside shutdown has learned something true.
-- **PREFER NEITHER. Constructed is installed.** A constructor that leaves the object needing a second call has
-  invented a half-built state every caller can reach and one caller will forget. Take collaborators as
-  arguments, register with them there, and unregister in `Dispose`.
-- **Where something genuinely cannot be true at construction**, such as a player that has not joined yet, do it
-  behind a signal the object already receives and keep it INTERNAL. The caller installed it by constructing it,
-  and should not learn the order of anything.
-
-## `helper-vs-utils` `<Something>Helper` accomplishes a goal, `<Something>Utils` does not
-For types that are essentially static: no instance worth holding, no state worth naming.
-
-- **`<Something>Helper` exists to accomplish ONE thing.** The name says what it is for, so a reader knows what to
-  expect inside and what does not belong.
-- **`<Something>Utils` is a collection of routines with a theme and no goal.** `StringUtils`. Nothing about it
-  promises the routines work together, which is exactly why a `Helper`'s contents must not be dumped into one.
-- **A type with real state is neither.** It is named for what it is, per the rest of this document.
 
 ## `name-the-dependency` Name what a thing DEPENDS on, not where it sits
 A project's or a folder's name does not carry into every type in it, and a type that reads as portable must be

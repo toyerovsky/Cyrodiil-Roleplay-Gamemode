@@ -11,9 +11,9 @@ description: How to write and run the tests of Cyrodiil RP (C# xUnit with Postgr
   `dotnet test tests/CyrodiilRP.Tests --filter "FullyQualifiedName~CharacterBookTests"`, `cd ui; npx vitest run tests/chat.test.js`.
 - **At the end of a task:** the tests of your area and of everything that uses what you changed, the E2E spec of a page
   you changed at the four sizes (`ui-playwright`) and `npm run build` after a UI change.
-- **Before a commit:** `dotnet test tests/CyrodiilRP.Tests --filter "Category!=Server"` (Docker must run), `cd ui; npx vitest run;
-  npm run build; npm run test:e2e`, then `./pack.ps1 -Test -PackOnly`, which runs the C# tests and the server smoke
-  tests on the fresh package.
+- **Before a commit:** `cd ui; npm run test:e2e`, then `./pack.ps1 -Test -PackOnly` (Docker must run), which runs
+  Vitest, the pages' build, the C# tests and the server smoke tests on the fresh package. Nothing else on top of
+  these two.
 - A failure in a full run gets a filtered rerun while fixing, then one full run again.
 
 ## The C# suite
@@ -47,4 +47,4 @@ description: How to write and run the tests of Cyrodiil RP (C# xUnit with Postgr
   `tests/contract.test.js` ties every `bridge.js` to its C# class, `tests/limits.test.js` the fields to the server's
   limits. A test that only reads files runs with `// @vitest-environment node`.
 
-See also the `code-rules` and `ui-playwright` skills.
+See also the `ui-playwright` skill.
