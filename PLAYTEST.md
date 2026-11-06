@@ -9,6 +9,9 @@ Both features live in the core mod (`src/`, `ui/`, `locales/`), not as separate 
 wheels, F10 menu and `/admin` panel. No other mod is needed. All tests pass (`./pack.ps1 -Test`: 338 Vitest,
 499 xUnit, the packed mod on the real server 2/2). Tested in game by Pete with one player.
 
+Full feature docs (rules, ways in, how it works, implementation map, decisions, next steps):
+[`docs/features/dice.md`](docs/features/dice.md) and [`docs/features/lore.md`](docs/features/lore.md).
+
 ## Deploy on the test server
 
 1. Stop the OblivionMP server (`pack.ps1` refuses while it runs).
@@ -101,3 +104,9 @@ Not yet checked, because it needs a second player:
 - The ReadyM platform nickname (and the game's own character name) still carries the full name. Anything that
   shows it outside the gamemode's own nameplates and chat can still show the name to strangers.
 - Friends and guilds as a third visibility level come later.
+- **Wheels are capped at 8 options** (`WheelOptions.MaxOptions`). With dice and the lore card, staff lose
+  "Staff panel" on the G wheel (type `/admin` instead), and on the H wheel staff with `aheal` lose "Staff card",
+  "Mute" and "Kick". Regular players keep everything. Needs a decision: a second page or more slots.
+- `/introduce <number>` and `/lore <number>` reach any online player by number; only the H wheel checks say range.
+- In `/players`, `/b`, `/ooc` and `/pm` the OOC name falls back to the character's full name when no account name
+  was captured.
