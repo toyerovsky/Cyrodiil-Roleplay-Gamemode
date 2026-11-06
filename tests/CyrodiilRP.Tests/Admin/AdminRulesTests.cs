@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Reflection;
 using CyrodiilRP.Data.Staff;
 using CyrodiilRP.Server.Admin;
@@ -55,6 +56,28 @@ public sealed class AdminRulesTests
     [InlineData("3 up")]
     [InlineData("up 3 more")]
     public void Anything_else_is_no_step(string typed) => Assert.False(TeleportCommands.TryReadStep(Split(typed), out _, out _));
+
+    [Fact]
+    public void A_flyer_standing_still_is_held_at_their_height_where_they_are()
+    {
+        var sunk = new Vector3(100f, 200f, 480f);
+
+        Assert.Equal(new Vector3(100f, 200f, 500f), FlightRules.FindNext(sunk, Vector3.Zero, height: 500f));
+    }
+
+    [Theory]
+    [InlineData(1f)]
+    [InlineData(0.3f)]
+    public void A_flyer_who_walks_is_carried_that_way_at_one_speed_however_hard_they_push(float push)
+    {
+        var carried = FlightRules.Speed * (float)FlightRules.MoveEvery.TotalSeconds;
+
+        var next = FlightRules.FindNext(Vector3.Zero, new Vector3(0f, push, 0.8f), height: 500f);
+
+        Assert.Equal(0f, next.X, 0.001f);
+        Assert.Equal(carried, next.Y, 0.001f);
+        Assert.Equal(500f, next.Z);
+    }
 
     // A button runs a command the registry knows by a permission, so its checks and the audit are the command's own.
     [Fact]

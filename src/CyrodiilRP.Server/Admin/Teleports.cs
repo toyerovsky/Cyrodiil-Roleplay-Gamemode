@@ -12,14 +12,18 @@ using ReadyM.SDK.Server.Entities;
 namespace CyrodiilRP.Server.Admin;
 
 [Service]
-internal sealed partial class Teleports(IEntities entities, Proximity proximity, OnlinePlayers online, Audit audit)
+internal sealed partial class Teleports(IEntities entities, Proximity proximity, OnlinePlayers online, Audit audit, Callbacks callbacks)
 {
     private const string TeleportAction = "admin.teleport";
+    private const string MovedCallback = "teleports.moved";
 
     // Above the spot rather than in the ground under it: the fall is short and the game settles the character.
     public static readonly Vector3 Lift = new(0f, 0f, 100f);
 
     private readonly Dictionary<PlayerId, SavedSpot> _before = [];
+
+    // A character the server just put somewhere: who, the area and the point.
+    public event Action<OnlinePlayer, AreaId, Vector3>? Moved;
 
     private void Start() => online.Left += player => _before.Remove(player.Id);
 
@@ -55,6 +59,7 @@ internal sealed partial class Teleports(IEntities entities, Proximity proximity,
 
         _before[moved.Id] = from;
         main.Position = position;
+        callbacks.Raise(MovedCallback, Moved, moved, area, position);
         audit.Log(TeleportAction, call.Sender.Ref, moved.Ref, new TeleportDetails(destination));
         return true;
     }

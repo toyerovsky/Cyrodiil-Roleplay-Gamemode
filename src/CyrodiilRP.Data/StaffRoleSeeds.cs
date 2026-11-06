@@ -10,7 +10,7 @@ internal static class StaffRoleSeeds
         StaffPermissions.Bring, StaffPermissions.Position, StaffPermissions.Teleport, StaffPermissions.Back, StaffPermissions.Revive,
         StaffPermissions.Kick, StaffPermissions.Mute, StaffPermissions.Unmute, StaffPermissions.Freeze, StaffPermissions.Unfreeze,
         StaffPermissions.Warn, StaffPermissions.Why, StaffPermissions.Message, StaffPermissions.Health, StaffPermissions.Lore,
-        StaffPermissions.Step,
+        StaffPermissions.Step, StaffPermissions.Fly,
     ];
 
     private static readonly string[] AdminPermissions =

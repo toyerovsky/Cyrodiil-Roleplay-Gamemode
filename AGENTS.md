@@ -22,17 +22,12 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
 - **Party:** an invitation from the H wheel, taken up with Y from the card at the top of the screen (N declines), a
   leader, kicking, leaving from the G wheel, the `/p` chat, a panel of the members on screen with their health and
   distance.
-- **Factions:** lasting organisations of characters (guilds, gangs, houses, companies), kept in the database. Founded
-  with `/faction create` or in the F10 menu for a fee from carried gold, one a character. Ranks from the top down,
-  made and named by the faction, each with permissions (invite, remove, manage ranks). An invitation from the H wheel
-  or `/faction invite`, taken up with Y, in the menu or with `/faction accept`. `/f` is the faction's chat. See
-  `docs/features/factions.md`.
+- **Factions:** lasting organisations of characters with ranks of their own, a chat (`/f`) and a tab in the F10
+  menu. See `docs/features/factions.md`.
 - **Trader:** an NPC placed with the staff command `/anpc here trader <shop>`, without the game's services (the
   game's trading and rooms do not apply to it). H over it opens a shop window with the game's icons: food, drinks,
   clothes, potions, tools, weapons, armour, books. It only sells. It cannot be killed for good.
-- **Bank:** a banker NPC, stood by the staff as a trader is (`/anpc here banker`) and labelled Banker. H over it
-  opens the bank's window: the character's gold at the bank and the gold carried, a deposit and a withdrawal. The
-  balance is the character's, kept in the database over deaths and restarts. See `docs/features/bank.md`.
+- **Bank:** a banker NPC keeps a character's gold over deaths and restarts. See `docs/features/bank.md`.
 - **Spawn:** the staff set it in the outside world (`/aspawn here`, a button in the panel), a new character goes
   there after closing the game's creator.
 - **Exchange:** an offer from the H wheel, taken up with Y as for a party, gold and items from hand to hand in a
@@ -56,11 +51,10 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   (staff actions only on duty, which shows in the name over the head), sanctions with a reason and an audit log
   (kick, ban, mute, freeze, warning, lifting them also for offline players), care of a character (healing, health,
   reviving, gold, the game's items by name and kind, for oneself and for players), a message to a player, teleports
-  (to a player, to the gates of cities and settlements, back, and `/astep`, a few metres ahead through a wall or
-  straight up or down, as the platform has no noclip), the area's time and weather. The `/admin` panel (also from
-  the G and H wheels for the staff): players with a card and their lore card (`/alore` clears a field), items,
-  sanctions in force, the audit log by pages, the world, the roll log, the factions with their ranks and
-  members (`/afaction` dissolves or renames one, makes a member a leader or removes one).
+  (to a player, to the gates of cities and settlements, back, and through walls, see
+  `docs/features/staff-movement.md`), the area's time and weather. The `/admin` panel (also from the G and H wheels
+  for the staff): players with a card and their lore card (`/alore` clears a field), items, sanctions in force, the
+  audit log by pages, the world, the roll log, the factions.
 - **Language:** English (`locales/en`) and Polish (`locales/pl`), chosen in the F10 menu, saved on the account. The
   game's item names are in English in both, because the Polish ones are in the remaster's `Game.locres`, readable
   only with Oodle.
@@ -70,6 +64,7 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
 | Topic | Source |
 |---|---|
 | Architecture, running, tests, deployment | [DEVELOPMENT.md](DEVELOPMENT.md) |
+| A feature in detail: its rules, ways in and how it works | [docs/features/](docs/features/), a file a feature |
 | The OblivionMP platform and SDK | [.claude/skills/oblivionmp-platform/SKILL.md](.claude/skills/oblivionmp-platform/SKILL.md), the docs at https://docs.ready.mp/oblivion-mp/docs/what-is-oblivion-mp |
 
 Infer behaviour from the code and the tests. A description in the docs does not confirm that a feature works on the
