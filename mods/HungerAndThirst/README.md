@@ -80,12 +80,16 @@ shutdown. If that file can't be read it is copied to `sustenance.json.broken` an
 
 ## Layout
 
+The code is in the repository's `src/` and `tests/`, beside the gamemode's, and builds by its rules
+(`Directory.Build.props`: warnings as errors, central package versions, a file a type). This folder keeps the rest of
+the mod.
+
 | Path | What |
 |---|---|
-| `Roleplay.HungerAndThirst.Common/` | the `Sustenance` mixin (`Satiety`, `Hydration` on every player), `MealEvent`, the meter scale and the RPC contract |
-| `Roleplay.HungerAndThirst.Server/` | the rules, the food table, saving, the service that runs it all, and `ISustenance` |
-| `Roleplay.HungerAndThirst.Client/` | prediction, warnings, the CEF page service, and `ILocalSustenance` |
-| `Roleplay.HungerAndThirst.Tests/` | xUnit tests for the rules, food table, shipped config and save file |
+| `src/Roleplay.HungerAndThirst.Common/` | the `Sustenance` mixin (`Satiety`, `Hydration` on every player), `MealEvent`, the meter scale and the RPC contract |
+| `src/Roleplay.HungerAndThirst.Server/` | the rules, the food table, saving, the service that runs it all, and `ISustenance` |
+| `src/Roleplay.HungerAndThirst.Client/` | prediction, warnings, the CEF page service, and `ILocalSustenance` |
+| `tests/Roleplay.HungerAndThirst.Tests/` | xUnit tests for the rules, food table, shipped config and save file |
 | `Content/web/` | the pages: `hud.html` (the bars), `satchel.html`, and `index.html` to preview both in a browser |
 | `Content/config.json` | the server config shipped with the mod |
 

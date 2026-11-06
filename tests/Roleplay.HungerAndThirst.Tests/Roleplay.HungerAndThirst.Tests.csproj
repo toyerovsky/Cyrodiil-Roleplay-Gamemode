@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- Unit tests for the server's rules, food table, config and save file. Never shipped. -->
+
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="xunit" />
+        <PackageReference Include="xunit.runner.visualstudio" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Roleplay.HungerAndThirst.Server\Roleplay.HungerAndThirst.Server.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit" />
+    </ItemGroup>
+
+    <!-- The shipped server config, parsed the way the SDK parses it. -->
+    <ItemGroup>
+        <None Include="..\..\mods\HungerAndThirst\Content\config.json" Link="config.json" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+</Project>

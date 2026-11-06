@@ -5,8 +5,9 @@ A roleplay gamemode for OblivionMP: a mod with a server half (`src/CyrodiilRP.Se
 migrator (`src/CyrodiilRP.Migrator`), Vue pages (`ui/`) and texts in `locales/`.
 
 The SDK is built from an oblivion-mod checkout on its `rp-framework` branch, not the 1.0 packages: the server half
-feeds players through the Hunger and Thirst mod (`mods/HungerAndThirst`, `ISustenance`), which needs that branch's
-statuses. The checkout is the `oblivion-mod` folder next to this repository, or `-p:OblivionModRoot=<path>`
+feeds players through the Hunger and Thirst mod (`src/Roleplay.HungerAndThirst.*`, `ISustenance`), which needs that
+branch's statuses. The checkout is the `oblivion-mod` folder next to this repository, or
+`-p:OblivionModRoot=<path>`
 (`Directory.Build.props`), at the commit pinned in [mods/README.md](mods/README.md). The server needs `Roleplay.HungerAndThirst` installed (a manifest dependency) and the
 `rp-framework` build of the relay, the game's OblivionMp mod and the SDK mod.
 

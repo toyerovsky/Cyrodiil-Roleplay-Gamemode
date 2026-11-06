@@ -77,8 +77,10 @@ New-Item -ItemType Directory -Path $clientRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $serverRoot -Force | Out-Null
 
 $tfm = 'net10.0'
-$clientBuildDir = Join-Path $scriptDir "$clientProject/bin/$Configuration/$tfm"
-$serverBuildDir = Join-Path $scriptDir "$serverProject/bin/$Configuration/$tfm"
+# The projects are in the repository's src/, beside the gamemode's
+$sourceRoot = Join-Path $scriptDir '../../src'
+$clientBuildDir = Join-Path $sourceRoot "$clientProject/bin/$Configuration/$tfm"
+$serverBuildDir = Join-Path $sourceRoot "$serverProject/bin/$Configuration/$tfm"
 $contentDir = Join-Path $scriptDir 'Content'
 
 # Copies the named files from $BaseDir into $DestRoot, preserving any relative subpaths.

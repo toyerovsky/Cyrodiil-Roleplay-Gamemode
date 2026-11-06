@@ -20,7 +20,6 @@
         <OblivionModRoot Condition="'$(OblivionModRoot)' == ''">$(MSBuildThisFileDirectory)..\oblivion-mod\</OblivionModRoot>
         <OblivionModRoot>$([MSBuild]::EnsureTrailingSlash('$(OblivionModRoot)'))</OblivionModRoot>
         <CoreSdkSrc>$(OblivionModRoot)readym-gameserver\src\readym-core-sdk\src\</CoreSdkSrc>
-        <HungerModRoot>$(MSBuildThisFileDirectory)mods\HungerAndThirst\</HungerModRoot>
     </PropertyGroup>
 
 </Project>
