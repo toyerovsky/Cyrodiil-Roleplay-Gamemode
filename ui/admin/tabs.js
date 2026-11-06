@@ -4,6 +4,7 @@ import dice from "../rp/art/icons/dice.webp";
 import items from "../rp/art/icons/items.webp";
 import players from "../rp/art/icons/players.webp";
 import sanctions from "../rp/art/icons/sanctions.webp";
+import sanctuary from "../rp/art/icons/sanctuary.webp";
 import world from "../rp/art/icons/world.webp";
 
 // The tabs in their order (AdminTabs.cs), each under a medallion of the game's own menus. The server names the ones the
@@ -16,6 +17,7 @@ export const TABS = [
   { id: "world", medallion: world },
   { id: "dice", medallion: dice },
   { id: "factions", medallion: factions },
+  { id: "sanctuary", medallion: sanctuary },
 ];
 
 // What the panel asks the server for apart from its state, named as AdminParts.cs names them (a test ties the two).
@@ -28,4 +30,6 @@ export const PARTS = {
   lore: "lore",
   factions: "factions",
   faction: "faction",
+  sanctuary: "sanctuary",
+  incidents: "incidents",
 };

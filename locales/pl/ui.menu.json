@@ -104,5 +104,20 @@
   "ui.menu.faction.leaving": "Odejście",
   "ui.menu.faction.leave": "Opuść frakcję",
   "ui.menu.faction.sole_leader": "Jesteś jedynym liderem. Zanim odejdziesz, nadaj rangę lidera innemu członkowi.",
-  "ui.menu.faction.last_member": "Nie ma tu nikogo poza tobą: twoje odejście rozwiąże frakcję."
+  "ui.menu.faction.last_member": "Nie ma tu nikogo poza tobą: twoje odejście rozwiąże frakcję.",
+  "ui.menu.tab.sanctuary": "Sanktuarium",
+  "ui.menu.sanctuary.lead": "W murach Cesarskiego Miasta nie wolno przelewać krwi. Sanktuarium strzeże tam spokoju.",
+  "ui.menu.sanctuary.state": "Twoje położenie",
+  "ui.menu.sanctuary.off": "Sanktuarium jest wyłączone: nikt nie jest teraz chroniony w Cesarskim Mieście.",
+  "ui.menu.sanctuary.outside": "Jesteś poza Sanktuarium.",
+  "ui.menu.sanctuary.protected": "Jesteś w Sanktuarium: {area}. Chroni cię.",
+  "ui.menu.sanctuary.aggressor": "Zaatakowałeś kogoś w Cesarskim Mieście. Sanktuarium cię nie chroni.",
+  "ui.menu.sanctuary.left": "Ochrona wróci za {time}",
+  "ui.menu.sanctuary.rules": "Zasady",
+  "ui.menu.sanctuary.rule.npcs": "NPC i strażnicy w murach miasta są nietykalni: każda rana goi się od razu.",
+  "ui.menu.sanctuary.rule.players": "Ty też, dopóki kogoś nie zaatakujesz, gracza albo NPC.",
+  "ui.menu.sanctuary.rule.aggressor": "Kto atakuje, staje się agresorem: traci ochronę na {minutes} min od ostatniego ataku albo do śmierci.",
+  "ui.menu.sanctuary.rule.bounty": "Agresor dostaje nagrodę za głowę w wysokości {bounty} sztuk złota i ściga go straż.",
+  "ui.menu.sanctuary.rule.victim": "Zaatakowany zachowuje ochronę, chyba że odda cios.",
+  "ui.menu.sanctuary.rule.arena": "Arena nie należy do Sanktuarium, a Sanktuarium nikogo nie przywraca do życia."
 }

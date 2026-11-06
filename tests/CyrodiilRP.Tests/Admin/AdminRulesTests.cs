@@ -99,6 +99,14 @@ public sealed class AdminRulesTests
             AdminActions.ListTabs(name => name == StaffPermissions.Teleport));
     }
 
+    [Fact]
+    public void The_sanctuary_shows_only_to_a_role_that_may_run_it()
+    {
+        Assert.DoesNotContain(AdminTabs.Sanctuary, AdminActions.ListTabs(_ => false));
+        Assert.Equal([AdminTabs.Players, AdminTabs.Audit, AdminTabs.Dice, AdminTabs.Factions, AdminTabs.Sanctuary],
+            AdminActions.ListTabs(name => name == StaffPermissions.Sanctuary));
+    }
+
     private static void AssertStep(string typed, StepDirection direction, int metres)
     {
         Assert.True(TeleportCommands.TryReadStep(Split(typed), out var read, out var far));

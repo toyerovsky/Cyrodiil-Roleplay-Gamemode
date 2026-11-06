@@ -14,5 +14,6 @@ internal sealed record MenuView(
     [property: JsonPropertyName("dice")] DiceView Dice,
     [property: JsonPropertyName("lore")] MenuLoreView Lore,
     FactionMenuView Faction,
+    [property: JsonPropertyName("sanctuary")] MenuSanctuaryView Sanctuary,
     [property: JsonPropertyName("languages")] IReadOnlyList<string> Languages,
     [property: JsonPropertyName("language")] string Language);

@@ -10,4 +10,5 @@ internal static class AdminTabs
     public const string World = "world";
     public const string Dice = "dice";
     public const string Factions = "factions";
+    public const string Sanctuary = "sanctuary";
 }

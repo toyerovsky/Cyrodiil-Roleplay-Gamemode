@@ -100,6 +100,8 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     // A short notice in the corner, as the server's own.
     public void ShowNotice(string text) => ui.ShowMessage(text, MessagePosition.TopLeft, NoticeSeconds);
 
+    public event Action<string>? SanctuaryChanged;
+
     partial void OnDeliverMessage(ChatLine line) => MessageDelivered?.Invoke(line);
 
     partial void OnNotify(string text) => ShowNotice(text);
@@ -186,4 +188,6 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnKnownNames(string json) => KnownNamesChanged?.Invoke(json);
 
     partial void OnFactionAnswer(string text, bool done, string menu) => FactionAnswered?.Invoke(text, done, menu);
+
+    partial void OnSanctuaryState(string json) => SanctuaryChanged?.Invoke(json);
 }

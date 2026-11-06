@@ -11,6 +11,7 @@ import FactionTab from "./FactionTab.vue";
 import HelpTab from "./HelpTab.vue";
 import KeysTab from "./KeysTab.vue";
 import LoreTab from "./LoreTab.vue";
+import SanctuaryTab from "./SanctuaryTab.vue";
 import { TABS } from "./tabs.js";
 
 const props = defineProps({ bridge: { type: Object, required: true } });
@@ -166,6 +167,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
               :locale="locale"
               @run="runFaction"
             />
+            <SanctuaryTab v-else-if="tab === 'sanctuary'" :sanctuary="menu.sanctuary" :t="t" />
             <KeysTab v-else :t="t" />
           </div>
         </div>

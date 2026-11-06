@@ -560,4 +560,60 @@
 
 .menu__faction-ranks + .menu__faction-form {
   margin-top: 16px;
+
+/* The Sanctuary: the player's place under a shield, broken while they are an aggressor. */
+.menu__sanctuary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 900px;
+  padding: 12px 16px;
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius);
+}
+
+.menu__sanctuary-shield {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  color: var(--gold-dark);
+}
+
+.menu__sanctuary--protected .menu__sanctuary-shield {
+  color: var(--confirmed);
+}
+
+.menu__sanctuary--aggressor {
+  border-color: var(--problem);
+  background: var(--problem-wash);
+}
+
+.menu__sanctuary--aggressor .menu__sanctuary-shield {
+  color: var(--problem);
+  stroke-dasharray: 4 2;
+}
+
+.menu__sanctuary-state {
+  margin: 0;
+  font-size: 20px;
+}
+
+.menu__sanctuary--aggressor .menu__sanctuary-state {
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.menu__sanctuary-left {
+  margin: 4px 0 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.menu__sanctuary-rules {
+  display: grid;
+  gap: 6px;
+  max-width: 900px;
+  margin: 0;
+  padding-left: 22px;
 }

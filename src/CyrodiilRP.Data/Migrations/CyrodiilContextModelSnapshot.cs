@@ -545,6 +545,87 @@ namespace CyrodiilRP.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.SanctuaryIncident", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.PrimitiveCollection<Guid[]>("AggressorAccounts")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("aggressor_accounts");
+
+                    b.PrimitiveCollection<string[]>("Aggressors")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("aggressors");
+
+                    b.Property<string>("Area")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("area");
+
+                    b.Property<string>("AreaName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("area_name");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<float>("Damage")
+                        .HasColumnType("real")
+                        .HasColumnName("damage");
+
+                    b.Property<bool>("Died")
+                        .HasColumnType("boolean")
+                        .HasColumnName("died");
+
+                    b.Property<string>("Verdict")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("verdict");
+
+                    b.Property<Guid?>("VictimAccount")
+                        .HasColumnType("uuid")
+                        .HasColumnName("victim_account");
+
+                    b.Property<string>("VictimKind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("victim_kind");
+
+                    b.Property<string>("VictimName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("victim_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sanctuary_incidents");
+
+                    b.HasIndex("At")
+                        .HasDatabaseName("ix_sanctuary_incidents_at");
+
+                    b.ToTable("sanctuary_incidents", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_sanctuary_incidents_aggressors", "cardinality(aggressors) = cardinality(aggressor_accounts)");
+
+                            t.HasCheckConstraint("ck_sanctuary_incidents_damage", "damage >= 0");
+
+                            t.HasCheckConstraint("ck_sanctuary_incidents_victim", "(victim_kind = 'Player') = (victim_account IS NOT NULL)");
+                        });
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.SpawnPoint", b =>
                 {
                     b.Property<int>("Id")
@@ -632,14 +713,14 @@ namespace CyrodiilRP.Data.Migrations
                             Name = "admin",
                             GrantsAll = false,
                             Label = "Administrator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "asanctuary", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction" }
                         },
                         new
                         {
                             Name = "moderator",
                             GrantsAll = false,
                             Label = "Moderator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "asanctuary" }
                         });
                 });
 

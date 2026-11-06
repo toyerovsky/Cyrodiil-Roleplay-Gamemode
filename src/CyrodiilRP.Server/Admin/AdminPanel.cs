@@ -12,6 +12,7 @@ using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
+using CyrodiilRP.Server.Sanctuary;
 using CyrodiilRP.Server.Staff;
 using Microsoft.Extensions.Logging;
 using ReadyM.Api.Idents;
@@ -37,6 +38,8 @@ internal sealed partial class AdminPanel(
     LoreCardViews lore,
     LoreCards cards,
     Factions factions,
+    Guardian sanctuary,
+    SanctuaryLog incidents,
     ILogger logger) : ICommandOutput
 {
     private const string PanelOption = "self.admin";
@@ -48,6 +51,7 @@ internal sealed partial class AdminPanel(
     private const string SanctionsJob = "admin.sanctions";
     private const string AuditJob = "admin.audit";
     private const string RollsJob = "admin.rolls";
+    private const string IncidentsJob = "admin.incidents";
 
     // Whose panel is open: their answers go to it, and it follows the players, the duty and the roles.
     private readonly HashSet<PlayerId> _open = [];
@@ -183,6 +187,16 @@ internal sealed partial class AdminPanel(
                     SendFaction(player, factionId);
                 break;
 
+            case AdminParts.Sanctuary:
+                if (roles.Allows(player, StaffPermissions.Sanctuary))
+                    SendSanctuary(player);
+                break;
+
+            case AdminParts.Incidents:
+                if (roles.Allows(player, StaffPermissions.Sanctuary) && Parse(argument, AdminJson.Default.AdminIncidentFilter) is { } incidentFilter)
+                    fire.Run(IncidentsJob, () => SendIncidentsAsync(player, incidentFilter));
+                break;
+
             case AdminParts.Items:
                 if (Parse(argument, AdminJson.Default.AdminItemFilter) is { } items)
                     rpc.SendAdminPart(player.Id, AdminParts.Items, JsonSerializer.Serialize(AdminViews.SearchItems(items), AdminJson.Default.ListAdminItemView));
@@ -255,6 +269,24 @@ internal sealed partial class AdminPanel(
             return;
 
         rpc.SendAdminPart(staff.Id, AdminParts.Rolls, JsonSerializer.Serialize(page, AdminJson.Default.AdminRollsView));
+    }
+
+    private void SendSanctuary(OnlinePlayer staff)
+    {
+        var aggressors = sanctuary.ListAggressors()
+            .Select(aggressor => new AdminAggressorView(aggressor.Player.Number, aggressor.Player.Name, aggressor.SecondsLeft, aggressor.Area))
+            .ToList();
+        var view = new AdminSanctuaryView(sanctuary.IsOn, aggressors);
+        rpc.SendAdminPart(staff.Id, AdminParts.Sanctuary, JsonSerializer.Serialize(view, AdminJson.Default.AdminSanctuaryView));
+    }
+
+    private async Task SendIncidentsAsync(OnlinePlayer staff, AdminIncidentFilter filter)
+    {
+        var page = await incidents.ReadPageAsync(filter);
+        if (!staff.IsLive)
+            return;
+
+        rpc.SendAdminPart(staff.Id, AdminParts.Incidents, JsonSerializer.Serialize(page, AdminJson.Default.AdminIncidentsView));
     }
 
     private void SendLore(OnlinePlayer staff, OnlinePlayer subject)

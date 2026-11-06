@@ -293,4 +293,8 @@ public static partial class RpContracts
     // What it came to, in the player's language, and the menu (a MenuView as JSON) as it is after it.
     [ServerToClient]
     public static partial void FactionAnswer(string text, bool done, string menu);
+
+    // A SanctuaryHudView as JSON: the badge on screen, at every change of the player's place in the Sanctuary or streak.
+    [ServerToClient]
+    public static partial void SanctuaryState(string json);
 }

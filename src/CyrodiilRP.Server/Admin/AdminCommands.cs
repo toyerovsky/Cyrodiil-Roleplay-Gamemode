@@ -8,6 +8,7 @@ using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
+using CyrodiilRP.Server.Sanctuary;
 using OblivionMP.SDK.Common.Archetypes;
 using ReadyM.SDK.Attributes;
 using ReadyM.SDK.Server.Entities;
@@ -24,6 +25,7 @@ internal sealed partial class AdminCommands(
     RpcHandlers rpc,
     Audit audit,
     InteractionMenu interactions,
+    Guardian sanctuary,
     RpConfig config)
 {
     private const string HealOption = "player.heal";
@@ -102,6 +104,7 @@ internal sealed partial class AdminCommands(
         }
 
         main.Hp = health;
+        sanctuary.AcceptStaffHealth(target.Id, health);
         audit.Log(HealthAction, call.Sender.Ref, target.Ref, new AmountDetails(health));
         call.Reply(AdminText.HealthSet(target.Name, health, most));
     }

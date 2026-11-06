@@ -4,6 +4,7 @@ import dice from "../../locales/en/dice.json";
 import economy from "../../locales/en/economy.json";
 import faction from "../../locales/en/faction.json";
 import party from "../../locales/en/party.json";
+import sanctuary from "../../locales/en/sanctuary.json";
 import sanctions from "../../locales/en/sanctions.json";
 import staff from "../../locales/en/staff.json";
 import trader from "../../locales/en/trader.json";
@@ -19,16 +20,17 @@ const PLAYED_SECONDS = 26_712;
 const PLAYER_COMMANDS = {
   roleplay: ["chat.cmd.me", "chat.cmd.do", "chat.cmd.shout", "chat.cmd.whisper", "chat.cmd.try", "dice.cmd.roll", "dice.cmd.board", "dice.cmd.dice"],
   messages: ["chat.cmd.local_ooc", "chat.cmd.global_ooc", "chat.cmd.pm", "party.cmd.party", "faction.cmd.chat"],
-  general: ["chat.cmd.players", "chat.cmd.help", "economy.cmd.gold", "faction.cmd.faction"],
+  general: ["chat.cmd.players", "chat.cmd.help", "economy.cmd.gold", "faction.cmd.faction", "sanctuary.cmd.sanctuary"],
 };
 const DICE_SETS = ["altmer", "argonian", "ayleid", "bosmer", "breton", "daedric", "dunmer", "imperial", "khajiit", "nord", "orc", "redguard"];
-const TEXTS = { ...admin, ...chat, ...dice, ...economy, ...faction, ...party, ...sanctions, ...staff, ...trader };
+const TEXTS = { ...admin, ...chat, ...dice, ...economy, ...faction, ...party, ...sanctions, ...sanctuary, ...staff, ...trader };
 const STAFF_COMMANDS = [
   ...Object.keys(TEXTS).filter((key) => /^(admin|sanctions|staff|trader)\.cmd\./.test(key)),
   "faction.cmd.manage",
+  "sanctuary.cmd.asanctuary",
 ];
 // The scenarios that open on a tab of their own, and the tab.
-const OPENS_ON = { help: "help", account: "account", dice: "dice", lore: "lore", faction: "faction", factionmember: "faction", factionless: "faction" };
+const OPENS_ON = { help: "help", account: "account", dice: "dice", lore: "lore", faction: "faction", factionmember: "faction", factionless: "faction", sanctuary: "sanctuary" };
 
 function splitUsage(key) {
   const usage = TEXTS[key];
@@ -45,6 +47,7 @@ function group(category, keys) {
 // Marcus Varro, three days in Cyrodiil. #help opens on the help of an owner, every staff command in it. #account: muted
 // for a while, with a second language to pick. #dice: the dice tab, three rolls behind him. #lore: the lore tab, his name
 // private, two players online who know him. #faction, #factionmember and #factionless: the faction tab (pretend-faction.js).
+// #sanctuary: in the Market District, an aggressor for a few minutes yet.
 export function pretendGame(readym) {
   const scenario = location.hash.slice(1);
   const now = Date.now();
@@ -93,6 +96,15 @@ export function pretendGame(readym) {
     dice: dice(),
     lore: lore(),
     faction: factions.view(),
+    sanctuary: {
+      enabled: true,
+      inside: scenario === "sanctuary",
+      area: scenario === "sanctuary" ? "Market District" : null,
+      aggressor: scenario === "sanctuary",
+      secondsLeft: scenario === "sanctuary" ? 247 : 0,
+      aggressorMinutes: 5,
+      bounty: 40,
+    },
     help: [
       ...Object.entries(PLAYER_COMMANDS).map(([category, keys]) => group(category, keys)),
       ...(staffMember ? [group("staff", STAFF_COMMANDS)] : []),

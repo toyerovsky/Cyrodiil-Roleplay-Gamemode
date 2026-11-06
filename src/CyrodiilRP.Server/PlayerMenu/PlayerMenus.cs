@@ -8,6 +8,7 @@ using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
+using CyrodiilRP.Server.Sanctuary;
 using ReadyM.Api.Idents;
 using ReadyM.SDK.Attributes;
 
@@ -28,9 +29,12 @@ internal sealed partial class PlayerMenus(
     ShownNames names,
     Factions factions,
     FactionInvites invites,
+    Guardian sanctuary,
     RpConfig config,
     Localizer translations)
 {
+    private const float SecondsPerMinute = 60f;
+
     private void Start()
     {
         online.Loaded += player => rpc.SendLocale(player.Id, player.Locale);
@@ -83,6 +87,7 @@ internal sealed partial class PlayerMenus(
             dice.BuildView(player),
             BuildLore(player),
             BuildFaction(player),
+            BuildSanctuary(player),
             translations.Locales,
             player.Locale);
         return JsonSerializer.Serialize(view, MenuJson.Default.MenuView);
@@ -97,6 +102,14 @@ internal sealed partial class PlayerMenus(
             ? FactionViews.BuildCard(own.Faction, own.Member, factions.MapOnline())
             : null;
         return new FactionMenuView(config.Factions.FoundingFee, invite, card);
+    }
+
+    private MenuSanctuaryView BuildSanctuary(OnlinePlayer player)
+    {
+        var status = sanctuary.Describe(player);
+        var settings = config.Sanctuary;
+        return new MenuSanctuaryView(status.Enabled, status.Inside, status.Area, status.Aggressor, status.SecondsLeft,
+            (int)Math.Ceiling(settings.AggressorSeconds / SecondsPerMinute), (int)settings.Bounty);
     }
 
     private MenuLoreView BuildLore(OnlinePlayer player)

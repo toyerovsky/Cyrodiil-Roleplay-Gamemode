@@ -1,5 +1,5 @@
 import { flushPromises } from "@vue/test-utils";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../menu/App.vue";
 import { createBridge } from "../menu/bridge.js";
 import { pickTexts } from "../shared/locale.js";
@@ -33,6 +33,7 @@ const state = (changes = {}) =>
       known: [{ number: 3, name: "Lucia Gallus" }],
     },
     faction: { fee: 500, invite: null, faction: null },
+    sanctuary: { enabled: true, inside: false, area: null, aggressor: false, secondsLeft: 0, aggressorMinutes: 5, bounty: 40 },
     languages: ["en"],
     language: "en",
     ...changes,
@@ -90,14 +91,16 @@ describe("the player's menu", () => {
     await press("e", "KeyE");
     expect(selected()).toBe("faction");
     await press("e", "KeyE");
+    expect(selected()).toBe("sanctuary");
+    await press("e", "KeyE");
     expect(selected()).toBe("keys");
     await press("e", "KeyE");
     expect(selected()).toBe("character");
     await press("q", "KeyQ");
     expect(selected()).toBe("keys");
     await press("ArrowUp");
-    expect(selected()).toBe("faction");
-    expect(document.activeElement.dataset.tab).toBe("faction");
+    expect(selected()).toBe("sanctuary");
+    expect(document.activeElement.dataset.tab).toBe("sanctuary");
   });
 
   it("goes round the tabs with the keys as the game sends them, whatever has the focus, in either case", async () => {
@@ -155,6 +158,43 @@ describe("the player's menu", () => {
     expect(game.readSent("MenuDiceSet")).toEqual([["nord"]]);
     await page.find(".menu__dice-open").trigger("click");
     expect(game.readSent("MenuDice")).toEqual([[]]);
+  });
+
+  it("says where the player stands with the Sanctuary and gives its rules with the server's numbers", async () => {
+    await game.emit("State", state({ tab: "sanctuary", sanctuary: { enabled: true, inside: true, area: "Market District", aggressor: false,
+      secondsLeft: 0, aggressorMinutes: 5, bounty: 40 } }));
+    expect(selected()).toBe("sanctuary");
+    expect(page.find(".menu__sanctuary").classes()).toContain("menu__sanctuary--protected");
+    expect(page.find(".menu__sanctuary-state").text()).toBe("You are in the Sanctuary: Market District. It protects you.");
+    expect(page.find(".menu__sanctuary-left").exists()).toBe(false);
+    const rules = page.findAll(".menu__sanctuary-rules li").map((rule) => rule.text());
+    expect(rules).toHaveLength(6);
+    expect(rules[2]).toContain("5 min");
+    expect(rules[3]).toContain("40 gold");
+  });
+
+  it("counts an aggressor's streak down, and leaves out a bounty of nothing", async () => {
+    vi.useFakeTimers();
+    try {
+      await game.emit("State", state({ tab: "sanctuary", sanctuary: { enabled: true, inside: true, area: "Market District", aggressor: true,
+        secondsLeft: 125, aggressorMinutes: 5, bounty: 0 } }));
+      expect(page.find(".menu__sanctuary").classes()).toContain("menu__sanctuary--aggressor");
+      expect(page.find(".menu__sanctuary-left").text()).toBe("Protected again in 2:05");
+      vi.advanceTimersByTime(6000);
+      await flushPromises();
+      expect(page.find(".menu__sanctuary-left").text()).toBe("Protected again in 1:59");
+      expect(page.findAll(".menu__sanctuary-rules li")).toHaveLength(5);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("says when the Sanctuary is off, and when the player is outside it", async () => {
+    await game.emit("State", state({ tab: "sanctuary", sanctuary: { enabled: false, inside: false, area: null, aggressor: false, secondsLeft: 0,
+      aggressorMinutes: 5, bounty: 40 } }));
+    expect(page.find(".menu__sanctuary-state").text()).toBe("The Sanctuary is off: nobody is protected in the Imperial City now.");
+    await game.emit("State", state({ tab: "sanctuary" }));
+    expect(page.find(".menu__sanctuary-state").text()).toBe("You are outside the Sanctuary.");
   });
 
   it("writes the dice the Polish way in Polish", async () => {

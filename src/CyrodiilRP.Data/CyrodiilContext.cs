@@ -34,6 +34,8 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
 
+    public DbSet<SanctuaryIncident> SanctuaryIncidents => Set<SanctuaryIncident>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -184,6 +186,22 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.HasKey(x => x.CharacterId);
             entity.Property(x => x.CharacterId).ValueGeneratedNever();
             entity.HasOne<Character>().WithOne().HasForeignKey<BankAccount>(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<SanctuaryIncident>(entity =>
+        {
+            entity.ToTable("sanctuary_incidents", t =>
+            {
+                t.HasCheckConstraint("ck_sanctuary_incidents_damage", "damage >= 0");
+                t.HasCheckConstraint("ck_sanctuary_incidents_victim", "(victim_kind = 'Player') = (victim_account IS NOT NULL)");
+                t.HasCheckConstraint("ck_sanctuary_incidents_aggressors", "cardinality(aggressors) = cardinality(aggressor_accounts)");
+            });
+            entity.Property(x => x.Area).HasMaxLength(ColumnLengths.WorldId);
+            entity.Property(x => x.AreaName).HasMaxLength(ColumnLengths.AreaName);
+            entity.Property(x => x.VictimKind).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.Property(x => x.VictimName).HasMaxLength(ColumnLengths.Nickname);
+            entity.Property(x => x.Verdict).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.HasIndex(x => x.At);
         });
 
         SnakeCase.Apply(modelBuilder);

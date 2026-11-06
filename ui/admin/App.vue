@@ -12,6 +12,7 @@ import { RECENT_KEPT } from "./items.js";
 import ItemsTab from "./ItemsTab.vue";
 import PlayersTab from "./PlayersTab.vue";
 import SanctionsTab from "./SanctionsTab.vue";
+import SanctuaryTab from "./SanctuaryTab.vue";
 import { PARTS, TABS } from "./tabs.js";
 import WorldTab from "./WorldTab.vue";
 
@@ -33,6 +34,8 @@ const rolls = ref(null);
 const factions = ref(null);
 const factionId = ref(null);
 const faction = ref(null);
+const sanctuary = ref(null);
+const incidents = ref(null);
 const found = ref([]);
 const answer = ref(null);
 const waiting = ref(false);
@@ -43,6 +46,7 @@ const tabList = useTemplateRef("tabList");
 const panelId = `${useId()}-panel`;
 let auditFilter = {};
 let rollFilter = {};
+let incidentFilter = {};
 
 const tabs = computed(() =>
   TABS.filter((each) => view.value?.tabs.includes(each.id)).map((each) => ({ ...each, label: t.value[`tab.${each.id}`] })),
@@ -125,12 +129,21 @@ function searchRolls(filter, before = null) {
   props.bridge.ask(PARTS.rolls, JSON.stringify({ ...rollFilter, before }));
 }
 
+function searchIncidents(filter, before = null) {
+  if (!before) incidentFilter = filter;
+  props.bridge.ask(PARTS.incidents, JSON.stringify({ ...incidentFilter, before }));
+}
+
 // A tab shows what the server holds as it is now.
 function load(id) {
   if (id === "sanctions") props.bridge.ask(PARTS.sanctions, "");
   if (id === "audit") searchAudit(auditFilter);
   if (id === "dice") searchRolls(rollFilter);
   if (id === "factions") readFactions();
+  if (id === "sanctuary") {
+    props.bridge.ask(PARTS.sanctuary, "");
+    searchIncidents(incidentFilter);
+  }
 }
 
 function pick(id) {
@@ -165,6 +178,9 @@ function onPart(kind, data) {
   else if (kind === PARTS.rolls) rolls.value = data.appended && rolls.value ? { ...data, rolls: [...rolls.value.rolls, ...data.rolls] } : data;
   else if (kind === PARTS.factions) factions.value = data;
   else if (kind === PARTS.faction) onFaction(data);
+  else if (kind === PARTS.sanctuary) sanctuary.value = data;
+  else if (kind === PARTS.incidents)
+    incidents.value = data.appended && incidents.value ? { ...data, incidents: [...incidents.value.incidents, ...data.incidents] } : data;
 }
 
 // The answer for the faction picked: its card, or none once it is gone, and then the card closes.
@@ -183,6 +199,7 @@ function onAnswer(text, done) {
   if (tab.value === "sanctions") props.bridge.ask(PARTS.sanctions, "");
   if (tab.value === "audit") searchAudit(auditFilter);
   if (tab.value === "factions") readFactions();
+  if (tab.value === "sanctuary") props.bridge.ask(PARTS.sanctuary, "");
 }
 
 function reset() {
@@ -197,12 +214,15 @@ function reset() {
   factions.value = null;
   factionId.value = null;
   faction.value = null;
+  sanctuary.value = null;
+  incidents.value = null;
   found.value = [];
   answer.value = null;
   waiting.value = false;
   dialog.value = null;
   auditFilter = {};
   rollFilter = {};
+  incidentFilter = {};
 }
 
 function leave() {
@@ -292,6 +312,17 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             :can="can"
             @select="selectFaction"
             @act="act"
+          />
+          <SanctuaryTab
+            v-else-if="tab === 'sanctuary'"
+            :sanctuary="sanctuary"
+            :incidents="incidents"
+            :t="t"
+            :locale="locale"
+            :may="may"
+            :can="can"
+            @act="act"
+            @search="searchIncidents"
           />
           <WorldTab v-else :view="view" :t="t" :may="may" :can="can" @act="act" />
         </div>

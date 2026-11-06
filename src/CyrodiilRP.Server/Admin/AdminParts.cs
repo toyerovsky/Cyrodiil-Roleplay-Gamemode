@@ -26,4 +26,10 @@ internal static class AdminParts
 
     // One faction in full, by its id (a StaffFactionLookupView, its card null once the faction is gone).
     public const string Faction = "faction";
+
+    // The Sanctuary as it runs: on or off, and the aggressors online (an AdminSanctuaryView).
+    public const string Sanctuary = "sanctuary";
+
+    // A page of the Sanctuary's incident log, by an AdminIncidentFilter as JSON.
+    public const string Incidents = "incidents";
 }

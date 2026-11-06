@@ -37,6 +37,9 @@ export const ACTIONS = {
   factionRename: { command: "afaction", line: "/afaction rename #{id} {factionName}", fields: ["factionName"] },
   factionLead: { command: "afaction", line: "/afaction lead #{id} #{member}" },
   factionRemove: { command: "afaction", line: "/afaction remove #{id} #{member}" },
+  sanctuaryClear: { command: "asanctuary", line: "/asanctuary {number} clear" },
+  sanctuaryOn: { command: "asanctuary", line: "/asanctuary on" },
+  sanctuaryOff: { command: "asanctuary", line: "/asanctuary off" },
 };
 
 // The card's buttons in their order. A pair shows the one that fits: a frozen player gets Unfreeze, not Freeze.

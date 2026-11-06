@@ -13,12 +13,17 @@ const AUDIT_ENTRIES = 40;
 const ROLL_PAGE = 25;
 const ROLL_COUNT = 34;
 const ROLLERS = ["Marius Varro", "Lucia Gallus", "Brannoc", "Elsia Ramaryn"];
+const INCIDENT_PAGE = 25;
+const INCIDENT_COUNT = 31;
+const VICTIMS = ["Lucia Gallus", "NPC 0001A2B3", "Glarthir", "NPC 00023F1C", "Hrodulf the Bold"];
+const INCIDENT_AREAS = ["Market District", "Talos Plaza District", "The Merchants Inn", "Elven Gardens District"];
+const VERDICTS = ["Suspect", "None", "Several"];
 const ROLL_AREAS = ["L_ICMarketDistrict", "L_Tamriel", "L_PersistentDungeon-2C171"];
 const SPAWN = { x: 25610, y: -91240, z: 1215 };
 const SPAWN_HERE = { x: 26002, y: -90418, z: 1198 };
 const ALL_COMMANDS = [
   "duty", "aheal", "ahp", "arevive", "agoto", "abring", "aback", "atp", "afreeze", "aunfreeze", "amute", "aunmute", "awarn", "akick",
-  "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "amsg", "alore", "afaction",
+  "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "amsg", "alore", "afaction", "asanctuary",
 ];
 const ADMIN_COMMANDS = ["agold", "aitem", "aroles", "atime", "aweather", "aban", "aunban", "aspawn", "afaction"];
 const SELF = 1;
@@ -168,7 +173,8 @@ const INVENTORY = [
 
 // The owner on duty with every tab, and the players online. #card opens on Brannoc, frozen in a dungeon with a long name.
 // #offduty is a moderator off duty: the buttons wait for the duty. #sanctions, #audit, #world and #items open on their
-// tab, #dice on the roll log, #factions on the factions. The staff member stands outside, where the trader is.
+// tab, #dice on the roll log, #factions on the factions and #sanctuary on the Sanctuary, two aggressors online. The
+// staff member stands outside, where the trader is.
 export function pretendGame(readym) {
   const scenario = location.hash.slice(1);
   const now = Date.now();
@@ -177,19 +183,24 @@ export function pretendGame(readym) {
   // #nospawn: none set yet, until Set it where I stand.
   let spawn = scenario === "nospawn" ? null : SPAWN;
   let lore = LORE;
+  let sanctuaryOn = true;
+  let aggressors = [
+    { number: 4, name: "Brannoc the Unlucky Wanderer of the Gold Coast", secondsLeft: 287, area: "Market District" },
+    { number: 12, name: "Hrodulf the Bold", secondsLeft: 64, area: null },
+  ];
   const emitLater = (name, ...args) => setTimeout(() => readym.emit(name, ...args), ANSWER_MS);
   const guilds = pretendFactions(now);
 
   const state = (focus = null) => ({
-    tab: ["sanctions", "audit", "world", "items", "dice", "factions"].includes(scenario) ? scenario : scenario === "nospawn" ? "world" : "players",
+    tab: ["sanctions", "audit", "world", "items", "dice", "factions", "sanctuary"].includes(scenario) ? scenario : scenario === "nospawn" ? "world" : "players",
     focus,
     self: SELF,
     area: "L_Tamriel",
     acting: onDuty,
     onDuty,
     tabs: moderator
-      ? ["players", "sanctions", "audit", "world", "dice", "factions"]
-      : ["players", "items", "sanctions", "audit", "world", "dice", "factions"],
+      ? ["players", "sanctions", "audit", "world", "dice", "factions", "sanctuary"]
+      : ["players", "items", "sanctions", "audit", "world", "dice", "factions", "sanctuary"],
     allowed: moderator ? MODERATOR_COMMANDS : ALL_COMMANDS,
     players: PLAYERS,
     places: PLACES,
@@ -223,6 +234,24 @@ export function pretendGame(readym) {
       total: dice.reduce((sum, die) => sum + die.value, 0),
       reason: index % 5 === 2 ? "Lazy" : null,
       area: ROLL_AREAS[index % ROLL_AREAS.length],
+    };
+  });
+
+  // Newest first: a brawl now and then, a fall that names nobody, and a death at the hands of two.
+  const incidents = Array.from({ length: INCIDENT_COUNT }, (_, index) => {
+    const verdict = VERDICTS[index % VERDICTS.length];
+    const victim = VICTIMS[index % VICTIMS.length];
+    return {
+      id: INCIDENT_COUNT - index,
+      at: now - index * 17 * MINUTE_MS,
+      area: "L_ICMarketDistrict",
+      areaName: INCIDENT_AREAS[index % INCIDENT_AREAS.length],
+      victim,
+      victimKind: victim.startsWith("NPC") ? "Npc" : "Player",
+      damage: 12.5 + index * 3,
+      died: index % 7 === 2,
+      verdict,
+      aggressors: { Suspect: ["Brannoc the Unlucky Wanderer of the Gold Coast"], None: [], Several: ["Brannoc the Unlucky Wanderer of the Gold Coast", "Hrodulf the Bold"] }[verdict],
     };
   });
 
@@ -304,6 +333,15 @@ export function pretendGame(readym) {
         const page = matching.slice(from, from + ROLL_PAGE);
         emitLater("Part", kind, JSON.stringify({ rolls: page, more: from + ROLL_PAGE < matching.length, appended: !!before }));
       }
+      if (kind === "sanctuary") emitLater("Part", kind, JSON.stringify({ enabled: sanctuaryOn, aggressors }));
+      if (kind === "incidents") {
+        const { name: wanted, before } = JSON.parse(argument);
+        const part = (wanted ?? "").toLowerCase();
+        const matching = incidents.filter((incident) => [incident.victim, ...incident.aggressors].some((each) => each.toLowerCase().includes(part)));
+        const from = before ? matching.findIndex((incident) => incident.id < before) : 0;
+        const page = matching.slice(from, from + INCIDENT_PAGE);
+        emitLater("Part", kind, JSON.stringify({ incidents: page, more: from + INCIDENT_PAGE < matching.length, appended: !!before }));
+      }
       if (kind === "audit") {
         const { before } = JSON.parse(argument);
         const from = before ? entries.findIndex((entry) => entry.id < before) : 0;
@@ -317,6 +355,9 @@ export function pretendGame(readym) {
       if (command === "duty") onDuty = !onDuty;
       if (line === "/aspawn here") spawn = SPAWN_HERE;
       if (command === "alore") lore = lore.filter((field) => field.id !== line.split(" ")[3]);
+      if (line === "/asanctuary on" || line === "/asanctuary off") sanctuaryOn = line.endsWith("on");
+      if (line === "/asanctuary off") aggressors = [];
+      if (command === "asanctuary" && line.endsWith(" clear")) aggressors = aggressors.filter((each) => String(each.number) !== line.split(" ")[1]);
       const who = PLAYERS.find((player) => line.split(" ")[1] === String(player.number))?.name ?? rest.join(" ");
       const text =
         command === "afaction"

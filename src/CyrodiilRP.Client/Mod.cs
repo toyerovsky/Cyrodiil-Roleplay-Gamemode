@@ -9,6 +9,7 @@ using CyrodiilRP.Client.Interactions;
 using CyrodiilRP.Client.Lore;
 using CyrodiilRP.Client.Party;
 using CyrodiilRP.Client.PlayerMenu;
+using CyrodiilRP.Client.Sanctuary;
 using CyrodiilRP.Client.Traders;
 using CyrodiilRP.Client.Welcome;
 using Microsoft.Extensions.Logging;
@@ -29,6 +30,7 @@ internal sealed partial class Mod(IDependencyContainer services, ILogger logger)
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<RadialOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<ExchangeOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<PartyOverlay>());
+        services.RegisterSingleton<ICefRpcHandler>(services.Resolve<SanctuaryOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<AsksOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<TraderOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<BankOverlay>());

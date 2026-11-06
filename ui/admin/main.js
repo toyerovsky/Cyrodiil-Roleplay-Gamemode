@@ -8,6 +8,7 @@ import "./players.css";
 import "./sanctions.css";
 import "./audit.css";
 import "./dice.css";
+import "./sanctuary.css";
 import "./world.css";
 import "./items.css";
 import "./factions.css";

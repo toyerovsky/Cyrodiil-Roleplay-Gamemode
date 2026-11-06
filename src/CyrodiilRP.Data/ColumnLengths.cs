@@ -60,6 +60,9 @@ internal static class ColumnLengths
 
     public const int FactionRankName = 48;
 
+    // The longest name of a city's area is about 50.
+    public const int AreaName = 128;
+
     // Never between the two halves of a surrogate pair, which PostgreSQL refuses to store.
     public static string Cut(string value, int length)
     {

@@ -1,4 +1,4 @@
-// The menu arrives as JSON: {tab, character, account, help, dice, lore, faction, languages, language}, again after a
+// The menu arrives as JSON: {tab, character, account, help, dice, lore, faction, sanctuary, languages, language}, again after a
 // language, a dice set or the name's visibility is picked. The page closes on Closed, whoever closed it. Its dice tab
 // opens the dice board and its lore tab the lore card, each closing the menu. A button of its faction tab runs a
 // /faction command, answered in the player's language, done or refused, and then with the menu again.

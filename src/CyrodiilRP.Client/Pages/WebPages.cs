@@ -11,31 +11,33 @@ internal sealed partial class WebPages(CefHost cef, PawnWatch pawn, ILogger logg
 
     public const int PartyLayer = 1;
 
-    public const int FrozenLayer = 2;
+    public const int SanctuaryLayer = 2;
 
-    public const int AsksLayer = 3;
+    public const int FrozenLayer = 3;
 
-    public const int LoreLayer = 4;
+    public const int AsksLayer = 4;
+
+    public const int LoreLayer = 5;
 
     // Over the lore card, whose trait rolls land on the small board.
-    public const int DiceLayer = 5;
+    public const int DiceLayer = 6;
 
-    public const int WheelLayer = 6;
+    public const int WheelLayer = 7;
 
-    public const int MenuLayer = 7;
+    public const int MenuLayer = 8;
 
-    public const int TraderLayer = 8;
+    public const int TraderLayer = 9;
 
-    public const int BankLayer = 9;
+    public const int BankLayer = 10;
 
-    public const int ExchangeLayer = 10;
+    public const int ExchangeLayer = 11;
 
-    public const int AdminLayer = 11;
+    public const int AdminLayer = 12;
 
-    public const int FormLayer = 12;
+    public const int FormLayer = 13;
 
     // Over everything, the chat's log too.
-    public const int WelcomeLayer = 13;
+    public const int WelcomeLayer = 14;
 
     // The game rebuilds the overlay CEF draws on after every load, and a page shown before it is there never comes up,
     // without a word. So a page that should be up is shown again this long after each new pawn.

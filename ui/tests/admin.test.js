@@ -265,6 +265,77 @@ describe("the staff's panel", () => {
     expect(page.find(".admin-dice").text()).toContain("No rolls.");
   });
 
+  it("shows the Sanctuary on or off, ends an aggressor's streak and turns it off", async () => {
+    await game.emit("State", state({ tabs: ["players", "sanctuary"], allowed: [...EVERYTHING, "asanctuary"] }));
+    await page.find('[data-tab="sanctuary"]').trigger("click");
+    expect(game.readSent("AdminAsk")).toEqual([["sanctuary", ""], ["incidents", JSON.stringify({ before: null })]]);
+
+    const aggressors = [
+      { number: 4, name: "Brannoc", secondsLeft: 125, area: "Market District" },
+      { number: 7, name: "Hrodulf", secondsLeft: 9, area: null },
+    ];
+    await game.emit("Part", "sanctuary", JSON.stringify({ enabled: true, aggressors }));
+    expect(page.find(".admin-sanctuary__running").text()).toBe("The Sanctuary is on.");
+    const rows = page.findAll(".admin-sanctuary__aggressor");
+    expect(rows.map((row) => row.find(".admin-item__name").text())).toEqual(["[4] Brannoc", "[7] Hrodulf"]);
+    expect(rows[0].find(".admin-item__count").text()).toBe("2:05 left");
+    expect(rows[1].find(".admin-item__code").text()).toBe("outside");
+
+    await rows[0].findAll("button").find((each) => each.text() === "End the streak").trigger("click");
+    expect(game.readSent("AdminRun")).toEqual([["/asanctuary 4 clear"]]);
+    await game.emit("Answer", "Brannoc is no longer an aggressor.", true);
+    expect(game.readSent("AdminAsk").at(-1)).toEqual(["sanctuary", ""]);
+
+    await button("Turn off").trigger("click");
+    expect(game.readSent("AdminRun").at(-1)).toEqual(["/asanctuary off"]);
+    await game.emit("Part", "sanctuary", JSON.stringify({ enabled: false, aggressors: [] }));
+    expect(page.find(".admin-sanctuary__state").classes()).toContain("admin-sanctuary__state--off");
+    expect(page.find(".admin-sanctuary").text()).toContain("No aggressors.");
+    await button("Turn on").trigger("click");
+    expect(game.readSent("AdminRun").at(-1)).toEqual(["/asanctuary on"]);
+  });
+
+  it("reads the incident log a page at a time, by the victim's or an aggressor's name", async () => {
+    await game.emit("State", state({ tabs: ["players", "sanctuary"], allowed: [...EVERYTHING, "asanctuary"] }));
+    await page.find('[data-tab="sanctuary"]').trigger("click");
+    await game.emit("Part", "sanctuary", JSON.stringify({ enabled: true, aggressors: [] }));
+
+    const incident = (id, changes = {}) => ({
+      id, at: NOW, area: "L_ICMarketDistrict", areaName: "Market District", victim: "Lucia Gallus", victimKind: "Player", damage: 42.5,
+      died: false, verdict: "Suspect", aggressors: ["Brannoc"], ...changes,
+    });
+    const npcDeath = { victim: "NPC 0001A2B3", victimKind: "Npc", died: true, verdict: "Several", aggressors: ["Brannoc", "Hrodulf"] };
+    await game.emit("Part", "incidents", JSON.stringify({ incidents: [incident(9, npcDeath), incident(8, { verdict: "None", aggressors: [] })],
+      more: true, appended: false }));
+    const rows = page.findAll(".admin-incident");
+    expect(rows[0].find(".admin-entry__action").text()).toBe("NPC 0001A2B3");
+    expect(rows[0].find(".admin-entry__who").text()).toBe("Market District · 42.5 health · died · several suspects");
+    expect(rows[0].classes()).toContain("admin-incident--died");
+    expect(rows[0].find(".admin-entry__details").text()).toBe("Aggressors: Brannoc, Hrodulf");
+    expect(rows[1].find(".admin-entry__who").text()).toBe("Market District · 42.5 health · nobody fighting near");
+    expect(rows[1].find(".admin-entry__details").exists()).toBe(false);
+
+    await button("Older incidents").trigger("click");
+    expect(JSON.parse(game.readSent("AdminAsk").at(-1)[1]).before).toBe(8);
+    await game.emit("Part", "incidents", JSON.stringify({ incidents: [incident(7)], more: false, appended: true }));
+    expect(page.findAll(".admin-incident")).toHaveLength(3);
+    expect(button("Older incidents")).toBeUndefined();
+
+    await page.find(".admin-sanctuary__filter input").setValue(" Brannoc ");
+    await page.find(".admin-sanctuary__filter").trigger("submit");
+    expect(JSON.parse(game.readSent("AdminAsk").at(-1)[1])).toEqual({ name: "Brannoc", before: null });
+    await game.emit("Part", "incidents", JSON.stringify({ incidents: [], more: false, appended: false }));
+    expect(page.find(".admin-sanctuary").text()).toContain("No incidents.");
+  });
+
+  it("offers a role without the Sanctuary's command no button for it", async () => {
+    await game.emit("State", state({ tabs: ["players", "sanctuary"] }));
+    await page.find('[data-tab="sanctuary"]').trigger("click");
+    await game.emit("Part", "sanctuary", JSON.stringify({ enabled: true, aggressors: [{ number: 4, name: "Brannoc", secondsLeft: 60, area: null }] }));
+    expect(button("Turn off")).toBeUndefined();
+    expect(button("End the streak")).toBeUndefined();
+  });
+
   it("clears the items found once the search is too short to look for", async () => {
     await game.emit("State", state());
     await open(4);

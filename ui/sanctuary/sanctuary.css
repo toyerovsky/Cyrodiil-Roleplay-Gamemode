@@ -1,0 +1,71 @@
+/* At the top right, where the game draws nothing. Only to be read: the mouse stays the game's. */
+.sanctuary {
+  --ward: #8fb3d9;
+  --aggressor: #e2543f;
+
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 320px;
+  padding: 8px 14px 8px 10px;
+  color: var(--night-text);
+  background: var(--night);
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius-small);
+  box-shadow: 0 8px 24px var(--shadow-deep);
+}
+
+.sanctuary--aggressor {
+  border-color: var(--aggressor);
+}
+
+.sanctuary__shield {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  color: var(--gold-bright);
+}
+
+/* A broken shield: the protection is gone. */
+.sanctuary--aggressor .sanctuary__shield {
+  color: var(--aggressor);
+  stroke-dasharray: 4 2;
+}
+
+.sanctuary__text {
+  min-width: 0;
+}
+
+.sanctuary__title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-family: var(--font-title);
+  color: var(--gold-light);
+}
+
+.sanctuary__state {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  margin: 2px 0 0;
+  font-size: 17px;
+  line-height: 1.25;
+  color: var(--ward);
+}
+
+.sanctuary--aggressor .sanctuary__state {
+  font-weight: 700;
+  color: var(--night-refusal);
+}
+
+.sanctuary__left {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: var(--night-text);
+}

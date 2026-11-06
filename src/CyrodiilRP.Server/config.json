@@ -24,5 +24,20 @@
   // The gold a founder pays from what they carry. 0 founds for free.
   "factions": {
     "foundingFee": 500
+  },
+
+  // The Imperial City inside its walls, not the Arena: NPCs are untouchable, players until they attack someone.
+  // Area ids may be added or taken out. Distances in game units (about centimetres), times in seconds.
+  "sanctuary": {
+    "enabled": true,
+    "extraAreas": [],
+    "excludedAreas": [],
+    "healAllDamage": true,
+    "meleeRange": 400,
+    "rangedRange": 4000,
+    "attackWindowSeconds": 1.5,
+    "incidentSeconds": 3,
+    "aggressorSeconds": 300,
+    "bounty": 40
   }
 }

@@ -156,3 +156,15 @@ test("the lore tab shows how strangers see the character, makes the name public 
   expect(await readSent(page, "MenuLore")).toEqual([[]]);
   await expect(page.locator(".menu")).toBeHidden();
 });
+
+test("the Sanctuary tab says the player is an aggressor for a while yet, and gives the rules", async ({ page }, testInfo) => {
+  await page.goto("/menu/index.html#sanctuary");
+  await expect(tab(page, "sanctuary")).toHaveAttribute("aria-selected", "true");
+  const content = page.getByRole("tabpanel");
+  await expect(content.getByRole("status")).toContainText(t("sanctuary.aggressor"));
+  await expect(content.locator(".menu__sanctuary-left")).toContainText("4:0");
+  await expect(content.locator(".menu__sanctuary-rules li")).toHaveCount(6);
+  await expect(content.locator(".menu__sanctuary-rules")).toContainText("40 gold");
+  await expectNoHorizontalOverflow(page, ".menu__panel");
+  await screenshot(page, testInfo, "menu-sanctuary");
+});

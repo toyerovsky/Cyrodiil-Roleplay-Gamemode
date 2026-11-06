@@ -1,0 +1,57 @@
+/* The Sanctuary: its state and aggressors above, the incident log below, which scrolls. */
+.admin-sanctuary {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.admin-sanctuary__state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 10px 14px;
+  background: var(--ink-wash);
+  border-left: 4px solid var(--confirmed);
+  border-radius: var(--radius-small);
+}
+
+.admin-sanctuary__state--off {
+  border-left-color: var(--problem);
+}
+
+.admin-sanctuary__running {
+  margin: 0;
+  font-weight: 700;
+}
+
+.admin-sanctuary__aggressors .admin-items {
+  max-height: 156px;
+  overflow-y: auto;
+}
+
+.admin-sanctuary__aggressor {
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto) auto auto;
+}
+
+.admin-sanctuary__filter {
+  margin-bottom: 12px;
+}
+
+.admin-sanctuary__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.admin-incident--died .admin-entry__who {
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.admin-sanctuary .admin-audit__older {
+  flex: none;
+  align-self: center;
+  margin-top: 10px;
+}

@@ -20,4 +20,6 @@ internal sealed partial class RpConfig
     public LoreSettings Lore { get; set; } = new();
 
     public FactionSettings Factions { get; set; } = new();
+
+    public SanctuarySettings Sanctuary { get; set; } = new();
 }

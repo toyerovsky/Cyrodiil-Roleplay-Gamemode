@@ -104,5 +104,20 @@
   "ui.menu.faction.leaving": "Leaving",
   "ui.menu.faction.leave": "Leave the faction",
   "ui.menu.faction.sole_leader": "You are the only leader. Give the leader's rank to another member before you leave.",
-  "ui.menu.faction.last_member": "You are the last member: leaving dissolves the faction."
+  "ui.menu.faction.last_member": "You are the last member: leaving dissolves the faction.",
+  "ui.menu.tab.sanctuary": "Sanctuary",
+  "ui.menu.sanctuary.lead": "Inside the walls of the Imperial City, blood may not be spilled. The Sanctuary keeps the peace there.",
+  "ui.menu.sanctuary.state": "Where you stand",
+  "ui.menu.sanctuary.off": "The Sanctuary is off: nobody is protected in the Imperial City now.",
+  "ui.menu.sanctuary.outside": "You are outside the Sanctuary.",
+  "ui.menu.sanctuary.protected": "You are in the Sanctuary: {area}. It protects you.",
+  "ui.menu.sanctuary.aggressor": "You attacked someone in the Imperial City. The Sanctuary does not protect you.",
+  "ui.menu.sanctuary.left": "Protected again in {time}",
+  "ui.menu.sanctuary.rules": "The rules",
+  "ui.menu.sanctuary.rule.npcs": "NPCs and guards inside the walls cannot be hurt: every wound closes at once.",
+  "ui.menu.sanctuary.rule.players": "Nor can you, until you attack someone, a player or an NPC.",
+  "ui.menu.sanctuary.rule.aggressor": "Whoever attacks becomes an aggressor: no protection for {minutes} min after the last attack, or until death.",
+  "ui.menu.sanctuary.rule.bounty": "An aggressor gets a bounty of {bounty} gold, and the guards go after them.",
+  "ui.menu.sanctuary.rule.victim": "The one attacked keeps the protection, unless they strike back.",
+  "ui.menu.sanctuary.rule.arena": "The Arena is not part of the Sanctuary, and the Sanctuary brings nobody back to life."
 }

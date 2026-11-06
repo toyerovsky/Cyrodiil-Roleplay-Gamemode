@@ -56,3 +56,4 @@ The server refuses a config without a connection string and a database at anothe
 | `economy` | `maxPayment`: the most gold one trade or `/agold` moves |
 | `factions` | `foundingFee`: the gold a founder pays from what they carry (500 by default, 0 founds for free) |
 | `lore` | the lore card: `catalogMode` (`Canon` by default) and `allowImplausibleSubtypes` (`false`: no kinds that do not fit the race's body, such as the Senche) |
+| `sanctuary` | the Imperial City's Sanctuary: `enabled` at start, `extraAreas` and `excludedAreas` (area ids), `healAllDamage`, `meleeRange` and `rangedRange` (game units), `attackWindowSeconds`, `incidentSeconds`, `aggressorSeconds`, `bounty` |

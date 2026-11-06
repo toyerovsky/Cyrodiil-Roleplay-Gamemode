@@ -250,3 +250,31 @@ test("a player's lore card, read on request, a field cleared on the second click
   await expect(lore.locator(".lore-view__field")).toHaveCount(8);
   await expect(lore.locator('[data-field="notes"]')).toHaveCount(0);
 });
+
+test("the Sanctuary: on or off, the aggressors with a streak to end, the incidents by pages and names", async ({ page }, testInfo) => {
+  await page.goto("/admin/index.html#sanctuary");
+  await expect(tab(page, "sanctuary")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(".admin-sanctuary__running")).toHaveText(t("sanctuary.on"));
+  await expect(page.locator(".admin-sanctuary__aggressor")).toHaveCount(2);
+  await expect(page.locator(".admin-incident")).toHaveCount(25);
+  await expectNoHorizontalOverflow(page, ".admin-sanctuary");
+  await screenshot(page, testInfo, "admin-sanctuary");
+
+  await page.locator('.admin-sanctuary__aggressor[data-player="12"]').getByRole("button", { name: t("action.sanctuaryClear") }).click();
+  expect((await readSent(page, "AdminRun")).at(-1)).toEqual(["/asanctuary 12 clear"]);
+  await expect(page.locator(".admin-sanctuary__aggressor")).toHaveCount(1);
+
+  await page.getByRole("button", { name: t("sanctuary.older") }).click();
+  await expect(page.locator(".admin-incident")).toHaveCount(31);
+  await expect(page.getByRole("button", { name: t("sanctuary.older") })).toHaveCount(0);
+
+  await page.getByLabel(t("sanctuary.name")).fill("hrodulf");
+  await page.getByRole("button", { name: t("sanctuary.search") }).click();
+  expect(JSON.parse((await readSent(page, "AdminAsk")).at(-1)[1])).toEqual({ name: "hrodulf", before: null });
+  await expect(page.locator(".admin-incident").first()).toContainText("Hrodulf");
+
+  await page.getByRole("button", { name: t("sanctuary.turn_off") }).click();
+  await expect(page.locator(".admin-sanctuary__running")).toHaveText(t("sanctuary.off"));
+  await expect(page.locator(".admin-sanctuary")).toContainText(t("sanctuary.no_aggressors"));
+  await screenshot(page, testInfo, "admin-sanctuary-off");
+});

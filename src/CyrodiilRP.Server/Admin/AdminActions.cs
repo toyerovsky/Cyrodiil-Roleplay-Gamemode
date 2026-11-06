@@ -12,6 +12,7 @@ internal static class AdminActions
         StaffPermissions.Unmute, StaffPermissions.Warn, StaffPermissions.Kick, StaffPermissions.Ban, StaffPermissions.Unban,
         StaffPermissions.Gold, StaffPermissions.Item, StaffPermissions.Roles, StaffPermissions.Time, StaffPermissions.Weather,
         StaffPermissions.Spawn, StaffPermissions.Health, StaffPermissions.Message, StaffPermissions.Lore, StaffPermissions.FactionManage,
+        StaffPermissions.Sanctuary,
     ];
 
     private static readonly string[] SanctionsTab = [StaffPermissions.Unban, StaffPermissions.Unmute, StaffPermissions.Unfreeze];
@@ -34,6 +35,9 @@ internal static class AdminActions
         // As the audit, the roll log and the factions are for everyone the panel opens for.
         tabs.Add(AdminTabs.Dice);
         tabs.Add(AdminTabs.Factions);
+        if (allows(StaffPermissions.Sanctuary))
+            tabs.Add(AdminTabs.Sanctuary);
+
         return tabs;
     }
 }

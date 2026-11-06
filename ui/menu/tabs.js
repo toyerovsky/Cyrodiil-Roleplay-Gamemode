@@ -5,6 +5,7 @@ import help from "../rp/art/icons/help.webp";
 import keys from "../rp/art/icons/keys.webp";
 import lore from "../rp/art/icons/lore.webp";
 import faction from "../rp/art/icons/players.webp";
+import sanctuary from "../rp/art/icons/sanctuary.webp";
 
 // The tabs in their order, each under a medallion of the game's own menus. The server opens the menu on all but the keys
 // (MenuTabs.cs).
@@ -15,6 +16,7 @@ export const TABS = [
   { id: "dice", medallion: dice },
   { id: "lore", medallion: lore },
   { id: "faction", medallion: faction },
+  { id: "sanctuary", medallion: sanctuary },
   { id: "keys", medallion: keys },
 ];
 
