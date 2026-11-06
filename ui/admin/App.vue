@@ -141,7 +141,7 @@ async function onState(next) {
 
 function onPart(kind, data) {
   if (kind === PARTS.card && data.number === selected.value) card.value = data;
-  else if (kind === PARTS.lore && (data.number ?? selected.value) === selected.value) lore.value = data;
+  else if (kind === PARTS.lore && data.number === selected.value) lore.value = data.view;
   else if (kind === PARTS.sanctions) sanctions.value = data;
   else if (kind === PARTS.items) found.value = data;
   else if (kind === PARTS.audit) audit.value = data.appended && audit.value ? { ...data, entries: [...audit.value.entries, ...data.entries] } : data;

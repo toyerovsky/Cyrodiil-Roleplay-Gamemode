@@ -209,8 +209,8 @@ export function pretendGame(readym) {
       if (kind === "sanctions") emitLater("Part", kind, JSON.stringify(sanctions));
       if (kind === "lore") {
         const number = Number(argument);
-        const header = PLAYERS.find((player) => player.number === number)?.name ?? "";
-        emitLater("Part", kind, JSON.stringify({ number, header, level: "staff", fields: number === 4 ? lore : [] }));
+        const name = PLAYERS.find((player) => player.number === number)?.name ?? "";
+        emitLater("Part", kind, JSON.stringify({ number, name, namePublic: false, view: { header: name, level: "staff", fields: number === 4 ? lore : [] } }));
       }
       if (kind === "items") {
         const { text, type } = JSON.parse(argument);

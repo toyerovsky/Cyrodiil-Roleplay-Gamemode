@@ -505,11 +505,14 @@ describe("the items tab", () => {
 
 describe("the staff's panel and a lore card", () => {
   const LORE = {
-    number: 4, header: "Brannoc", level: "staff",
-    fields: [
-      { id: "race", part: "heritage", label: "Race", text: "Breton", long: false },
-      { id: "notes", part: "story", label: "Notes", text: "Owes Glarthir 300 gold.", long: true },
-    ],
+    number: 4, name: "Brannoc", namePublic: false,
+    view: {
+      header: "Brannoc", level: "staff",
+      fields: [
+        { id: "race", part: "heritage", label: "Race", text: "Breton", long: false },
+        { id: "notes", part: "story", label: "Notes", text: "Owes Glarthir 300 gold.", long: true },
+      ],
+    },
   };
 
   it("reads a player's lore card on request and clears a field on the second click, through /alore", async () => {
@@ -543,7 +546,7 @@ describe("the staff's panel and a lore card", () => {
     await page.find('.admin-lore [data-action="lore"]').trigger("click");
     await game.emit("Part", "lore", JSON.stringify({ ...LORE, number: 3 }));
     expect(page.find("[data-clear]").exists()).toBe(false);
-    await game.emit("Part", "lore", JSON.stringify({ number: 3, header: "Lucia", level: "staff", fields: [] }));
+    await game.emit("Part", "lore", JSON.stringify({ number: 3, name: "Lucia", namePublic: false, view: { header: "Lucia", level: "staff", fields: [] } }));
     expect(page.find(".admin-lore").text()).toContain("No lore card yet.");
   });
 });
