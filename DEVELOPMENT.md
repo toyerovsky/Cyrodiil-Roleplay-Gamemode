@@ -47,4 +47,5 @@ The server refuses a config without a connection string and a database at anothe
 | `startingGold` | gold a new character is owed once, in the same write that makes the character, delivered after the starting kit |
 | `chat` | ranges of say, shout, whisper and emotes, in game units (about centimetres) |
 | `economy` | `maxPayment`: the most gold one trade or `/agold` moves |
+| `factions` | `foundingFee`: the gold a founder pays from what they carry (500 by default, 0 founds for free) |
 | `lore` | the lore card: `catalogMode` (`Canon` by default) and `allowImplausibleSubtypes` (`false`: no kinds that do not fit the race's body, such as the Senche) |

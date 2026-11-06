@@ -1,0 +1,154 @@
+/* The list beside the faction picked, each scrolling on its own. */
+.admin-factions {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.75fr) minmax(0, 1.5fr);
+  gap: 22px;
+  height: 100%;
+}
+
+.admin-factions__list {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 0;
+}
+
+.admin-factions__rows {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 0;
+  margin: 0;
+  padding: 0 6px 0 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.admin-faction {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 10px;
+  width: 100%;
+  padding: 8px 12px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+}
+
+.admin-faction:hover {
+  background: rgba(156, 122, 60, 0.14);
+}
+
+.admin-faction:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.admin-faction--on {
+  background: rgba(156, 122, 60, 0.3);
+  box-shadow: inset 4px 0 0 var(--gold-dark);
+}
+
+.admin-faction__number {
+  grid-row: span 3;
+  font-weight: 700;
+  color: var(--gold-dark);
+}
+
+.admin-faction__name {
+  font-weight: 700;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.admin-faction__meta {
+  font-size: 15px;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.admin-factions__card {
+  min-height: 0;
+  padding-right: 8px;
+  overflow-y: auto;
+}
+
+.admin-factions__title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+
+.admin-factions__id {
+  margin-left: 12px;
+  font-family: var(--font-body);
+  font-size: 17px;
+  color: var(--gold-dark);
+}
+
+.admin-factions__founded {
+  margin: 2px 0 10px;
+  color: var(--ink-soft);
+}
+
+.admin-factions__ranks {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-factions__rank {
+  display: grid;
+  grid-template-columns: minmax(0, 220px) minmax(0, 1fr) auto;
+  gap: 2px 14px;
+  padding: 6px 8px;
+  border-radius: var(--radius-small);
+}
+
+.admin-factions__rank:nth-child(odd) {
+  background: var(--ink-wash);
+}
+
+.admin-factions__rank-name {
+  overflow-wrap: anywhere;
+}
+
+.admin-factions__holders {
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.admin-factions__member {
+  font-weight: 700;
+}
+
+.admin-factions__online {
+  font-weight: 700;
+  color: var(--confirmed);
+}
+
+.admin-factions__acts {
+  display: flex;
+  gap: 6px;
+}
+
+.admin-factions__acts .rp-button {
+  padding: 4px 12px;
+  font-size: 15px;
+}
+
+/* A rank's name and a date keep to one line each, and the name takes what is left. */
+.admin-factions__roll td:nth-child(2),
+.admin-factions__roll td:nth-child(3) {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}

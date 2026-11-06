@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CyrodiilRP.Server.Faction;
 
 namespace CyrodiilRP.Server.Admin;
 
@@ -15,6 +16,9 @@ namespace CyrodiilRP.Server.Admin;
 [JsonSerializable(typeof(AdminLoreView))]
 [JsonSerializable(typeof(AdminItemFilter))]
 [JsonSerializable(typeof(List<AdminItemView>))]
+[JsonSerializable(typeof(List<StaffFactionView>))]
+[JsonSerializable(typeof(StaffFactionCardView))]
+[JsonSerializable(typeof(long))]
 internal sealed partial class AdminJson : JsonSerializerContext
 {
     // A whole lore card in letters as they are: in escapes six bytes long one written in Polish would not fit a message.

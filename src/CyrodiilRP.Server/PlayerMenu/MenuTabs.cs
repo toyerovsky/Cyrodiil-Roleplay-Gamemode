@@ -12,4 +12,6 @@ internal static class MenuTabs
     public const string Dice = "dice";
 
     public const string Lore = "lore";
+
+    public const string Faction = "faction";
 }

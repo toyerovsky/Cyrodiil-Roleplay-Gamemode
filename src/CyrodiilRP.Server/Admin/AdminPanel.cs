@@ -1,9 +1,11 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using CyrodiilRP.Data.Staff;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Commands;
 using CyrodiilRP.Server.Dice;
+using CyrodiilRP.Server.Faction;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
@@ -34,6 +36,7 @@ internal sealed partial class AdminPanel(
     DiceLog rolls,
     LoreCardViews lore,
     LoreCards cards,
+    Factions factions,
     ILogger logger) : ICommandOutput
 {
     private const string PanelOption = "self.admin";
@@ -171,6 +174,15 @@ internal sealed partial class AdminPanel(
                     SendLore(player, subject);
                 break;
 
+            case AdminParts.Factions:
+                SendFactions(player);
+                break;
+
+            case AdminParts.Faction:
+                if (long.TryParse(argument, NumberStyles.None, CultureInfo.InvariantCulture, out var factionId))
+                    SendFaction(player, factionId);
+                break;
+
             case AdminParts.Items:
                 if (Parse(argument, AdminJson.Default.AdminItemFilter) is { } items)
                     rpc.SendAdminPart(player.Id, AdminParts.Items, JsonSerializer.Serialize(AdminViews.SearchItems(items), AdminJson.Default.ListAdminItemView));
@@ -250,6 +262,21 @@ internal sealed partial class AdminPanel(
         cards.Find(subject, out var card);
         var view = new AdminLoreView(subject.Number, subject.Name, card.NamePublic, lore.BuildStaffView(staff, subject));
         rpc.SendAdminPart(staff.Id, AdminParts.Lore, JsonSerializer.Serialize(view, AdminJson.Letters.AdminLoreView));
+    }
+
+    private void SendFactions(OnlinePlayer staff)
+    {
+        var list = FactionViews.BuildStaffList(factions.All, factions.MapOnline());
+        rpc.SendAdminPart(staff.Id, AdminParts.Factions, JsonSerializer.Serialize(list, AdminJson.Letters.ListStaffFactionView));
+    }
+
+    // One dissolved since the list was read comes back as its id alone, so the page drops it.
+    private void SendFaction(OnlinePlayer staff, long id)
+    {
+        var json = factions.Find(id) is { } faction
+            ? JsonSerializer.Serialize(FactionViews.BuildStaffCard(faction, factions.MapOnline()), AdminJson.Letters.StaffFactionCardView)
+            : JsonSerializer.Serialize(id, AdminJson.Letters.Int64);
+        rpc.SendAdminPart(staff.Id, AdminParts.Faction, json);
     }
 
     private T? Parse<T>(string json, JsonTypeInfo<T> type) where T : class

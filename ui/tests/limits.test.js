@@ -5,6 +5,10 @@ import { describe, expect, it } from "vitest";
 import {
   CHAT_HISTORY_LINES,
   CHAT_MAX_LENGTH,
+  FACTION_NAME_MAX,
+  FACTION_NAME_MIN,
+  FACTION_RANK_NAME_MAX,
+  FACTION_RANK_NAME_MIN,
   MAX_MINUTES,
   MOST_ITEM_PIECES,
   NAME_MAX_LENGTH,
@@ -29,5 +33,9 @@ describe("a page's limits", () => {
     expect(REASON_MIN_LENGTH).toBe(readConstant("CyrodiilRP.Server/Commands/CommandCall.cs", "MinReasonLength"));
     expect(MAX_MINUTES).toBe(readConstant("CyrodiilRP.Server/Commands/CommandLine.cs", "MaxMinutes"));
     expect(MOST_ITEM_PIECES).toBe(readConstant("CyrodiilRP.Server/Admin/ItemCommands.cs", "MostPieces"));
+    expect(FACTION_NAME_MIN).toBe(readConstant("CyrodiilRP.Server/Faction/FactionRules.cs", "MinNameLength"));
+    expect(FACTION_NAME_MAX).toBe(readConstant("CyrodiilRP.Server/Faction/FactionRules.cs", "MaxNameLength"));
+    expect(FACTION_RANK_NAME_MIN).toBe(readConstant("CyrodiilRP.Server/Faction/FactionRules.cs", "MinRankNameLength"));
+    expect(FACTION_RANK_NAME_MAX).toBe(readConstant("CyrodiilRP.Server/Faction/FactionRules.cs", "MaxRankNameLength"));
   });
 });

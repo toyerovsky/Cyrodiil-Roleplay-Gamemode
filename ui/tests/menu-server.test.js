@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import texts from "../../locales/en/ui.menu.json";
+import { PERMISSIONS } from "../menu/faction.js";
 import { KEYS, TABS } from "../menu/tabs.js";
 
 const SRC = fileURLToPath(new URL("../../src/", import.meta.url));
@@ -31,6 +32,14 @@ describe("the menu and the server", () => {
     const opened = [...read("CyrodiilRP.Server/PlayerMenu/MenuTabs.cs").matchAll(/const string \w+ = "(\w+)";/g)].map(([, id]) => id);
     expect(opened.length).toBeGreaterThan(0);
     expect(opened.filter((id) => !TABS.some((tab) => tab.id === id))).toEqual([]);
+  });
+
+  it("offers every permission a faction's rank can hold, each named", () => {
+    const enumBody = read("CyrodiilRP.Data/Entities/FactionPermission.cs").match(/enum FactionPermission\s*\{([^}]*)\}/)[1];
+    const permissions = [...enumBody.matchAll(/(\w+),/g)].map(([, name]) => name);
+    expect(permissions.length).toBeGreaterThan(0);
+    expect(PERMISSIONS).toEqual(permissions);
+    expect(PERMISSIONS.filter((permission) => !texts[`ui.menu.faction.perm.${permission}`])).toEqual([]);
   });
 
   it("names every heading the server files commands under", () => {

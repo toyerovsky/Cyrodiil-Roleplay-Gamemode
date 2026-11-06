@@ -55,6 +55,11 @@ internal static class ColumnLengths
     // A roll and its one reroll: "5d20:20,20,20,20,20=100" twice.
     public const int LoreRolls = 128;
 
+    // The faction rules allow 32 and 24, the columns leave them room to grow.
+    public const int FactionName = 64;
+
+    public const int FactionRankName = 48;
+
     // Never between the two halves of a surrogate pair, which PostgreSQL refuses to store.
     public static string Cut(string value, int length)
     {

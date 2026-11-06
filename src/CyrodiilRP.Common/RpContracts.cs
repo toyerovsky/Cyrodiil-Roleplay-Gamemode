@@ -262,4 +262,12 @@ public static partial class RpContracts
     // The menu's lore tab: whether everyone sees the character's name. The server answers with the menu on that tab.
     [ClientToServer]
     public static partial void ChooseNamePublic(bool namePublic);
+
+    // A /faction command a button of the menu's faction tab runs, as if typed.
+    [ClientToServer]
+    public static partial void FactionRun(string line);
+
+    // What it came to, in the player's language, and the menu (a MenuView as JSON) as it is after it.
+    [ServerToClient]
+    public static partial void FactionAnswer(string text, bool done, string menu);
 }

@@ -3,6 +3,7 @@ export const KINDS = {
   party: { icon: "banner" },
   trade: { icon: "scales" },
   introduce: { icon: "hand" },
+  faction: { icon: "shield" },
 };
 
 // The game's keys that answer (the client's Key.Y and Key.N).

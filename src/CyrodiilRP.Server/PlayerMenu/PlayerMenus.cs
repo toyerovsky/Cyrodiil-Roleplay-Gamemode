@@ -3,6 +3,7 @@ using CyrodiilRP.Server.Commands;
 using CyrodiilRP.Server.Conditions;
 using CyrodiilRP.Server.Dice;
 using CyrodiilRP.Server.Economy;
+using CyrodiilRP.Server.Faction;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
@@ -25,6 +26,8 @@ internal sealed partial class PlayerMenus(
     LoreCardViews lore,
     Introductions introductions,
     ShownNames names,
+    Factions factions,
+    RpConfig config,
     Localizer translations)
 {
     private void Start()
@@ -59,8 +62,15 @@ internal sealed partial class PlayerMenus(
     // Only with a character: before it, the name form holds the screen.
     public void Show(OnlinePlayer player, string tab)
     {
+        if (BuildJson(player, tab) is { } json)
+            rpc.SendMenuState(player.Id, json);
+    }
+
+    // The menu on a tab as JSON, null for a player without a character.
+    public string? BuildJson(OnlinePlayer player, string tab)
+    {
         if (!player.IsLoaded || player.Character is not { } character)
-            return;
+            return null;
 
         string Translate(Phrase phrase) => translations.Get(player.Locale, phrase);
         int? gold = wallet.TryCount(player.Id, out var carried) ? carried : null;
@@ -71,9 +81,21 @@ internal sealed partial class PlayerMenus(
             HelpListing.Build(commands.ListAvailable(player), Translate),
             dice.BuildView(player),
             BuildLore(player),
+            BuildFaction(player, character.Id),
             translations.Locales,
             player.Locale);
-        rpc.SendMenuState(player.Id, JsonSerializer.Serialize(view, MenuJson.Default.MenuView));
+        return JsonSerializer.Serialize(view, MenuJson.Default.MenuView);
+    }
+
+    private FactionMenuView BuildFaction(OnlinePlayer player, long characterId)
+    {
+        var invite = factions.Invites.Find(player) is { } waiting
+            ? new FactionInviteView(waiting.Faction.Name, names.Shown(player, waiting.Inviter), factions.Invites.CountMsLeft(waiting))
+            : null;
+        var card = factions.FindOf(player) is { } faction && faction.FindMember(characterId) is { } member
+            ? FactionViews.BuildCard(faction, member, factions.MapOnline())
+            : null;
+        return new FactionMenuView(config.Factions.FoundingFee, invite, card);
     }
 
     private MenuLoreView BuildLore(OnlinePlayer player)

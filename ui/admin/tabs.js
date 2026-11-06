@@ -1,4 +1,5 @@
 import audit from "../rp/art/icons/audit.webp";
+import factions from "../rp/art/icons/account.webp";
 import dice from "../rp/art/icons/dice.webp";
 import items from "../rp/art/icons/items.webp";
 import players from "../rp/art/icons/players.webp";
@@ -14,7 +15,17 @@ export const TABS = [
   { id: "audit", medallion: audit },
   { id: "world", medallion: world },
   { id: "dice", medallion: dice },
+  { id: "factions", medallion: factions },
 ];
 
 // What the panel asks the server for apart from its state, named as AdminParts.cs names them (a test ties the two).
-export const PARTS = { card: "card", sanctions: "sanctions", audit: "audit", items: "items", rolls: "rolls", lore: "lore" };
+export const PARTS = {
+  card: "card",
+  sanctions: "sanctions",
+  audit: "audit",
+  items: "items",
+  rolls: "rolls",
+  lore: "lore",
+  factions: "factions",
+  faction: "faction",
+};

@@ -20,4 +20,10 @@ internal static class AdminParts
 
     // A player's lore card in full, every field, by number (an AdminLoreView).
     public const string Lore = "lore";
+
+    // Every faction (a list of StaffFactionView).
+    public const string Factions = "factions";
+
+    // One faction in full, by its id (a StaffFactionCardView). The id alone comes back, as a number, once it is gone.
+    public const string Faction = "faction";
 }

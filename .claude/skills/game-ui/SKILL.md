@@ -22,6 +22,7 @@ description: How Cyrodiil RP shows anything to a player. Use before writing play
 | The player's own record, the commands, the keys | the player's menu, `ui/menu`, F10 or `/help` | `PlayerMenus` sends `MenuState` |
 | Throwing dice | the dice board, `ui/dice`, three.js, the server picks every number | `DiceBoards` sends `DiceState`, `Rolls` is the one place that rolls |
 | A character's card, one's own or another's | the lore card, `ui/lore`, one request and one answer by id | `LoreWindows` opens it, `LoreDesk` answers `LoreAsk` |
+| The player's faction: founding, the roll, the ranks | the menu's faction tab, `ui/menu/FactionTab.vue`, every button a `/faction` command | `FactionMenu` runs it and answers `FactionAnswer` with the menu |
 | The staff's tools | the staff's panel, `ui/admin`, `/admin` or the wheels, no key | `AdminPanel`: every button a command of `AdminActions` |
 | A staff action that needs more (a reason, minutes) from the panel | a dialog over the panel that checks it as the server would | `ui/admin/ActionDialog.vue` |
 | Held by the staff (frozen) | a plate at the top, `ui/frozen`, holding the input | `Freezes` sends `Frozen` |

@@ -48,12 +48,12 @@ public sealed class AdminRulesTests
     }
 
     [Fact]
-    public void Players_the_audit_and_the_rolls_show_to_every_holder_of_the_panel_and_the_rest_only_with_something_to_use()
+    public void Players_the_audit_the_rolls_and_the_factions_show_to_every_holder_of_the_panel_and_the_rest_only_with_something_to_use()
     {
-        Assert.Equal([AdminTabs.Players, AdminTabs.Audit, AdminTabs.Dice], AdminActions.ListTabs(_ => false));
-        Assert.Equal([AdminTabs.Players, AdminTabs.Sanctions, AdminTabs.Audit, AdminTabs.Dice],
+        Assert.Equal([AdminTabs.Players, AdminTabs.Audit, AdminTabs.Dice, AdminTabs.Factions], AdminActions.ListTabs(_ => false));
+        Assert.Equal([AdminTabs.Players, AdminTabs.Sanctions, AdminTabs.Audit, AdminTabs.Dice, AdminTabs.Factions],
             AdminActions.ListTabs(name => name == StaffPermissions.Unmute));
-        Assert.Equal([AdminTabs.Players, AdminTabs.Audit, AdminTabs.World, AdminTabs.Dice],
+        Assert.Equal([AdminTabs.Players, AdminTabs.Audit, AdminTabs.World, AdminTabs.Dice, AdminTabs.Factions],
             AdminActions.ListTabs(name => name == StaffPermissions.Teleport));
     }
 }

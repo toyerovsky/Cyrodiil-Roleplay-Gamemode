@@ -26,6 +26,12 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<LoreIntroduction> LoreIntroductions => Set<LoreIntroduction>();
 
+    public DbSet<Faction> Factions => Set<Faction>();
+
+    public DbSet<FactionRank> FactionRanks => Set<FactionRank>();
+
+    public DbSet<FactionMember> FactionMembers => Set<FactionMember>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -135,6 +141,39 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.HasIndex(x => x.KnownCharacterId);
             entity.HasOne<Character>().WithMany().HasForeignKey(x => x.KnowerCharacterId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne<Character>().WithMany().HasForeignKey(x => x.KnownCharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Faction>(entity =>
+        {
+            entity.ToTable("factions");
+            entity.Property(x => x.Name).HasMaxLength(ColumnLengths.FactionName);
+            entity.Property(x => x.NameKey).HasMaxLength(ColumnLengths.FactionName);
+            entity.HasIndex(x => x.NameKey).IsUnique();
+        });
+
+        modelBuilder.Entity<FactionRank>(entity =>
+        {
+            entity.ToTable("faction_ranks", t =>
+            {
+                t.HasCheckConstraint("ck_faction_ranks_number", "number > 0");
+                t.HasCheckConstraint("ck_faction_ranks_position", "position >= 0");
+            });
+            entity.HasKey(x => new { x.FactionId, x.Number });
+            entity.Property(x => x.Name).HasMaxLength(ColumnLengths.FactionRankName);
+            entity.Property(x => x.Kind).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.PrimitiveCollection(x => x.Permissions).ElementType().HasConversion<string>();
+            entity.HasOne<Faction>().WithMany().HasForeignKey(x => x.FactionId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // A rank goes only once nobody holds it: FactionBook moves its members first.
+        modelBuilder.Entity<FactionMember>(entity =>
+        {
+            entity.ToTable("faction_members");
+            entity.HasKey(x => x.CharacterId);
+            entity.Property(x => x.CharacterId).ValueGeneratedNever();
+            entity.HasOne<Character>().WithOne().HasForeignKey<FactionMember>(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Faction>().WithMany().HasForeignKey(x => x.FactionId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<FactionRank>().WithMany().HasForeignKey(x => new { x.FactionId, x.RankNumber }).OnDelete(DeleteBehavior.NoAction);
         });
 
         SnakeCase.Apply(modelBuilder);

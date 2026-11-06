@@ -19,5 +19,10 @@
   // The most gold one trade or /agold moves.
   "economy": {
     "maxPayment": 100000
+  },
+
+  // The gold a founder pays from what they carry. 0 founds for free.
+  "factions": {
+    "foundingFee": 500
   }
 }

@@ -7,6 +7,7 @@ import { ACTIONS, buildLine } from "./actions.js";
 import ActionDialog from "./ActionDialog.vue";
 import AuditTab from "./AuditTab.vue";
 import DiceTab from "./DiceTab.vue";
+import FactionsTab from "./FactionsTab.vue";
 import { RECENT_KEPT } from "./items.js";
 import ItemsTab from "./ItemsTab.vue";
 import PlayersTab from "./PlayersTab.vue";
@@ -28,6 +29,10 @@ const loreAsked = ref(false);
 const sanctions = ref(null);
 const audit = ref(null);
 const rolls = ref(null);
+// Every faction, the one picked by its id, and that one in full.
+const factions = ref(null);
+const factionId = ref(null);
+const faction = ref(null);
 const found = ref([]);
 const answer = ref(null);
 const waiting = ref(false);
@@ -99,6 +104,17 @@ function select(number) {
   props.bridge.ask(PARTS.card, String(number));
 }
 
+function selectFaction(id) {
+  factionId.value = id;
+  faction.value = null;
+  props.bridge.ask(PARTS.faction, String(id));
+}
+
+function readFactions() {
+  props.bridge.ask(PARTS.factions, "");
+  if (factionId.value !== null) props.bridge.ask(PARTS.faction, String(factionId.value));
+}
+
 function searchAudit(filter, before = null) {
   if (!before) auditFilter = filter;
   props.bridge.ask(PARTS.audit, JSON.stringify({ ...auditFilter, before }));
@@ -114,6 +130,7 @@ function load(id) {
   if (id === "sanctions") props.bridge.ask(PARTS.sanctions, "");
   if (id === "audit") searchAudit(auditFilter);
   if (id === "dice") searchRolls(rollFilter);
+  if (id === "factions") readFactions();
 }
 
 function pick(id) {
@@ -146,6 +163,17 @@ function onPart(kind, data) {
   else if (kind === PARTS.items) found.value = data;
   else if (kind === PARTS.audit) audit.value = data.appended && audit.value ? { ...data, entries: [...audit.value.entries, ...data.entries] } : data;
   else if (kind === PARTS.rolls) rolls.value = data.appended && rolls.value ? { ...data, rolls: [...rolls.value.rolls, ...data.rolls] } : data;
+  else if (kind === PARTS.factions) factions.value = data;
+  else if (kind === PARTS.faction) onFaction(data);
+}
+
+// A faction that is gone comes back as its id alone: the card closes.
+function onFaction(data) {
+  if (typeof data === "number") {
+    if (data === factionId.value) factionId.value = null;
+  } else if (data.id === factionId.value) {
+    faction.value = data;
+  }
 }
 
 // What a command changed shows again: the card open, the sanctions in force and the audit, which it wrote to.
@@ -156,6 +184,7 @@ function onAnswer(text, done) {
   if (selected.value !== null && loreAsked.value) props.bridge.ask(PARTS.lore, String(selected.value));
   if (tab.value === "sanctions") props.bridge.ask(PARTS.sanctions, "");
   if (tab.value === "audit") searchAudit(auditFilter);
+  if (tab.value === "factions") readFactions();
 }
 
 function reset() {
@@ -167,6 +196,9 @@ function reset() {
   sanctions.value = null;
   audit.value = null;
   rolls.value = null;
+  factions.value = null;
+  factionId.value = null;
+  faction.value = null;
   found.value = [];
   answer.value = null;
   waiting.value = false;
@@ -251,6 +283,18 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
           <SanctionsTab v-else-if="tab === 'sanctions'" :sanctions="sanctions" :t="t" :locale="locale" :may="may" :can="can" @act="act" />
           <AuditTab v-else-if="tab === 'audit'" :audit="audit" :t="t" :locale="locale" @search="searchAudit" />
           <DiceTab v-else-if="tab === 'dice'" :rolls="rolls" :t="t" :locale="locale" @search="searchRolls" />
+          <FactionsTab
+            v-else-if="tab === 'factions'"
+            :factions="factions"
+            :selected="factionId"
+            :card="faction"
+            :t="t"
+            :locale="locale"
+            :may="may"
+            :can="can"
+            @select="selectFaction"
+            @act="act"
+          />
           <WorldTab v-else :view="view" :t="t" :may="may" :can="can" @act="act" />
         </div>
       </div>

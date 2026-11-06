@@ -9,4 +9,5 @@ internal static class AdminTabs
     public const string Audit = "audit";
     public const string World = "world";
     public const string Dice = "dice";
+    public const string Factions = "factions";
 }

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using CyrodiilRP.Server.Dice;
+using CyrodiilRP.Server.Faction;
 
 namespace CyrodiilRP.Server.PlayerMenu;
 
@@ -12,5 +13,6 @@ internal sealed record MenuView(
     [property: JsonPropertyName("help")] IReadOnlyList<MenuHelpGroupView> Help,
     [property: JsonPropertyName("dice")] DiceView Dice,
     [property: JsonPropertyName("lore")] MenuLoreView Lore,
+    FactionMenuView Faction,
     [property: JsonPropertyName("languages")] IReadOnlyList<string> Languages,
     [property: JsonPropertyName("language")] string Language);

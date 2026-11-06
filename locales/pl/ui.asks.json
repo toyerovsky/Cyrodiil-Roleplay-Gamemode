@@ -14,5 +14,9 @@
   "ui.asks.title.introduce": "Przedstawienie się",
   "ui.asks.incoming.introduce": "{name} chce ci się przedstawić.",
   "ui.asks.outgoing.introduce": "Czekasz, aż {name} przyjmie twoje przedstawienie się.",
-  "ui.asks.accept.introduce": "Przyjmij"
+  "ui.asks.accept.introduce": "Przyjmij",
+  "ui.asks.title.faction": "Zaproszenie do frakcji",
+  "ui.asks.incoming.faction": "{name} zaprasza cię do swojej frakcji.",
+  "ui.asks.outgoing.faction": "Czekasz na odpowiedź na zaproszenie: {name}.",
+  "ui.asks.accept.faction": "Dołącz"
 }

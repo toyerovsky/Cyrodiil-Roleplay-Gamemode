@@ -295,6 +295,110 @@ namespace CyrodiilRP.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.Faction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("FoundedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("founded_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NameKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("name_key");
+
+                    b.HasKey("Id")
+                        .HasName("pk_factions");
+
+                    b.HasIndex("NameKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_factions_name_key");
+
+                    b.ToTable("factions", (string)null);
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.FactionMember", b =>
+                {
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("character_id");
+
+                    b.Property<long>("FactionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("faction_id");
+
+                    b.Property<DateTimeOffset>("JoinedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("joined_at");
+
+                    b.Property<int>("RankNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("rank_number");
+
+                    b.HasKey("CharacterId")
+                        .HasName("pk_faction_members");
+
+                    b.HasIndex("FactionId", "RankNumber")
+                        .HasDatabaseName("ix_faction_members_faction_id_rank_number");
+
+                    b.ToTable("faction_members", (string)null);
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.FactionRank", b =>
+                {
+                    b.Property<long>("FactionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("faction_id");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(48)
+                        .HasColumnType("character varying(48)")
+                        .HasColumnName("name");
+
+                    b.PrimitiveCollection<string[]>("Permissions")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("permissions");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.HasKey("FactionId", "Number")
+                        .HasName("pk_faction_ranks");
+
+                    b.ToTable("faction_ranks", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_faction_ranks_number", "number > 0");
+
+                            t.HasCheckConstraint("ck_faction_ranks_position", "position >= 0");
+                        });
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.GoldDelivery", b =>
                 {
                     b.Property<long>("Id")
@@ -505,7 +609,7 @@ namespace CyrodiilRP.Data.Migrations
                             Name = "admin",
                             GrantsAll = false,
                             Label = "Administrator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "atrader", "aspawn" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "atrader", "aspawn", "afaction" }
                         },
                         new
                         {
@@ -609,6 +713,40 @@ namespace CyrodiilRP.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_dice_rolls_characters_character_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.FactionMember", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithOne()
+                        .HasForeignKey("CyrodiilRP.Data.FactionMember", "CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_faction_members_characters_character_id");
+
+                    b.HasOne("CyrodiilRP.Data.Faction", null)
+                        .WithMany()
+                        .HasForeignKey("FactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_faction_members_factions_faction_id");
+
+                    b.HasOne("CyrodiilRP.Data.FactionRank", null)
+                        .WithMany()
+                        .HasForeignKey("FactionId", "RankNumber")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_faction_members_faction_ranks_faction_id_rank_number");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.FactionRank", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Faction", null)
+                        .WithMany()
+                        .HasForeignKey("FactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_faction_ranks_factions_faction_id");
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.GoldDelivery", b =>

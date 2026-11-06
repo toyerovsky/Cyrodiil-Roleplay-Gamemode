@@ -22,7 +22,7 @@ test("the gallery lists every page and its scenarios and shows the design system
   const large = page.getByRole("tablist", { name: "Large tabs" });
   await large.getByRole("tab", { name: "Help" }).click();
   await expect(large.getByRole("tab", { selected: true })).toHaveText("Help");
-  await expect(page.getByRole("tablist", { name: "Small tabs" }).getByRole("tab")).toHaveCount(6);
+  await expect(page.getByRole("tablist", { name: "Small tabs" }).getByRole("tab")).toHaveCount(7);
   await screenshot(page, testInfo, "gallery");
 });
 

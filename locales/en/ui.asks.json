@@ -14,5 +14,9 @@
   "ui.asks.title.introduce": "Introduction",
   "ui.asks.incoming.introduce": "{name} wants to introduce themselves to you.",
   "ui.asks.outgoing.introduce": "Waiting for {name} to accept your introduction.",
-  "ui.asks.accept.introduce": "Accept"
+  "ui.asks.accept.introduce": "Accept",
+  "ui.asks.title.faction": "Faction invitation",
+  "ui.asks.incoming.faction": "{name} invites you to their faction.",
+  "ui.asks.outgoing.faction": "Waiting for {name} to answer your invitation.",
+  "ui.asks.accept.faction": "Join"
 }

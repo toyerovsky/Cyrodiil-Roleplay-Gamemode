@@ -62,6 +62,15 @@
   margin-top: 22px;
 }
 
+/* Seven tabs down the letter, close enough to fit an ultrawide screen, the shortest one for its scale. */
+.menu__body .rp-tabs {
+  gap: 4px;
+}
+
+.menu__body .rp-tabs__tab {
+  padding-block: 6px;
+}
+
 .menu__content {
   min-height: 0;
   padding: 4px 16px 12px 4px;
@@ -383,4 +392,172 @@
 
 .menu__lore-card {
   max-width: 1100px;
+}
+
+/* The faction tab: what the last command came to, the way into a faction or its roll and ranks, each with the buttons the
+   server allows the reader. */
+/* Up over the tab's own padding, so nothing of the roll shows above it once the tab is scrolled. */
+.menu__faction-answer {
+  position: sticky;
+  top: -4px;
+  z-index: 1;
+  margin: 0 0 14px;
+  padding: 8px 14px;
+  color: var(--confirmed);
+  background: var(--parchment-light);
+  border-left: 4px solid var(--confirmed);
+  border-radius: var(--radius-small);
+}
+
+.menu__faction-answer--refused {
+  color: var(--problem);
+  border-left-color: var(--problem);
+}
+
+.menu__faction-text {
+  margin: 0 0 12px;
+}
+
+.menu__faction-how {
+  margin-bottom: 12px;
+}
+
+.menu__faction-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  max-width: 820px;
+}
+
+.menu__faction-form .rp-field {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.menu__faction-problem {
+  margin: 8px 0 0;
+  color: var(--problem);
+}
+
+.menu__faction-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.menu__faction-members,
+.menu__faction-ranks {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A name, a rank, when last seen, and the buttons at the end, in columns of one width down the roll. The choice of a
+   rank opens under the whole row. */
+.menu__faction-member {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.1fr) minmax(0, 1.3fr) 230px;
+  min-height: 60px;
+  align-items: center;
+  gap: 6px 20px;
+  padding: 6px 8px;
+  border-radius: var(--radius-small);
+}
+
+.menu__faction-member:nth-child(odd) {
+  background: var(--ink-wash);
+}
+
+.menu__faction-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.menu__faction-you {
+  margin-left: 8px;
+  padding: 1px 8px;
+  font-weight: 400;
+  font-size: 15px;
+  color: var(--ink-soft);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-pill);
+}
+
+.menu__faction-rank {
+  overflow-wrap: anywhere;
+}
+
+.menu__faction-seen {
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.menu__faction-seen--online {
+  font-weight: 700;
+  color: var(--confirmed);
+}
+
+.menu__faction-member .menu__faction-acts {
+  justify-content: flex-end;
+}
+
+.menu__faction-choice {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.menu__faction-choice-label {
+  color: var(--ink-soft);
+}
+
+.menu__faction-rank-row {
+  display: grid;
+  gap: 8px;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--ink-line);
+}
+
+.menu__faction-rank-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  margin: 0;
+}
+
+.menu__faction-rank-name {
+  font-family: var(--font-title);
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.menu__faction-holders {
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.menu__faction-allows {
+  margin: 0;
+}
+
+.menu__faction-allows--note {
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.menu__faction-perms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.menu__faction-ranks + .menu__faction-form {
+  margin-top: 16px;
 }

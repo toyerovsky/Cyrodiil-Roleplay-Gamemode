@@ -10,6 +10,7 @@ import "./audit.css";
 import "./dice.css";
 import "./world.css";
 import "./items.css";
+import "./factions.css";
 import "./dialog.css";
 
 startPage(App, createBridge, import.meta.env.DEV ? () => import("./pretend.js") : null);

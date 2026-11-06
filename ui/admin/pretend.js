@@ -1,4 +1,5 @@
 import admin from "../../locales/en/admin.json";
+import factionTexts from "../../locales/en/faction.json";
 import sanctionTexts from "../../locales/en/sanctions.json";
 import spawnTexts from "../../locales/en/spawn.json";
 import staff from "../../locales/en/staff.json";
@@ -17,9 +18,9 @@ const SPAWN = { x: 25610, y: -91240, z: 1215 };
 const SPAWN_HERE = { x: 26002, y: -90418, z: 1198 };
 const ALL_COMMANDS = [
   "duty", "aheal", "ahp", "arevive", "agoto", "abring", "aback", "atp", "afreeze", "aunfreeze", "amute", "aunmute", "awarn", "akick",
-  "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "amsg", "alore",
+  "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "amsg", "alore", "afaction",
 ];
-const ADMIN_COMMANDS = ["agold", "aitem", "aroles", "atime", "aweather", "aban", "aunban", "aspawn"];
+const ADMIN_COMMANDS = ["agold", "aitem", "aroles", "atime", "aweather", "aban", "aunban", "aspawn", "afaction"];
 const SELF = 1;
 const MODERATOR_COMMANDS = ALL_COMMANDS.filter((command) => !ADMIN_COMMANDS.includes(command));
 
@@ -67,6 +68,76 @@ const ITEMS = [
 ].map(([id, name, type]) => ({ id, name, type, count: 0, worn: false }));
 const SEARCH_FROM = 2;
 
+// The factions the staff read: the Fighters Guild with its ranks and a long roll, the Mages Guild, and one whose only
+// member is its leader. /afaction changes them as the server would.
+function pretendFactions(now) {
+  const member = (id, name, rank, online, daysAway = 0) => ({
+    id, name, rank, leader: rank === 1, online, lastSeenAt: now - daysAway * DAY_MS,
+  });
+  const ranks = () => [
+    { number: 1, name: "Master", kind: "Leader", permissions: [] },
+    { number: 3, name: "Champion", kind: "Custom", permissions: ["Invite", "Kick", "Ranks"] },
+    { number: 4, name: "Warder", kind: "Custom", permissions: ["Invite"] },
+    { number: 2, name: "Associate", kind: "Entry", permissions: [] },
+  ];
+  let all = [
+    {
+      id: 7, name: "Fighters Guild", foundedAt: now - 21 * DAY_MS, ranks: ranks(),
+      members: [
+        member(1, "Marcus Varro", 1, 1), member(2, "Modryn Oreyn", 3, null, 1), member(3, "Burz gro-Khash", 4, null, 2),
+        member(4, "Brannoc the Unlucky Wanderer of the Gold Coast", 4, 4), member(5, "Lum gro-Baroth", 2, null, 1),
+        ...CROWD.map((name, index) => member(6 + index, name, 2, index % 3 === 0 ? 10 + index : null, index)),
+      ],
+    },
+    {
+      id: 9, name: "Mages Guild of the Arcane University", foundedAt: now - 12 * DAY_MS, ranks: ranks().filter((rank) => rank.kind !== "Custom"),
+      members: [member(21, "Raminus Polus", 1, null, 3), member(22, "Lucia Gallus", 2, 3)],
+    },
+    {
+      id: 12, name: "Thieves", foundedAt: now - 2 * DAY_MS, ranks: ranks().filter((rank) => rank.kind !== "Custom"),
+      members: [member(31, "J'zargo", 1, 7)],
+    },
+  ];
+  const find = (id) => all.find((faction) => faction.id === id);
+  const say = (key, args) => fill(factionTexts[`faction.staff.${key}`], args);
+  return {
+    list: () =>
+      all.map((faction) => ({
+        id: faction.id,
+        name: faction.name,
+        members: faction.members.length,
+        online: faction.members.filter((each) => each.online !== null).length,
+        leaders: faction.members.filter((each) => each.leader).map((each) => each.name),
+        foundedAt: faction.foundedAt,
+      })),
+    read(id) {
+      const faction = find(id);
+      if (!faction) return id;
+      const count = (rank) => faction.members.filter((each) => each.rank === rank.number).length;
+      return { ...faction, ranks: faction.ranks.map((rank) => ({ ...rank, members: count(rank) })) };
+    },
+    run(line) {
+      const [, verb, mark, ...rest] = line.split(" ");
+      const faction = find(Number(mark.slice(1)));
+      const chosen = faction.members.find((each) => `#${each.id}` === rest[0]);
+      if (verb === "dissolve") all = all.filter((each) => each !== faction);
+      if (verb === "dissolve") return say("dissolved", { name: faction.name });
+      if (verb === "rename") {
+        const old = faction.name;
+        faction.name = rest.join(" ");
+        return say("renamed", { old, name: faction.name });
+      }
+      if (verb === "lead") {
+        chosen.rank = 1;
+        chosen.leader = true;
+        return say("lead", { name: chosen.name, faction: faction.name });
+      }
+      faction.members = faction.members.filter((each) => each !== chosen);
+      return say("removed", { name: chosen.name, faction: faction.name });
+    },
+  };
+}
+
 // Brannoc's freeze, on his card and among the sanctions.
 const FROZEN = {
   kind: "admin.freeze", nickname: "brannoc1987_long_nickname", character: "Brannoc the Unlucky Wanderer of the Gold Coast",
@@ -97,7 +168,7 @@ const INVENTORY = [
 
 // The owner on duty with every tab, and the players online. #card opens on Brannoc, frozen in a dungeon with a long name.
 // #offduty is a moderator off duty: the buttons wait for the duty. #sanctions, #audit, #world and #items open on their
-// tab, #dice on the roll log. The staff member stands outside, where the trader is.
+// tab, #dice on the roll log, #factions on the factions. The staff member stands outside, where the trader is.
 export function pretendGame(readym) {
   const scenario = location.hash.slice(1);
   const now = Date.now();
@@ -107,15 +178,18 @@ export function pretendGame(readym) {
   let spawn = scenario === "nospawn" ? null : SPAWN;
   let lore = LORE;
   const emitLater = (name, ...args) => setTimeout(() => readym.emit(name, ...args), ANSWER_MS);
+  const guilds = pretendFactions(now);
 
   const state = (focus = null) => ({
-    tab: ["sanctions", "audit", "world", "items", "dice"].includes(scenario) ? scenario : scenario === "nospawn" ? "world" : "players",
+    tab: ["sanctions", "audit", "world", "items", "dice", "factions"].includes(scenario) ? scenario : scenario === "nospawn" ? "world" : "players",
     focus,
     self: SELF,
     area: "L_Tamriel",
     acting: onDuty,
     onDuty,
-    tabs: moderator ? ["players", "sanctions", "audit", "world", "dice"] : ["players", "items", "sanctions", "audit", "world", "dice"],
+    tabs: moderator
+      ? ["players", "sanctions", "audit", "world", "dice", "factions"]
+      : ["players", "items", "sanctions", "audit", "world", "dice", "factions"],
     allowed: moderator ? MODERATOR_COMMANDS : ALL_COMMANDS,
     players: PLAYERS,
     places: PLACES,
@@ -207,6 +281,8 @@ export function pretendGame(readym) {
       const [kind, argument] = args;
       if (kind === "card") emitLater("Part", kind, JSON.stringify(card(Number(argument))));
       if (kind === "sanctions") emitLater("Part", kind, JSON.stringify(sanctions));
+      if (kind === "factions") emitLater("Part", kind, JSON.stringify(guilds.list()));
+      if (kind === "faction") emitLater("Part", kind, JSON.stringify(guilds.read(Number(argument))));
       if (kind === "lore") {
         const number = Number(argument);
         const name = PLAYERS.find((player) => player.number === number)?.name ?? "";
@@ -242,7 +318,10 @@ export function pretendGame(readym) {
       if (line === "/aspawn here") spawn = SPAWN_HERE;
       if (command === "alore") lore = lore.filter((field) => field.id !== line.split(" ")[3]);
       const who = PLAYERS.find((player) => line.split(" ")[1] === String(player.number))?.name ?? rest.join(" ");
-      const text = answers[command]?.(["atp", "aspawn"].includes(command) ? line.split(" ")[1] : who) ?? `${line}: done`;
+      const text =
+        command === "afaction"
+          ? guilds.run(line)
+          : (answers[command]?.(["atp", "aspawn"].includes(command) ? line.split(" ")[1] : who) ?? `${line}: done`);
       emitLater("Answer", text, true);
       emitLater("State", JSON.stringify(state()));
     }

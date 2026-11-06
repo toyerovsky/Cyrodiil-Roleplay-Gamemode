@@ -23,6 +23,10 @@ const PAGES = [
   { url: "/lore/index.html", root: ".lore", text: ["ui.lore", "part.identity"] },
   { url: "/lore/index.html#view", root: ".lore", text: ["ui.lore", "viewer_lead"] },
   { url: "/asks/index.html#introduce", root: ".asks", text: ["ui.asks", "title.introduce"] },
+  { url: "/menu/index.html#faction", root: ".menu", text: ["ui.menu", "faction.roll"] },
+  { url: "/menu/index.html#factionless", root: ".menu", text: ["ui.menu", "faction.found"] },
+  { url: "/admin/index.html#factions", root: ".admin", text: ["ui.admin", "factions.search"] },
+  { url: "/asks/index.html#faction", root: ".asks", text: ["ui.asks", "title.faction"] },
 ];
 
 for (const each of PAGES) {

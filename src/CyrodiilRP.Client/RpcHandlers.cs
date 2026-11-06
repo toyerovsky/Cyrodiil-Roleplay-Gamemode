@@ -87,9 +87,14 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action<string>? KnownNamesChanged;
 
+    public event Action<string, bool, string>? FactionAnswered;
+
+    // A short notice in the corner, as the server's own.
+    public void ShowNotice(string text) => ui.ShowMessage(text, MessagePosition.TopLeft, NoticeSeconds);
+
     partial void OnDeliverMessage(ChatLine line) => MessageDelivered?.Invoke(line);
 
-    partial void OnNotify(string text) => ui.ShowMessage(text, MessagePosition.TopLeft, NoticeSeconds);
+    partial void OnNotify(string text) => ShowNotice(text);
 
     partial void OnLocale(string locale) => LocaleChanged?.Invoke(locale);
 
@@ -163,4 +168,6 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnCloseLoreCard() => LoreCardClosed?.Invoke();
 
     partial void OnKnownNames(string json) => KnownNamesChanged?.Invoke(json);
+
+    partial void OnFactionAnswer(string text, bool done, string menu) => FactionAnswered?.Invoke(text, done, menu);
 }

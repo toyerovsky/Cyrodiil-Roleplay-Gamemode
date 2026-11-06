@@ -8,4 +8,6 @@ internal static class AskKinds
     public const string Trade = "trade";
 
     public const string Introduction = "introduce";
+
+    public const string Faction = "faction";
 }

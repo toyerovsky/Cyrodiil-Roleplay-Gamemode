@@ -32,6 +32,7 @@ internal sealed partial class PlayerMenuOverlay(
     private void Start()
     {
         rpc.MenuChanged += Window.Deliver;
+        rpc.FactionAnswered += OnFactionAnswered;
         locale.Changed += Window.ApplyLocale;
 
         // Polled, as the other keys. The Remaster leaves F10 alone: F1 to F8 are its menus and F9 its quick load.
@@ -41,6 +42,7 @@ internal sealed partial class PlayerMenuOverlay(
     private void Stop()
     {
         rpc.MenuChanged -= Window.Deliver;
+        rpc.FactionAnswered -= OnFactionAnswered;
         locale.Changed -= Window.ApplyLocale;
         Window.Close();
     }
@@ -57,6 +59,20 @@ internal sealed partial class PlayerMenuOverlay(
             return;
 
         rpc.SendOpenMenu();
+    }
+
+    // Onto the faction tab that asked, with the menu as it is now. Closed since, the menu stays closed and the answer
+    // shows in the corner.
+    private void OnFactionAnswered(string text, bool done, string menu)
+    {
+        if (Window.ShownBrowser is not { } browser)
+        {
+            rpc.ShowNotice(text);
+            return;
+        }
+
+        SendAnswer(browser, text, done);
+        SendState(browser, menu);
     }
 
     [ReceiveFromCef]
@@ -92,11 +108,18 @@ internal sealed partial class PlayerMenuOverlay(
     [ReceiveFromCef]
     private void OnMenuLoreName(BrowserHandle browser, bool namePublic) => rpc.SendChooseNamePublic(namePublic);
 
+    // A button of the faction tab: a /faction command, which the server runs as if typed.
+    [ReceiveFromCef]
+    private void OnMenuFaction(BrowserHandle browser, string line) => rpc.SendFactionRun(line);
+
     [SendToCef]
     private partial void SendLocale(BrowserHandle browser, string locale);
 
     [SendToCef]
     private partial void SendState(BrowserHandle browser, string json);
+
+    [SendToCef]
+    private partial void SendAnswer(BrowserHandle browser, string text, bool done);
 
     [SendToCef]
     private partial void SendClosed(BrowserHandle browser);

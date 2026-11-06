@@ -22,6 +22,11 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
 - **Party:** an invitation from the H wheel, taken up with Y from the card at the top of the screen (N declines), a
   leader, kicking, leaving from the G wheel, the `/p` chat, a panel of the members on screen with their health and
   distance.
+- **Factions:** lasting organisations of characters (guilds, gangs, houses, companies), kept in the database. Founded
+  with `/faction create` or in the F10 menu for a fee from carried gold, one a character. Ranks from the top down,
+  made and named by the faction, each with permissions (invite, remove, manage ranks). An invitation from the H wheel
+  or `/faction invite`, taken up with Y, in the menu or with `/faction accept`. `/f` is the faction's chat. See
+  `docs/features/factions.md`.
 - **Trader:** an NPC placed with the staff command `/atrader`, without the game's services (the game's trading and
   rooms do not apply to it). H over it opens a shop window with the game's icons: food, drinks, clothes, potions,
   tools, weapons, armour, books. It only sells. It cannot be killed for good.
@@ -41,7 +46,8 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   `/introduce`, taken back with `/forget`), or always if the owner makes it public (`/name`).
 - **Player menu (F10):** tabs with the game's medallions: character (name, since when, time played, gold), account
   (ReadyM nick, previous visit, sanctions in force, the language choice when the server knows a second one), dice
-  (the set, the last rolls), lore (name Public or Private, the card as the public reads it), help with the player's
+  (the set, the last rolls), lore (name Public or Private, the card as the public reads it), faction (found one, answer
+  an invitation, or the roll and the ranks with their buttons, `/faction` opens this tab), help with the player's
   commands under headings (`/help` opens this tab) and the mode's keys.
 - **In-game administration:** staff roles from the database (moderator, administrator, owner), duty with `/duty`
   (staff actions only on duty, which shows in the name over the head), sanctions with a reason and an audit log
@@ -49,7 +55,8 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   reviving, gold, the game's items by name and kind, for oneself and for players), a message to a player, teleports
   (to a player, to the gates of cities and settlements, back), the area's time and weather. The `/admin` panel (also
   from the G and H wheels for the staff): players with a card and their lore card (`/alore` clears a field), items,
-  sanctions in force, the audit log by pages, the world, the roll log.
+  sanctions in force, the audit log by pages, the world, the roll log, the factions with their ranks and
+  members (`/afaction` dissolves or renames one, makes a member a leader or removes one).
 - **Language:** English (`locales/en`) and Polish (`locales/pl`), chosen in the F10 menu, saved on the account. The
   game's item names are in English in both, because the Polish ones are in the remaster's `Game.locres`, readable
   only with Oodle.

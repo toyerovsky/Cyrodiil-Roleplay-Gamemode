@@ -69,6 +69,8 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId, bool>? NamePublicChosen;
 
+    public event Action<PlayerId, string>? FactionRan;
+
     partial void OnSubmitMessage(RpcContext context, string text) =>
         callbacks.Raise("rpc.submit_message", MessageSubmitted, context.Sender, text);
 
@@ -138,4 +140,6 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     partial void OnChooseNamePublic(RpcContext context, bool namePublic) =>
         callbacks.Raise("rpc.choose_name_public", NamePublicChosen, context.Sender, namePublic);
+
+    partial void OnFactionRun(RpcContext context, string line) => callbacks.Raise("rpc.faction_run", FactionRan, context.Sender, line);
 }

@@ -4,7 +4,8 @@ const ANSWER_KEYS = ["y", "n"];
 
 // Lucia Gallus invites the player to her party. #trade: Ra'jirr's trade waits under it, and the player's own invitation
 // to Mazoga waits for her. #outgoing: only the player's own trade, with a long name. #introduce: a Dunmer, as a stranger
-// sees them, wants to introduce themselves. Y and N answer as the game would.
+// sees them, wants to introduce themselves. #faction: an Imperial, a stranger too, invites the player to their faction. Y
+// and N answer as the game would.
 const SCENARIOS = {
   "": [{ id: 1, kind: "party", name: "Lucia Gallus", incoming: true, leftMs: 27000 }],
   trade: [
@@ -14,6 +15,7 @@ const SCENARIOS = {
   ],
   outgoing: [{ id: 3, kind: "trade", name: "Aurelianus Valerius-Maximinus", incoming: false, leftMs: 18000 }],
   introduce: [{ id: 4, kind: "introduce", name: "Dunmer", incoming: true, leftMs: 25000 }],
+  faction: [{ id: 5, kind: "faction", name: "Imperial", incoming: true, leftMs: 28000 }],
 };
 
 export function pretendGame(readym) {

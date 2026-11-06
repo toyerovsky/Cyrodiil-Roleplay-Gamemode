@@ -32,4 +32,5 @@ public static class StaffPermissions
     public const string Trader = "atrader";
     public const string Spawn = "aspawn";
     public const string Lore = "alore";
+    public const string FactionManage = "afaction";
 }

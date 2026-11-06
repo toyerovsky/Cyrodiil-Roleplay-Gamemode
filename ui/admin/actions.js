@@ -33,6 +33,10 @@ export const ACTIONS = {
   spawnHere: { command: "aspawn", line: "/aspawn here" },
   spawnGo: { command: "aspawn", line: "/aspawn go" },
   loreClear: { command: "alore", line: "/alore {number} clear {field}" },
+  factionDissolve: { command: "afaction", line: "/afaction dissolve #{id} {reason}", fields: ["reason"] },
+  factionRename: { command: "afaction", line: "/afaction rename #{id} {name}", fields: ["name"] },
+  factionLead: { command: "afaction", line: "/afaction lead #{id} #{member}" },
+  factionRemove: { command: "afaction", line: "/afaction remove #{id} #{member}" },
 };
 
 // The card's buttons in their order. A pair shows the one that fits: a frozen player gets Unfreeze, not Freeze.

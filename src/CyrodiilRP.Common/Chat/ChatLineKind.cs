@@ -18,4 +18,5 @@ public enum ChatLineKind : byte
     Announcement,
     Staff,
     Party, // /p
+    Faction, // /f
 }

@@ -18,4 +18,6 @@ internal sealed partial class RpConfig
     public EconomySettings Economy { get; set; } = new();
 
     public LoreSettings Lore { get; set; } = new();
+
+    public FactionSettings Factions { get; set; } = new();
 }

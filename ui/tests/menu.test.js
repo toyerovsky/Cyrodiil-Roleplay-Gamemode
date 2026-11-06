@@ -32,6 +32,7 @@ const state = (changes = {}) =>
       preview: { header: "Imperial", level: "public", fields: [{ id: "race", part: "heritage", label: "Race", text: "Imperial", long: false }] },
       known: [{ number: 3, name: "Lucia Gallus" }],
     },
+    faction: { fee: 500, invite: null, faction: null },
     languages: ["en"],
     language: "en",
     ...changes,
@@ -87,14 +88,16 @@ describe("the player's menu", () => {
     await press("e", "KeyE");
     expect(selected()).toBe("lore");
     await press("e", "KeyE");
+    expect(selected()).toBe("faction");
+    await press("e", "KeyE");
     expect(selected()).toBe("keys");
     await press("e", "KeyE");
     expect(selected()).toBe("character");
     await press("q", "KeyQ");
     expect(selected()).toBe("keys");
     await press("ArrowUp");
-    expect(selected()).toBe("lore");
-    expect(document.activeElement.dataset.tab).toBe("lore");
+    expect(selected()).toBe("faction");
+    expect(document.activeElement.dataset.tab).toBe("faction");
   });
 
   it("goes round the tabs with the keys as the game sends them, whatever has the focus, in either case", async () => {

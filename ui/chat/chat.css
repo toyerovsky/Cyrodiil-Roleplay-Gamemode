@@ -13,6 +13,7 @@
   --announcement: #ff6b6b;
   --staff: #7fc4ff;
   --party: #c9a7ff;
+  --faction: #f0a8c4;
 }
 
 /* Transparent to the pointer while closed: the mouse stays the game's. Open, the log and the entry take it, so the wheel
@@ -76,6 +77,7 @@
 .chat-line--Announcement { color: var(--announcement); font-weight: 700; }
 .chat-line--Staff { color: var(--staff); }
 .chat-line--Party { color: var(--party); }
+.chat-line--Faction { color: var(--faction); }
 
 /* Hidden rather than removed, so opening chat does not move the log and the entry can take focus at once. */
 .chat__entry {
