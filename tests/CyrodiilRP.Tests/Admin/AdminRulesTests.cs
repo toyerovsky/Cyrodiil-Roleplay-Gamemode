@@ -37,6 +37,25 @@ public sealed class AdminRulesTests
         Assert.Equal(daysPassed, WorldCommands.DaysPassedAt(3f, now, hour));
     }
 
+    [Fact]
+    public void A_step_is_a_direction_ahead_without_one_and_whole_metres()
+    {
+        AssertStep("", StepDirection.Ahead, TeleportCommands.DefaultStepMetres);
+        AssertStep("8", StepDirection.Ahead, 8);
+        AssertStep("up", StepDirection.Up, TeleportCommands.DefaultStepMetres);
+        AssertStep("down 50", StepDirection.Down, TeleportCommands.MostStepMetres);
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("51")]
+    [InlineData("-3")]
+    [InlineData("2.5")]
+    [InlineData("sideways")]
+    [InlineData("3 up")]
+    [InlineData("up 3 more")]
+    public void Anything_else_is_no_step(string typed) => Assert.False(TeleportCommands.TryReadStep(Split(typed), out _, out _));
+
     // A button runs a command the registry knows by a permission, so its checks and the audit are the command's own.
     [Fact]
     public void Every_button_runs_a_staff_command()
@@ -56,4 +75,13 @@ public sealed class AdminRulesTests
         Assert.Equal([AdminTabs.Players, AdminTabs.Audit, AdminTabs.World, AdminTabs.Dice, AdminTabs.Factions],
             AdminActions.ListTabs(name => name == StaffPermissions.Teleport));
     }
+
+    private static void AssertStep(string typed, StepDirection direction, int metres)
+    {
+        Assert.True(TeleportCommands.TryReadStep(Split(typed), out var read, out var far));
+        Assert.Equal(direction, read);
+        Assert.Equal(metres, far);
+    }
+
+    private static string[] Split(string typed) => typed.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 }

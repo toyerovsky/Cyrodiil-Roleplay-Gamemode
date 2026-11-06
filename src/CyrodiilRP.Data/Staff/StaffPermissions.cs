@@ -15,6 +15,7 @@ public static class StaffPermissions
     public const string Position = "apos";
     public const string Teleport = "atp";
     public const string Back = "aback";
+    public const string Step = "astep";
     public const string Revive = "arevive";
     public const string Gold = "agold";
     public const string Item = "aitem";

@@ -36,8 +36,13 @@ internal sealed partial class Teleports(IEntities entities, Proximity proximity,
         return false;
     }
 
-    // The server moves a character only within the area it stands in. Destination: what the audit says it went to.
-    public bool TryMove(CommandCall call, OnlinePlayer moved, AreaId area, Vector3 position, string destination)
+    // A little above the spot. The server moves a character only within the area it stands in. Destination: what the
+    // audit says it went to.
+    public bool TryMove(CommandCall call, OnlinePlayer moved, AreaId area, Vector3 position, string destination) =>
+        TryPut(call, moved, area, position + Lift, destination);
+
+    // To the very point, with no lift: for a height the staff member measured themselves.
+    public bool TryPut(CommandCall call, OnlinePlayer moved, AreaId area, Vector3 position, string destination)
     {
         if (!TryLocate(call, moved, out var from) || !entities.TryLookup(moved.Id, out MainCharacter main))
             return false;
@@ -49,7 +54,7 @@ internal sealed partial class Teleports(IEntities entities, Proximity proximity,
         }
 
         _before[moved.Id] = from;
-        main.Position = position + Lift;
+        main.Position = position;
         audit.Log(TeleportAction, call.Sender.Ref, moved.Ref, new TeleportDetails(destination));
         return true;
     }

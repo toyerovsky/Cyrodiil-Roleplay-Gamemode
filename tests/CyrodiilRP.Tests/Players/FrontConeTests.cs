@@ -41,10 +41,21 @@ public sealed class FrontConeTests
     }
 
     [Fact]
+    public void A_step_ahead_goes_the_way_one_faces_and_keeps_the_height()
+    {
+        var start = Origin + new Vector3(0f, 0f, 40f);
+
+        AssertNear(start + new Vector3(300f, 0f, 0f), FrontCone.FindAhead(start, FacingX, 300f));
+        AssertNear(start + new Vector3(0f, 300f, 0f), FrontCone.FindAhead(start, FacingY, 300f));
+    }
+
+    [Fact]
     public void Someone_on_the_same_spot_counts_whichever_way_one_faces()
     {
         Assert.True(FrontCone.Contains(Origin, FacingX, Origin + new Vector3(0f, 0f, 100f), Reach, Cone));
     }
+
+    private static void AssertNear(Vector3 expected, Vector3 actual) => Assert.True(Vector3.Distance(expected, actual) < 0.01f, $"{actual} is not {expected}");
 
     // 200 cm away at the given angle from +X.
     private static Vector3 CreatePoint(float degrees)

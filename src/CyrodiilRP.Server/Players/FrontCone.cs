@@ -20,8 +20,19 @@ internal static class FrontCone
         if (flat.Length() < Touching)
             return true;
 
+        return Vector2.Dot(Vector2.Normalize(flat), Face(yawDegrees)) >= MathF.Cos(coneDegrees / 2 * DegreesToRadians);
+    }
+
+    // The point a distance ahead of where the yaw faces, level with the origin.
+    public static Vector3 FindAhead(Vector3 origin, float yawDegrees, float distance)
+    {
+        var facing = Face(yawDegrees);
+        return origin + new Vector3(facing.X, facing.Y, 0f) * distance;
+    }
+
+    private static Vector2 Face(float yawDegrees)
+    {
         var yaw = yawDegrees * DegreesToRadians;
-        var facing = new Vector2(MathF.Cos(yaw), MathF.Sin(yaw));
-        return Vector2.Dot(Vector2.Normalize(flat), facing) >= MathF.Cos(coneDegrees / 2 * DegreesToRadians);
+        return new Vector2(MathF.Cos(yaw), MathF.Sin(yaw));
     }
 }
