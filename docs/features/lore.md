@@ -1,7 +1,4 @@
-# Lore card and hidden names (MESOL in the core)
-
-Branch `2026-11-06-playtest`, commit `103c9aa` "Bring MESOL's lore card into the gamemode", on top of the dice commit
-`fac4ec4` (master `7b0d63e`).
+# Lore card and hidden names
 
 ## 1. What it is
 
@@ -10,11 +7,11 @@ Scrolls lore list or typed, each field Public or Private. On top of it, names ar
 character's race until the two introduce themselves or the owner makes the name public. This applies to the nameplates,
 the in-character chat and every player-facing notice.
 
-Origin: MESOL 0.4.2 was Pete's standalone OB:MP mod. It is ported into the core so it can use the gamemode's own wheels,
-F10 menu, `/admin` panel, Asks card, chat and dice, which a separate mod cannot reach. Friends, friendship offers and
-blocking from MESOL are dropped for now.
+Origin: ported from the standalone OB:MP mod MESOL 0.4.2, so it can use the gamemode's own wheels, F10 menu, `/admin`
+panel, Asks card, chat and dice, which a separate mod cannot reach. Friends, friendship offers and blocking from MESOL are
+dropped for now.
 
-## 2. Rules (Pete's, as the player sees them)
+## 2. Rules (as the player sees them)
 
 - A stranger sees only your race, as the English lore name, the same for both sexes and never translated: Imperial,
   Nord, Breton, Redguard, Dunmer, Bosmer, Altmer, Argonian, Khajiit, Orc. A race the table does not know shows
@@ -67,7 +64,8 @@ The page `lore` asks, the server answers. One request at a time, by request id, 
 4. A trait roll goes through `Rolls.Roll(player, 5 x d20, field label)`, so those around read "rolls 5d20 for <trait>",
    then `DiceBoards.Present` lands the dice on the small board above the card.
 
-The exact JSON shapes (Field, Value, View, Option, Relation, Header) are in the "Final contract" of `handoff/PLAN-mesol.md`.
+The exact JSON shapes are the records beside `LoreJson` in `src/CyrodiilRP.Server/Lore/` (`LoreLoadAnswer`, `LoreEditAnswer`,
+`LoreFieldJson`, `LoreValueJson`, `LoreViewJson`, `LoreOptionJson`), named by its camelCase policy.
 
 ### Server-authoritative parts
 
@@ -116,7 +114,7 @@ CEF page `lore`: the game sends `Locale`, `Answer(requestId, json)`, `Closed`; t
 | Data | `src/CyrodiilRP.Data/Entities/LoreField.cs`, `LoreIntroduction.cs`, `LoreVisibility.cs`, `Lore/LoreBook.cs` | Entities and static data access |
 | UI | `ui/lore/` | `App.vue`, `FieldList.vue`, `FieldDetail.vue`, `LorePicker.vue`, `TextEdit.vue`, `NearbyList.vue`, `NearbyDetail.vue`, `CardView.vue`, `asker.js`, `card.js`, `bridge.js` |
 | UI | `ui/menu/LoreTab.vue`, `ui/admin/LoreSection.vue`, `ui/asks/kinds.js`, `ui/rp/icons.js` (`book`) | F10, `/admin`, asks, wheel icon |
-| Art | `ui/rp/art/icons/lore.webp`, `ui/rp/art/lore-book.webp` | Pete's LORE book medallion |
+| Art | `ui/rp/art/icons/lore.webp`, `ui/rp/art/lore-book.webp` | LORE book medallion |
 
 **Database** (migration `20261105220717_Lore`):
 
@@ -137,8 +135,7 @@ owners hold every permission. Reading a card in `/admin` needs only the panel pe
 **Locales:** `locales/{en,pl}/lore.json` (generated `LoreText`), `locales/{en,pl}/ui.lore.json`, plus `ui.admin.json`,
 `ui.asks.json`, `ui.menu.json`. Catalog names and summaries stay English only.
 
-**CEF page and layer:** `lore`, `WebPages.LoreLayer`: 4 on the playtest branch (dice moved to 5 above it), 5 on the
-Sanctuary branch.
+**CEF page and layer:** `lore`, `WebPages.LoreLayer`: under the dice layer.
 
 **New npm dependencies:** none.
 
@@ -163,21 +160,20 @@ Sanctuary branch.
 
 ## 7. Tested / not tested
 
-Automated (counted from the commit):
+Automated:
 
-- xUnit: 87 cases (59 facts, 5 theories with 28 rows) in `tests/CyrodiilRP.Tests/Lore/` (`LoreEditorTests` 21,
-  `LoreCutsTests`, `LoreFieldsTests`, `ShownNameTests`, `LoreCatalogTests`, `GameRacesTests`,
-  `IntroductionRegistryTests`, `LoreRollFormatTests`, `LoreAnswerSizeTests`) and `Database/LoreBookTests.cs` (7, real
-  PostgreSQL). `Players/AskBookTests.cs` updated.
-- Vitest: 32 hand-written (`ui/tests/lore.test.js` 27, `admin.test.js` 2, `menu.test.js` 2, `asks.test.js` 1), plus the
-  page contract tests generated from `ui/pages.js`.
-- Playwright: 12 (`ui/e2e/lore.spec.js` 10, `admin.spec.js` 1, `menu.spec.js` 1), at 4 sizes.
-- Suite on the playtest branch: 338 Vitest, 499 xUnit, real server 2/2.
+- xUnit: `tests/CyrodiilRP.Tests/Lore/` (`LoreEditorTests`, `LoreCutsTests`, `LoreFieldsTests`, `ShownNameTests`,
+  `LoreCatalogTests`, `GameRacesTests`, `IntroductionRegistryTests`, `LoreRollFormatTests`, `LoreAnswerSizeTests`,
+  `LoreJsonTests`), `Database/LoreBookTests.cs` (real PostgreSQL), `Players/AskBookTests.cs`, `Admin/AdminJsonTests.cs`,
+  `PlayerMenu/MenuJsonTests.cs`.
+- Vitest: `ui/tests/lore.test.js`, `admin.test.js`, `menu.test.js`, `asks.test.js`, plus the page contract tests generated
+  from `ui/pages.js`.
+- Playwright: `ui/e2e/lore.spec.js`, `admin.spec.js`, `menu.spec.js`, at 4 sizes.
 
-In game: Pete tested alone and it was fine: his own card (edit with mouse and keys, trait roll on the board), the F10
-and `/admin` tabs, the G wheel.
+In game, with one player: the own card (edit with mouse and keys, trait roll on the board), the F10 tab, the G wheel. The
+lore section of the `/admin` player card has only been checked in the browser preview.
 
-Not tested (needs 2 players), from `PLAYTEST.md`:
+Not tested (needs 2 players):
 
 1. Two strangers see each other's race, not the name, over the head and in chat.
 2. Introduce via the H wheel and `/introduce`: accept, then the name shows; decline.
@@ -198,5 +194,5 @@ Not tested (needs 2 players), from `PLAYTEST.md`:
 - **Friends and guilds** as a third visibility level come later.
 - **Optional `AdminTabs.Lore`** (a tab listing online players' cards) was not built.
 - **Wheel caps:** see `dice.md`. The lore card adds one G option and two H options to wheels capped at 8
-  (`WheelOptions.MaxOptions`): staff lose "Staff panel" on G and staff options on H. Needs Przemysław's decision.
-- **Page bundle:** 1013 KB of the 1024 KB budget on the Sanctuary branch (all three features).
+  (`WheelOptions.MaxOptions`): staff lose "Staff panel" on G and staff options on H. Still open.
+- **Page bundle:** see `dice.md`.

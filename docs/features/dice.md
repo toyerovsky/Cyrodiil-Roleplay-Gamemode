@@ -1,6 +1,4 @@
-# Dice (RpRoll in the core)
-
-Branch `2026-11-06-playtest`, commit `fac4ec4` "Bring RpRoll's dice into the gamemode", on top of master `7b0d63e`.
+# Dice
 
 ## 1. What it is
 
@@ -8,9 +6,9 @@ Server-rolled dice for roleplay: d6, d10, d20 and d100, up to 5 dice per roll, a
 emote range and logged in the database. A 3D dice board (three.js) lets the player pick and throw dice with the mouse or
 the keys, but the board only says how many of each die: every number comes from the server.
 
-Origin: RpRoll 0.8.5 was Pete's standalone OB:MP mod. It is ported into the core so it can use the gamemode's own G and
-H wheels, the F10 menu and the `/admin` panel, which a separate mod cannot reach. It replaces the old
-`ChatCommands.Roll` and its `chat.roll*` texts.
+Origin: ported from the standalone OB:MP mod RpRoll 0.8.5, so it can use the gamemode's own G and H wheels, the F10 menu
+and the `/admin` panel, which a separate mod cannot reach. It replaces the old `ChatCommands.Roll` and its `chat.roll*`
+texts.
 
 ## 2. Rules (as the player sees them)
 
@@ -99,7 +97,7 @@ F10 menu page calls `sendMenuDice` and `sendMenuDiceSet`. `/admin` uses the exis
 | UI | `ui/dice/` | Vue page around RpRoll's tray: `App.vue`, `board/` (`scene.js`, `physics.js`, `tray.js`, `dice.js`, `models.js`, `sets.js`, `sound.js`), `notation.js` |
 | UI | `ui/menu/DiceTab.vue`, `ui/admin/DiceTab.vue`, `ui/admin/dice.css` | F10 and `/admin` tabs |
 | UI build | `ui/scripts/dice-models.mjs`, `ui/vite.config.js`, `ui/scripts/check-dist.mjs` | Models as scripts, dice files under `dist/dice/`, separate size budget |
-| Art | `ui/rp/art/icons/dice.webp`, `ui/rp/art/d20.webp`, `ui/dice/models/icons/*.webp` | Tab medallion (Pete's d20), per-set die icons |
+| Art | `ui/rp/art/icons/dice.webp`, `ui/rp/art/d20.webp`, `ui/dice/models/icons/*.webp` | Tab medallion, per-set die icons |
 
 **Database** (migration `20261105203008_Dice`):
 
@@ -115,11 +113,10 @@ F10 menu page calls `sendMenuDice` and `sendMenuDiceSet`. `/admin` uses the exis
 **Locales:** `locales/{en,pl}/dice.json` (generated `DiceText`), `locales/{en,pl}/ui.dice.json`, plus edits to `chat.json`
 (old roll texts removed), `ui.admin.json`, `ui.menu.json`.
 
-**CEF page and layer:** `dice`, `WebPages.DiceLayer`. Layer 4 in `fac4ec4`, 5 on the playtest branch (under the wheel, over
-the lore card), 6 on the Sanctuary branch.
+**CEF page and layer:** `dice`, `WebPages.DiceLayer`: under the wheel, over the lore card.
 
-**New npm dependency:** `three` 0.185.1 (`ui/package.json`). A deploy must run `npm ci` in `ui/` again, since `pack.ps1`
-only runs it when `ui/node_modules` is missing.
+**npm dependency:** `three` 0.185.1 (`ui/package.json`). A checkout that already has `ui/node_modules` needs `npm ci` in
+`ui/` once, since `pack.ps1` only runs it when the folder is missing.
 
 ## 6. Design decisions and why
 
@@ -140,17 +137,15 @@ only runs it when `ui/node_modules` is missing.
 
 ## 7. Tested / not tested
 
-Automated (counted from the commit):
+Automated:
 
-- xUnit: 40 cases (12 facts, 6 theories with 28 rows) in `tests/CyrodiilRP.Tests/Dice/` (`RollNotationTests`,
-  `DiceRollerTests`, `DicePickTests`, `DiceFormatTests`) and `tests/CyrodiilRP.Tests/Database/DiceBookTests.cs`
-  (real PostgreSQL). `Admin/AdminRulesTests.cs` updated for the new tab.
-- Vitest: 15 hand-written (`ui/tests/dice.test.js` 12, `admin.test.js` 1, `menu.test.js` 2), plus the page contract
-  tests generated from `ui/pages.js`.
-- Playwright: 7 (`ui/e2e/dice.spec.js` 5, `admin.spec.js` 1, `menu.spec.js` 1), run at 4 sizes.
-- Suite on the playtest branch (`pack.ps1 -Test`): 338 Vitest, 499 xUnit, packed mod on the real server 2/2.
+- xUnit: `tests/CyrodiilRP.Tests/Dice/` (`RollNotationTests`, `DiceRollerTests`, `DicePickTests`, `DiceFormatTests`,
+  `DiceJsonTests`), `Database/DiceBookTests.cs` (real PostgreSQL), `Admin/AdminRulesTests.cs`, `Admin/AdminJsonTests.cs`.
+- Vitest: `ui/tests/dice.test.js`, `admin.test.js`, `menu.test.js`, plus the page contract tests generated from
+  `ui/pages.js`.
+- Playwright: `ui/e2e/dice.spec.js`, `admin.spec.js`, `menu.spec.js`, at 4 sizes.
 
-In game: Pete tested alone and it was fine: the board, `/roll`, the F10 and `/admin` dice tabs, the G wheel.
+In game, with one player: the board, `/roll`, the F10 and `/admin` dice tabs, the G wheel.
 
 Not tested (needs 2 players):
 
@@ -162,13 +157,13 @@ Not tested (needs 2 players):
 
 - **G wheel cap.** `WheelOptions.MaxOptions = 8` and `BuildItems` stops at 8. With Dice (20) and Lore card (25) a staff
   member has 9 self options, so "Staff panel" (`self.admin`, Order 105) is cut. In a party, "Leave the party" (50) also
-  comes in and "Staff chat" (100) is cut too. Needs a decision from Przemysław: a second page, or more slots.
-- **H wheel cap, same limit (found in the code, not in the plans).** Dice adds "Roll against" (25), the lore card adds
+  comes in and "Staff chat" (100) is cut too. Open: a second page, or more slots.
+- **H wheel cap, same limit.** Dice adds "Roll against" (25), the lore card adds
   "Read card" (11) and "Introduce yourself" (12, hidden once both know each other). With Greet, Private message, Trade and
   Invite to party, a player already has 7 H options. A staff member with `aheal` reaches 8 at "Heal" (100), so "Staff
   card" (105), "Mute" (120) and "Kick" (130) are cut. A party leader looking at a member can lose "Hand over the lead"
-  (42). Same decision as above.
+  (42). Same open question.
 - **Modifiers** are refused "not rolled yet": not built.
 - **"Roll against" has no cooldown of its own** (the board's 1.5 s applies to board throws only; `/roll` goes through the
   chat's flood limit).
-- **Page bundle:** the non-dice pages are at 1013 KB of the 1024 KB budget on the Sanctuary branch (all three features).
+- **Page bundle:** the non-dice pages are close to the 1024 KB budget (994 KB with the dice and the lore card).
