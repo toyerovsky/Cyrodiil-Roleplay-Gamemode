@@ -16,7 +16,8 @@ Each fact below was checked in this repo.
   already ships must not be in it: a second copy is refused, and a second `Microsoft.Extensions.Logging` would not be the
   host's. `pack.ps1` leaves them out.
 - The host turns reflection-based `System.Text.Json` off for the whole process: JSON goes through a
-  `JsonSerializerContext` (`PageJson`).
+  `JsonSerializerContext` (`PageJson`). A context built on options of its own (`LoreJson.Page`) does not take the
+  naming policy of `[JsonSourceGenerationOptions]`, so those options name it too.
 - `[ModEntry]` on a `partial` class: `Init()` runs once. A throw there logs `[ERR] Failed to start the mod in <assembly>`
   and the server goes on without the mod. `Mod.Init` refuses a database at another migration this way.
 - `[ModConfig]` on a `partial` class with a public constructor: `server/config.json` beside the DLL, comments allowed.
@@ -132,7 +133,7 @@ Each fact below was checked in this repo.
   set `pointer-events: none` on `html` and `body` and draw nothing when closed (`v-if`, `visibility: hidden`), which
   `Bubbling` would need.
 - Key binds are `KeySource.Polled` (K chat, G own wheel, H the one in front, Y and N an invitation, F10 the player's
-  menu). `UnhandledByUi` never fires in play: the game takes every key as handled. A polled
+  menu, Home the dice board, End and Shift+End the lore card). `UnhandledByUi` never fires in play: the game takes every key as handled. A polled
   press reaches the game too, so a bind takes a key the game leaves alone. The Remaster's own keys: F1 to F8 open the
   tabs of its menu (character, inventory, magic, map, quests, help, system), F5 and F9 save and load, and I, M, Tab, Q,
   E, R, T, F, C, 1-8. G, H and K are free (https://www.magicgameworld.com/?p=109775, which leaves out the map's F3).

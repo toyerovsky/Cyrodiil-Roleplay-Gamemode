@@ -14,9 +14,9 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   empty slot with New character, the second slot locked until the platform keeps a game save per character. For now
   one character per account, so that nobody gains anything from the save.
 - **RP chat:** speech in range, `/me` (also over the character's head), `/do`, shout, whisper, rolls, local and
-  global OOC, private messages.
-- **Names over heads:** the character's name over other players, `[Staff]` in another colour on duty, drawn by the
-  mode.
+  global OOC, private messages. In-character lines name the speaker as the reader knows them (see the lore card).
+- **Names over heads:** drawn by the mode: the character's name to those who know it, the race to strangers (see the
+  lore card), `[Staff]` in another colour on duty.
 - **Interaction wheels:** G opens the actions of your own character, H the actions towards the player in front of
   you.
 - **Party:** an invitation from the H wheel, taken up with Y from the card at the top of the screen (N declines), a
@@ -30,16 +30,26 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
 - **Exchange:** an offer from the H wheel, taken up with Y as for a party, gold and items from hand to hand in a
   window, both sides see both offers and confirm. Names come from the catalogue the mode ships, so what a player wears
   and what players made (their potions and enchanted items) stay out of it.
+- **Dice:** `/roll` rolls d6, d10, d20 and d100 (up to 5 dice) on the server and shows the line to those around. A 3D
+  board (Home, `/board`, the G wheel, the F10 menu) throws them with the mouse or the keys and lands each die on the
+  server's number, in one of 12 dice sets kept on the character (`/dice`). The H wheel adds an opposed d20 roll. Every
+  roll is logged.
+- **Lore card:** a character's card (End, `/mylore`, the G wheel, the F10 menu), its fields picked from a lore list or
+  written by the player, each Public or Private. Traits are typed once or rolled with 5d20. Shift+End, `/lore` and the
+  H wheel read another player's card. Strangers see a character's race instead of the name, over the head, in
+  in-character chat and in notices. They see the name after an introduction (a Y/N ask from the H wheel or
+  `/introduce`, taken back with `/forget`), or always if the owner makes it public (`/name`).
 - **Player menu (F10):** tabs with the game's medallions: character (name, since when, time played, gold), account
-  (ReadyM nick, previous visit, sanctions in force, the language choice when the server knows a second one), help
-  with the player's commands under headings (`/help` opens this tab) and the mode's keys.
+  (ReadyM nick, previous visit, sanctions in force, the language choice when the server knows a second one), dice
+  (the set, the last rolls), lore (name Public or Private, the card as the public reads it), help with the player's
+  commands under headings (`/help` opens this tab) and the mode's keys.
 - **In-game administration:** staff roles from the database (moderator, administrator, owner), duty with `/duty`
   (staff actions only on duty, which shows in the name over the head), sanctions with a reason and an audit log
   (kick, ban, mute, freeze, warning, lifting them also for offline players), care of a character (healing, health,
   reviving, gold, the game's items by name and kind, for oneself and for players), a message to a player, teleports
   (to a player, to the gates of cities and settlements, back), the area's time and weather. The `/admin` panel (also
-  from the G and H wheels for the staff): players with a card, items, sanctions in force, the audit log by pages, the
-  world.
+  from the G and H wheels for the staff): players with a card and their lore card (`/alore` clears a field), items,
+  sanctions in force, the audit log by pages, the world, the roll log.
 - **Language:** English (`locales/en`) and Polish (`locales/pl`), chosen in the F10 menu, saved on the account. The
   game's item names are in English in both, because the Polish ones are in the remaster's `Game.locres`, readable
   only with Oodle.

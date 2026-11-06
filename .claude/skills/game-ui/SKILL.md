@@ -20,12 +20,16 @@ description: How Cyrodiil RP shows anything to a player. Use before writing play
 | Who is in the player's party | the panel at the top left, `ui/party`, only to be read | `Parties` sends `PartyState` |
 | Buying from a trader | the trader's window, `ui/trader`, the game's icons and names | `TraderShops`, H over the trader |
 | The player's own record, the commands, the keys | the player's menu, `ui/menu`, F10 or `/help` | `PlayerMenus` sends `MenuState` |
+| Throwing dice | the dice board, `ui/dice`, three.js, the server picks every number | `DiceBoards` sends `DiceState`, `Rolls` is the one place that rolls |
+| A character's card, one's own or another's | the lore card, `ui/lore`, one request and one answer by id | `LoreWindows` opens it, `LoreDesk` answers `LoreAsk` |
 | The staff's tools | the staff's panel, `ui/admin`, `/admin` or the wheels, no key | `AdminPanel`: every button a command of `AdminActions` |
 | A staff action that needs more (a reason, minutes) from the panel | a dialog over the panel that checks it as the server would | `ui/admin/ActionDialog.vue` |
 | Held by the staff (frozen) | a plate at the top, `ui/frozen`, holding the input | `Freezes` sends `Frozen` |
 
 - No chat line as a fallback when a page does not show. A page that does not load is a bug to fix, not a second path.
 - Every line is written in its reader's language (`OnlinePlayer.Locale`).
+- A character's name in a text for players is a `ShownName`, resolved per reader in `RpChat.Translate`: the name to
+  those who know it, the race to strangers. Never `player.Name`.
 
 ## The wheels
 
@@ -83,7 +87,8 @@ At 1366x768 everything is 0.71 of its 1080p size.
 - A page that loses the keyboard to another (the chat when the name form opens) says so without handing it to the game,
   or it would take it from the form.
 - Tab in a page with one field is kept, or it would only lose the keyboard.
-- The mode's keys: G own wheel, H the one in front, K chat, F10 the player's menu. A new bind goes into the menu's Keys
+- The mode's keys: G own wheel, H the one in front, K chat, F10 the player's menu, Home the dice board, End the lore
+  card, Shift+End the card of the player in front. A new bind goes into the menu's Keys
   tab (`ui/menu/tabs.js`), a test ties the two. The key that opens a window closes it too, through its bind only: the
   page leaves it alone, or it would close there and the bind would open it again.
 - Tabs switch on Q and E, read by the key's place, and on the arrows. In game `event.code` is empty, so a page reads
