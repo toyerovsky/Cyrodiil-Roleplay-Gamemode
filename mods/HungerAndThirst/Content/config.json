@@ -70,11 +70,19 @@
   // server sees health a moment late.
   "healthFloor": 10,
 
-  // Seconds between two meals or sips.
+  // Food and drink used from the game's own inventory menu fills the meters too. The player's game reports those
+  // meals, so a modified client could report meals it never had: false leaves eating to the satchel, where the server
+  // takes the item itself.
+  "countInventoryMeals": true,
+
+  // Seconds between two meals or sips from the satchel.
   "consumeCooldownSeconds": 1.5,
 
   // One sip from a lake or river, while swimming.
   "waterHydration": 150,
+
+  // How near another player must stand to be fed, in game units (about a centimetre each).
+  "feedRange": 300,
 
   // How often everyone's meters are saved, and where (next to the server DLL).
   "saveIntervalMinutes": 5,

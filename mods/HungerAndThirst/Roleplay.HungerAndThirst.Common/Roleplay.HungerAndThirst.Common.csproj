@@ -9,7 +9,7 @@
     <!-- Shared code for both halves, so it may only use what both hosts provide. The shared SDK
          project holds exactly that; the source generator comes from Directory.Build.props. -->
     <ItemGroup>
-        <ProjectReference Include="$(OblivionModRoot)OblivionMp.Sdk.Common\OblivionMp.Sdk.Common.csproj" />
+        <ProjectReference Include="$(OblivionModRoot)OblivionMP.SDK.Common\OblivionMP.SDK.Common.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 using System.Numerics;
-using OblivionMp.Sdk.Common.Foliage;
-using OblivionMp.Sdk.Common.Props;
+using OblivionMP.SDK.Common.Foliage;
+using OblivionMP.SDK.Common.Props;
 
 namespace Roleplay.Jobs.Server;
 

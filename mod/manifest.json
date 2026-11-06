@@ -8,6 +8,10 @@
     {
       "uniqueId": "OblivionMP.SDK",
       "minimumVersion": "1.0.0"
+    },
+    {
+      "uniqueId": "Roleplay.HungerAndThirst",
+      "minimumVersion": "0.1.0"
     }
   ]
 }

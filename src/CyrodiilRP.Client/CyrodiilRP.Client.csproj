@@ -5,7 +5,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="ReadyM.SDK.Oblivion.Client" />
+        <ProjectReference Include="$(OblivionModRoot)OblivionMP.SDK\OblivionMP.SDK.csproj" />
+        <ProjectReference Include="$(OblivionModRoot)ReadyM.Cef\ReadyM.Cef.csproj" />
+        <ProjectReference Include="$(OblivionModRoot)ReadyM.Cef.Generators\ReadyM.Cef.Generators.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+        <ProjectReference Include="$(CoreSdkSrc)ReadyM.Api.Generators\ReadyM.Api.Generators.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
         <ProjectReference Include="..\CyrodiilRP.Common\CyrodiilRP.Common.csproj" />
     </ItemGroup>
 

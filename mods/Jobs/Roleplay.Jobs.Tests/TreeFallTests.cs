@@ -1,5 +1,5 @@
 using System.Numerics;
-using OblivionMp.Sdk.Common.Props;
+using OblivionMP.SDK.Common.Props;
 using Roleplay.Jobs.Common;
 using Xunit;
 

@@ -3,63 +3,67 @@ using System.Globalization;
 using System.Numerics;
 using LiteNetLib;
 using Microsoft.Extensions.Logging;
-using OblivionMp.Sdk.Common.Archetypes;
-using OblivionMp.Sdk.Common.Archetypes.Mixins;
-using OblivionMp.Sdk.Common.Foliage;
-using OblivionMp.Sdk.Serverside.Foliage;
-using OblivionMp.Sdk.Serverside.Items;
-using OblivionMp.Sdk.Serverside.Props;
+using OblivionMP.SDK.Common.Archetypes;
+using OblivionMP.SDK.Common.Archetypes.Mixins;
+using OblivionMP.SDK.Common.Foliage;
+using OblivionMP.SDK.Serverside.Foliage;
+using OblivionMP.SDK.Serverside.Items;
+using OblivionMP.SDK.Serverside.Props;
 using ReadyM.Api.Idents;
 using ReadyM.Relay.Common.Oblivion;
 using ReadyM.Relay.Common.Oblivion.ECS.Values;
 using ReadyM.SDK.Archetypes.Core;
-using ReadyM.SDK.Server.Events;
 using ReadyM.SDK.Attributes;
+using ReadyM.SDK.Events;
 using ReadyM.SDK.Server.Entities;
+using ReadyM.SDK.Server.Events;
 using Roleplay.Jobs.Common;
 
 namespace Roleplay.Jobs.Server;
 
 /// <summary>
-/// The authority on woodcutting. A player asks to chop a tree; this checks they stand at a real tree nobody felled,
-/// facing it with an axe in hand, and tells them how to swing. Their client reports each swing that lands on the trunk;
-/// at the last hit needed the tree comes down for everyone (<see cref="IFoliage"/>), the logs go into their inventory,
-/// and a stump marks the spot (<see cref="IProps"/>) until the tree grows back after
-/// <see cref="WoodcuttingConfig.RespawnMinutes"/>.
+/// The authority on woodcutting, which is hitting, as mining is: a client reports each battle axe power attack that
+/// lands on a tree, and this checks the player stands there with an axe in hand (and, with
+/// <see cref="WoodcuttingConfig.LumberCampsOnly"/>, that the tree is in a lumber camp) and counts the hit. A tree comes
+/// down at the hits it needs, from anyone, through <see cref="TreeFelledEvent"/>: it goes for everyone
+/// (<see cref="IFoliage"/>), a stump marks the spot (<see cref="IProps"/>) until it grows back after
+/// <see cref="WoodcuttingConfig.RespawnMinutes"/>, and what it gives is shared by those hits, the best of it to whoever
+/// struck most (<see cref="YieldShare.Share"/>).
 /// </summary>
 [Service]
 public sealed partial class WoodcuttingService(
     IEntities entities,
-    IServerEvents events,
+    IServerEvents serverEvents,
+    INetworkedEvents events,
     IFoliage foliage,
     IProps props,
     WoodcuttingRpcHandlers rpc,
     FelledTreeStore store,
+    JobAreas areas,
     JobsConfig config,
     ILogger logger)
 {
-    private readonly record struct Chop(FoliageId Tree, TreeKind Kind, float Scale, int HitsNeeded, double StartedAt, int Hits, double LastHitAt);
-
-    // The client reports its own position and facing a moment late, and stands a little off the trunk
-    private const float ReachSlack = 75f;
-    private const float FacingSlackDegrees = 15f;
-    // The client judges a hit on the same trunk; the slack only covers float rounding on the wire
+    // The client reports a hit a moment after it landed, from where it stood then
+    private const float ReachSlack = 100f;
+    // The client names the tree its axe struck; the slack only covers float rounding on the wire
     private const float HitSlack = 10f;
     // What a client may claim a tree's scale is; vanilla foliage stays well inside
     private const float MinTreeScale = 0.2f;
     private const float MaxTreeScale = 5f;
-    // A chop nobody finished or cancelled is dropped this long after its last swing
-    private const double AbandonAfterSeconds = 15;
+    // A refusal is said at most this often to one player: every power attack on a tree outside a camp would repeat it
+    private const double RefusalEverySeconds = 8;
 
-    private readonly Dictionary<PlayerId, Chop> _chops = [];
-    // Players whose client asked for the rules, who are told when a tree falls or grows back
+    // Players whose client asked for the rules, who are told when a tree grows back
     private readonly HashSet<PlayerId> _ready = [];
+    private readonly Dictionary<FoliageId, HitTally<PlayerId>> _tallies = [];
+    private readonly Dictionary<PlayerId, double> _lastHitAt = [];
+    private readonly Dictionary<PlayerId, double> _lastRefusedAt = [];
     private readonly Inventories _inventories = new();
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private WoodcuttingConfig Settings => config.Woodcutting;
     private TreeFilter _filter = new([], []);
     private Dictionary<uint, Axe> _axes = [];
-    private List<(FormId Item, TreeDrop Drop)> _drops = [];
+    private Dictionary<TreeDrop, FormId> _dropItems = [];
     private double _nextRegrowCheck;
 
     private double Now => _clock.Elapsed.TotalSeconds;
@@ -68,13 +72,11 @@ public sealed partial class WoodcuttingService(
     {
         _filter = new TreeFilter(Settings.TreeMeshes, Settings.ExcludedMeshes);
         _axes = Settings.Axes.ToDictionary(axe => ParseFormId(axe.Item));
-        _drops = [.. Settings.Drops.Select(drop => (new FormId(ParseFormId(drop.Item)), drop))];
+        _dropItems = Settings.Drops.ToDictionary(drop => drop, drop => new FormId(ParseFormId(drop.Item)));
 
         rpc.Ready += OnReady;
-        rpc.StartRequested += OnStart;
         rpc.HitReported += OnHit;
-        rpc.CancelRequested += OnCancel;
-        events.OnPlayerDisconnected += OnDisconnected;
+        serverEvents.OnPlayerDisconnected += OnDisconnected;
 
         foreach (var tree in store.Felled.ToList())
         {
@@ -90,18 +92,17 @@ public sealed partial class WoodcuttingService(
         }
 
         logger.LogInformation(
-            "Jobs: woodcutting running. Trees are meshes with {Trees} but not {Excluded}; {Hits} hits for a scale 1 oak, {Drops} drops, {Axes} axes, back after {Minutes} min. {Felled} trees felled.",
+            "Jobs: woodcutting by power attack. Trees are meshes with {Trees} but not {Excluded}; {Hits} hits for a scale 1 oak, {Drops} drops, {Axes} axes, back after {Minutes} min; {Where}. {Felled} trees felled.",
             TreeFilter.Join(_filter.TreeMeshes), TreeFilter.Join(_filter.ExcludedMeshes), Settings.BaseHits,
-            _drops.Count, _axes.Count, Settings.RespawnMinutes, store.Felled.Count);
+            _dropItems.Count, _axes.Count, Settings.RespawnMinutes,
+            Settings.LumberCampsOnly ? $"only in {areas.LumberCamps.Count} lumber camps" : "anywhere", store.Felled.Count);
     }
 
     private void Stop()
     {
         rpc.Ready -= OnReady;
-        rpc.StartRequested -= OnStart;
         rpc.HitReported -= OnHit;
-        rpc.CancelRequested -= OnCancel;
-        events.OnPlayerDisconnected -= OnDisconnected;
+        serverEvents.OnPlayerDisconnected -= OnDisconnected;
     }
 
     private void Update()
@@ -121,148 +122,205 @@ public sealed partial class WoodcuttingService(
             logger.LogInformation("Jobs: {Tree} grew back.", tree.Id);
         }
 
-        foreach (var (player, chop) in _chops.Where(pair => Now > pair.Value.StartedAt + LastsFor(pair.Value)).ToList())
-        {
-            _chops.Remove(player);
-            logger.LogInformation("Jobs: {Player} never finished chopping {Tree}, dropped.", player, chop.Tree);
-        }
+        foreach (var (tree, _) in _tallies.Where(pair => Now - pair.Value.LastHitAt > Settings.TreeMemorySeconds).ToList())
+            _tallies.Remove(tree);
     }
 
     private void OnReady(PlayerId player)
     {
         _ready.Add(player);
         rpc.SendWoodcuttingRules(player, TreeFilter.Join(_filter.TreeMeshes), TreeFilter.Join(_filter.ExcludedMeshes),
-            Settings.Reach, Settings.FacingDegrees, Settings.TreesFall, Settings.FallSeconds, Settings.FallDegrees,
-            Settings.FallLieSeconds, Settings.FallSinkSeconds, Settings.FallSinkDepth, Settings.FallViewDistance);
+            Settings.HitRadius, Settings.LumberCampsOnly, _axes.Count > 0 ? Settings.WearPerHit : 0f, Settings.TreesFall,
+            Settings.FallSeconds, Settings.FallDegrees, Settings.FallLieSeconds, Settings.FallSinkSeconds, Settings.FallSinkDepth,
+            Settings.FallViewDistance);
+        if (!Settings.LumberCampsOnly)
+            return;
+        foreach (var camp in areas.LumberCamps)
+            rpc.SendLumberCampAvailable(player, camp.Name, camp.Center.X, camp.Center.Y, camp.Center.Z, camp.Radius);
     }
 
-    private void OnStart(PlayerId player, FoliageId tree, float scale)
+    private void OnHit(PlayerId player, FoliageId tree, float scale, Vector3 at)
     {
-        if (_chops.ContainsKey(player))
+        if (!_filter.IsTree(tree.Mesh))
         {
-            Refuse(player, "You are already chopping.");
+            logger.LogWarning("Jobs: {Player} reported a hit on {Mesh}, which is no tree here. Ignored.", player, tree.Mesh);
+            return;
+        }
+        if (foliage.IsHidden(tree))
+        {
+            logger.LogDebug("Jobs: {Player} hit {Tree}, which is already down. Ignored.", player, tree);
             return;
         }
 
-        if (Refusal(player, tree, out var character) is { } refusal)
+        var treeScale = Math.Clamp(float.IsFinite(scale) ? scale : 1f, MinTreeScale, MaxTreeScale);
+        if (!ChopGeometry.IsOnTrunk(at, tree.Position, Settings.HitRadius * MathF.Max(1f, treeScale) + HitSlack))
+        {
+            logger.LogWarning("Jobs: {Player} reported a hit at {At}, which is off the trunk of {Tree}. Ignored.", player, at, tree);
+            return;
+        }
+        if (TooSoon(player))
+            return;
+        if (Refusal(player, tree, at, out var character, out var axe) is { } refusal)
         {
             Refuse(player, refusal);
             return;
         }
 
         var kind = TreeYield.KindFor(tree.Mesh, Settings);
-        var axe = BestAxeEquipped(character);
-        var treeScale = Math.Clamp(float.IsFinite(scale) ? scale : 1f, MinTreeScale, MaxTreeScale);
         var hitsNeeded = TreeYield.HitsFor(kind, treeScale, axe?.Tier, Settings);
-        _chops[player] = new Chop(tree, kind, treeScale, hitsNeeded, Now, 0, double.NegativeInfinity);
-        rpc.SendChopStarted(player, Settings.Animation, Settings.FirstPersonAnimation, Settings.PlayRate, Settings.SwingSeconds,
-            hitsNeeded * Settings.SwingsPerHit, hitsNeeded, Settings.HitRadius, kind.Match, kind.Tier, axe?.Tier ?? 0, Settings.WearPerHit);
-        rpc.SendChopProgress(player, 0, hitsNeeded);
-        logger.LogInformation("Jobs: {Player} started chopping {Tree}, scale {Scale:0.00}, kind {Kind} (tier {TreeTier}) with {Axe}: {Hits} hits.",
-            player, tree, treeScale, KindName(kind), kind.Tier, axe is null ? "no axe needed" : $"{axe.Name} (tier {axe.Tier})", hitsNeeded);
+        if (!_tallies.TryGetValue(tree, out var tally))
+            _tallies[tree] = tally = new HitTally<PlayerId>();
+        tally.Add(player, Now);
+        _lastHitAt[player] = Now;
+        if (tally.Hits < hitsNeeded)
+        {
+            rpc.SendChopProgress(player, kind.Match, tally.Hits, hitsNeeded);
+            return;
+        }
+
+        if (!entities.TryLookup(player, out Player feller))
+            return;
+        events.RaiseAs(player, new TreeFelledEvent
+        {
+            Feller = feller, Mesh = tree.Mesh, X = tree.X, Y = tree.Y, Z = tree.Z, Kind = kind.Match, Scale = treeScale,
+            FallYaw = FelledTreeProps.FallYaw(character.Position, tree.Position),
+        });
     }
 
-    private void OnHit(PlayerId player, Vector3 at)
+    /// <summary>A tree comes down only while it stands: two last hits at once fell it once.</summary>
+    [EventHandler(Stage.Validate)]
+    public void CheckFelling(in TreeFelledEvent felled, EventContext context)
     {
-        if (!_chops.TryGetValue(player, out var chop))
+        var tree = felled.Tree();
+        if (felled.Mesh is null || !_filter.IsTree(tree.Mesh))
+            context.Cancel(HarvestRefusal.Other);
+        else if (foliage.IsHidden(tree))
+            context.Cancel(HarvestRefusal.Gone);
+    }
+
+    /// <summary>A felling that passed every check, this mod's and any other's: the tree goes, a stump stays, and the
+    /// wood is shared among everyone who hit it.</summary>
+    [EventHandler(Stage.Apply)]
+    public void Fell(in TreeFelledEvent felled, EventContext context)
+    {
+        var tree = felled.Tree();
+        PlayerId feller = felled.Feller.PlayerId;
+        var scale = Math.Clamp(float.IsFinite(felled.Scale) && felled.Scale > 0f ? felled.Scale : 1f, MinTreeScale, MaxTreeScale);
+        var fallYaw = felled.FallYaw;
+        Guard("felling", feller, () => Fell(tree, feller, scale, fallYaw));
+    }
+
+    /// <summary>Tells the feller why the tree stays up: someone else felled it a moment before, or another mod
+    /// refused.</summary>
+    [EventHandler(Stage.Rejected)]
+    public void FellingRefused(in TreeFelledEvent felled, HarvestRefusal reason, EventContext context)
+    {
+        var tree = felled.Tree();
+        PlayerId feller = felled.Feller.PlayerId;
+        if (reason == HarvestRefusal.Gone)
+            _tallies.Remove(tree);
+        logger.LogInformation("Jobs: felling {Tree} by {Player} refused: {Reason}.", tree, feller, reason);
+        rpc.SendChopEnded(feller, (byte)ChopOutcome.Refused, JobEvents.Describe(reason));
+    }
+
+    private void Fell(FoliageId tree, PlayerId feller, float scale, float fallYaw)
+    {
+        var tally = _tallies.Remove(tree, out var hits) ? hits : null;
+        if (tally is null)
         {
-            logger.LogDebug("Jobs: {Player} reported a hit at {At} with no chop going, ignored.", player, at);
-            return;
+            // Raised by another mod with no hits behind it: the feller gets it all
+            tally = new HitTally<PlayerId>();
+            tally.Add(feller, Now);
         }
 
-        if (!ChopGeometry.IsOnTrunk(at, chop.Tree.Position, Settings.HitRadius + HitSlack))
-        {
-            logger.LogWarning("Jobs: {Player} reported a hit at {At}, which is off the trunk of {Tree}. Ignored.", player, at, chop.Tree);
-            return;
-        }
-
-        if (Now - chop.LastHitAt < Settings.MinSecondsBetweenHits)
-        {
-            logger.LogWarning("Jobs: {Player} reported hits on {Tree} {Seconds:0.00} s apart. Ignored.", player, chop.Tree, Now - chop.LastHitAt);
-            return;
-        }
-
-        if (Refusal(player, chop.Tree, out var character) is { } refusal)
-        {
-            _chops.Remove(player);
-            Refuse(player, refusal);
-            return;
-        }
-
-        var hits = chop.Hits + 1;
-        if (hits < chop.HitsNeeded)
-        {
-            _chops[player] = chop with { Hits = hits, LastHitAt = Now };
-            rpc.SendChopProgress(player, hits, chop.HitsNeeded);
-            return;
-        }
-
-        _chops.Remove(player);
-        var felled = new FelledTree(chop.Tree.Mesh, chop.Tree.X, chop.Tree.Y, chop.Tree.Z,
-            DateTime.UtcNow.AddMinutes(Settings.RespawnMinutes), chop.Scale, FelledTreeProps.FallYaw(character.Position, chop.Tree.Position));
-        foliage.Hide(chop.Tree);
+        var felled = new FelledTree(tree.Mesh, tree.X, tree.Y, tree.Z, DateTime.UtcNow.AddMinutes(Settings.RespawnMinutes), scale, fallYaw);
+        foliage.Hide(tree);
         PlaceProps(felled);
         store.Add(felled);
-        foreach (var ready in _ready)
-            rpc.SendTreeFelled(ready, chop.Tree.Mesh, chop.Tree.X, chop.Tree.Y, chop.Tree.Z, chop.Kind.Match, chop.Scale, ready == player,
-                felled.FallYaw);
-        var given = new List<string>();
-        foreach (var (item, drop) in _drops)
+        ShareYield(tree, scale, tally, feller);
+        logger.LogInformation("Jobs: {Player} felled {Tree}, scale {Scale:0.00}, after {Hits}.", feller, tree, scale, tally);
+    }
+
+    // The tree's yield, rolled once, shared by everyone who struck it and is still in the world
+    private void ShareYield(FoliageId tree, float scale, HitTally<PlayerId> tally, PlayerId feller)
+    {
+        var choppers = tally.ByPlayer
+            .Select(entry => (entry.Player, entry.Hits, Found: entities.TryLookup<MainCharacter, PlayerId>(entry.Player, out var character), Character: character))
+            .Where(entry => entry.Found)
+            .ToList();
+        var kind = TreeYield.KindFor(tree.Mesh, Settings);
+        var items = Settings.Drops
+            .SelectMany(drop => Enumerable.Repeat(drop, TreeYield.CountFor(drop, tree.Mesh, kind, scale, Random.Shared.NextDouble)))
+            .ToList();
+        var shared = YieldShare.Share(items, drop => drop.Value, choppers.Select(entry => (entry.Player, entry.Hits)).ToList());
+
+        foreach (var chopper in choppers)
         {
-            var count = TreeYield.CountFor(drop, chop.Tree.Mesh, chop.Kind, chop.Scale, Random.Shared.NextDouble);
-            if (count <= 0)
-                continue;
-            _inventories.Add(character.As<Equipment>(), new InventoryEntry(item, count, 0));
+            var done = chopper.Player == feller ? "Timber!" : "The tree you worked comes down.";
+            var mine = shared[chopper.Player];
+            if (items.Count == 0)
+                Felled(chopper.Player, $"{done} The wood is rotten through: nothing worth taking.");
+            else if (mine.Count == 0)
+                Felled(chopper.Player, $"{done} Others did most of the work: nothing for you.");
+            else
+                Give(chopper.Player, chopper.Character, mine.GroupBy(drop => drop).Select(group => (group.Key, group.Count())).ToList(), done);
+        }
+    }
+
+    private void Give(PlayerId player, MainCharacter character, IReadOnlyList<(TreeDrop Drop, int Count)> drops, string done)
+    {
+        var given = new List<string>();
+        foreach (var (drop, count) in drops)
+        {
+            _inventories.Add(character.As<Equipment>(), new InventoryEntry(_dropItems[drop], count, 0));
             given.Add($"{count} {drop.Name}");
         }
-
-        var what = given.Count > 0 ? $"You get {string.Join(", ", given)}." : "The wood is rotten through: nothing worth taking.";
-        rpc.SendChopEnded(player, (byte)ChopOutcome.Felled, $"Timber! {what}");
-        logger.LogInformation("Jobs: {Player} felled {Tree} in {Seconds:0.0} s for {Given}.", player, chop.Tree, Now - chop.StartedAt,
-            given.Count > 0 ? string.Join(", ", given) : "nothing");
+        Felled(player, $"{done} You get {string.Join(", ", given)}.");
+        logger.LogInformation("Jobs: {Player} got {Given}.", player, string.Join(", ", given));
     }
+
+    private void Felled(PlayerId player, string message) => rpc.SendChopEnded(player, (byte)ChopOutcome.Felled, message);
 
     private void PlaceProps(FelledTree tree)
     {
         props.Place(FelledTreeProps.StumpId(tree.Id), FelledTreeProps.Stump(tree.Id, tree.TreeScale, Settings));
     }
 
-    private void OnCancel(PlayerId player)
-    {
-        if (_chops.Remove(player, out var chop))
-            logger.LogInformation("Jobs: {Player} stopped chopping {Tree}.", player, chop.Tree);
-    }
-
     private void OnDisconnected(Player scope, Guid _, DisconnectReason reason)
     {
         PlayerId player = scope.PlayerId;
-        _chops.Remove(player);
         _ready.Remove(player);
+        _lastHitAt.Remove(player);
+        _lastRefusedAt.Remove(player);
     }
 
-    // Why this player cannot chop this tree now, or null when they can
-    private string? Refusal(PlayerId player, FoliageId tree, out MainCharacter character)
+    // Faster than any swing: a client reporting so is out of step, and the hit is dropped without a word
+    private bool TooSoon(PlayerId player)
     {
+        if (!_lastHitAt.TryGetValue(player, out var last) || Now - last >= Settings.MinSecondsBetweenHits)
+            return false;
+        logger.LogWarning("Jobs: {Player} reported hits {Seconds:0.00} s apart. Ignored.", player, Now - last);
+        return true;
+    }
+
+    // Why this player's hit on this tree does not count, or null when it does
+    private string? Refusal(PlayerId player, FoliageId tree, Vector3 at, out MainCharacter character, out Axe? axe)
+    {
+        axe = null;
         if (!entities.TryLookup<MainCharacter, PlayerId>(player, out character))
             return "Your character is not in the world yet.";
         if (character.IsDead)
             return "You cannot chop wood while dead.";
-        if (!_filter.IsTree(tree.Mesh))
+        if (ChopGeometry.HorizontalDistance(character.Position, at) > Settings.Reach + ReachSlack)
         {
-            logger.LogWarning("Jobs: {Player} asked to chop {Mesh}, which is no tree here.", player, tree.Mesh);
-            return "That is not a tree you can fell.";
-        }
-        if (foliage.IsHidden(tree))
-            return "Someone already felled that tree.";
-        if (_chops.Any(pair => pair.Key != player && pair.Value.Tree == tree))
-            return "Someone else is chopping that tree.";
-        if (ChopGeometry.HorizontalDistance(character.Position, tree.Position) > Settings.Reach + ReachSlack)
+            logger.LogWarning("Jobs: {Player} reported a hit at {At}, {Distance:0} cm from where they stand. Ignored.",
+                player, at, ChopGeometry.HorizontalDistance(character.Position, at));
             return "You are too far from the tree.";
-        if (ChopGeometry.DegreesOffFacing(character.Position, character.Rotation, tree.Position) > Settings.FacingDegrees + FacingSlackDegrees)
-            return "Face the tree to chop it.";
-        if (_axes.Count > 0 && BestAxeEquipped(character) is null)
-            return "You need a battle axe in your hands.";
-        return null;
+        }
+        if (Settings.LumberCampsOnly && !areas.LumberCamps.Any(camp => camp.Holds(tree.Position)))
+            return "This tree is not for felling. Lumber camps are marked on your map.";
+        axe = BestAxeEquipped(character);
+        return _axes.Count > 0 && axe is null ? "Only a battle axe fells a tree." : null;
     }
 
     // The highest tier axe the character has equipped, or null for none (and always when no axe is needed)
@@ -278,12 +336,26 @@ public sealed partial class WoodcuttingService(
         return best;
     }
 
-    // Every swing the client may take on it, then the grace for a client that went quiet
-    private double LastsFor(Chop chop) => chop.HitsNeeded * Settings.SwingsPerHit * Settings.SwingSeconds + AbandonAfterSeconds;
+    private void Refuse(PlayerId player, string message)
+    {
+        if (_lastRefusedAt.TryGetValue(player, out var last) && Now - last < RefusalEverySeconds)
+            return;
+        _lastRefusedAt[player] = Now;
+        rpc.SendChopEnded(player, (byte)ChopOutcome.Refused, message);
+    }
 
-    private static string KindName(TreeKind kind) => kind.Match.Length > 0 ? kind.Match : "default";
-
-    private void Refuse(PlayerId player, string message) => rpc.SendChopEnded(player, (byte)ChopOutcome.Refused, message);
+    // A handler's failure is logged, not thrown into the event's other handlers
+    private void Guard(string what, PlayerId player, Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Jobs: the {What} of {Player} failed.", what, player);
+        }
+    }
 
     private static uint ParseFormId(string text)
     {

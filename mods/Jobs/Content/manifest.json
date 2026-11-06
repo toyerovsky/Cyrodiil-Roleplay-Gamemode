@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "name": "Jobs",
   "author": "ReadyM",
-  "description": "Roleplay jobs. Woodcutting for now: stand at a tree with a battle axe and press G to fell it for logs. The tree is gone for everyone until it grows back. Server-authoritative.",
+  "description": "Roleplay jobs: fell trees with a battle axe power attack, mine ore nodes and quarry stone with a warhammer power attack. Hits from everyone add up and the yield is shared by them. Server-authoritative.",
   "link": "https://ready.mp",
   "dependencies": [
     {

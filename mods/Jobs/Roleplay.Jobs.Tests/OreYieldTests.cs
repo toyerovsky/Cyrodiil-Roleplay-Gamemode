@@ -115,7 +115,7 @@ public class OreYieldTests
         Assert.True(config.QuarriesFromMarkers);
         Assert.Equal("Quarry", config.QuarryMarkerName);
         Assert.Equal(2000f, config.QuarryRadius);
-        Assert.Equal(["Tamriel"], config.QuarryWorldspaces);
+        Assert.Equal(["Tamriel"], new JobsConfig().MarkerWorldspaces);
         Assert.Equal(9, config.Hammers.Count);
         Assert.Equal(1, config.Hammers.Single(hammer => hammer.Name == "Iron Warhammer").Tier);
         Assert.Equal(5, config.Hammers.Single(hammer => hammer.Name == "Daedric Warhammer").Tier);

@@ -6,13 +6,13 @@ namespace Roleplay.Jobs.Server;
 // The server half's entry point. Services and RPC handlers are found on their own; this only tells the stores where
 // the server mod folder is, before any service starts.
 [ModEntry]
-public sealed partial class Mod(FelledTreeStore store, OreNodeStore nodes, QuarryRegistry quarries, ILogger logger)
+public sealed partial class Mod(FelledTreeStore store, OreNodeStore nodes, JobAreas areas, ILogger logger)
 {
     private void Init()
     {
         store.UseFolder(ModDirectory);
         nodes.UseFolder(ModDirectory);
-        quarries.UseFolder(ModDirectory);
+        areas.UseFolder(ModDirectory);
         logger.LogInformation("Jobs: server half loaded from {Folder}.", ModDirectory);
     }
 }

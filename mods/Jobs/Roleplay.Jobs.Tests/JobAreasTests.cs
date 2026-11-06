@@ -1,18 +1,19 @@
 using System.Numerics;
+using Roleplay.Jobs.Common;
 using Roleplay.Jobs.Server;
 using static Roleplay.Jobs.Tests.PluginMapMarkersTests;
 
 namespace Roleplay.Jobs.Tests;
 
-public sealed class QuarryRegistryTests : IDisposable
+public sealed class JobAreasTests : IDisposable
 {
     private readonly string _folder = Directory.CreateTempSubdirectory("jobs-tests-").FullName;
     private readonly JobsConfig _config = new();
     private readonly FelledTreeStoreTests.FailOnErrorLogger _logger = new();
 
-    public QuarryRegistryTests()
+    public JobAreasTests()
     {
-        _config.Mining.PluginFolders = ["Data"];
+        _config.PluginFolders = ["Data"];
         Directory.CreateDirectory(Path.Combine(_folder, "Data"));
     }
 
@@ -47,19 +48,19 @@ public sealed class QuarryRegistryTests : IDisposable
         File.WriteAllBytes(Path.Combine(_folder, "Data", "RoleplayWorld.esp"), Plugin(["Oblivion.esm"],
             Group("WRLD", 0, Group(0x0000003C, 1,
                 Record("REFR", 1, 0, Sub("XMRK", []), Sub("FULL", ZString("Quarry")), Sub("DATA", Floats(0f, 0f, 0f, 0f, 0f, 0f)))))));
-        _config.Mining.Quarries.Add(new QuarryConfig { Name = "Old Quarry", X = 5f, Y = 6f, Z = 7f, Radius = 500f });
+        _config.Mining.Quarries.Add(new AreaConfig { Name = "Old Quarry", X = 5f, Y = 6f, Z = 7f, Radius = 500f });
 
         Assert.Equal(["Old Quarry", "Quarry"], Registry().Quarries.Select(quarry => quarry.Name));
 
         _config.Mining.QuarriesFromMarkers = false;
-        Assert.Equal(new QuarryArea("Old Quarry", new Vector3(5f, 6f, 7f), 500f), Assert.Single(Registry().Quarries));
+        Assert.Equal(new MarkedArea("Old Quarry", new Vector3(5f, 6f, 7f), 500f), Assert.Single(Registry().Quarries));
     }
 
     [Fact]
     public void A_plugin_a_mod_ships_as_client_content_counts_and_one_found_twice_is_read_once()
     {
         // As a server lays it out: mods/<mod>/client/<plugin>, and the same plugin in the modloader's game data
-        _config.Mining.PluginFolders = ["mods", "Data"];
+        _config.PluginFolders = ["mods", "Data"];
         var plugin = Plugin(["Oblivion.esm"],
             Group("WRLD", 0, Group(0x0000003C, 1,
                 Record("REFR", 1, 0, Sub("XMRK", []), Sub("FULL", ZString("Aleswell Quarry")), Sub("DATA", Floats(3000f, 109456f, 11312f, 0f, 0f, 0f))))));
@@ -82,9 +83,42 @@ public sealed class QuarryRegistryTests : IDisposable
         Assert.NotEmpty(_logger.Warnings);
     }
 
-    private QuarryRegistry Registry()
+    [Fact]
+    public void Lumber_camps_come_from_their_markers_only_when_trees_are_kept_to_camps()
     {
-        var registry = new QuarryRegistry(_config, _logger);
+        File.WriteAllBytes(Path.Combine(_folder, "Data", "RoleplayWorld.esp"), Plugin(["Oblivion.esm"],
+            Group("WRLD", 0, Group(0x0000003C, 1,
+                Record("REFR", 1, 0, Sub("XMRK", []), Sub("FULL", ZString("Pell's Gate Lumber Camp")), Sub("DATA", Floats(700f, 1400f, 70f, 0f, 0f, 0f))),
+                Record("REFR", 2, 0, Sub("XMRK", []), Sub("FULL", ZString("Deep Quarry")), Sub("DATA", Floats(0f, 0f, 0f, 0f, 0f, 0f)))))));
+        _config.Woodcutting.LumberCamps.Add(new AreaConfig { Name = "Old Mill", X = 1f, Y = 2f, Z = 3f });
+
+        // Off by default: trees fall anywhere, and only the config's camp is listed
+        var anywhere = Registry();
+        Assert.Equal(["Old Mill"], anywhere.LumberCamps.Select(camp => camp.Name));
+        Assert.Equal(["Deep Quarry"], anywhere.Quarries.Select(quarry => quarry.Name));
+
+        _config.Woodcutting.LumberCampsOnly = true;
+        var camps = Registry().LumberCamps;
+
+        Assert.Equal(["Old Mill", "Pell's Gate Lumber Camp"], camps.Select(camp => camp.Name));
+        Assert.Equal(3000f, camps[0].Radius); // 0 in the config takes lumberCampRadius
+        Assert.True(Vector3.Distance(new Vector3(1000f, -2000f, 100f), camps[1].Center) < 0.01f, $"{camps[1].Center}");
+        Assert.Equal(3000f, camps[1].Radius);
+        Assert.Empty(_logger.Warnings);
+    }
+
+    [Fact]
+    public void Camps_only_with_no_camp_warns_that_no_tree_can_fall()
+    {
+        _config.Woodcutting.LumberCampsOnly = true;
+
+        Assert.Empty(Registry().LumberCamps);
+        Assert.Contains(_logger.Warnings, warning => warning.Contains("no tree can be felled"));
+    }
+
+    private JobAreas Registry()
+    {
+        var registry = new JobAreas(_config, _logger);
         registry.UseFolder(_folder);
         return registry;
     }

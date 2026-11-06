@@ -37,6 +37,16 @@ public class ConfigAndStoreTests
     }
 
     [Fact]
+    public void Inventory_meals_can_be_turned_off()
+    {
+        SustenanceConfig config = JsonSerializer.Deserialize<SustenanceConfig>(
+            """{ "countInventoryMeals": false }""", SdkConfigOptions)!;
+
+        Assert.False(config.CountInventoryMeals);
+        Assert.True(new SustenanceConfig().CountInventoryMeals);
+    }
+
+    [Fact]
     public void Saved_meters_come_back_after_a_restart()
     {
         string folder = Directory.CreateTempSubdirectory("hat-store-").FullName;

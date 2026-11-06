@@ -2,11 +2,12 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
-using OblivionMp.Sdk;
+using OblivionMP.SDK;
 using ReadyM.Cef;
 using ReadyM.Cef.Rpc;
 using ReadyM.SDK.Attributes;
 using OblivionMpCSharpMod.Input;
+using Roleplay.HungerAndThirst.Common;
 
 namespace Roleplay.HungerAndThirst.Client;
 
@@ -85,6 +86,7 @@ public sealed partial class SustenancePage(CefHost cef, IInput input, IPlayers p
     private BrowserHandle? _hudPage;
     private BrowserHandle? _satchelPage;
     private bool _open;
+    private bool _hudEnabled = true;    // false: another mod draws hunger and thirst itself (ILocalSustenance)
     private bool _hudShown;     // the HUD viewport is on screen (in the world, no menu, no dialogue)
     private bool _hudArmed;     // shown at least once since the character last appeared
     private string _message = string.Empty;
@@ -100,6 +102,20 @@ public sealed partial class SustenancePage(CefHost cef, IInput input, IPlayers p
 
     private double Now => _clock.Elapsed.TotalSeconds;
 
+    /// <summary>The satchel is open. Set it to open or close it, as Alt+H does.</summary>
+    public bool SatchelOpen
+    {
+        get => _open;
+        set => Guard("opening or closing the satchel", () => SetOpen(value));
+    }
+
+    /// <summary>False keeps the bars off screen for good, for a mod that draws its own.</summary>
+    public bool HudEnabled
+    {
+        get => _hudEnabled;
+        set => _hudEnabled = value;
+    }
+
     /// <summary>The client mod folder's web\. Set by the entry point before any service starts.</summary>
     public void UseFolder(string folder)
     {
@@ -114,7 +130,7 @@ public sealed partial class SustenancePage(CefHost cef, IInput input, IPlayers p
             return;
         }
         cef.RegisterFolder(Host, _folder);
-        state.MealEaten += OnEaten;
+        state.Meal += OnMeal;
         state.MealRefused += OnRefused;
         _key = input.RegisterKeyBind(ModifierKeys.Alt, Key.H, Toggle, KeySource.Polled);
 
@@ -138,7 +154,7 @@ public sealed partial class SustenancePage(CefHost cef, IInput input, IPlayers p
 
     private void Stop()
     {
-        state.MealEaten -= OnEaten;
+        state.Meal -= OnMeal;
         state.MealRefused -= OnRefused;
         _key?.Dispose();
         if (_open)
@@ -191,7 +207,9 @@ public sealed partial class SustenancePage(CefHost cef, IInput input, IPlayers p
     private bool HudHidden => HiddenFor.Length > 0;
 
     // Why the bars step aside right now, or empty when they don't.
-    private string HiddenFor => !_open && _gameCursor ? "menu cursor" : string.Empty;
+    private string HiddenFor => !_hudEnabled ? "turned off by another mod"
+        : !_open && _gameCursor ? "menu cursor"
+        : string.Empty;
 
     // A load wipes any menu, and the pages may have reported a cursor (the loading screen's) that nobody will report
     // gone: start over, and let the pages report again.
@@ -238,9 +256,19 @@ public sealed partial class SustenancePage(CefHost cef, IInput input, IPlayers p
         Push(force: true);
     }
 
-    private void OnEaten(string name) => Say($"You have some {name}.");
+    // Only meals the player gave or got; other people's are left to whoever wants to show them.
+    private void OnMeal(MealNews meal)
+    {
+        string what = meal.Food?.Name ?? "water";
+        if (meal is { ByMe: true, ToMe: true })
+            Say($"You have some {what}.");
+        else if (meal.ByMe)
+            Say($"You give them some {what}.");
+        else if (meal.ToMe)
+            Say($"You are given some {what}.");
+    }
 
-    private void OnRefused(string reason) => Say(reason);
+    private void OnRefused(MealRefusal reason) => Say(MealRefusals.Describe(reason));
 
     private void Say(string message)
     {
@@ -342,7 +370,7 @@ public sealed partial class SustenancePage(CefHost cef, IInput input, IPlayers p
             if (id == 0)
                 state.DrinkWater();
             else if (id is > 0 and <= uint.MaxValue)
-                state.Use((uint)id);
+                state.Eat((uint)id);
             Push(force: true);
         });
     }

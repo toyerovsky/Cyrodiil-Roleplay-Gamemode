@@ -3,7 +3,7 @@
     <!--
         The mods in this folder build against the SDK projects of an oblivion-mod checkout, not the published
         ReadyM.SDK.Oblivion.* packages: IStatuses, IFoliage, IProps, IAnimations, IWeaponHits, ILocalProps and
-        IEquippedWeapon are in no package yet. They live on oblivion-mod's ai-playground branch.
+        IEquippedWeapon are in no package yet. They live on oblivion-mod's rp-framework branch.
 
         The checkout is OBLIVION_MOD_ROOT (environment) or -p:OblivionModRoot=..., else an oblivion-mod folder next to
         this repository. Its readym-gameserver submodule must be checked out, recursively.
@@ -26,8 +26,8 @@
     </ItemGroup>
 
     <Target Name="CheckOblivionModRoot" BeforeTargets="Restore;Build;CollectPackageReferences">
-        <Error Condition="!Exists('$(OblivionModRoot)OblivionMp.Sdk\OblivionMp.Sdk.csproj')"
-               Text="No oblivion-mod checkout at $(OblivionModRoot). Set OBLIVION_MOD_ROOT to one on the ai-playground branch, see mods/README.md." />
+        <Error Condition="!Exists('$(OblivionModRoot)OblivionMP.SDK\OblivionMP.SDK.csproj')"
+               Text="No oblivion-mod checkout at $(OblivionModRoot). Set OBLIVION_MOD_ROOT to one on the rp-framework branch, see mods/README.md." />
     </Target>
 
 </Project>

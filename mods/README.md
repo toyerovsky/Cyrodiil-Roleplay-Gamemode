@@ -13,7 +13,11 @@ OblivionMP mod (its own `manifest.json`, client and server halves, tests and pac
 ## They need an unreleased SDK
 
 The SDK features these mods use are in no `ReadyM.SDK.Oblivion.*` package yet. They are on oblivion-mod's
-`ai-playground` branch (main plus two commits):
+`rp-framework` branch, main plus the commits below.
+
+**Pinned:** this repository builds and was tested against oblivion-mod **`de27d442`** (`rp-framework` on 2026-11-06,
+on main `80144ae3`), whose `readym-gameserver` is `0070a67b`. The branch gets rebased onto main, so check out the
+commit, not the branch's tip, and move this pin in the same change that ports the code to a newer one.
 
 - **Statuses** (`IStatuses`, client and server): Fortify, Drain, Damage, Restore or any magic effect on a player, for a
   time or until removed. Used by HungerAndThirst and StatusTest. Design: [StatusTest/docs/SDK-CHANGES.md](StatusTest/docs/SDK-CHANGES.md).
@@ -25,7 +29,8 @@ So the mods build against the SDK projects of an oblivion-mod checkout, not the 
 game's OblivionMp mod (`main.dll`, `OblivionMpCSharpMod.dll`) and the SDK mod.
 
 ```powershell
-git clone --branch ai-playground git@github.com:readycodeio/oblivion-mod.git
+git clone --branch rp-framework git@github.com:readycodeio/oblivion-mod.git
+git -C oblivion-mod checkout de27d442                # the pin above
 git -C oblivion-mod submodule update --init --recursive readym-gameserver
 $env:OBLIVION_MOD_ROOT = "$PWD\oblivion-mod\"   # or leave oblivion-mod next to this repository
 dotnet test mods/Jobs/Roleplay.Jobs.sln

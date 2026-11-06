@@ -38,18 +38,13 @@ public sealed class MiningConfig
     // Quarries: rock within QuarryRadius centimeters of a quarry's middle can be quarried, every QuarryHitsPerYield
     // counted hits giving QuarryDrops (rolled as a node's drops, at scale 1). Quarries come from Quarries below and, with
     // QuarriesFromMarkers, from every map marker whose name holds QuarryMarkerName in the plugins the server hands its
-    // players: every .esp and .esm in PluginFolders and their subfolders, relative to this server mod's folder, read once
-    // at start (by default every mod's own folders, a mod shipping its plugin as client content, and the modloader's
-    // game data); a plugin found twice by name is read once. Only markers in one of
-    // QuarryWorldspaces count. Rock is foliage whose mesh name holds one of QuarryMeshes and none of
+    // players (PluginFolders and MarkerWorldspaces at the top). Rock is foliage whose mesh name holds one of QuarryMeshes and none of
     // ExcludedQuarryMeshes, ignoring case; with QuarryLandscape the bare ground inside a quarry counts too. A quarry face
     // does not run out.
     public bool QuarriesFromMarkers { get; set; } = true;
     public string QuarryMarkerName { get; set; } = "Quarry";
     public float QuarryRadius { get; set; } = 2000f;
-    public List<string> PluginFolders { get; set; } = ["../..", "../../../modloader/@GAME/Content/Dev/ObvData/Data"];
-    public List<string> QuarryWorldspaces { get; set; } = ["Tamriel"];
-    public List<QuarryConfig> Quarries { get; set; } = [];
+    public List<AreaConfig> Quarries { get; set; } = [];
     public List<string> QuarryMeshes { get; set; } = ["rock", "cliff", "boulder", "stone"];
     public List<string> ExcludedQuarryMeshes { get; set; } = ["pebble", "path", "decal", "tree", "bush", "shrub"];
     public bool QuarryLandscape { get; set; }
@@ -92,8 +87,8 @@ public sealed class MiningConfig
     // is, against the warhammer's. Every drop is rolled on its own: it drops at all with its Chance, Base of it for a
     // node of scale 1, times the node's scale, where a fraction is a chance of one more, kept between Min and Max. A
     // spent node's yield is shared by everyone who hit it, by their hits, most valuable first (Value, the item's gold
-    // value as the game has it): whoever did most of the work gets the best of it. It grows back after RespawnMinutes. Oblivion has no stone or ore item but nuggets: the stone bricks of its walls are
-    // the common drop.
+    // value as the game has it): whoever did most of the work gets the best of it. It grows back after RespawnMinutes.
+    // Oblivion has no stone or ore item but nuggets: the stone bricks of its walls are the common drop.
     public List<OreKind> Kinds { get; set; } =
     [
         new()
@@ -163,16 +158,6 @@ public sealed class Hammer
     public string Item { get; set; } = "";
     public string Name { get; set; } = "";
     public int Tier { get; set; } = 1;
-}
-
-public sealed class QuarryConfig
-{
-    public string Name { get; set; } = "";
-    public float X { get; set; }
-    public float Y { get; set; }
-    public float Z { get; set; }
-    // 0 for QuarryRadius
-    public float Radius { get; set; }
 }
 
 public sealed class OreKind

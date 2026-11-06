@@ -23,7 +23,7 @@ Each press shows what happened in the top left. Server presses are also logged b
 
 ## Build and deploy
 
-The statuses themselves are in the SDK, on oblivion-mod's ai-playground branch ("Implement IStatuses", with a
+The statuses themselves are in the SDK, on oblivion-mod's rp-framework branch ("Implement IStatuses", with a
 usage doc in `docs/features/statuses/manual.md`). The mod builds against that checkout, since `IStatuses` is in no
 published package yet (see [../README.md](../README.md)):
 

@@ -3,7 +3,7 @@
 Statuses let a ReadyM mod put Fortify, Drain, Damage and Restore effects (or any other magic effect) on a player's
 character, for a time or until removed. The server owns them; the player's client has the game apply them.
 
-- **Where:** oblivion-mod, branch `ai-playground`, commit "Implement IStatuses" (first written on top of
+- **Where:** oblivion-mod, branch `rp-framework`, commit "Implement IStatuses" (first written on top of
   `2026-10-23-mixin-replication-fix`, rebased onto main on 2026-11-04). The server services now take
   `ReadyM.SDK.Server.Events.IServerEvents`, which main moved them to.
 - **Usage doc:** `docs/features/statuses/manual.md` in oblivion-mod.
@@ -18,7 +18,7 @@ server mod ──IStatuses (server)──► PlayerStatusRegistry ──StatusRp
                                                                                                   (TES thread, the engine)
 ```
 
-## Shared types: `OblivionMp.Sdk.Common`
+## Shared types: `OblivionMP.SDK.Common`
 
 | File | What | Why |
 |---|---|---|
@@ -27,9 +27,9 @@ server mod ──IStatuses (server)──► PlayerStatusRegistry ──StatusRp
 | `Statuses/StatusHandle.cs` (new) | `StatusHandle`, `ActiveStatus` | A status is removed or looked up by handle. |
 | `Statuses/StatusRegistry.cs` (new, internal) | One character's statuses with their expiry, on a clock the caller passes | Shared by both sides; pure, so it is unit tested. |
 | `Statuses/StatusRpcContracts.cs` (new, internal) | `StatusesReady` (client to server), `StatusApplied`, `StatusRemoved`, `StatusesCleared` (server to client) | The server owns statuses; a client that joins late or reconnects asks with `StatusesReady` and gets a clean slate plus everything with the time left. |
-| `AssemblyInfo.cs` | `InternalsVisibleTo` `OblivionMp.Sdk` and `OblivionMp.Sdk.Serverside.Tests` | The client SDK handles the internal contract; the tests reach the internal registries. |
+| `AssemblyInfo.cs` | `InternalsVisibleTo` `OblivionMP.SDK` and `OblivionMP.SDK.Serverside.Tests` | The client SDK handles the internal contract; the tests reach the internal registries. |
 
-## Server SDK: `OblivionMp.Sdk.Serverside`
+## Server SDK: `OblivionMP.SDK.Serverside`
 
 | File | What | Why |
 |---|---|---|
@@ -39,7 +39,7 @@ server mod ──IStatuses (server)──► PlayerStatusRegistry ──StatusRp
 | `Statuses/StatusService.cs` (new, internal) | `[Service]` that runs the registry on the server clock, resyncs on `StatusesReady`, forgets a player on disconnect; `StatusesApi` forwards `IStatuses` to it | A `[Service]` is registered by its own type only, so the public interface goes through a thin forwarder to the one instance. |
 | `Mod.cs` | `services.RegisterSingleton<IStatuses, StatusesApi>()` | Makes `IStatuses` injectable. |
 
-## Client SDK: `OblivionMp.Sdk`
+## Client SDK: `OblivionMP.SDK`
 
 | File | What | Why |
 |---|---|---|
@@ -94,7 +94,7 @@ Other rules in the control:
 
 ## Tests
 
-`OblivionMp.Sdk.Serverside.Tests/Statuses/` (new): `StatusEffectTests`, `StatusRegistryTests`,
+`OblivionMP.SDK.Serverside.Tests/Statuses/` (new): `StatusEffectTests`, `StatusRegistryTests`,
 `PlayerStatusRegistryTests`. 137 pass with the existing suite (Debug and Release); the client suite
 (`OblivionMpCSharpMod.Tests`) passes as before (116). The native control is verified in game only, per the repo's
 UE4SS testing rule.

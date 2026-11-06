@@ -1,4 +1,4 @@
-using OblivionMp.Sdk;
+using OblivionMP.SDK;
 using OblivionMpCSharpMod;
 using ReadyM.SDK.Attributes;
 using Roleplay.HungerAndThirst.Common;

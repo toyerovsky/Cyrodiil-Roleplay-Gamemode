@@ -1,5 +1,5 @@
-using OblivionMp.Sdk;
-using OblivionMp.Sdk.Archetypes.Mixins;
+using OblivionMP.SDK;
+using OblivionMP.SDK.Archetypes.Mixins;
 using ReadyM.SDK.Attributes;
 
 namespace CyrodiilRP.Client;

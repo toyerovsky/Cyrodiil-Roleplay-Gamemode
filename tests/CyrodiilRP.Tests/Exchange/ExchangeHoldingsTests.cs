@@ -1,7 +1,7 @@
 using CyrodiilRP.Server.Admin;
 using CyrodiilRP.Server.Exchange;
 using CyrodiilRP.Tests.Fakes;
-using OblivionMp.Sdk.Serverside.Items;
+using OblivionMP.SDK.Serverside.Items;
 using ReadyM.Relay.Common.Oblivion;
 using ReadyM.Relay.Common.Oblivion.ECS.Values;
 

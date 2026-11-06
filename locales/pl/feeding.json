@@ -1,0 +1,16 @@
+{
+  "feeding.option": "Nakarm",
+  "feeding.title": "Nakarm postać {name}",
+  "feeding.item": "{food} ×{count}",
+  "feeding.fed": "* {name} karmi postać {target}: {food}.",
+  "feeding.err.nothing": "Nie masz przy sobie nic do jedzenia ani picia.",
+  "feeding.err.not_in_world": "Postaci {name} nie ma jeszcze w świecie.",
+  "feeding.err.feeder_dead": "Martwi nikogo nie karmią.",
+  "feeding.err.eater_dead": "Postać {name} już nic nie zje.",
+  "feeding.err.too_soon": "Postać {name} jeszcze przeżuwa.",
+  "feeding.err.not_food": "Tego nie da się zjeść ani wypić.",
+  "feeding.err.not_carried": "Nie masz już tego przy sobie.",
+  "feeding.err.water": "Wodę pije się samemu, z jeziora albo rzeki.",
+  "feeding.err.too_far": "Postać {name} jest za daleko.",
+  "feeding.err.other": "Nie udało się nakarmić postaci {name}."
+}

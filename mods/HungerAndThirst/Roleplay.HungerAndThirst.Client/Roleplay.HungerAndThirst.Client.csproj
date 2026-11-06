@@ -9,7 +9,7 @@
     <!-- The in-game SDK and the web UI, from the local oblivion-mod (see Directory.Build.props). The
          game provides these assemblies at runtime, so they never end up in your mod folder. -->
     <ItemGroup>
-        <ProjectReference Include="$(OblivionModRoot)OblivionMp.Sdk\OblivionMp.Sdk.csproj" />
+        <ProjectReference Include="$(OblivionModRoot)OblivionMP.SDK\OblivionMP.SDK.csproj" />
         <ProjectReference Include="$(OblivionModRoot)ReadyM.Cef\ReadyM.Cef.csproj" />
         <ProjectReference Include="$(OblivionModRoot)ReadyM.Cef.Generators\ReadyM.Cef.Generators.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     </ItemGroup>

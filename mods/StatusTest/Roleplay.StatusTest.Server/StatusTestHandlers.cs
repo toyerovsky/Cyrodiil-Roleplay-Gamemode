@@ -1,7 +1,7 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
-using OblivionMp.Sdk.Common.Statuses;
-using OblivionMp.Sdk.Serverside.Statuses;
+using OblivionMP.SDK.Common.Statuses;
+using OblivionMP.SDK.Serverside.Statuses;
 using ReadyM.Api.Idents;
 using ReadyM.Relay.Server.Sdk.Rpc;
 using ReadyM.SDK.Attributes;

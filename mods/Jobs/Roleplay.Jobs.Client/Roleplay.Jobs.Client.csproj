@@ -2,7 +2,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Roleplay.Jobs.Common\Roleplay.Jobs.Common.csproj" />
-        <ProjectReference Include="$(OblivionModRoot)OblivionMp.Sdk\OblivionMp.Sdk.csproj" />
+        <ProjectReference Include="$(OblivionModRoot)OblivionMP.SDK\OblivionMP.SDK.csproj" />
     </ItemGroup>
 
 </Project>

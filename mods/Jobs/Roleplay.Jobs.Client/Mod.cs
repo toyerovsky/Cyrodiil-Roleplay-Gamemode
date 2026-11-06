@@ -12,6 +12,6 @@ public sealed partial class Mod(IContainer container, ILogger logger)
     private void Init()
     {
         container.RegisterDelegate<IWoodcutting>(resolver => resolver.Resolve<WoodcuttingClient>());
-        logger.LogInformation("Jobs: client half loaded. G at a tree with a battle axe equipped chops it; a warhammer's power attack on an ore node, or on rock in a quarry, mines it.");
+        logger.LogInformation("Jobs: client half loaded. A battle axe's power attack on a tree chops it; a warhammer's on an ore node, or on rock in a quarry, mines it.");
     }
 }

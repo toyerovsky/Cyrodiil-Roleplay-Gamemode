@@ -1,6 +1,6 @@
 using CyrodiilRP.Common;
 using CyrodiilRP.Common.Chat;
-using OblivionMp.Sdk;
+using OblivionMP.SDK;
 using OblivionMpCSharpMod;
 using ReadyM.SDK.Attributes;
 

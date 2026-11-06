@@ -1,11 +1,13 @@
 using System.Diagnostics;
+using System.Numerics;
 using LiteNetLib;
 using Microsoft.Extensions.Logging;
-using OblivionMp.Sdk.Common.Archetypes;
-using OblivionMp.Sdk.Common.Archetypes.Mixins;
-using OblivionMp.Sdk.Common.Statuses;
-using OblivionMp.Sdk.Serverside.Items;
-using OblivionMp.Sdk.Serverside.Statuses;
+using OblivionMP.SDK.Common.Archetypes;
+using OblivionMP.SDK.Common.Archetypes.Mixins;
+using OblivionMP.SDK.Common.Events;
+using OblivionMP.SDK.Common.Statuses;
+using OblivionMP.SDK.Serverside.Items;
+using OblivionMP.SDK.Serverside.Statuses;
 using ReadyM.Api.Idents;
 using ReadyM.Relay.Common.Oblivion.ECS.Values;
 using ReadyM.Relay.Common.Oblivion.Rpc;
@@ -13,6 +15,7 @@ using ReadyM.SDK.Server.Events;
 using ReadyM.Relay.Server.Sdk.Players;
 using ReadyM.SDK.Archetypes.Core;
 using ReadyM.SDK.Attributes;
+using ReadyM.SDK.Events;
 using ReadyM.SDK.Server.Entities;
 using Roleplay.HungerAndThirst.Common;
 
@@ -124,6 +127,23 @@ public sealed partial class SustenanceService(
             player, saved.Satiety, saved.Hydration);
     }
 
+    /// <summary>
+    /// Fills a player's meters to the start values (<c>startSatiety</c>, <c>startHydration</c>), as for a character the
+    /// server has never seen: for a mod that gives the player a new character. Their tier effects come off on the
+    /// next update.
+    /// </summary>
+    public void Refill(PlayerId player)
+    {
+        Track(player);
+        Meters meters = _meters[player];
+        meters.Satiety = SustenanceScale.Clamp(config.StartSatiety);
+        meters.Hydration = SustenanceScale.Clamp(config.StartHydration);
+        meters.NextMealAt = 0;
+        Publish(player, meters);
+        logger.LogInformation("HungerAndThirst: {Player} starts afresh at satiety {Satiety}, hydration {Hydration}.",
+            player, config.StartSatiety, config.StartHydration);
+    }
+
     /// <summary>The player's current decay rates, 0 while loading or dead.</summary>
     public (float Satiety, float Hydration) RatesOf(PlayerId player)
     {
@@ -202,12 +222,16 @@ public sealed partial class SustenanceService(
         if (meters.Natural.Health <= 0f || meters.Natural.Fatigue <= 0f)
             return; // the vitals haven't come in yet
 
+        // Damage Health comes off at the floor and only goes back on a few points above it, so health hovering at the
+        // line (the server sees it a moment late) doesn't switch it every update.
+        bool wasDamaging = meters.StatusesFor?.HealthDamage ?? true;
         StatusKey key = new(
             SustenanceEffects.TierAt(_hungerTiers, SustenanceRules.Shown(meters.Satiety)),
             SustenanceEffects.TierAt(_thirstTiers, SustenanceRules.Shown(meters.Hydration)),
-            config.HealthFloor <= 0 || character.Hp > config.HealthFloor);
+            config.HealthFloor <= 0 || character.Hp > config.HealthFloor + (wasDamaging ? 0f : HealthResumeMargin));
         if (meters.StatusesFor == key)
             return;
+        bool tiersMoved = meters.StatusesFor is not { } last || last.Hunger != key.Hunger || last.Thirst != key.Thirst;
 
         // Health as it would be without our own Drain Health, so taking health to the floor doesn't shrink the drain
         // that took it there.
@@ -218,6 +242,16 @@ public sealed partial class SustenanceService(
             key.Hunger >= 0 ? _hungerTiers[key.Hunger] : null,
             key.Thirst >= 0 ? _thirstTiers[key.Thirst] : null,
             meters.Natural, character.Hp + drained, config.HealthFloor, key.HealthDamage);
+
+        // Health reaching the floor only takes Damage Health off or puts it back. A Drain Health worked out again then
+        // would come off and go back on a point smaller, moving health across the floor once more, every update.
+        if (!tiersMoved)
+        {
+            missing.RemoveAll(wanted => wanted.Effect.EffectCode == DrainHealth);
+            missing.AddRange(meters.Statuses
+                .Where(status => status.Effect.EffectCode == DrainHealth)
+                .Select(status => new WantedStatus(status.Effect, status.Vital)));
+        }
 
         for (int i = meters.Statuses.Count - 1; i >= 0; i--)
         {
@@ -240,6 +274,9 @@ public sealed partial class SustenanceService(
 
     private static readonly uint DrainHealth = StatusEffect.Encode("DRHE");
 
+    /// <summary>How far above the health floor Damage Health goes back on, once it came off there.</summary>
+    private const float HealthResumeMargin = 5f;
+
     // The character's maximum of a vital, read only while none of our statuses acts on it, directly or through an
     // attribute: what the server sees may already include them. Until then the last reading stands.
     private static float NaturalOf(Meters meters, Stat vital, float current, float last)
@@ -258,59 +295,155 @@ public sealed partial class SustenanceService(
     }
 
     /// <summary>
-    /// Eats or drinks one <paramref name="formId"/> from the player's inventory: a known food, actually carried, and
-    /// not too soon after the last one. Takes the item on the server, then applies it. False with a reason to show
-    /// the player otherwise.
+    /// Why <paramref name="feeder"/> can't give <paramref name="eater"/> one <paramref name="formId"/> from their pack
+    /// right now (0: a sip of the water the feeder swims in, for themselves only), or null when they can. Every
+    /// <see cref="MealEvent"/> passes this in <c>Stage.Validate</c>.
     /// </summary>
-    public bool TryConsume(PlayerId player, uint formId, out string refusal)
+    public MealRefusal? Check(PlayerId feeder, PlayerId eater, uint formId)
     {
-        if (!CanEatNow(player, out Meters? meters, out MainCharacter character, out refusal))
-            return false;
-        if (!foods.TryGet(formId, out FoodItem food))
+        if (!_meters.TryGetValue(eater, out Meters? meters)
+            || !entities.TryLookup<MainCharacter, PlayerId>(feeder, out MainCharacter giver)
+            || !entities.TryLookup<MainCharacter, PlayerId>(eater, out MainCharacter taker))
+            return MealRefusal.NotInWorld;
+        if (giver.IsDead)
+            return MealRefusal.FeederDead;
+        if (taker.IsDead)
+            return MealRefusal.EaterDead;
+        if (feeder != eater && !AreNear(giver, taker, config.FeedRange))
+            return MealRefusal.TooFar;
+        if (formId == 0)
         {
-            refusal = "You can't eat or drink that.";
-            return false;
+            if (feeder != eater)
+                return MealRefusal.WaterForOthers;
+            if ((giver.CharacterStateFlags & CharacterStateFlags.IsSwimming) == 0)
+                return MealRefusal.NoWater;
         }
-        if (!TryTakeOne(character, formId))
-        {
-            refusal = $"You have no {food.Name} left.";
-            return false;
-        }
-        Feed(player, meters, food.Satiety, food.Hydration);
-        logger.LogInformation("HungerAndThirst: {Player} had {Food} (+{Satiety} satiety, +{Hydration} hydration).",
-            player, food.Name, food.Satiety, food.Hydration);
-        return true;
+        else if (!foods.TryGet(formId, out _))
+            return MealRefusal.NotFood;
+        else if (CountCarried(giver, formId) < 1)
+            return MealRefusal.NotCarried;
+        if (Now < meters.NextMealAt)
+            return MealRefusal.TooSoon;
+        return null;
     }
 
-    /// <summary>A sip from the water the player is swimming in.</summary>
-    public bool TryDrinkWater(PlayerId player, out string refusal)
+    [EventHandler(Stage.Validate)]
+    public void CheckMeal(in MealEvent meal, EventContext context)
     {
-        if (!CanEatNow(player, out Meters? meters, out MainCharacter character, out refusal))
-            return false;
-        if ((character.CharacterStateFlags & CharacterStateFlags.IsSwimming) == 0)
-        {
-            refusal = "There is no water here to drink.";
-            return false;
-        }
-        Feed(player, meters, 0, config.WaterHydration);
-        return true;
+        if (Check(meal.Feeder.PlayerId, meal.Eater.PlayerId, meal.FormId) is { } refusal)
+            context.Cancel(refusal);
     }
 
-    /// <summary>The meters as the client sees them.</summary>
-    public bool TryGetShown(PlayerId player, out int satiety, out int hydration)
+    /// <summary>A meal that passed every check, this mod's and any other's: takes the item from the feeder's pack
+    /// and fills the eater.</summary>
+    [EventHandler(Stage.Apply)]
+    public void ServeMeal(in MealEvent meal, EventContext context)
     {
-        satiety = hydration = 0;
-        if (!_meters.TryGetValue(player, out Meters? meters))
-            return false;
-        satiety = SustenanceRules.Shown(meters.Satiety);
-        hydration = SustenanceRules.Shown(meters.Hydration);
-        return true;
+        PlayerId feeder = meal.Feeder.PlayerId;
+        PlayerId eater = meal.Eater.PlayerId;
+        uint formId = meal.FormId;
+        Guard("meal", feeder, () => Serve(feeder, eater, formId));
+    }
+
+    private void Serve(PlayerId feeder, PlayerId eater, uint formId)
+    {
+        if (!_meters.TryGetValue(eater, out Meters? meters)
+            || !entities.TryLookup<MainCharacter, PlayerId>(feeder, out MainCharacter giver))
+        {
+            logger.LogError("HungerAndThirst: a checked meal from {Feeder} to {Eater} found nobody to serve.", feeder, eater);
+            return;
+        }
+        if (formId == 0)
+        {
+            Feed(eater, meters, 0, config.WaterHydration);
+            return;
+        }
+        if (!foods.TryGet(formId, out FoodItem food) || !TryTakeOne(giver, formId))
+        {
+            logger.LogError("HungerAndThirst: a checked meal of {Item:X8} could not be taken from {Feeder}.", formId, feeder);
+            return;
+        }
+        Feed(eater, meters, food.Satiety, food.Hydration);
+        if (feeder == eater)
+            logger.LogInformation("HungerAndThirst: {Player} had {Food} (+{Satiety} satiety, +{Hydration} hydration).",
+                eater, food.Name, food.Satiety, food.Hydration);
+        else
+            logger.LogInformation("HungerAndThirst: {Feeder} fed {Eater} {Food} (+{Satiety} satiety, +{Hydration} hydration).",
+                feeder, eater, food.Name, food.Satiety, food.Hydration);
     }
 
     /// <summary>
-    /// Applies a meal that already happened. Every way of eating ends here, so a future "player consumed" event from
-    /// the SDK only needs to call this.
+    /// The player ate or drank from the game's own inventory menu. The game used the item already, so only the meters
+    /// move: a food the table knows feeds, anything else (a healing potion) changes nothing. No cooldown, since the
+    /// item is gone either way. The player's client raises this, so it is only taken for that player's own character.
     /// </summary>
+    [EventHandler(Stage.Apply)]
+    public void OnPlayerConsume(in PlayerConsumeEvent consumed, EventContext context)
+    {
+        if (!config.CountInventoryMeals || context.Origin == PlayerId.Server)
+            return;
+        if (!consumed.Character.TryAs(out MainCharacter eater) || eater.PlayerId != context.Origin)
+        {
+            logger.LogWarning("HungerAndThirst: {Player} sent a meal for a character that is not theirs, ignored.",
+                context.Origin);
+            return;
+        }
+
+        PlayerId player = context.Origin;
+        uint formId = consumed.Item.FormId.Value;
+        Guard("inventory meal", player, () => FeedFromInventory(player, formId));
+    }
+
+    private void FeedFromInventory(PlayerId player, uint formId)
+    {
+        if (!_meters.TryGetValue(player, out Meters? meters) || !foods.TryGet(formId, out FoodItem food))
+            return;
+        Feed(player, meters, food.Satiety, food.Hydration);
+        logger.LogInformation(
+            "HungerAndThirst: {Player} had {Food} from the inventory (+{Satiety} satiety, +{Hydration} hydration).",
+            player, food.Name, food.Satiety, food.Hydration);
+    }
+
+    /// <summary>A player's meters as their client sees them, with the decay rates and the tier each meter is in.</summary>
+    public bool TryGetMeters(PlayerId player, out SustenanceMeters view)
+    {
+        view = default;
+        if (!_meters.TryGetValue(player, out Meters? meters))
+            return false;
+        int satiety = SustenanceRules.Shown(meters.Satiety);
+        int hydration = SustenanceRules.Shown(meters.Hydration);
+        view = new SustenanceMeters(satiety, hydration, meters.SatietyRate, meters.HydrationRate,
+            TierName(_hungerTiers, satiety), TierName(_thirstTiers, hydration));
+        return true;
+    }
+
+    /// <summary>The foods and drinks of the table a player carries, by name. Empty while they aren't in the world.</summary>
+    public IReadOnlyList<CarriedFood> CarriedBy(PlayerId player)
+    {
+        if (!entities.TryLookup<MainCharacter, PlayerId>(player, out MainCharacter character))
+            return [];
+        Dictionary<uint, int> counts = [];
+        for (int i = 0; i < character.ItemsCount; i++)
+        {
+            InventoryEntry entry = character.GetItems(i);
+            uint formId = entry.FormId.FormId.Value;
+            if (entry.Worn == 0 && entry.Count > 0 && foods.TryGet(formId, out _))
+                counts[formId] = counts.GetValueOrDefault(formId) + entry.Count;
+        }
+        return counts
+            .Select(pair => foods.TryGet(pair.Key, out FoodItem food) ? new CarriedFood(food, pair.Value) : null)
+            .OfType<CarriedFood>()
+            .OrderBy(carried => carried.Food.Name, StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    private static string? TierName(Tier[] tiers, int shown)
+    {
+        int tier = SustenanceEffects.TierAt(tiers, shown);
+        return tier >= 0 ? tiers[tier].Name : null;
+    }
+
+    /// <summary>Applies a meal that already happened. Every way of eating ends here.</summary>
     public void Feed(PlayerId player, int satiety, int hydration)
     {
         if (_meters.TryGetValue(player, out Meters? meters))
@@ -325,27 +458,25 @@ public sealed partial class SustenanceService(
         Publish(player, meters);
     }
 
-    private bool CanEatNow(PlayerId player, out Meters meters, out MainCharacter character, out string refusal)
+    // Distance only counts within one area: two areas can reuse the same coordinates.
+    private bool AreNear(MainCharacter a, MainCharacter b, float range)
     {
-        character = default;
-        if (!_meters.TryGetValue(player, out meters!)
-            || !entities.TryLookup<MainCharacter, PlayerId>(player, out character))
+        return entities.TryGetScope(a, out Area areaA)
+            && entities.TryGetScope(b, out Area areaB)
+            && areaA.AreaId == areaB.AreaId
+            && Vector3.DistanceSquared(a.Position, b.Position) <= range * range;
+    }
+
+    private static int CountCarried(MainCharacter character, uint formId)
+    {
+        int count = 0;
+        for (int i = 0; i < character.ItemsCount; i++)
         {
-            refusal = "You are not in the world yet.";
-            return false;
+            InventoryEntry entry = character.GetItems(i);
+            if (entry.FormId.FormId.Value == formId && entry.Worn == 0)
+                count += entry.Count;
         }
-        if (character.IsDead)
-        {
-            refusal = "The dead don't eat.";
-            return false;
-        }
-        if (Now < meters.NextMealAt)
-        {
-            refusal = "Still chewing.";
-            return false;
-        }
-        refusal = string.Empty;
-        return true;
+        return count;
     }
 
     // Takes one unworn item of this form out of the character's inventory, matching the stack's own condition so

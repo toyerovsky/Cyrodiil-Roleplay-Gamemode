@@ -1,9 +1,10 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using OblivionMp.Sdk;
-using OblivionMp.Sdk.Common.Foliage;
-using OblivionMp.Sdk.Common.Props;
+using OblivionMP.SDK;
+using OblivionMP.SDK.Common.Foliage;
+using OblivionMP.SDK.Common.Props;
 using ReadyM.SDK.Attributes;
+using ReadyM.SDK.Events;
 using Roleplay.Jobs.Common;
 
 namespace Roleplay.Jobs.Client;
@@ -11,8 +12,8 @@ namespace Roleplay.Jobs.Client;
 /// <summary>
 /// Plays a felled tree coming down, on this client alone: a copy of it, with nothing colliding with it, takes its place,
 /// tips over away from the chopper, lies there, then sinks through the ground and is gone (<see cref="TreeFall"/>). The
-/// tree itself is already hidden by then. Only for a tree felled while this player is near it: one that came down
-/// before they joined or came close is just gone.
+/// tree itself is already hidden by then. Only for a tree felled while this player is near it, in the felling's area
+/// and within the fall's view distance: one that came down before they joined or came close is just gone.
 /// </summary>
 [Service]
 public sealed partial class TreeFallService(
@@ -31,13 +32,11 @@ public sealed partial class TreeFallService(
     private void Start()
     {
         rpc.RulesReceived += OnRules;
-        rpc.TreeFelled += OnTreeFelled;
     }
 
     private void Stop()
     {
         rpc.RulesReceived -= OnRules;
-        rpc.TreeFelled -= OnTreeFelled;
         foreach (var falling in _falling)
             localProps.Remove(falling.Copy);
         _falling.Clear();
@@ -68,10 +67,14 @@ public sealed partial class TreeFallService(
         }
     }
 
-    private void OnRules(TreeFilter filter, float reach, float facingDegrees, TreeFall? fall) => _fall = fall;
+    private void OnRules(WoodcuttingRules rules) => _fall = rules.Fall;
 
-    private void OnTreeFelled(FoliageId tree, string kind, float scale, bool byYou, float fallYaw)
+    /// <summary>A tree came down near this player (<see cref="TreeFelledEvent"/>): its copy starts falling.</summary>
+    [EventHandler(Stage.Apply)]
+    public void Fall(in TreeFelledEvent felled, EventContext context)
     {
+        var tree = felled.Tree();
+        var fallYaw = felled.FallYaw;
         if (_fall is not { } fall || players.LocalMainCharacter is not { } character)
             return;
         if (ChopGeometry.HorizontalDistance(character.Position, tree.Position) > fall.ViewDistance)

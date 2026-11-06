@@ -1,4 +1,4 @@
-using OblivionMp.Sdk.Common.Statuses;
+using OblivionMP.SDK.Common.Statuses;
 using Roleplay.HungerAndThirst.Server;
 using Xunit;
 

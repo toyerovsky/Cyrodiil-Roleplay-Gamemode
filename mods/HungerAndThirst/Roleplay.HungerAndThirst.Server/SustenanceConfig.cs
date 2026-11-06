@@ -59,11 +59,19 @@ public sealed partial class SustenanceConfig
     // since the server sees health a moment late.
     public int HealthFloor { get; set; } = 10;
 
-    // Minimum time between two meals or sips.
+    // Food and drink used from the game's own inventory menu fills the meters too. The player's client reports those
+    // meals, so a modified client could report meals it never had; false leaves eating to the satchel, where the
+    // server takes the item itself.
+    public bool CountInventoryMeals { get; set; } = true;
+
+    // Minimum time between two meals or sips from the satchel.
     public float ConsumeCooldownSeconds { get; set; } = 1.5f;
 
     // What one sip from a lake or river gives (while swimming).
     public int WaterHydration { get; set; } = 150;
+
+    // How near, in game units (about a centimetre each), another player must stand to be fed.
+    public float FeedRange { get; set; } = 300f;
 
     // How often the meters of everyone online are written to SaveFile, in the server mod folder.
     public float SaveIntervalMinutes { get; set; } = 5f;

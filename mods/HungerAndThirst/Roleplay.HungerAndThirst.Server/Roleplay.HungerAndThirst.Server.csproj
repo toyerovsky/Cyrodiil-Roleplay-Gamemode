@@ -9,7 +9,7 @@
     <!-- The relay-server SDK, from the local oblivion-mod (see Directory.Build.props). The server
          provides these assemblies at runtime, so they never end up in your mod folder. -->
     <ItemGroup>
-        <ProjectReference Include="$(OblivionModRoot)OblivionMp.Sdk.Serverside\OblivionMp.Sdk.Serverside.csproj" />
+        <ProjectReference Include="$(OblivionModRoot)OblivionMP.SDK.Serverside\OblivionMP.SDK.Serverside.csproj" />
         <ProjectReference Include="$(CoreSdkSrc)ReadyM.Relay.Server.Sdk\ReadyM.Relay.Server.Sdk.csproj" />
     </ItemGroup>
 

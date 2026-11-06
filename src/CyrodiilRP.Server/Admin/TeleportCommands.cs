@@ -4,8 +4,8 @@ using CyrodiilRP.Data.Staff;
 using CyrodiilRP.Server.Commands;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Players;
-using OblivionMp.Sdk.Common.Archetypes;
-using OblivionMp.Sdk.Common.Archetypes.Mixins;
+using OblivionMP.SDK.Common.Archetypes;
+using OblivionMP.SDK.Common.Archetypes.Mixins;
 using ReadyM.SDK.Attributes;
 using ReadyM.SDK.Server.Entities;
 

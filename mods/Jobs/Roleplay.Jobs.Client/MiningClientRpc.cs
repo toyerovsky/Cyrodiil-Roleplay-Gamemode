@@ -13,20 +13,13 @@ public sealed record MiningRules(float HitRadius, float WearPerHit, TreeFilter Q
 /// <summary>An ore node standing, as <see cref="MiningRpc.NodeAvailable"/> tells it.</summary>
 public readonly record struct OreNodeView(string Id, string Kind, string Asset, Vector3 Position, float Yaw, float Scale);
 
-/// <summary>A quarry, as <see cref="MiningRpc.QuarryAvailable"/> tells it.</summary>
-public readonly record struct QuarryView(string Name, Vector3 Center, float Radius)
-{
-    public bool Holds(Vector3 point) => Vector3.Distance(point, Center) <= Radius;
-}
-
 // The client end of MiningRpc: the generated sends, the server's messages as events for MiningClient.
 [RpcHandlersFor(typeof(MiningRpc))]
 public sealed partial class MiningClientRpc(ILogger logger)
 {
     public event Action<MiningRules>? RulesReceived;
-    public event Action<QuarryView>? QuarryAvailable;
+    public event Action<MarkedArea>? QuarryAvailable;
     public event Action<OreNodeView>? NodeAvailable;
-    public event Action<string, bool>? NodeMined;
     public event Action<string>? NodeRemoved;
     public event Action<string, int, int>? Progressed;
     public event Action<MiningOutcome, string>? Ended;
@@ -41,13 +34,10 @@ public sealed partial class MiningClientRpc(ILogger logger)
             placementAllowed, Split(kindNames))));
 
     partial void OnQuarryAvailable(string name, float x, float y, float z, float radius)
-        => Raise(nameof(OnQuarryAvailable), () => QuarryAvailable?.Invoke(new QuarryView(name, new Vector3(x, y, z), radius)));
+        => Raise(nameof(OnQuarryAvailable), () => QuarryAvailable?.Invoke(new MarkedArea(name, new Vector3(x, y, z), radius)));
 
     partial void OnNodeAvailable(string id, string kind, string asset, float x, float y, float z, float yaw, float scale)
         => Raise(nameof(OnNodeAvailable), () => NodeAvailable?.Invoke(new OreNodeView(id, kind, asset, new Vector3(x, y, z), yaw, scale)));
-
-    partial void OnNodeMined(string id, bool byYou)
-        => Raise(nameof(OnNodeMined), () => NodeMined?.Invoke(id, byYou));
 
     partial void OnNodeRemoved(string id)
         => Raise(nameof(OnNodeRemoved), () => NodeRemoved?.Invoke(id));

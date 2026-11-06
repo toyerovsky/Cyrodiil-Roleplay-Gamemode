@@ -1,6 +1,6 @@
 # Hunger and Thirst
 
-> **Needs the ai-playground build of OblivionMP.** The tiers below are SDK statuses (`IStatuses`), which no published
+> **Needs the rp-framework build of OblivionMP.** The tiers below are SDK statuses (`IStatuses`), which no published
 > package has yet, so the mod builds against an oblivion-mod checkout (see [../README.md](../README.md)). The relay,
 > the game's OblivionMp mod and the SDK mod must be that build too.
 >
@@ -41,8 +41,31 @@ Built on the [OblivionMP mod template](https://github.com/readycodeio/oblivionmp
   Percentages are of the character's own maximum. Fatigue never drains below 1, counting both meters and the
   attributes that add up to it, and health never goes below 10 by default (`healthFloor`; 0 lets them kill).
   Everything is in `config.json`.
-- Food eaten from the vanilla inventory menu does nothing for hunger. SDK 1.0 doesn't let mods see that, see the
-  scope doc.
+- Food and drink used from the game's own inventory menu count too: the game reports each meal (the SDK's
+  `PlayerConsumeEvent`) and the server feeds by the same food table, with no cooldown since the item is gone. A
+  server that only trusts the satchel sets `countInventoryMeals` to false, see the scope doc.
+- One player can feed another standing near (`feedRange`, 300 units) from their own pack. CyrodiilRP offers it on
+  the H wheel (Feed, then the foods carried); any mod can through the APIs below.
+
+## For other mods
+
+Every meal is one networked event, `MealEvent` (Common): `Feeder`, `Eater` (the same player for one's own meal) and
+`FormId` (0 for a sip of water). The server checks it (`MealRefusal`), takes the item from the feeder's pack and fills
+the eater. Another mod can refuse meals in `Stage.Validate` or react to them in `Stage.Observe`, on the server or on
+any client nearby (Area scope).
+
+A mod using the two services below lists `Roleplay.HungerAndThirst` in its manifest's `dependencies`, references the
+mod's projects to build, and leaves the mod's DLLs out of its own package.
+
+**Server, `ISustenance`:** any player's meters, rates and tier (`TryGetMeters`), the food table (`Foods`), what a player
+carries (`CarriedBy`), `Check(feeder, eater, formId)` for a wheel or a button to show why not, and `Feed(feeder, eater,
+formId)`, which raises `MealEvent` as the feeder.
+
+**Client, `ILocalSustenance`:** for a UI of your own. The local player's meters as the bars show them (counted down
+between updates, a meal on its way included), rates, bands (`SustenanceBand`), `InWater`, the food table and what the
+player carries; `Eat`, `DrinkWater` and `Feed(player, formId)`; `SatchelOpen` to open or close the satchel;
+`HudEnabled = false` to hide the mod's bars; the `Meal` and `MealRefused` events. Other players' meters replicate on
+every `Player` as `Satiety` and `Hydration`.
 
 ## Server owners
 
@@ -59,9 +82,9 @@ shutdown. If that file can't be read it is copied to `sustenance.json.broken` an
 
 | Path | What |
 |---|---|
-| `Roleplay.HungerAndThirst.Common/` | the `Sustenance` mixin (`Satiety`, `Hydration` on every player), the meter scale and the RPC contract |
-| `Roleplay.HungerAndThirst.Server/` | the rules, the food table, saving, and the service that runs it all |
-| `Roleplay.HungerAndThirst.Client/` | prediction, warnings and the CEF page service |
+| `Roleplay.HungerAndThirst.Common/` | the `Sustenance` mixin (`Satiety`, `Hydration` on every player), `MealEvent`, the meter scale and the RPC contract |
+| `Roleplay.HungerAndThirst.Server/` | the rules, the food table, saving, the service that runs it all, and `ISustenance` |
+| `Roleplay.HungerAndThirst.Client/` | prediction, warnings, the CEF page service, and `ILocalSustenance` |
 | `Roleplay.HungerAndThirst.Tests/` | xUnit tests for the rules, food table, shipped config and save file |
 | `Content/web/` | the pages: `hud.html` (the bars), `satchel.html`, and `index.html` to preview both in a browser |
 | `Content/config.json` | the server config shipped with the mod |

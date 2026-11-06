@@ -7,17 +7,18 @@
     "treeMeshes": [ "tree" ],
     "excludedMeshes": [ "shrub", "bush", "stump", "branch", "bark" ],
 
-    // How far from the trunk a player can chop, in centimeters, and how far off straight ahead the trunk may be, in
-    // degrees. The character's body has to face the tree: the swing goes where the body faces.
-    "reach": 250,
-    "facingDegrees": 60,
+    // Woodcutting is hitting, as mining is: a power attack with one of the axes below that lands on a tree counts, from
+    // anyone. A hit counts within hitRadius centimeters of the trunk's middle on the ground plane, from a player
+    // standing within reach of where it landed; the server takes no two hits from one player closer than
+    // minSecondsBetweenHits. A tree's hits add up for everyone who strikes it, and are forgotten treeMemorySeconds after
+    // the last one; when it comes down, what it gives is shared by those hits (see drops).
+    "reach": 400,
+    "hitRadius": 150,
+    "minSecondsBetweenHits": 1,
+    "treeMemorySeconds": 120,
 
-    // A tree comes down after a number of swings that land on its trunk, within hitRadius centimeters of its middle:
-    // baseHits for a trunk as thick as a scale 1 oak, more for a thicker one (its kind's girth times its scale), rounded
-    // and kept between minHits and maxHits. The player swings once every swingSeconds and gives up after swingsPerHit
-    // swings for every hit needed. The claymore power attack runs 2.23 s at playRate 1, the warhammer one 2.97 s; 1.8
-    // starts the next swing over the recovery of the last, which looks smoother than letting it finish. The server
-    // takes no two hits closer than minSecondsBetweenHits apart.
+    // A tree comes down after baseHits for a trunk as thick as a scale 1 oak, more for a thicker one (its kind's girth
+    // times its scale), rounded and kept between minHits and maxHits.
     "baseHits": 4,
     "minHits": 2,
     "maxHits": 10,
@@ -32,26 +33,21 @@
     // hammer repairs it). 0 turns it off.
     "wearPerHit": 2,
 
-    "swingsPerHit": 2,
-    "swingSeconds": 1.8,
-    "hitRadius": 120,
-    "minSecondsBetweenHits": 1,
-
-    // The swing: a montage (AM_), which replicates by itself, or an animation sequence (A_), which the chopper's
-    // client sends to the players around. firstPersonAnimation plays with it in first person view, which draws its own
-    // mesh: the same name with _FP, under FirstPerson. "" for none. Under
-    // /Game/Art/Animation/Humanoid/ThirdPerson/TwoHand/Combat/Attacks/ (the first person ones end in _FP for _v0):
-    //   Warhammer first combo swing (on trial):  Warhammer/A_Humanoid_Warhammer_Attack_A_v0.A_Humanoid_Warhammer_Attack_A_v0
-    //   Battle axe third combo swing:            BattleAxe/A_Humanoid_BattleAxe_Attack_C_v0.A_Humanoid_BattleAxe_Attack_C_v0
-    //   Claymore power attack, side to side:     Claymore/AM_Humanoid_Claymore_Attack_Power.AM_Humanoid_Claymore_Attack_Power
-    //   Warhammer power attack, overhead:        Warhammer/AM_Humanoid_Warhammer_Attack_Power.AM_Humanoid_Warhammer_Attack_Power
-    "animation": "/Game/Art/Animation/Humanoid/ThirdPerson/TwoHand/Combat/Attacks/Warhammer/A_Humanoid_Warhammer_Attack_A_v0.A_Humanoid_Warhammer_Attack_A_v0",
-    "firstPersonAnimation": "/Game/Art/Animation/Humanoid/FirstPerson/TwoHand/Combat/Attacks/Warhammer/A_Humanoid_Warhammer_Attack_A_FP.A_Humanoid_Warhammer_Attack_A_FP",
-    "playRate": 1,
+    // Lumber camps: with lumberCampsOnly, a tree can only be felled within lumberCampRadius centimeters of a lumber
+    // camp's middle; without, any tree anywhere. Camps come from lumberCamps below and, with lumberCampsFromMarkers,
+    // from every map marker whose name holds lumberCampMarkerName, read as the quarries' are (pluginFolders and
+    // markerWorldspaces at the bottom). A camp of the config's own, without a map marker, reads:
+    //   { "name": "Old Mill", "x": 12345, "y": -67890, "z": 1234, "radius": 0 }
+    // (centimeters, the Unreal world; radius 0 for lumberCampRadius).
+    "lumberCampsOnly": false,
+    "lumberCampsFromMarkers": true,
+    "lumberCampMarkerName": "Lumber",
+    "lumberCampRadius": 3000,
+    "lumberCamps": [],
 
     // The axes that chop, by form id, each with a tier by its material: against a tree whose kind has a higher tier it
     // takes more hits (tierPenalty), a lower one fewer (tierBonus). The player needs one equipped; the best one
-    // equipped counts. [] lets anyone chop bare-handed, any tree, at the plain number of hits.
+    // equipped counts. [] lets any weapon's power attack chop, at the plain number of hits.
     "axes": [
       { "item": "0x00000D7F", "name": "Iron Battle Axe", "tier": 1 },
       { "item": "0x0003A85F", "name": "Fine Iron Battle Axe", "tier": 1 },
@@ -71,13 +67,15 @@
     // grows with the cube of its scale: scaleExponent 3 is that, 2 counts the trunk's cross-section alone and keeps a
     // giant from giving tenfold, 0 gives the same from any tree. A fraction is a chance of one more: 4.3 gives 5 three
     // times in ten. The count is kept between min and max. kinds, when not empty, limits the entry to trees whose mesh
-    // name holds one of them, as the kinds below match. item is a form id, name what the message calls it.
-    // Oblivion has no log item, so the wood is a stand-in until the mod ships one. A second entry, for leaves from a
-    // tree's crown, half the time, more from a bigger tree, oaks and maples only, would read:
-    //   { "item": "0x000A793E", "name": "Wormwood Leaves", "chance": 0.5, "base": 2, "scaleExponent": 1,
+    // name holds one of them, as the kinds below match. item is a form id, name what the message calls it, value its
+    // gold value as the game has it. A felled tree's yield is shared by everyone who hit it, by their hits, most
+    // valuable first: whoever did most of the work gets the best of it. Oblivion has no log item, so the wood is a
+    // stand-in until the mod ships one. A second entry, for leaves from a tree's crown, half the time, more from a bigger
+    // tree, oaks and maples only, would read:
+    //   { "item": "0x000A793E", "name": "Wormwood Leaves", "value": 1, "chance": 0.5, "base": 2, "scaleExponent": 1,
     //     "scalesWithWood": false, "min": 1, "max": 6, "kinds": [ "Oak", "Maple" ] }
     "drops": [
-      { "item": "0x00044E5E", "name": "Gnarl Bark", "chance": 1, "base": 3, "scaleExponent": 2, "scalesWithWood": true, "min": 1, "max": 20, "kinds": [] }
+      { "item": "0x00044E5E", "name": "Gnarl Bark", "value": 1, "chance": 1, "base": 3, "scaleExponent": 2, "scalesWithWood": true, "min": 1, "max": 20, "kinds": [] }
     ],
 
     // Real minutes until a felled tree grows back.
@@ -160,10 +158,7 @@
     // Quarries: rock within quarryRadius centimeters of a quarry's middle can be quarried, every quarryHitsPerYield
     // counted hits giving quarryDrops (rolled as a node's drops, at scale 1). Quarries come from quarries below and, with
     // quarriesFromMarkers, from every map marker whose name holds quarryMarkerName in the plugins the server hands its
-    // players: every .esp and .esm in pluginFolders and their subfolders, relative to this server mod's folder, read once
-    // at start (by default every mod's own folders, a mod shipping its plugin as client content, and the modloader's
-    // game data); a plugin found twice by name is read once. Only markers in one of
-    // quarryWorldspaces count. Rock is foliage whose mesh name holds one of quarryMeshes and none of
+    // players (pluginFolders and markerWorldspaces at the bottom). Rock is foliage whose mesh name holds one of quarryMeshes and none of
     // excludedQuarryMeshes, ignoring case; with quarryLandscape the bare ground inside a quarry counts too. A quarry face
     // does not run out. A quarry of the config's own, without a map marker, reads:
     //   { "name": "Old Quarry", "x": 12345, "y": -67890, "z": 1234, "radius": 0 }
@@ -171,8 +166,6 @@
     "quarriesFromMarkers": true,
     "quarryMarkerName": "Quarry",
     "quarryRadius": 2000,
-    "pluginFolders": [ "../..", "../../../modloader/@GAME/Content/Dev/ObvData/Data" ],
-    "quarryWorldspaces": [ "Tamriel" ],
     "quarries": [],
     "quarryMeshes": [ "rock", "cliff", "boulder", "stone" ],
     "excludedQuarryMeshes": [ "pebble", "path", "decal", "tree", "bush", "shrub" ],
@@ -212,8 +205,8 @@
     // is, against the warhammer's. Every drop is rolled on its own: it drops at all with its chance, base of it for a
     // node of scale 1, times the node's scale, where a fraction is a chance of one more, kept between min and max. A
     // spent node's yield is shared by everyone who hit it, by their hits, most valuable first (value, the item's gold
-    // value as the game has it): whoever did most of the work gets the best of it. It grows back after respawnMinutes. Oblivion has no stone or ore item but nuggets: the stone bricks of its walls are
-    // the common drop.
+    // value as the game has it): whoever did most of the work gets the best of it. It grows back after respawnMinutes.
+    // Oblivion has no stone or ore item but nuggets: the stone bricks of its walls are the common drop.
     "kinds": [
       {
         "name": "Iron", "asset": "/Game/Forms/worldobjects/container/DL9IronVein01.DL9IronVein01", "scale": 1, "hits": 6, "tier": 1, "respawnMinutes": 20,
@@ -263,5 +256,12 @@
   "saveFile": "felled-trees.json",
 
   // Ore nodes placed in game, and mined ones with when they grow back, next to the server DLL.
-  "nodeSaveFile": "mining-nodes.json"
+  "nodeSaveFile": "mining-nodes.json",
+
+  // Quarries and lumber camps can come from map markers in the plugins the server hands its players: every .esp and
+  // .esm in pluginFolders and their subfolders, relative to this server mod's folder, read once at start (by default
+  // every mod's own folders, a mod shipping its plugin as client content, and the modloader's game data); a plugin
+  // found twice by name is read once. Only markers in one of markerWorldspaces count.
+  "pluginFolders": [ "../..", "../../../modloader/@GAME/Content/Dev/ObvData/Data" ],
+  "markerWorldspaces": [ "Tamriel" ]
 }

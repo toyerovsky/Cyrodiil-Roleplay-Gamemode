@@ -9,7 +9,7 @@ it falls) or hang on a character's socket (a pickaxe in hand), and `IFoliage.Try
 instance stood. `IEquippedWeapon` wears down the local
 player's weapon.
 
-- **Where:** oblivion-mod, branch `ai-playground`, the commit after "Implement IStatuses" (first written on
+- **Where:** oblivion-mod, branch `rp-framework`, the commit after "Implement IStatuses" (first written on
   top of it, rebased onto main on 2026-11-04). The server services now take
   `ReadyM.SDK.Server.Events.IServerEvents`, which main moved them to. The relay must be built from the
   `readym-gameserver` commit that branch pins.
@@ -43,7 +43,7 @@ server mod ──IProps (server)──► PropRegistry ──PropRpcContracts─
 client mod ◄──IWeaponHits── WeaponHitService ◄──binding── LocalWeaponHitControl ◄── ProcessEvent: AVImpactSystemVFXBlueprint::OnStartPlay
 ```
 
-## Shared types: `OblivionMp.Sdk.Common`
+## Shared types: `OblivionMP.SDK.Common`
 
 | File | What | Why |
 |---|---|---|
@@ -53,7 +53,7 @@ client mod ◄──IWeaponHits── WeaponHitService ◄──binding── Lo
 | `Props/PropRpcContracts.cs` (new, internal) | `PropsReady`, `PropPlaced`, `PropRemoved`, `PropsCleared` | Same shape as the foliage contract. |
 | `Foliage/FoliageRpcContracts.cs` (new, internal) | `FoliageReady` (client to server), `FoliageHidden`, `FoliageShown`, `FoliageCleared` (server to client) | Same shape as the statuses contract: a client that joins late or reconnects asks, and gets a clean slate plus everything hidden. |
 
-## Server SDK: `OblivionMp.Sdk.Serverside`
+## Server SDK: `OblivionMP.SDK.Serverside`
 
 | File | What | Why |
 |---|---|---|
@@ -66,7 +66,7 @@ client mod ◄──IWeaponHits── WeaponHitService ◄──binding── Lo
 | `Props/UnrealRotatorTests.cs` (new) | yaw turns forward to the right, pitch up, roll tips the right side down; roll, pitch then yaw; round trips, straight up and down included | |
 | `Props/PropRegistryTests.cs` (new) | resync order, who is told, replacing under an id, refusing an empty asset or a bad scale | |
 
-## Client SDK: `OblivionMp.Sdk`
+## Client SDK: `OblivionMP.SDK`
 
 | File | What | Why |
 |---|---|---|
@@ -153,3 +153,18 @@ Game thread only; managed calls arrive there already (the managed ECS ticks insi
   of another class (the iron vein containers and the stone brick items do not resolve; the pickaxe and the madness ore
   deposit do).
 - Not yet: regrowing (`AddInstance`).
+- Jobs no longer plays its own swing: woodcutting, like mining, is the game's power attack, reported by
+  `IWeaponHits` with the foliage instance struck. `IAnimations` stays in the SDK, unused by Jobs.
+
+## Networked events: no SDK change
+
+A felled tree, a spent node and a quarried block are networked events declared in `Roleplay.Jobs.Common`
+(`TreeFelledEvent`, `OreMinedEvent`, `StoneQuarriedEvent`), on the SDK's `[NetworkedEvent]` as rp-framework already
+has it from main. The server raises them with `INetworkedEvents.RaiseAs`, as the player whose hit did it, from the
+RPC handler that counted the hit: the relay schedules every mod RPC handler onto the world's update loop
+(`ModHostInitializer`), the thread `RaiseAs` requires. They carry strings, ints, floats
+and a `System.Numerics.Vector3`, all of which the event serializer takes.
+
+**Why not replace an SDK hook with them:** the hits stay RPCs. A hit is a claim the server checks (reach, the
+weapon, the tree, the camp) before anything happens, and most hits change nothing anyone else sees; an event per hit
+would fan out to the whole area for nothing. Only the outcome is an event.

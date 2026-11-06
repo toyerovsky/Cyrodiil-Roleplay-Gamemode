@@ -4,8 +4,9 @@ using ReadyM.SDK.Attributes;
 namespace Roleplay.Jobs.Common;
 
 // Mining is hitting: a warhammer's power attack that lands on an ore node, or on rock inside a quarry, is a mining hit.
-// The client reports what its hammer struck; the server checks it, counts, and gives. Ore nodes are props the server
-// places for everyone; quarries are areas around the map markers a server's plugins name "...Quarry...".
+// The client reports what its hammer struck; the server checks it, counts, and gives through OreMinedEvent and
+// StoneQuarriedEvent. Ore nodes are props the server places for everyone; quarries are areas around the map markers a
+// server's plugins name "...Quarry...".
 [RpcContracts]
 public static partial class MiningRpc
 {
@@ -33,10 +34,6 @@ public static partial class MiningRpc
     // A node stands, ready to mine: on joining, when it grows back, when it is placed.
     [ServerToClient]
     public static partial void NodeAvailable(string id, string kind, string asset, float x, float y, float z, float yaw, float scale);
-
-    // A node was mined out, by anyone; byYou when it was this player. It bursts and is gone until it grows back.
-    [ServerToClient]
-    public static partial void NodeMined(string id, bool byYou);
 
     // A node was taken away for good (placement removed it).
     [ServerToClient]

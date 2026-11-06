@@ -253,12 +253,6 @@ html, body {
   color: var(--ink-soft);
 }
 
-.satchel .note {
-  flex-basis: 100%;
-  margin: 2px 0 0;
-  font-size: 12px;
-}
-
 kbd {
   display: inline-block;
   min-width: 1.6em;

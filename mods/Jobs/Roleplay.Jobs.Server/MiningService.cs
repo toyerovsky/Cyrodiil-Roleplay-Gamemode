@@ -3,18 +3,19 @@ using System.Globalization;
 using System.Numerics;
 using LiteNetLib;
 using Microsoft.Extensions.Logging;
-using OblivionMp.Sdk.Common.Archetypes;
-using OblivionMp.Sdk.Common.Archetypes.Mixins;
-using OblivionMp.Sdk.Common.Props;
-using OblivionMp.Sdk.Serverside.Items;
-using OblivionMp.Sdk.Serverside.Props;
+using OblivionMP.SDK.Common.Archetypes;
+using OblivionMP.SDK.Common.Archetypes.Mixins;
+using OblivionMP.SDK.Common.Props;
+using OblivionMP.SDK.Serverside.Items;
+using OblivionMP.SDK.Serverside.Props;
 using ReadyM.Api.Idents;
 using ReadyM.Relay.Common.Oblivion;
 using ReadyM.Relay.Common.Oblivion.ECS.Values;
 using ReadyM.SDK.Archetypes.Core;
-using ReadyM.SDK.Server.Events;
 using ReadyM.SDK.Attributes;
+using ReadyM.SDK.Events;
 using ReadyM.SDK.Server.Entities;
+using ReadyM.SDK.Server.Events;
 using Roleplay.Jobs.Common;
 
 namespace Roleplay.Jobs.Server;
@@ -23,41 +24,24 @@ namespace Roleplay.Jobs.Server;
 /// The authority on mining, which is hitting: a client reports each warhammer power attack that lands on an ore node or
 /// on rock in a quarry, and this checks the player stands there with a warhammer in hand, counts the hit, and gives.
 /// Ore nodes are props this places for everyone (<see cref="IProps"/>): the config's and the ones placed in game. A node
-/// is mined out at the hits it needs, from anyone, and what it gives is shared by those hits, the best of it to whoever
-/// struck most (<see cref="OreYield.Share"/>); it grows back after its kind's respawn time. A quarry gives each player
-/// for their own hits, every few of them, and does not run out.
+/// is mined out at the hits it needs, from anyone, through <see cref="OreMinedEvent"/>, and what it gives is shared by
+/// those hits, the best of it to whoever struck most (<see cref="OreYield.Share"/>); it grows back after its kind's
+/// respawn time. A quarry gives each player for their own hits, every few of them, through
+/// <see cref="StoneQuarriedEvent"/>, and does not run out.
 /// </summary>
 [Service]
 public sealed partial class MiningService(
     IEntities entities,
-    IServerEvents events,
+    IServerEvents serverEvents,
+    INetworkedEvents events,
     IProps props,
     MiningRpcHandlers rpc,
     OreNodeStore store,
-    QuarryRegistry quarries,
+    JobAreas areas,
     JobsConfig config,
     ILogger logger)
 {
     private readonly record struct Standing(OreNode Node, OreKind Kind, bool Placed);
-
-    // Every player's hits on one node, in the order they first struck
-    private sealed class Damage
-    {
-        public readonly List<(PlayerId Player, int Hits)> ByPlayer = [];
-        public double LastHitAt;
-
-        public int Hits => ByPlayer.Sum(entry => entry.Hits);
-
-        public void Add(PlayerId player, double at)
-        {
-            LastHitAt = at;
-            var index = ByPlayer.FindIndex(entry => entry.Player == player);
-            if (index < 0)
-                ByPlayer.Add((player, 1));
-            else
-                ByPlayer[index] = (player, ByPlayer[index].Hits + 1);
-        }
-    }
 
     // The client reports a hit a moment after it landed, from where it stood then
     private const float ReachSlack = 100f;
@@ -70,7 +54,7 @@ public sealed partial class MiningService(
 
     private readonly HashSet<PlayerId> _ready = [];
     private readonly Dictionary<string, Standing> _nodes = [];
-    private readonly Dictionary<string, Damage> _damage = [];
+    private readonly Dictionary<string, HitTally<PlayerId>> _damage = [];
     private readonly Dictionary<(PlayerId Player, string Quarry), int> _quarried = [];
     private readonly Dictionary<PlayerId, double> _lastHitAt = [];
     private readonly Dictionary<PlayerId, double> _lastRefusedAt = [];
@@ -103,10 +87,10 @@ public sealed partial class MiningService(
         rpc.NodeHitReported += OnNodeHit;
         rpc.QuarryHitReported += OnQuarryHit;
         rpc.PlaceRequested += OnPlace;
-        events.OnPlayerDisconnected += OnDisconnected;
+        serverEvents.OnPlayerDisconnected += OnDisconnected;
 
         logger.LogInformation("Jobs: mining running. {Nodes} ore nodes ({Mined} mined out), {Kinds} kinds, {Hammers} warhammers, {Quarries} quarries; placement {Placement}, chips {Chips}.",
-            _nodes.Count, store.Mined.Count, Settings.Kinds.Count, _hammers.Count, quarries.Quarries.Count,
+            _nodes.Count, store.Mined.Count, Settings.Kinds.Count, _hammers.Count, areas.Quarries.Count,
             Settings.AllowNodePlacement ? "on" : "off", Settings.ExperimentalChips ? "on" : "off");
     }
 
@@ -116,7 +100,7 @@ public sealed partial class MiningService(
         rpc.NodeHitReported -= OnNodeHit;
         rpc.QuarryHitReported -= OnQuarryHit;
         rpc.PlaceRequested -= OnPlace;
-        events.OnPlayerDisconnected -= OnDisconnected;
+        serverEvents.OnPlayerDisconnected -= OnDisconnected;
     }
 
     private void Update()
@@ -149,7 +133,7 @@ public sealed partial class MiningService(
             string.Join('|', Settings.ChipAssets), Settings.ChipSpeed, Settings.ChipSeconds, Settings.ChipScale, Settings.BurstPieces,
             Settings.BurstSpeed, Settings.BurstSeconds, Settings.BurstScale, Settings.AllowNodePlacement,
             string.Join('|', Settings.Kinds.Select(kind => kind.Name)));
-        foreach (var quarry in quarries.Quarries)
+        foreach (var quarry in areas.Quarries)
             rpc.SendQuarryAvailable(player, quarry.Name, quarry.Center.X, quarry.Center.Y, quarry.Center.Z, quarry.Radius);
         foreach (var (id, standing) in _nodes)
             if (!store.Mined.ContainsKey(id))
@@ -178,7 +162,7 @@ public sealed partial class MiningService(
 
         var hitsNeeded = OreYield.HitsFor(standing.Kind, standing.Node.Scale, hammer?.Tier, Settings);
         if (!_damage.TryGetValue(id, out var damage))
-            _damage[id] = damage = new Damage();
+            _damage[id] = damage = new HitTally<PlayerId>();
         damage.Add(player, Now);
         Counted(player, at, character);
         if (damage.Hits < hitsNeeded)
@@ -187,18 +171,64 @@ public sealed partial class MiningService(
             return;
         }
 
-        _damage.Remove(id);
+        if (!entities.TryLookup(player, out Player miner))
+            return;
+        events.RaiseAs(player, new OreMinedEvent
+        {
+            Miner = miner, Node = id, Kind = standing.Kind.Name, Position = OreYield.PositionOf(standing.Node),
+            Scale = standing.Kind.Scale * standing.Node.Scale,
+        });
+    }
+
+    /// <summary>A node is mined out only while it stands: two last hits at once spend it once.</summary>
+    [EventHandler(Stage.Validate)]
+    public void CheckMined(in OreMinedEvent mined, EventContext context)
+    {
+        if (mined.Node is null || !_nodes.ContainsKey(mined.Node))
+            context.Cancel(HarvestRefusal.Other);
+        else if (store.Mined.ContainsKey(mined.Node))
+            context.Cancel(HarvestRefusal.Gone);
+    }
+
+    /// <summary>A spent node that passed every check: it goes until it grows back, and what it gives is shared among
+    /// everyone who hit it.</summary>
+    [EventHandler(Stage.Apply)]
+    public void Mine(in OreMinedEvent mined, EventContext context)
+    {
+        var id = mined.Node;
+        PlayerId miner = mined.Miner.PlayerId;
+        Guard("mining", miner, () => Mine(id, miner));
+    }
+
+    [EventHandler(Stage.Rejected)]
+    public void MiningRefused(in OreMinedEvent mined, HarvestRefusal reason, EventContext context)
+    {
+        PlayerId miner = mined.Miner.PlayerId;
+        if (reason == HarvestRefusal.Gone && mined.Node is not null)
+            _damage.Remove(mined.Node);
+        logger.LogInformation("Jobs: mining out {Node} by {Player} refused: {Reason}.", mined.Node, miner, reason);
+        rpc.SendMiningEnded(miner, (byte)MiningOutcome.Refused, JobEvents.Describe(reason));
+    }
+
+    private void Mine(string id, PlayerId finisher)
+    {
+        var standing = _nodes[id];
+        var damage = _damage.Remove(id, out var hits) ? hits : null;
+        if (damage is null)
+        {
+            // Raised by another mod with no hits behind it: the miner gets it all
+            damage = new HitTally<PlayerId>();
+            damage.Add(finisher, Now);
+        }
+
         props.Remove(id);
         store.SetMined(id, DateTime.UtcNow.AddMinutes(standing.Kind.RespawnMinutes));
-        foreach (var ready in _ready)
-            rpc.SendNodeMined(ready, id, ready == player);
-        ShareYield(standing, damage, finisher: player);
-        logger.LogInformation("Jobs: {Player} mined out {Node} with {Hammer}, after {Hits}.", player, id, hammer?.Name ?? "no warhammer needed",
-            string.Join(", ", damage.ByPlayer.Select(entry => $"{entry.Player}: {entry.Hits}")));
+        ShareYield(standing, damage, finisher);
+        logger.LogInformation("Jobs: {Player} mined out {Node}, after {Hits}.", finisher, id, damage);
     }
 
     // The node's yield, rolled once, shared by everyone who struck it and is still in the world
-    private void ShareYield(Standing standing, Damage damage, PlayerId finisher)
+    private void ShareYield(Standing standing, HitTally<PlayerId> damage, PlayerId finisher)
     {
         var miners = damage.ByPlayer
             .Select(entry => (entry.Player, entry.Hits, Found: entities.TryLookup<MainCharacter, PlayerId>(entry.Player, out var character), Character: character))
@@ -213,7 +243,7 @@ public sealed partial class MiningService(
         {
             var done = miner.Player == finisher ? "The vein is spent." : "The vein you worked is spent.";
             var mine = shared[miner.Player];
-            if (mine.Count == 0)
+            if (mine.Count == 0 && items.Count > 0)
             {
                 rpc.SendMiningEnded(miner.Player, (byte)MiningOutcome.Mined, $"{done} Others did most of the work: nothing for you.");
                 continue;
@@ -224,8 +254,8 @@ public sealed partial class MiningService(
 
     private void OnQuarryHit(PlayerId player, string name, Vector3 at, byte struck, string mesh)
     {
-        var quarry = quarries.Quarries.FirstOrDefault(candidate => candidate.Name == name);
-        if (quarry is null || !quarry.Holds(at))
+        var quarry = areas.Quarries.FirstOrDefault(candidate => candidate.Name == name);
+        if (quarry.Name is null || !quarry.Holds(at))
         {
             logger.LogWarning("Jobs: {Player} reported a hit at {At} in quarry {Quarry}, which is no quarry there. Ignored.", player, at, name);
             return;
@@ -254,8 +284,41 @@ public sealed partial class MiningService(
         }
 
         _quarried.Remove(key);
-        var rolled = Settings.QuarryDrops.Select(drop => (drop, OreYield.CountFor(drop, 1f, Random.Shared.NextDouble))).ToList();
-        Give(player, character, rolled, "A block comes loose.");
+        if (!entities.TryLookup(player, out Player quarrier))
+            return;
+        events.RaiseAs(player, new StoneQuarriedEvent { Quarrier = quarrier, Quarry = quarry.Name, Position = at });
+    }
+
+    [EventHandler(Stage.Validate)]
+    public void CheckQuarried(in StoneQuarriedEvent quarried, EventContext context)
+    {
+        var name = quarried.Quarry;
+        if (name is null || !areas.Quarries.Any(quarry => quarry.Name == name))
+            context.Cancel(HarvestRefusal.Other);
+    }
+
+    /// <summary>A block that came loose and passed every check: the quarrier gets the quarry's yield.</summary>
+    [EventHandler(Stage.Apply)]
+    public void Quarry(in StoneQuarriedEvent quarried, EventContext context)
+    {
+        PlayerId player = quarried.Quarrier.PlayerId;
+        var name = quarried.Quarry;
+        Guard("quarrying", player, () =>
+        {
+            if (!entities.TryLookup<MainCharacter, PlayerId>(player, out var character))
+                return;
+            var rolled = Settings.QuarryDrops.Select(drop => (drop, OreYield.CountFor(drop, 1f, Random.Shared.NextDouble))).ToList();
+            Give(player, character, rolled, "A block comes loose.");
+            logger.LogInformation("Jobs: {Player} quarried a block in {Quarry}.", player, name);
+        });
+    }
+
+    [EventHandler(Stage.Rejected)]
+    public void QuarryingRefused(in StoneQuarriedEvent quarried, HarvestRefusal reason, EventContext context)
+    {
+        PlayerId player = quarried.Quarrier.PlayerId;
+        logger.LogInformation("Jobs: a block in {Quarry} for {Player} refused: {Reason}.", quarried.Quarry, player, reason);
+        rpc.SendMiningEnded(player, (byte)MiningOutcome.Refused, JobEvents.Describe(reason));
     }
 
     private bool IsQuarryRock(StruckKind struck, string mesh) => struck switch
@@ -438,6 +501,19 @@ public sealed partial class MiningService(
     }
 
     private void Notice(PlayerId player, string message) => rpc.SendMiningEnded(player, (byte)MiningOutcome.Notice, message);
+
+    // A handler's failure is logged, not thrown into the event's other handlers
+    private void Guard(string what, PlayerId player, Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Jobs: the {What} of {Player} failed.", what, player);
+        }
+    }
 
     private static uint ParseFormId(string text)
     {

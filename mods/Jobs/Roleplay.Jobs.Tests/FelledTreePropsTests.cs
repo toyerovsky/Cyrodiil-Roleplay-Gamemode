@@ -1,5 +1,5 @@
 using System.Numerics;
-using OblivionMp.Sdk.Common.Foliage;
+using OblivionMP.SDK.Common.Foliage;
 using Roleplay.Jobs.Server;
 
 namespace Roleplay.Jobs.Tests;

@@ -1,10 +1,11 @@
 using System.Diagnostics;
 using System.Numerics;
 using Microsoft.Extensions.Logging;
-using OblivionMp.Sdk;
-using OblivionMp.Sdk.Common.Props;
+using OblivionMP.SDK;
+using OblivionMP.SDK.Common.Props;
 using OblivionMpCSharpMod;
 using ReadyM.SDK.Attributes;
+using ReadyM.SDK.Events;
 using OblivionMpCSharpMod.Input;
 using Roleplay.Jobs.Common;
 
@@ -37,7 +38,7 @@ public sealed partial class MiningClient(
 
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private readonly Dictionary<string, OreNodeView> _nodes = [];
-    private readonly List<QuarryView> _quarries = [];
+    private readonly List<MarkedArea> _quarries = [];
     private readonly List<Flying> _flying = [];
     private IDisposable? _placeBind;
     private IDisposable? _cycleBind;
@@ -56,7 +57,6 @@ public sealed partial class MiningClient(
         rpc.RulesReceived += OnRules;
         rpc.QuarryAvailable += OnQuarryAvailable;
         rpc.NodeAvailable += OnNodeAvailable;
-        rpc.NodeMined += OnNodeMined;
         rpc.NodeRemoved += OnNodeRemoved;
         rpc.Progressed += OnProgressed;
         rpc.Ended += OnEnded;
@@ -71,7 +71,6 @@ public sealed partial class MiningClient(
         rpc.RulesReceived -= OnRules;
         rpc.QuarryAvailable -= OnQuarryAvailable;
         rpc.NodeAvailable -= OnNodeAvailable;
-        rpc.NodeMined -= OnNodeMined;
         rpc.NodeRemoved -= OnNodeRemoved;
         rpc.Progressed -= OnProgressed;
         rpc.Ended -= OnEnded;
@@ -111,7 +110,7 @@ public sealed partial class MiningClient(
             rules.QuarryLandscape ? ", and the ground" : "", rules.ChipsPerHit > 0 ? "on" : "off", rules.PlacementAllowed ? "on" : "off");
     }
 
-    private void OnQuarryAvailable(QuarryView quarry)
+    private void OnQuarryAvailable(MarkedArea quarry)
     {
         _quarries.RemoveAll(other => other.Name == quarry.Name);
         _quarries.Add(quarry);
@@ -201,21 +200,27 @@ public sealed partial class MiningClient(
         equippedWeapon.Wear(rules.WearPerHit);
     }
 
-    private void OnNodeMined(string id, bool byYou)
+    /// <summary>A node near this player is spent (<see cref="OreMinedEvent"/>): it bursts into pieces.</summary>
+    [EventHandler(Stage.Apply)]
+    public void Burst(in OreMinedEvent mined, EventContext context)
     {
-        if (!_nodes.Remove(id, out var node) || _rules is not { BurstPieces: > 0, ChipAssets.Count: > 0 } rules
+        if (mined.Node is not null)
+            _nodes.Remove(mined.Node);
+        var position = mined.Position;
+        var scale = mined.Scale > 0f ? mined.Scale : 1f;
+        if (_rules is not { BurstPieces: > 0, ChipAssets.Count: > 0 } rules
             || players.LocalMainCharacter is not { } character
-            || ChopGeometry.HorizontalDistance(character.Position, node.Position) > rules.ViewDistance)
+            || ChopGeometry.HorizontalDistance(character.Position, position) > rules.ViewDistance)
             return;
 
         // The server's prop goes at once; pieces of it fly out where it stood and lie on the ground it stood on
-        var center = node.Position + new Vector3(0f, 0f, 40f * node.Scale);
+        var center = position + new Vector3(0f, 0f, 40f * scale);
         for (var i = 0; i < rules.BurstPieces; i++)
         {
             var path = StoneChip.Burst(center, rules.BurstSpeed * (0.6f + Random.Shared.NextSingle() * 0.8f),
                 (i + Random.Shared.NextSingle()) / rules.BurstPieces, Random.Shared.NextSingle(),
-                (Random.Shared.NextSingle() - 0.5f) * 1080f, node.Position.Z);
-            Throw(path, rules.BurstScale * node.Scale * (0.6f + Random.Shared.NextSingle() * 0.6f), rules.BurstSeconds);
+                (Random.Shared.NextSingle() - 0.5f) * 1080f, position.Z);
+            Throw(path, rules.BurstScale * scale * (0.6f + Random.Shared.NextSingle() * 0.6f), rules.BurstSeconds);
         }
     }
 

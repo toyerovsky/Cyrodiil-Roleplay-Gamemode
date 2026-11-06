@@ -32,39 +32,10 @@ public static class OreYield
         return Math.Clamp(whole, drop.Min, drop.Max);
     }
 
-    /// <summary>
-    /// Shares a spent node's yield, one entry per item, between the players who hit it, by their hits: the items go most
-    /// valuable first, each to whoever is furthest short of their share of the whole. A share counts an item as its
-    /// value plus one, so worthless items still divide by count. Whoever did most of the work gets the best of it; one
-    /// hit among many gets what is left, maybe nothing.
-    /// </summary>
-    /// <param name="hits">Each player's hits; ties go to more hits, then to the earlier in the list.</param>
+    /// <summary>A spent node's yield shared by hits, the best of it to whoever struck most: <see cref="YieldShare.Share"/>.</summary>
     public static Dictionary<TPlayer, List<OreDrop>> Share<TPlayer>(IReadOnlyList<OreDrop> items, IReadOnlyList<(TPlayer Player, int Hits)> hits)
         where TPlayer : notnull
-    {
-        var shares = hits.Where(entry => entry.Hits > 0).ToList();
-        var given = shares.ToDictionary(entry => entry.Player, _ => new List<OreDrop>());
-        if (shares.Count == 0)
-            return given;
-
-        var allHits = (double)shares.Sum(entry => entry.Hits);
-        var whole = items.Sum(item => (double)Weight(item));
-        var owed = shares.Select(entry => whole * entry.Hits / allHits).ToArray();
-        foreach (var item in items.OrderByDescending(item => item.Value))
-        {
-            var taker = 0;
-            for (var i = 1; i < shares.Count; i++)
-            {
-                if (owed[i] > owed[taker] || (owed[i] == owed[taker] && shares[i].Hits > shares[taker].Hits))
-                    taker = i;
-            }
-            given[shares[taker].Player].Add(item);
-            owed[taker] -= Weight(item);
-        }
-        return given;
-    }
-
-    private static int Weight(OreDrop item) => Math.Max(0, item.Value) + 1;
+        => YieldShare.Share(items, item => item.Value, hits);
 
     /// <summary>A node's id: its kind and where it stands, in whole centimeters, the same on every run.</summary>
     public static string NodeId(OreNode node) =>

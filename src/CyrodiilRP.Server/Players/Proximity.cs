@@ -1,5 +1,5 @@
 using System.Numerics;
-using OblivionMp.Sdk.Common.Archetypes;
+using OblivionMP.SDK.Common.Archetypes;
 using ReadyM.Api.Idents;
 using ReadyM.SDK.Archetypes.Core;
 using ReadyM.SDK.Attributes;

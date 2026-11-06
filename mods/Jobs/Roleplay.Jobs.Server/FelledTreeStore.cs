@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
-using OblivionMp.Sdk.Common.Foliage;
+using OblivionMP.SDK.Common.Foliage;
 using ReadyM.SDK.Attributes;
 
 namespace Roleplay.Jobs.Server;

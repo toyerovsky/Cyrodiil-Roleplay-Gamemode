@@ -27,22 +27,18 @@ put together, and we follow it:
 them, so the mod keeps a curated nutrition table that points at those fields. Server owners can change values, add
 items by editor name or hex form id, and remove defaults in `config.json`.
 
-**Detecting that someone ate.** The client runtime does raise a `PlayerConsumeEvent(actor, formId, Eat|Drink)`, but
-only to play the eating animation on other clients: `OblivionMpRpc` sends it as a client-to-clients RPC
-(`AreaOfInterestOthers`), the server just relays it, and the event bus that carries it is internal to
-`OblivionMpCSharpMod`. SDK `1.0.0-rc.3` gives mods no public way to hear it, on the client or the server. And since
-the client sends it, the server could not trust it as is. The alternatives we looked at:
+**Detecting that someone ate.** Two ways in, both ending in `SustenanceService.Feed`:
 
-| Option | Verdict |
-|---|---|
-| Hook `PlayerConsumeEvent` through reflection on internals | Breaks on any SDK update, and the client could fake it anyway. Rejected. |
-| Server diffs the player's inventory (`Equipment` is `OwnershipBased`, so the server sees it) and treats a missing apple as eaten | Cannot tell eating from dropping, selling or stashing. Stash and take back = infinite food. Rejected. |
-| **The player eats through our satchel**: the client asks, the server checks the item is carried, takes one out of the inventory and applies the nutrition | Fully server-authoritative, nothing to exploit. Chosen for 0.1. |
+| Way | How | Trust |
+|---|---|---|
+| **The satchel** | the client asks, the server checks the item is a known food and carried, takes one out of the inventory itself, then feeds; a cooldown between meals | fully server-authoritative |
+| **The game's inventory menu** | the game's own `DrinkPotion` and `EatIngredient` raise the SDK's `PlayerConsumeEvent` (the character, the item's form id, `Eat` or `Drink`), a networked event the eater's client sends; `SustenanceService.OnPlayerConsume` feeds by the same food table, for the sender's own character only, with no cooldown since the game used the item already | the client reports it, so a modified client could report meals it never had; `countInventoryMeals: false` turns this way off |
 
-Eating from the vanilla inventory menu therefore does nothing for hunger in 0.1. Players are told so in the satchel.
-**SDK ask:** expose the existing consume event on the server, for example
-`IServerEvents.OnPlayerConsumed(PlayerId, FormId, ConsumeKind)`. The mod funnels every meal through one method
-(`SustenanceService.TryFeed`), so supporting vanilla eating later is a small change in one place.
+The two never count one meal twice: a satchel meal is the server taking the item, which does not go through the
+game's `DrinkPotion` or `EatIngredient`. Statuses applied as potions (`directApply`) raise no event either.
+
+Rejected along the way: diffing the player's inventory on the server and taking a missing apple as eaten (cannot
+tell eating from dropping, selling or stashing; stash and take back is infinite food).
 
 **UI: CEF over OblivionUI.** [OblivionUI](https://github.com/QueenlyDObnkey7/OblivionUI) (the README link has a stray
 `----` suffix) looks great, and its `HudPanels` progress bars are a natural fit. But 0.9.4 declares SDK `0.2.0`,
@@ -62,6 +58,8 @@ CEF bars without touching the server.
   or in combat (configurable multipliers). Paused while dead.
 - Eating and drinking through `Consume(formId)`: known item, actually carried, not on cooldown. One item is taken
   from the inventory on the server, then the meters go up.
+- Eating and drinking from the game's inventory menu: `PlayerConsumeEvent` from the eater's own client, a known item,
+  no cooldown (`countInventoryMeals`, on by default).
 - Drinking from water: allowed while the server sees the character swimming.
 - Effects: three tiers per meter (below 50%, below 25%, empty), each a set of SDK statuses (`IStatuses`): Drain
   Fatigue as a share of the character's maximum, attribute drains modelled on the real thing (hunger: Willpower,
@@ -90,7 +88,6 @@ CEF bars without touching the server.
 
 ## Out of scope for 0.1
 
-- Eating from the vanilla inventory menu (needs the SDK event above).
 - Cooking, recipes, food spoiling, wells and water skins.
 - Buffs for being well fed, and vanilla food effects (the game still applies those only when eaten the vanilla way).
 - Admin commands (`/feed`, `/setthirst`). Easy to add on top of `SustenanceService` with the chat mod.
@@ -163,6 +160,8 @@ CEF bars without touching the server.
 ## To check in game
 
 1. Eat from the satchel: the item leaves the game inventory and does not come back on the next inventory report.
+   Eat an apple and drink an ale from the game's inventory menu: the bars go up once each, the relay logs
+   "had ... from the inventory", and a healing potion moves nothing.
 2. Each tier's effects show in the active effects under its name, come off when eating moves the meter up a tier,
    and come off at death. Attribute drains show in the stats menu and come back on eating. Starving and Dehydrated
    together leave 1 fatigue (does a power attack knock the character down?). Drain Speed 30 on a low-Speed character

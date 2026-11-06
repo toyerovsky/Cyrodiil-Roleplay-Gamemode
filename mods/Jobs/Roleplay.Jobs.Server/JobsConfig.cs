@@ -15,6 +15,25 @@ public sealed partial class JobsConfig
 
     // Where ore nodes placed in game, and the mined ones with when they grow back, are kept, next to the server DLL.
     public string NodeSaveFile { get; set; } = "mining-nodes.json";
+
+    // Quarries and lumber camps can come from map markers in the plugins the server hands its players: every .esp and
+    // .esm in PluginFolders and their subfolders, relative to this server mod's folder, read once at start (by default
+    // every mod's own folders, a mod shipping its plugin as client content, and the modloader's game data); a plugin
+    // found twice by name is read once. Only markers in one of MarkerWorldspaces count.
+    public List<string> PluginFolders { get; set; } = ["../..", "../../../modloader/@GAME/Content/Dev/ObvData/Data"];
+    public List<string> MarkerWorldspaces { get; set; } = ["Tamriel"];
+}
+
+/// <summary>A quarry or lumber camp the config names: what lies within Radius centimeters of (X, Y, Z), the Unreal
+/// world, is in it.</summary>
+public sealed class AreaConfig
+{
+    public string Name { get; set; } = "";
+    public float X { get; set; }
+    public float Y { get; set; }
+    public float Z { get; set; }
+    // 0 for the kind's default radius
+    public float Radius { get; set; }
 }
 
 public sealed class WoodcuttingConfig
@@ -24,17 +43,18 @@ public sealed class WoodcuttingConfig
     public List<string> TreeMeshes { get; set; } = ["tree"];
     public List<string> ExcludedMeshes { get; set; } = ["shrub", "bush", "stump", "branch", "bark"];
 
-    // How far from the trunk a player can chop, in centimeters, and how far off straight ahead the trunk may be, in
-    // degrees. The character's body has to face the tree: the swing goes where the body faces.
-    public float Reach { get; set; } = 250f;
-    public float FacingDegrees { get; set; } = 60f;
+    // Woodcutting is hitting, as mining is: a power attack with one of Axes that lands on a tree counts, from anyone.
+    // A hit counts within HitRadius centimeters of the trunk's middle on the ground plane, from a player standing
+    // within Reach of where it landed; the server takes no two hits from one player closer than MinSecondsBetweenHits.
+    // A tree's hits add up for everyone who strikes it, and are forgotten TreeMemorySeconds after the last one; when
+    // it comes down, what it gives is shared by those hits (see Drops).
+    public float Reach { get; set; } = 400f;
+    public float HitRadius { get; set; } = 150f;
+    public float MinSecondsBetweenHits { get; set; } = 1f;
+    public float TreeMemorySeconds { get; set; } = 120f;
 
-    // A tree comes down after a number of swings that land on its trunk, within HitRadius of its middle: BaseHits for a
-    // trunk as thick as a scale 1 oak, more for a thicker one (the tree's Girth times its scale), rounded and kept
-    // between MinHits and MaxHits. The player swings once every SwingSeconds and gives up after SwingsPerHit swings for
-    // every hit needed. 1.8 starts the next swing over the recovery of the last, which looks smoother in game than
-    // letting it finish. The server takes no two hits closer than MinSecondsBetweenHits apart, so a client cannot fell
-    // a tree faster than its swings.
+    // A tree comes down after BaseHits for a trunk as thick as a scale 1 oak, more for a thicker one (the tree's Girth
+    // times its scale), rounded and kept between MinHits and MaxHits.
     public int BaseHits { get; set; } = 4;
     public int MinHits { get; set; } = 2;
     public int MaxHits { get; set; } = 10;
@@ -48,24 +68,20 @@ public sealed class WoodcuttingConfig
     // Durability every counted hit takes off the axe, as the game counts it (an iron battle axe has a few hundred, a
     // hammer repairs it). 0 turns it off.
     public float WearPerHit { get; set; } = 2f;
-    public int SwingsPerHit { get; set; } = 2;
-    public float SwingSeconds { get; set; } = 1.8f;
-    public float HitRadius { get; set; } = 120f;
-    public float MinSecondsBetweenHits { get; set; } = 1f;
 
-    // The swing: a montage (AM_), which replicates by itself, or an animation sequence (A_), which the chopper's client
-    // sends to the players around. FirstPersonAnimation plays with it on the first-person mesh, which has its own _FP
-    // ones; "" for none. The warhammer's first combo swing is on trial; the battle axe's third and the claymore power
-    // attack are the alternatives (see config.json).
-    public string Animation { get; set; } =
-        "/Game/Art/Animation/Humanoid/ThirdPerson/TwoHand/Combat/Attacks/Warhammer/A_Humanoid_Warhammer_Attack_A_v0.A_Humanoid_Warhammer_Attack_A_v0";
-    public string FirstPersonAnimation { get; set; } =
-        "/Game/Art/Animation/Humanoid/FirstPerson/TwoHand/Combat/Attacks/Warhammer/A_Humanoid_Warhammer_Attack_A_FP.A_Humanoid_Warhammer_Attack_A_FP";
-    public float PlayRate { get; set; } = 1f;
+    // Lumber camps: with LumberCampsOnly, a tree can only be felled within LumberCampRadius centimeters of a lumber
+    // camp's middle; without, any tree anywhere. Camps come from LumberCamps below and, with LumberCampsFromMarkers,
+    // from every map marker whose name holds LumberCampMarkerName, read as the quarries' are (PluginFolders and
+    // MarkerWorldspaces at the top).
+    public bool LumberCampsOnly { get; set; }
+    public bool LumberCampsFromMarkers { get; set; } = true;
+    public string LumberCampMarkerName { get; set; } = "Lumber";
+    public float LumberCampRadius { get; set; } = 3000f;
+    public List<AreaConfig> LumberCamps { get; set; } = [];
 
     // The axes that chop, by form id, each with a tier by its material: against a tree whose kind has a higher Tier it
     // takes more hits (TierPenalty), a lower one fewer (TierBonus). The player needs one equipped; the best one equipped
-    // counts. Empty lets anyone chop bare-handed, any tree, at the plain number of hits.
+    // counts. Empty lets any weapon's power attack chop, at the plain number of hits.
     public List<Axe> Axes { get; set; } =
     [
         Axe("0x00000D7F", "Iron Battle Axe", 1),
@@ -86,11 +102,12 @@ public sealed class WoodcuttingConfig
     // grows with the cube of its scale: ScaleExponent 3 is that, 2 counts the trunk's cross-section alone and keeps a
     // giant from giving tenfold, 0 gives the same from any tree. A fraction is a chance of one more: 4.3 gives 5 three
     // times in ten. The count is kept between Min and Max. Kinds, when not empty, limits the entry to trees whose mesh
-    // name holds one of them, as Kinds below match.
-    // Oblivion has no log item, so the wood is a stand-in until the mod ships one.
+    // name holds one of them, as Kinds below match. A felled tree's yield is shared by everyone who hit it, by their
+    // hits, most valuable first (Value, the item's gold value as the game has it): whoever did most of the work gets
+    // the best of it. Oblivion has no log item, so the wood is a stand-in until the mod ships one.
     public List<TreeDrop> Drops { get; set; } =
     [
-        new() { Item = "0x00044E5E", Name = "Gnarl Bark", Base = 3f, ScaleExponent = 2f, ScalesWithWood = true, Min = 1, Max = 20 },
+        new() { Item = "0x00044E5E", Name = "Gnarl Bark", Value = 1, Base = 3f, ScaleExponent = 2f, ScalesWithWood = true, Min = 1, Max = 20 },
     ];
 
     // Real minutes until a felled tree grows back.
@@ -153,6 +170,7 @@ public sealed class TreeDrop
 {
     public string Item { get; set; } = "";
     public string Name { get; set; } = "";
+    public int Value { get; set; }
     public float Chance { get; set; } = 1f;
     public float Base { get; set; } = 1f;
     public float ScaleExponent { get; set; } = 0f;

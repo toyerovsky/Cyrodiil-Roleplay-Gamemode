@@ -1,11 +1,11 @@
 using System.Text.Json;
 using CyrodiilRP.Client.Pages;
 using CyrodiilRP.Common.Chat;
-using OblivionMp.Sdk;
+using OblivionMP.SDK;
 using ReadyM.Cef;
 using ReadyM.Cef.Rpc;
 using ReadyM.SDK.Attributes;
-using ReadyM.Sdk.Common.Input;
+using OblivionMpCSharpMod.Input;
 
 namespace CyrodiilRP.Client.Chat;
 
