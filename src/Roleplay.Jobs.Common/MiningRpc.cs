@@ -68,25 +68,3 @@ public static partial class MiningRpc
     [ClientToServer]
     public static partial void PlaceNode(int kindIndex);
 }
-
-/// <summary>How a mining hit turned out, as the server tells the client.</summary>
-public enum MiningOutcome : byte
-{
-    /// <summary>A node is mined out, or the quarry gave its yield: what it gave is in the player's inventory.</summary>
-    Mined = 1,
-
-    /// <summary>The server would not count it; the message says why.</summary>
-    Refused = 2,
-
-    /// <summary>Nothing was going on: a message for the player, such as what placement did.</summary>
-    Notice = 3,
-}
-
-/// <summary>What a weapon hit struck, as the client reports it: the SDK's StruckSurface, which this side cannot see.</summary>
-public enum StruckKind : byte
-{
-    Nothing = 0,
-    Landscape = 1,
-    Foliage = 2,
-    Other = 3,
-}

@@ -9,14 +9,6 @@ using ReadyM.SDK.Attributes;
 
 namespace Roleplay.Jobs.Client;
 
-/// <summary>A line under the panel's bar: what a hit or a felling gave, a hint, or why something was refused.</summary>
-public enum PanelLineKind
-{
-    Gain,
-    Note,
-    Refusal,
-}
-
 /// <summary>
 /// The Jobs panel (web\panel.html, plain HTML): a small half-transparent plate at the top right, 30% down the screen,
 /// showing the tree, vein or quarry the player last hit, how far along it is, and what came of it. It shows on every

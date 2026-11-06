@@ -6,14 +6,6 @@ using Roleplay.Jobs.Common;
 
 namespace Roleplay.Jobs.Client;
 
-/// <summary>What <see cref="WoodcuttingRpc.WoodcuttingRules"/> says woodcutting looks like on this server. Fall is
-/// null when felled trees just vanish; ChipsPerHit 0 throws no chips off a hit.</summary>
-public sealed record WoodcuttingRules(TreeFilter Trees, float HitRadius, bool LumberCampsOnly, TreeFall? Fall, float ViewDistance,
-    int ChipsPerHit, IReadOnlyList<string> ChipAssets, float ChipSpeed, float ChipSeconds, float ChipScale);
-
-/// <summary>What <see cref="WoodcuttingRpc.ChopProgress"/> says about this player's hit.</summary>
-public readonly record struct ChopProgressNews(string Kind, int Damage, int Health, float Wear);
-
 // The client end of WoodcuttingRpc: the sends are generated here, the server's messages go out as events for
 // WoodcuttingClient and TreeFallService, which this cannot depend on because they depend on this.
 [RpcHandlersFor(typeof(WoodcuttingRpc))]

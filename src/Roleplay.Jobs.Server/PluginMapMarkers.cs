@@ -5,11 +5,6 @@ using System.Text;
 
 namespace Roleplay.Jobs.Server;
 
-/// <summary>A named map marker an Oblivion plugin places, where the game files put it, in its worldspace.</summary>
-/// <param name="Worldspace">The worldspace's editor id, such as Tamriel; empty when the plugin does not say.</param>
-/// <param name="Position">In game file units, as the plugin stores it.</param>
-public sealed record PluginMapMarker(string Name, string Worldspace, Vector3 Position);
-
 /// <summary>
 /// Reads the named map markers out of an Oblivion plugin (.esp or .esm): the references that carry map marker data
 /// (an XMRK subrecord) and a name (FULL), with the worldspace each is placed in. Reads only what that needs and nothing

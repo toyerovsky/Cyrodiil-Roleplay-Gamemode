@@ -1,5 +1,4 @@
 using OblivionMP.SDK.Common.Foliage;
-using ReadyM.Api.Idents;
 using Roleplay.Jobs.Common;
 
 namespace Roleplay.Jobs.Client;
@@ -51,32 +50,3 @@ public interface IWoodcutting
     /// <summary>A felled tree grew back.</summary>
     event Action<FoliageId>? TreeGrewBack;
 }
-
-/// <summary>A hit the server counted.</summary>
-/// <param name="Tree">The tree.</param>
-/// <param name="Kind">The kind of tree as the server's config names it, such as "Oak"; empty for a tree of no listed kind.</param>
-/// <param name="Damage">Damage it has taken so far, from everyone.</param>
-/// <param name="Health">Damage that fells it, with this player's axe.</param>
-public readonly record struct ChopHit(FoliageId Tree, string Kind, int Damage, int Health);
-
-/// <summary>How a chop turned out: the sentence Jobs has for it, and for a felling what the player got, each such as
-/// "3 Gnarl Bark" (empty when nothing).</summary>
-public readonly record struct ChopEnd(ChopEndReason Reason, string Message, IReadOnlyList<string> Gains);
-
-public enum ChopEndReason
-{
-    /// <summary>A tree this player hit came down; the message lists what they got.</summary>
-    Felled,
-
-    /// <summary>The server would not count the hit, or the tree would not come down; the message says why.</summary>
-    Refused,
-
-    /// <summary>The hit glanced off a dull axe and did nothing.</summary>
-    Glanced,
-}
-
-/// <summary>A tree that came down.</summary>
-/// <param name="Kind">The kind of tree as the server's config names it; empty for a tree of no listed kind.</param>
-/// <param name="Feller">Whose hit felled it; everyone who hit it shares the wood.</param>
-/// <param name="ByLocalPlayer">Whether this player's hit felled it.</param>
-public readonly record struct FelledTree(FoliageId Tree, string Kind, float Scale, PlayerId Feller, bool ByLocalPlayer);

@@ -5,17 +5,6 @@ using Roleplay.Jobs.Common;
 
 namespace Roleplay.Jobs.Client;
 
-/// <summary>What <see cref="MiningRpc.MiningRules"/> says mining looks like on this server.</summary>
-public sealed record MiningRules(float HitRadius, TreeFilter QuarryRock, bool QuarryLandscape, float ViewDistance, int ChipsPerHit,
-    IReadOnlyList<string> ChipAssets, float ChipSpeed, float ChipSeconds, float ChipScale, int BurstPieces, float BurstSpeed,
-    float BurstSeconds, float BurstScale, bool PlacementAllowed, IReadOnlyList<string> KindNames);
-
-/// <summary>What <see cref="MiningRpc.MiningProgress"/> says about this player's hit.</summary>
-public readonly record struct MiningProgressNews(string What, int Damage, int Health, float Wear);
-
-/// <summary>An ore node standing, as <see cref="MiningRpc.NodeAvailable"/> tells it.</summary>
-public readonly record struct OreNodeView(string Id, string Kind, string Asset, Vector3 Position, float Yaw, float Scale);
-
 // The client end of MiningRpc: the generated sends, the server's messages as events for MiningClient.
 [RpcHandlersFor(typeof(MiningRpc))]
 public sealed partial class MiningClientRpc(ILogger logger)
