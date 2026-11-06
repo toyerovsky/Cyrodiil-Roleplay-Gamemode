@@ -15,6 +15,7 @@ using ReadyM.SDK.Server.Entities;
 
 namespace CyrodiilRP.Server.Traders;
 
+// /anpc stands the mode's people, a trader of a shop or a banker, takes one away and lists them.
 [Service]
 internal sealed partial class TraderCommands(
     CommandRegistry commands,
@@ -28,11 +29,13 @@ internal sealed partial class TraderCommands(
     private const string PlaceAction = "trader.place";
     private const string RemoveAction = "trader.remove";
     private const string Here = "here";
+    private const string Trader = "trader";
+    private const string Banker = "banker";
     private const string Remove = "remove";
     private const string List = "list";
     private const string ShopSeparator = ", ";
 
-    private void Start() => commands.AddStaff(StaffPermissions.Trader, TraderText.CmdTrader, Run, needsCharacter: true);
+    private void Start() => commands.AddStaff(StaffPermissions.Npc, TraderText.CmdNpc, Run, needsCharacter: true);
 
     private void Run(CommandCall call)
     {
@@ -51,19 +54,15 @@ internal sealed partial class TraderCommands(
                 break;
 
             default:
-                call.Refuse(TraderText.CmdTrader);
+                call.Refuse(TraderText.CmdNpc);
                 break;
         }
     }
 
     private void Place(CommandCall call)
     {
-        var shop = call.Words.Count > 1 ? call.Words[1] : string.Empty;
-        if (WareCatalog.Shipped.FindShop(shop) is null)
-        {
-            call.Refuse(TraderText.UnknownShop(shop, string.Join(ShopSeparator, WareCatalog.Shipped.Shops.Select(s => s.Name))));
+        if (ReadShop(call) is not { } shop)
             return;
-        }
 
         if (!entities.TryLookup(call.Sender.Id, out MainCharacter main) || !entities.TryGetScope(main, out Area area))
         {
@@ -107,13 +106,39 @@ internal sealed partial class TraderCommands(
 
             audit.Log(PlaceAction, by.Ref, null, new SpotDetails(spot.Id, shop, spot.Area, spot.Cell));
             if (by.IsLive)
-                call.Reply(TraderText.Placed(shop, spot.Id));
+                call.Reply(spot.Kind switch
+                {
+                    TraderSpotKind.Shop => TraderText.Placed(shop, spot.Id),
+                    TraderSpotKind.Banker => TraderText.PlacedBanker(spot.Id),
+                });
         });
+    }
+
+    // The shop of the spot to make: a trader's own, or the bank for a banker. Null once the call is refused.
+    private static string? ReadShop(CommandCall call)
+    {
+        switch (call.Words.Count > 1 ? call.Words[1] : string.Empty)
+        {
+            case Banker:
+                return TraderRules.BankShop;
+
+            case Trader:
+                var shop = call.Words.Count > 2 ? call.Words[2] : string.Empty;
+                if (WareCatalog.Shipped.FindShop(shop) is not null)
+                    return shop;
+
+                call.Refuse(TraderText.UnknownShop(shop, string.Join(ShopSeparator, WareCatalog.Shipped.Shops.Select(s => s.Name))));
+                return null;
+
+            default:
+                call.Refuse(TraderText.CmdNpc);
+                return null;
+        }
     }
 
     private void Take(CommandCall call)
     {
-        if (shops.FindNearestInFront(call.Sender, InteractionMenu.Reach, InteractionMenu.ConeDegrees, out _) is not { } spot)
+        if (npcs.FindNearestInFront(call.Sender, InteractionMenu.Reach, InteractionMenu.ConeDegrees, out _) is not { } spot)
         {
             call.Refuse(TraderText.NoneInFront);
             return;

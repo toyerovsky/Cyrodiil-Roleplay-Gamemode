@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  BANK_MOST_AT_ONCE,
   CHAT_HISTORY_LINES,
   CHAT_MAX_LENGTH,
   FACTION_NAME_MAX,
@@ -37,5 +38,6 @@ describe("a page's limits", () => {
     expect(FACTION_NAME_MAX).toBe(readConstant("CyrodiilRP.Server/Faction/FactionRules.cs", "MaxNameLength"));
     expect(FACTION_RANK_NAME_MIN).toBe(readConstant("CyrodiilRP.Server/Faction/FactionRules.cs", "MinRankNameLength"));
     expect(FACTION_RANK_NAME_MAX).toBe(readConstant("CyrodiilRP.Server/Faction/FactionRules.cs", "MaxRankNameLength"));
+    expect(BANK_MOST_AT_ONCE).toBe(readConstant("CyrodiilRP.Server/Bank/BankRules.cs", "MostAtOnce"));
   });
 });

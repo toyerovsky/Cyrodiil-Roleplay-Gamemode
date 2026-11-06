@@ -1,5 +1,6 @@
 using CyrodiilRP.Client.Admin;
 using CyrodiilRP.Client.Asks;
+using CyrodiilRP.Client.Bank;
 using CyrodiilRP.Client.Chat;
 using CyrodiilRP.Client.Creator;
 using CyrodiilRP.Client.Dice;
@@ -30,6 +31,7 @@ internal sealed partial class Mod(IDependencyContainer services, ILogger logger)
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<PartyOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<AsksOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<TraderOverlay>());
+        services.RegisterSingleton<ICefRpcHandler>(services.Resolve<BankOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<PlayerMenuOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<DiceOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<LoreOverlay>());

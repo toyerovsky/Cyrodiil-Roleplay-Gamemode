@@ -1,0 +1,13 @@
+{
+  "bank.label": "Bankier",
+  "bank.amount": "Podaj kwotę od 1 do {max} szt. złota.",
+  "bank.too_poor": "Chcesz wpłacić {amount} szt. złota, a masz przy sobie {gold}.",
+  "bank.too_little": "Chcesz wypłacić {amount} szt. złota, a w banku masz {balance}.",
+  "bank.deposited": "Wpłacasz do banku {amount} szt. złota.",
+  "bank.withdrawn": "Wypłacasz z banku {amount} szt. złota.",
+  "bank.failed": "Bank nie zdołał tego zapisać. Twoje złoto jest tam, gdzie było.",
+  "bank.unreadable": "Bankier nie może teraz znaleźć ksiąg. Spróbuj ponownie za chwilę.",
+  "bank.closed_far": "Oddalasz się od bankiera o ponad {metres} m.",
+  "bank.closed_gone": "Bankiera już nie ma.",
+  "bank.closed_not_in_world": "Opuszczasz świat, więc okno banku się zamyka."
+}

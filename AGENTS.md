@@ -27,9 +27,12 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   made and named by the faction, each with permissions (invite, remove, manage ranks). An invitation from the H wheel
   or `/faction invite`, taken up with Y, in the menu or with `/faction accept`. `/f` is the faction's chat. See
   `docs/features/factions.md`.
-- **Trader:** an NPC placed with the staff command `/atrader`, without the game's services (the game's trading and
-  rooms do not apply to it). H over it opens a shop window with the game's icons: food, drinks, clothes, potions,
-  tools, weapons, armour, books. It only sells. It cannot be killed for good.
+- **Trader:** an NPC placed with the staff command `/anpc here trader <shop>`, without the game's services (the
+  game's trading and rooms do not apply to it). H over it opens a shop window with the game's icons: food, drinks,
+  clothes, potions, tools, weapons, armour, books. It only sells. It cannot be killed for good.
+- **Bank:** a banker NPC, stood by the staff as a trader is (`/anpc here banker`) and labelled Banker. H over it
+  opens the bank's window: the character's gold at the bank and the gold carried, a deposit and a withdrawal. The
+  balance is the character's, kept in the database over deaths and restarts. See `docs/features/bank.md`.
 - **Spawn:** the staff set it in the outside world (`/aspawn here`, a button in the panel), a new character goes
   there after closing the game's creator.
 - **Exchange:** an offer from the H wheel, taken up with Y as for a party, gold and items from hand to hand in a

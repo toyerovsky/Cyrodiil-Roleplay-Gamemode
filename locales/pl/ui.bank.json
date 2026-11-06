@@ -1,0 +1,19 @@
+{
+  "ui.bank.title": "Bank",
+  "ui.bank.lead": "Co zostawisz w banku, zostaje twoje, cokolwiek spotka cię w drodze.",
+  "ui.bank.balance": "W banku",
+  "ui.bank.purse": "Twoja sakiewka",
+  "ui.bank.gold": "{count} szt. złota",
+  "ui.bank.amount": "Kwota w złocie",
+  "ui.bank.fill": "Wpisz",
+  "ui.bank.all_carried": "Wszystko, co mam przy sobie",
+  "ui.bank.all_banked": "Wszystko z banku",
+  "ui.bank.deposit": "Wpłać",
+  "ui.bank.withdraw": "Wypłać",
+  "ui.bank.amount_invalid": "Podaj całą kwotę od 1 do {max} szt. złota.",
+  "ui.bank.too_poor": "Masz przy sobie tylko {count} szt. złota.",
+  "ui.bank.too_little": "W banku masz tylko {count} szt. złota.",
+  "ui.bank.waiting": "Bankier zapisuje...",
+  "ui.bank.hint": "Wpisz kwotę, potem ją wpłać albo wypłać. Esc wychodzi.",
+  "ui.bank.close": "Wyjdź"
+}

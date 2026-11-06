@@ -2,6 +2,7 @@ using System.Numerics;
 using CyrodiilRP.Server.Admin;
 using CyrodiilRP.Server.Characters;
 using CyrodiilRP.Server.Infrastructure;
+using CyrodiilRP.Server.Players;
 using OblivionMp.Sdk.Common.Archetypes;
 using OblivionMp.Sdk.Common.Archetypes.Mixins;
 using OblivionMp.Sdk.Serverside;
@@ -18,9 +19,9 @@ using ReadyM.SDK.Server.Entities;
 namespace CyrodiilRP.Server.Traders;
 
 // The cell saves its people, so a trader placed once is there after a restart. Every client in the cell shows it, and
-// the cell's master moves it.
+// the cell's master moves it. A banker is stood and kept the same way, under an origin of its own.
 [Service]
-internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, ServerRefIds refIds, TraderSpots spots, Timers timers)
+internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, ServerRefIds refIds, TraderSpots spots, Proximity proximity, Timers timers)
 {
     private const int Level = 1;
     private const string KeepJob = "traders.keep";
@@ -36,7 +37,26 @@ internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, Ser
     }
 
     public bool TryFind(TraderSpotRecord spot, out Npc npc) =>
-        refs.TryFindNpc(spot.NpcRefId, out npc) && npc.SpawnerRefId == TraderRules.Origin;
+        refs.TryFindNpc(spot.NpcRefId, out npc) && npc.SpawnerRefId == TraderRules.FindOrigin(spot.Kind);
+
+    // The person of ours nearest in front of the player, of either kind.
+    public TraderSpotRecord? FindNearestInFront(OnlinePlayer actor, float reach, float coneDegrees, out float distance)
+    {
+        TraderSpotRecord? nearest = null;
+        distance = float.MaxValue;
+        foreach (var spot in spots.All)
+        {
+            if (TryFind(spot, out var npc)
+                && proximity.MeasureInFront(actor.Id, new AreaId(spot.Area), npc.Position, reach, coneDegrees) is { } away
+                && away < distance)
+            {
+                nearest = spot;
+                distance = away;
+            }
+        }
+
+        return nearest;
+    }
 
     public void Remove(TraderSpotRecord spot)
     {
@@ -83,7 +103,7 @@ internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, Ser
         var ours = new List<Npc>();
         foreach (var npc in entities.Query<Npc>())
         {
-            if (npc.SpawnerRefId == TraderRules.Origin)
+            if (TraderRules.IsOurs(npc.SpawnerRefId))
                 ours.Add(npc);
         }
 
@@ -119,7 +139,7 @@ internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, Ser
     private bool TryAdopt(TraderSpotRecord spot, List<Npc> ours, out Npc found)
     {
         var near = ours
-            .Where(npc => !IsHeldByOtherSpot(npc.RefId, spot) && IsHome(npc, spot)
+            .Where(npc => npc.SpawnerRefId == TraderRules.FindOrigin(spot.Kind) && !IsHeldByOtherSpot(npc.RefId, spot) && IsHome(npc, spot)
                           && Vector3.Distance(npc.Position, spot.Position) <= TraderRules.AdoptRadius)
             .ToList();
         if (near.Count == 0)
@@ -173,14 +193,14 @@ internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, Ser
     {
         var npc = entities.Create<Npc>(cell, cell.MasterClient);
         npc.RefId = refIds.Next();
-        npc.SpawnerRefId = TraderRules.Origin;
+        npc.SpawnerRefId = TraderRules.FindOrigin(spot.Kind);
         npc.BaseId = new FormId(TraderRules.BaseNpc);
         npc.Position = spot.Position;
         npc.Rotation = spot.Yaw;
         npc.Level = Level;
 
         var outfit = EntityHandle.Of(npc).As<Equipment>();
-        foreach (var piece in TraderRules.Outfit)
+        foreach (var piece in TraderRules.FindOutfit(spot.Kind))
             outfit.AddItems(WornClothes.CreateEntry(piece));
 
         AiIntents.Enqueue(npc, new AiIntentEntry

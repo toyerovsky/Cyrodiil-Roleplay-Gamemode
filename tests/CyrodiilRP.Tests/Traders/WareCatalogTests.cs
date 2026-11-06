@@ -51,6 +51,10 @@ public sealed class WareCatalogTests
     }
 
     [Fact]
+    public void A_shop_under_the_bankers_name_is_a_mistake_in_the_files() =>
+        Assert.Throws<InvalidOperationException>(() => WareCatalog.Load(Wares, BuildStocks("""{ "bank": { "tools": ["Lockpick"] } }""")));
+
+    [Fact]
     public void A_price_of_its_own_sells_a_ware_the_game_values_at_nothing_without_the_markup()
     {
         var shop = WareCatalog.Load(Torch, BuildStocks("""{ "camp": { "tools": ["Torch"] } }""", """{ "Torch": 3 }""")).FindShop("camp")!;

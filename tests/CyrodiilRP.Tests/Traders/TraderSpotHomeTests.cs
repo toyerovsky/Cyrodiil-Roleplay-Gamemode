@@ -29,4 +29,18 @@ public sealed class TraderSpotHomeTests
 
         Assert.Equal(OblivionCellIds.Interior, spot.Home.CellId);
     }
+
+    [Fact]
+    public void A_spot_of_the_bank_stands_a_banker_under_an_origin_of_its_own_and_any_other_a_trader()
+    {
+        var trader = new TraderSpotRecord(3, Shop, Outside, "32,-6", ByTheInn, 0f);
+        var banker = new TraderSpotRecord(4, TraderRules.BankShop, Outside, "32,-6", ByTheInn, 0f);
+
+        Assert.Equal(TraderSpotKind.Shop, trader.Kind);
+        Assert.Equal(TraderSpotKind.Banker, banker.Kind);
+        Assert.NotEqual(TraderRules.FindOrigin(trader.Kind), TraderRules.FindOrigin(banker.Kind));
+        Assert.All(Enum.GetValues<TraderSpotKind>(), kind => Assert.True(TraderRules.IsOurs(TraderRules.FindOrigin(kind))));
+        Assert.All(Enum.GetValues<TraderSpotKind>(), kind => Assert.NotEmpty(TraderRules.FindOutfit(kind)));
+        Assert.False(TraderRules.IsOurs(0));
+    }
 }

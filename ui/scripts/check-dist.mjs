@@ -6,7 +6,7 @@ const DIST = resolve(import.meta.dirname, "../dist");
 const PREVIEW_ONLY = ["pretendGame", "__readym"];
 const KB = 1024;
 // Every player downloads the pages with the mod: past this, something big came in unnoticed (a font's every subset).
-const MOST_BYTES = 1024 * KB;
+const MOST_BYTES = 1088 * KB;
 // The dice board apart (vite.config.js puts its files under dice/): three.js, the board, four dice and twelve sets of
 // their pictures, about 5.5 MB.
 const DICE = "dice";

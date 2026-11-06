@@ -5,12 +5,15 @@ using ReadyM.Relay.Common.Oblivion;
 
 namespace CyrodiilRP.Server.Traders;
 
-// A trader_spots row as the server keeps it. NpcRefId: the trader standing there now, 0 before one is placed.
+// A trader_spots row as the server keeps it. Shop: the shop whose wares are sold there, or TraderRules.BankShop for a
+// banker. NpcRefId: the person standing there now, 0 before one is placed.
 internal sealed class TraderSpotRecord(long id, string shop, string area, string cell, Vector3 position, float yaw)
 {
     public long Id { get; } = id;
 
     public string Shop { get; } = shop;
+
+    public TraderSpotKind Kind { get; } = shop == TraderRules.BankShop ? TraderSpotKind.Banker : TraderSpotKind.Shop;
 
     public string Area { get; } = area;
 

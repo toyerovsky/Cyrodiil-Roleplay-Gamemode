@@ -19,6 +19,7 @@ description: How Cyrodiil RP shows anything to a player. Use before writing play
 | Gold and items from one player to another | the trade window, `ui/exchange`, both sides confirm | `Exchanges`, from the wheel's Trade |
 | Who is in the player's party | the panel at the top left, `ui/party`, only to be read | `Parties` sends `PartyState` |
 | Buying from a trader | the trader's window, `ui/trader`, the game's icons and names | `TraderShops`, H over the trader |
+| Gold put into the bank and taken out | the bank's window, `ui/bank`, an amount typed and checked as the server would | `Bankers`, H over the banker |
 | The player's own record, the commands, the keys | the player's menu, `ui/menu`, F10 or `/help` | `PlayerMenus` sends `MenuState` |
 | Throwing dice | the dice board, `ui/dice`, three.js, the server picks every number | `DiceBoards` sends `DiceState`, `Rolls` is the one place that rolls |
 | A character's card, one's own or another's | the lore card, `ui/lore`, one request and one answer by id | `LoreWindows` opens it, `LoreDesk` answers `LoreAsk` |

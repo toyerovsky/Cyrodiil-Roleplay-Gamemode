@@ -39,6 +39,12 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId>? TraderLeft;
 
+    public event Action<PlayerId, int>? BankDeposited;
+
+    public event Action<PlayerId, int>? BankWithdrawn;
+
+    public event Action<PlayerId>? BankLeft;
+
     public event Action<PlayerId>? MenuAsked;
 
     public event Action<PlayerId, string>? LanguageChosen;
@@ -104,6 +110,12 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnTraderBuy(RpcContext context, string ware, int count) => callbacks.Raise("rpc.trader_buy", TraderBought, context.Sender, ware, count);
 
     partial void OnTraderClose(RpcContext context) => callbacks.Raise("rpc.trader_close", TraderLeft, context.Sender);
+
+    partial void OnBankDeposit(RpcContext context, int amount) => callbacks.Raise("rpc.bank_deposit", BankDeposited, context.Sender, amount);
+
+    partial void OnBankWithdraw(RpcContext context, int amount) => callbacks.Raise("rpc.bank_withdraw", BankWithdrawn, context.Sender, amount);
+
+    partial void OnBankClose(RpcContext context) => callbacks.Raise("rpc.bank_close", BankLeft, context.Sender);
 
     partial void OnOpenMenu(RpcContext context) => callbacks.Raise("rpc.open_menu", MenuAsked, context.Sender);
 

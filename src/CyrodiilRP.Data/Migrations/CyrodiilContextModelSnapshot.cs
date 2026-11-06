@@ -131,6 +131,29 @@ namespace CyrodiilRP.Data.Migrations
                     b.ToTable("audit_entries", (string)null);
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.BankAccount", b =>
+                {
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("character_id");
+
+                    b.Property<long>("Balance")
+                        .HasColumnType("bigint")
+                        .HasColumnName("balance");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("CharacterId")
+                        .HasName("pk_bank_accounts");
+
+                    b.ToTable("bank_accounts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_bank_accounts_balance", "balance >= 0");
+                        });
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.Character", b =>
                 {
                     b.Property<long>("Id")
@@ -609,7 +632,7 @@ namespace CyrodiilRP.Data.Migrations
                             Name = "admin",
                             GrantsAll = false,
                             Label = "Administrator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "atrader", "aspawn", "afaction" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction" }
                         },
                         new
                         {
@@ -681,6 +704,16 @@ namespace CyrodiilRP.Data.Migrations
                         .HasName("pk_trader_spots");
 
                     b.ToTable("trader_spots", (string)null);
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.BankAccount", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithOne()
+                        .HasForeignKey("CyrodiilRP.Data.BankAccount", "CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_accounts_characters_character_id");
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.Character", b =>

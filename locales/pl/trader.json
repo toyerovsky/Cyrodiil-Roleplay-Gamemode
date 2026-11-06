@@ -1,9 +1,10 @@
 {
-  "trader.cmd.trader": "/atrader here <sklep> | remove | list - postaw handlarza tam, gdzie stoisz, zabierz tego przed tobą albo wypisz wszystkich",
+  "trader.cmd.npc": "/anpc here trader <sklep> | here banker | remove | list - postaw handlarza albo bankiera tam, gdzie stoisz, zabierz tego przed tobą albo wypisz wszystkich",
   "trader.unknown_shop": "Nie ma sklepu „{shop}”. Sklepy: {shops}.",
   "trader.not_in_world": "Musisz być w świecie, żeby postawić handlarza.",
   "trader.not_settled": "Serwer widzi cię jeszcze w komórce {seen}, a stoisz w komórce {here}: gra nie nadążyła po dalekim skoku. Przejdź kilka kroków albo wejdź ponownie i spróbuj jeszcze raz.",
   "trader.placed": "Handlarz ({shop}) stoi tu teraz (#{id}). Pojawi się za chwilę.",
+  "trader.placed_banker": "Bankier stoi tu teraz (#{id}). Pojawi się za chwilę.",
   "trader.place_failed": "Nie udało się zapisać handlarza, więc nikt tu nie stanął. Spróbuj ponownie za chwilę.",
   "trader.none_in_front": "Przed tobą nie stoi żaden handlarz.",
   "trader.removed": "Handlarz #{id} zniknął.",

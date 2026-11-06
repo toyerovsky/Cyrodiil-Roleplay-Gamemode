@@ -126,6 +126,30 @@ public static partial class RpContracts
     [ClientToServer]
     public static partial void TraderClose();
 
+    // The label over the mode's bankers, in the player's language.
+    [ServerToClient]
+    public static partial void BankerLabel(string text);
+
+    // A BankView as JSON: opens the bank's window or brings it up to date.
+    [ServerToClient]
+    public static partial void BankState(string json);
+
+    // What a deposit or a withdrawal came to, in the player's language: done or refused.
+    [ServerToClient]
+    public static partial void BankAnswer(string text, bool done);
+
+    [ServerToClient]
+    public static partial void BankClosed();
+
+    [ClientToServer]
+    public static partial void BankDeposit(int amount);
+
+    [ClientToServer]
+    public static partial void BankWithdraw(int amount);
+
+    [ClientToServer]
+    public static partial void BankClose();
+
     // The menu key: the server answers with the menu on its first tab.
     [ClientToServer]
     public static partial void OpenMenu();

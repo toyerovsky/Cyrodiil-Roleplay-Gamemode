@@ -32,6 +32,8 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<FactionMember> FactionMembers => Set<FactionMember>();
 
+    public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -174,6 +176,14 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.HasOne<Character>().WithOne().HasForeignKey<FactionMember>(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne<Faction>().WithMany().HasForeignKey(x => x.FactionId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne<FactionRank>().WithMany().HasForeignKey(x => new { x.FactionId, x.RankNumber }).OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<BankAccount>(entity =>
+        {
+            entity.ToTable("bank_accounts", t => t.HasCheckConstraint("ck_bank_accounts_balance", "balance >= 0"));
+            entity.HasKey(x => x.CharacterId);
+            entity.Property(x => x.CharacterId).ValueGeneratedNever();
+            entity.HasOne<Character>().WithOne().HasForeignKey<BankAccount>(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
         });
 
         SnakeCase.Apply(modelBuilder);

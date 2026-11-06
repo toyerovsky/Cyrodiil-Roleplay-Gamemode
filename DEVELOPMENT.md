@@ -6,7 +6,7 @@ migrator (`src/CyrodiilRP.Migrator`), Vue pages (`ui/`) and texts in `locales/`.
 
 `src/CyrodiilRP.Common` goes to every player with the client, so it holds only what both halves read: the RPC contract
 (`RpContracts`), the chat's line and limits (`ChatLine`, `ChatLineKind`, `ChatLimits`), the mark of the mode's
-traders (`TraderOrigin`) and the staff's mark in a nickname (`Nameplate`). What a page shows (the `*View` records) and its JSON context (`*Json`) are the server's, in the
+traders and bankers (`TraderOrigin`) and the staff's mark in a nickname (`Nameplate`). What a page shows (the `*View` records) and its JSON context (`*Json`) are the server's, in the
 folder of the service that builds them: the client hands the JSON to the page as it comes and never reads it.
 
 ## Setup

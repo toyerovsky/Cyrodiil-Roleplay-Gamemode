@@ -25,7 +25,6 @@ internal sealed partial class TraderShops(
     OnlinePlayers online,
     InteractionMenu interactions,
     Proximity proximity,
-    TraderSpots spots,
     TraderNpcs npcs,
     Wallet wallet,
     IEntities entities,
@@ -51,31 +50,17 @@ internal sealed partial class TraderShops(
     }
 
     public float? MeasureInFront(OnlinePlayer actor, float reach, float coneDegrees) =>
-        FindNearestInFront(actor, reach, coneDegrees, out var distance) is null ? null : distance;
+        FindInFront(actor, reach, coneDegrees, out var distance) is null ? null : distance;
 
     public void Use(OnlinePlayer actor, float reach, float coneDegrees)
     {
-        if (FindNearestInFront(actor, reach, coneDegrees, out _) is { } spot)
+        if (FindInFront(actor, reach, coneDegrees, out _) is { } spot)
             Open(actor, spot);
     }
 
-    public TraderSpotRecord? FindNearestInFront(OnlinePlayer actor, float reach, float coneDegrees, out float distance)
-    {
-        TraderSpotRecord? nearest = null;
-        distance = float.MaxValue;
-        foreach (var spot in spots.All)
-        {
-            if (npcs.TryFind(spot, out var npc)
-                && proximity.MeasureInFront(actor.Id, new AreaId(spot.Area), npc.Position, reach, coneDegrees) is { } away
-                && away < distance)
-            {
-                nearest = spot;
-                distance = away;
-            }
-        }
-
-        return nearest;
-    }
+    // The key is the shop's only when a trader is the nearest of the mode's people in front, not a banker.
+    private TraderSpotRecord? FindInFront(OnlinePlayer actor, float reach, float coneDegrees, out float distance) =>
+        npcs.FindNearestInFront(actor, reach, coneDegrees, out distance) is { Kind: TraderSpotKind.Shop } spot ? spot : null;
 
     // A trader removed by staff takes its windows with it.
     public void CloseAt(TraderSpotRecord spot)

@@ -29,7 +29,7 @@ public static class StaffPermissions
     public const string Unfreeze = "aunfreeze";
     public const string Warn = "awarn";
     public const string Why = "awhy";
-    public const string Trader = "atrader";
+    public const string Npc = "anpc";
     public const string Spawn = "aspawn";
     public const string Lore = "alore";
     public const string FactionManage = "afaction";

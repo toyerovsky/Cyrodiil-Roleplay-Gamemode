@@ -1,0 +1,19 @@
+{
+  "ui.bank.title": "Bank",
+  "ui.bank.lead": "What you leave at the bank stays yours, whatever happens to you on the road.",
+  "ui.bank.balance": "In the bank",
+  "ui.bank.purse": "Your purse",
+  "ui.bank.gold": "{count} gold",
+  "ui.bank.amount": "Amount of gold",
+  "ui.bank.fill": "Fill in",
+  "ui.bank.all_carried": "All I carry",
+  "ui.bank.all_banked": "All in the bank",
+  "ui.bank.deposit": "Deposit",
+  "ui.bank.withdraw": "Withdraw",
+  "ui.bank.amount_invalid": "Give a whole amount from 1 to {max} gold.",
+  "ui.bank.too_poor": "You carry only {count} gold.",
+  "ui.bank.too_little": "The bank holds only {count} gold of yours.",
+  "ui.bank.waiting": "The banker writes it down...",
+  "ui.bank.hint": "Type an amount, then deposit or withdraw it. Esc leaves.",
+  "ui.bank.close": "Leave"
+}

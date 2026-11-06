@@ -11,6 +11,7 @@ const PAGES = [
   { url: "/party/index.html#member", root: ".party", text: ["ui.party", "away"] },
   { url: "/asks/index.html#trade", root: ".asks", text: ["ui.asks", "title.trade"] },
   { url: "/trader/index.html", root: ".trader__panel", text: ["ui.trader", "shop.general"] },
+  { url: "/bank/index.html", root: ".bank__panel", text: ["ui.bank", "all_carried"] },
   { url: "/menu/index.html", root: ".menu", text: ["ui.menu", "tab.character"] },
   { url: "/menu/index.html#account", root: ".menu", text: ["ui.menu", "account.language"] },
   { url: "/admin/index.html", root: ".admin", text: ["ui.admin", "players.search"] },

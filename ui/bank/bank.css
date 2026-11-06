@@ -1,0 +1,113 @@
+.bank {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 24px;
+  background: radial-gradient(ellipse at center, var(--backdrop-shade) 0%, var(--backdrop-edge) 100%);
+}
+
+.bank__panel.rp-panel {
+  display: grid;
+  gap: 4px;
+  width: min(640px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.bank__lead {
+  margin: 0 0 14px;
+  font-size: 16px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.bank__sums {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0 0 14px;
+}
+
+.bank__sum {
+  display: grid;
+  gap: 4px;
+  padding: 14px 12px;
+  text-align: center;
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+}
+
+.bank__sum dt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.bank__sum dd {
+  margin: 0;
+  font-weight: 700;
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+
+.bank__coin {
+  width: 20px;
+  height: 20px;
+  color: var(--gold);
+}
+
+.bank__form {
+  display: grid;
+  gap: 10px;
+}
+
+.bank__fill,
+.bank__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bank__acts {
+  margin-top: 6px;
+}
+
+.bank__acts .rp-button {
+  flex: 1 1 0;
+}
+
+.bank__problem {
+  margin: 0;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--problem);
+}
+
+.bank__status {
+  min-height: 46px;
+  margin: 14px 0 0;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.bank__status--done {
+  font-weight: 700;
+  color: var(--confirmed);
+}
+
+.bank__status--refused {
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.bank__footer {
+  display: flex;
+  justify-content: flex-end;
+}
