@@ -126,7 +126,8 @@ if ($Test)
 
 Write-Step "Mod into $out"
 Invoke-Checked 'The server publish' { dotnet publish (Join-Path $root 'src/CyrodiilRP.Server') -c $Configuration -o (Join-Path $publish 'server') --nologo }
-Invoke-Checked 'The client build' { dotnet build (Join-Path $root 'src/CyrodiilRP.Client') -c $Configuration -o (Join-Path $publish 'client') --nologo }
+# Into the project's own bin: with -o the SDK's projects, built from source for several frameworks, write over each other.
+Invoke-Checked 'The client build' { dotnet build (Join-Path $root 'src/CyrodiilRP.Client') -c $Configuration --nologo }
 
 # What the server and its other mods already load: a second copy in our load context is refused.
 $shipped = @{}
@@ -143,7 +144,7 @@ New-Item -ItemType Directory -Force $client, $server | Out-Null
 
 Copy-Item (Join-Path $root 'mod/manifest.json') $out
 
-$clientBuild = Join-Path $publish 'client'
+$clientBuild = Join-Path $root "src/CyrodiilRP.Client/bin/$Configuration/net10.0"
 Copy-Item (Join-Path $clientBuild 'CyrodiilRP.Client.dll'), (Join-Path $clientBuild 'CyrodiilRP.Common.dll') $client
 Copy-Item (Join-Path $root 'ui/dist') (Join-Path $client 'web') -Recurse
 
