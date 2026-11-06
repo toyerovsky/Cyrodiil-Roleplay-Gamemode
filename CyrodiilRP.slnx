@@ -14,8 +14,16 @@
         <Project Path="src/CyrodiilRP.Data/CyrodiilRP.Data.csproj" />
         <Project Path="src/CyrodiilRP.Migrator/CyrodiilRP.Migrator.csproj" />
         <Project Path="src/CyrodiilRP.Texts/CyrodiilRP.Texts.csproj" />
+        <Project Path="src/Roleplay.HungerAndThirst.Common/Roleplay.HungerAndThirst.Common.csproj" />
+        <Project Path="src/Roleplay.HungerAndThirst.Client/Roleplay.HungerAndThirst.Client.csproj" />
+        <Project Path="src/Roleplay.HungerAndThirst.Server/Roleplay.HungerAndThirst.Server.csproj" />
+        <Project Path="src/Roleplay.Jobs.Common/Roleplay.Jobs.Common.csproj" />
+        <Project Path="src/Roleplay.Jobs.Client/Roleplay.Jobs.Client.csproj" />
+        <Project Path="src/Roleplay.Jobs.Server/Roleplay.Jobs.Server.csproj" />
     </Folder>
     <Folder Name="/tests/">
         <Project Path="tests/CyrodiilRP.Tests/CyrodiilRP.Tests.csproj" />
+        <Project Path="tests/Roleplay.HungerAndThirst.Tests/Roleplay.HungerAndThirst.Tests.csproj" />
+        <Project Path="tests/Roleplay.Jobs.Tests/Roleplay.Jobs.Tests.csproj" />
     </Folder>
 </Solution>

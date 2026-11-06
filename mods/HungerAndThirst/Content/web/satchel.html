@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hunger and Thirst satchel</title>
+  <link rel="stylesheet" href="hud.css">
+</head>
+<body class="satchel-page">
+  <!-- In the game: the satchel, alone in a full-screen viewport shown only while it is open. -->
+  <!-- Alt+H: what you carry that can be eaten or drunk. Keys only. -->
+  <section id="satchel" class="satchel hidden" aria-label="Satchel">
+    <header>
+      <h1>Satchel</h1>
+      <p id="outlook"></p>
+    </header>
+    <ol id="items"></ol>
+    <p id="empty" class="empty hidden">Nothing to eat or drink.</p>
+    <p id="message" class="message"></p>
+    <footer>
+      <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> choose</span>
+      <span><kbd>Enter</kbd> eat or drink</span>
+      <span><kbd>Esc</kbd> close</span>
+    </footer>
+  </section>
+
+  <script src="hud.js"></script>
+</body>
+</html>

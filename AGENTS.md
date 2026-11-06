@@ -30,6 +30,9 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
 - **Bank:** a banker NPC keeps a character's gold over deaths and restarts. See `docs/features/bank.md`.
 - **Spawn:** the staff set it in the outside world (`/aspawn here`, a button in the panel), a new character goes
   there after closing the game's creator.
+- **Feeding:** Feed on the H wheel opens a wheel of the foods the player carries, what the one in front needs most
+  first; a pick gives them one through the Hunger and Thirst mod (`mods/HungerAndThirst`), and the feeding is said
+  around as an action.
 - **Exchange:** an offer from the H wheel, taken up with Y as for a party, gold and items from hand to hand in a
   window, both sides see both offers and confirm. Names come from the catalogue the mode ships, so what a player wears
   and what players made (their potions and enchanted items) stay out of it.

@@ -1,8 +1,8 @@
 using CyrodiilRP.Common.Traders;
-using OblivionMp.Sdk;
-using OblivionMp.Sdk.Archetypes.Mixins;
-using OblivionMp.Sdk.Common.Archetypes;
-using OblivionMp.Sdk.Values;
+using OblivionMP.SDK;
+using OblivionMP.SDK.Archetypes.Mixins;
+using OblivionMP.SDK.Common.Archetypes;
+using OblivionMP.SDK.Values;
 using ReadyM.SDK.Attributes;
 using ReadyM.SDK.Client.Entities;
 

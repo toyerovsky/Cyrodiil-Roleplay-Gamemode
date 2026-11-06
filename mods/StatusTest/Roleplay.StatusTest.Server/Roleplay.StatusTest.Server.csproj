@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <ProjectReference Include="..\Roleplay.StatusTest.Common\Roleplay.StatusTest.Common.csproj" />
+        <ProjectReference Include="$(OblivionModRoot)OblivionMP.SDK.Serverside\OblivionMP.SDK.Serverside.csproj" />
+        <ProjectReference Include="$(CoreSdkSrc)ReadyM.Relay.Server.Sdk\ReadyM.Relay.Server.Sdk.csproj" />
+    </ItemGroup>
+
+</Project>

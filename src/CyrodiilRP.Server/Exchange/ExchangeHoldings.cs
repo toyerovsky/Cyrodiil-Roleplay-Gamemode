@@ -1,5 +1,5 @@
 using CyrodiilRP.Server.Admin;
-using OblivionMp.Sdk.Common.Archetypes.Mixins;
+using OblivionMP.SDK.Common.Archetypes.Mixins;
 
 namespace CyrodiilRP.Server.Exchange;
 

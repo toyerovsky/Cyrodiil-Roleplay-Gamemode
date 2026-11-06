@@ -1,0 +1,16 @@
+{
+  "feeding.option": "Feed",
+  "feeding.title": "Feed {name}",
+  "feeding.item": "{food} ×{count}",
+  "feeding.fed": "* {name} feeds {target} some {food}.",
+  "feeding.err.nothing": "You carry nothing to eat or drink.",
+  "feeding.err.not_in_world": "{name} is not in the world yet.",
+  "feeding.err.feeder_dead": "The dead feed nobody.",
+  "feeding.err.eater_dead": "{name} is past eating.",
+  "feeding.err.too_soon": "{name} is still chewing.",
+  "feeding.err.not_food": "That can't be eaten or drunk.",
+  "feeding.err.not_carried": "You have none of that left.",
+  "feeding.err.water": "Water only from a lake or river, for yourself.",
+  "feeding.err.too_far": "{name} is too far away.",
+  "feeding.err.other": "{name} could not be fed."
+}

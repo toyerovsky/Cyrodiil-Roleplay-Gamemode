@@ -1,0 +1,33 @@
+<Project>
+
+    <!--
+        The mods in this folder build against the SDK projects of an oblivion-mod checkout, not the published
+        ReadyM.SDK.Oblivion.* packages: IStatuses, IFoliage, IProps, IAnimations, IWeaponHits, ILocalProps and
+        IEquippedWeapon are in no package yet. They live on oblivion-mod's rp-framework branch.
+
+        The checkout is OBLIVION_MOD_ROOT (environment) or -p:OblivionModRoot=..., else an oblivion-mod folder next to
+        this repository. Its readym-gameserver submodule must be checked out, recursively.
+
+        This file stops the repository's own Directory.Build.props from applying here: the mods keep the settings
+        they were written with, not the gamemode's (warnings as errors, central package versions).
+    -->
+    <PropertyGroup>
+        <OblivionModRoot Condition="'$(OblivionModRoot)' == ''">$(OBLIVION_MOD_ROOT)</OblivionModRoot>
+        <OblivionModRoot Condition="'$(OblivionModRoot)' == ''">$(MSBuildThisFileDirectory)..\..\oblivion-mod\</OblivionModRoot>
+        <OblivionModRoot>$([MSBuild]::EnsureTrailingSlash('$(OblivionModRoot)'))</OblivionModRoot>
+        <CoreSdkSrc>$(OblivionModRoot)readym-gameserver\src\readym-core-sdk\src\</CoreSdkSrc>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="$(CoreSdkSrc)ReadyM.Api.Generators\ReadyM.Api.Generators.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    </ItemGroup>
+
+    <Target Name="CheckOblivionModRoot" BeforeTargets="Restore;Build;CollectPackageReferences">
+        <Error Condition="!Exists('$(OblivionModRoot)OblivionMP.SDK\OblivionMP.SDK.csproj')"
+               Text="No oblivion-mod checkout at $(OblivionModRoot). Set OBLIVION_MOD_ROOT to one on the rp-framework branch, see mods/README.md." />
+    </Target>
+
+</Project>

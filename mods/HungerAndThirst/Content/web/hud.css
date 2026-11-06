@@ -1,0 +1,281 @@
+/* The page is a transparent full-screen overlay: only the meters and the satchel paint anything. */
+:root {
+  --ink: #2b1d0e;
+  --ink-soft: #5a4426;
+  --paper: #e8d9b5;
+  --paper-dark: #cdb98a;
+  --bronze: #8a6a35;
+  --bronze-light: #c9a35a;
+  --food: #d39a3a;
+  --water: #4b9bd1;
+  --danger: #b5432f;
+  --shadow: rgba(0, 0, 0, 0.55);
+  --serif: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  font-family: var(--serif);
+  user-select: none;
+  cursor: none;
+}
+
+.hidden { display: none !important; }
+
+/* ---- the meters, bottom left, drawn like the game's own health and fatigue bars ----
+   A pale frame with pointed ends, a dark see-through body inside it, and a fill that drains from the right like
+   fatigue. A lighter trail holds where the meter just was and slides after it a moment later. The pointed shape is a
+   clip-path, cut once on the frame and once, inset by the outline, on the body.
+
+   Everything inside .hud is sized in container units (cqh, cqw) of the .hud box, so the bars fill whatever box they
+   get. In the game that box is the HUD page's own viewport (body.hud-page), placed by SustenancePage.HudPlacement;
+   in the browser preview .hud sits at the same rectangle of the screen: 2% to 17% across, 79.5% to 84.5% down. */
+
+.hud {
+  --bar-height: 32cqh;
+  --outline: 2px;
+  position: fixed;
+  left: 2vw;
+  top: 79.5vh;
+  width: 15vw;
+  height: 5vh;
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14cqh;
+  filter: drop-shadow(0 1px 2px var(--shadow));
+}
+
+/* In the game: the page is exactly that rectangle. A little padding keeps the shadow inside it. */
+.hud-page .hud {
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  padding: 2px 3px;
+}
+
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 2.5cqw;
+  height: var(--bar-height);
+}
+
+.icon {
+  flex: none;
+  height: 100%;
+  width: auto;
+  aspect-ratio: 1;
+  opacity: 0.95;
+}
+
+/* Each icon keeps its meter's colour; a low meter flashes it yellow, a critical one red, faster. */
+#satiety .icon { --icon: #d9a24a; fill: var(--icon); }
+#hydration .icon { --icon: #5aa0d6; fill: var(--icon); }
+
+.meter.low .icon { animation: flash-low 1.4s ease-in-out infinite; }
+.meter.critical .icon { animation: flash-critical 0.8s ease-in-out infinite; }
+
+@keyframes flash-low {
+  0%, 100% { fill: var(--icon); }
+  50% { fill: #f2d24b; }
+}
+
+@keyframes flash-critical {
+  0%, 100% { fill: var(--icon); }
+  50% { fill: #e5432d; }
+}
+
+.bar,
+.body {
+  --tip: calc(var(--h) / 2);
+  clip-path: polygon(var(--tip) 0, calc(100% - var(--tip)) 0, 100% 50%,
+                     calc(100% - var(--tip)) 100%, var(--tip) 100%, 0 50%);
+}
+
+/* The frame: the pale outline is this element, showing around the inset body. */
+.bar {
+  --h: var(--bar-height);
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: var(--h);
+  background: linear-gradient(to bottom, #f1e9dc, #b9ae9c);
+}
+
+.body {
+  --h: calc(var(--bar-height) - 2 * var(--outline));
+  position: absolute;
+  inset: var(--outline);
+  background: linear-gradient(to bottom, rgba(52, 40, 34, 0.92), rgba(28, 21, 18, 0.92));
+}
+
+.fill,
+.trail {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+}
+
+/* The fill follows the value closely; the trail slides after it once hud.js lets it go. */
+.fill { transition: width 0.25s linear; }
+.trail { transition: width 0.45s ease-out; }
+
+/* Lighter across the upper part and darker below, as on the vanilla bars. */
+#satiety .fill {
+  background: linear-gradient(to bottom, #e7b763 0%, #c9902f 38%, #a8721e 62%, #7f5615 100%);
+}
+#satiety .trail { background: linear-gradient(to bottom, #f6dca6, #e3b768); }
+
+#hydration .fill {
+  background: linear-gradient(to bottom, #7fb8e2 0%, #3f86c4 38%, #2e6ea6 62%, #1f4f7c 100%);
+}
+#hydration .trail { background: linear-gradient(to bottom, #c9e3f6, #8dbfe4); }
+
+.meter.critical .bar { background: linear-gradient(to bottom, #f0c8bd, #b06a5c); }
+.meter.critical .fill { animation: pulse 1.6s ease-in-out infinite; }
+
+@keyframes pulse {
+  50% { opacity: 0.5; }
+}
+
+/* ---- the satchel, a sheet of parchment in the middle ---- */
+
+.satchel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, 92vw);
+  max-height: 78vh;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 26px 16px;
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.35), transparent 60%),
+    radial-gradient(ellipse at 80% 90%, rgba(120, 80, 30, 0.25), transparent 55%),
+    linear-gradient(var(--paper), var(--paper-dark));
+  border: 2px solid var(--bronze);
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px #3a2a14, 0 12px 40px var(--shadow), inset 0 0 40px rgba(90, 60, 20, 0.35);
+}
+
+.satchel header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--bronze);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.satchel h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: normal;
+  letter-spacing: 0.04em;
+}
+
+#outlook {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+  text-align: right;
+}
+
+#items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+#items::-webkit-scrollbar { width: 8px; }
+#items::-webkit-scrollbar-track { background: transparent; }
+#items::-webkit-scrollbar-thumb { background: rgba(90, 60, 25, 0.45); border-radius: 4px; }
+
+#items li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 2px 16px;
+  padding: 7px 10px;
+  border-radius: 3px;
+}
+
+#items li .name { font-size: 18px; }
+#items li .count { color: var(--ink-soft); font-size: 15px; }
+#items li .gives { grid-column: 1 / -1; font-size: 13px; color: var(--ink-soft); }
+#items li .gives .food { color: #8a5a10; }
+#items li .gives .water { color: #1f5a85; }
+
+#items li.selected {
+  background: rgba(70, 45, 15, 0.82);
+  color: var(--paper);
+}
+
+#items li.selected .count,
+#items li.selected .gives,
+#items li.selected .gives .food,
+#items li.selected .gives .water { color: var(--paper-dark); }
+
+.empty {
+  margin: 14px 10px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.message {
+  min-height: 1.4em;
+  margin: 10px 2px 0;
+  font-size: 15px;
+  font-style: italic;
+}
+
+.satchel footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--bronze);
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  margin-right: 3px;
+  padding: 0 4px;
+  border: 1px solid var(--bronze);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.35);
+  font-family: var(--serif);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ---- browser preview only (no game): a note in the corner ---- */
+
+.preview-note {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  max-width: 300px;
+  padding: 10px 12px;
+  font: 13px/1.4 system-ui, sans-serif;
+  color: #eee;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 6px;
+}

@@ -5,7 +5,7 @@ using CyrodiilRP.Server.Admin;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Players;
 using Microsoft.Extensions.Logging;
-using OblivionMp.Sdk.Common.Archetypes;
+using OblivionMP.SDK.Common.Archetypes;
 using ReadyM.SDK.Archetypes.Core;
 using ReadyM.SDK.Attributes;
 using ReadyM.SDK.Server.Entities;

@@ -22,4 +22,6 @@ internal static class WheelIcons
     public const string Crown = "crown";
     public const string Boot = "boot";
     public const string Book = "book";
+    public const string Bread = "bread";
+    public const string Flask = "flask";
 }

@@ -1,0 +1,14 @@
+{
+  "uniqueId": "Roleplay.Jobs",
+  "version": "0.1.0",
+  "name": "Jobs",
+  "author": "ReadyM",
+  "description": "Roleplay jobs: fell trees with a battle axe power attack, mine ore nodes and quarry stone with a warhammer power attack. Hits from everyone add up and the yield is shared by them. Server-authoritative.",
+  "link": "https://ready.mp",
+  "dependencies": [
+    {
+      "uniqueId": "OblivionMP.SDK",
+      "minimumVersion": "1.0.0"
+    }
+  ]
+}

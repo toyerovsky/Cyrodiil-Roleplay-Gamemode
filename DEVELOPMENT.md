@@ -1,8 +1,15 @@
 # Cyrodiil RP: development
 
 A roleplay gamemode for OblivionMP: a mod with a server half (`src/CyrodiilRP.Server`) and a client half
-(`src/CyrodiilRP.Client`) on the SDK 1.0 packages, PostgreSQL through EF Core (`src/CyrodiilRP.Data`) with its own
+(`src/CyrodiilRP.Client`) on the SDK, PostgreSQL through EF Core (`src/CyrodiilRP.Data`) with its own
 migrator (`src/CyrodiilRP.Migrator`), Vue pages (`ui/`) and texts in `locales/`.
+
+The SDK is built from an oblivion-mod checkout on its `rp-framework` branch, not the 1.0 packages: the server half
+feeds players through the Hunger and Thirst mod (`src/Roleplay.HungerAndThirst.*`, `ISustenance`), which needs that
+branch's statuses. The checkout is the `oblivion-mod` folder next to this repository, or
+`-p:OblivionModRoot=<path>`
+(`Directory.Build.props`), at the commit pinned in [mods/README.md](mods/README.md). The server needs `Roleplay.HungerAndThirst` installed (a manifest dependency) and the
+`rp-framework` build of the relay, the game's OblivionMp mod and the SDK mod.
 
 `src/CyrodiilRP.Common` goes to every player with the client, so it holds only what both halves read: the RPC contract
 (`RpContracts`), the chat's line and limits (`ChatLine`, `ChatLineKind`, `ChatLimits`), the mark of the mode's

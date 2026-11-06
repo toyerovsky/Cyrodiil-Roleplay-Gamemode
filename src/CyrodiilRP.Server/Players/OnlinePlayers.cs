@@ -7,10 +7,10 @@ using CyrodiilRP.Server.Staff;
 using LiteNetLib;
 using Microsoft.Extensions.Logging;
 using ReadyM.Api.Idents;
-using ReadyM.Relay.Server.Sdk.Ecs;
-using ReadyM.Relay.Server.Sdk.Events;
 using ReadyM.Relay.Server.Sdk.Players;
+using ReadyM.SDK.Archetypes.Core;
 using ReadyM.SDK.Attributes;
+using ReadyM.SDK.Server.Events;
 
 namespace CyrodiilRP.Server.Players;
 
@@ -84,10 +84,10 @@ internal sealed partial class OnlinePlayers(
         events.OnPlayerDisconnected += OnDisconnected;
     }
 
-    private void OnConnected(PlayerId id, Entity entity) => watchdog.Run("players.connected", () => Connect(id));
+    private void OnConnected(Player player, Guid readyMId) => watchdog.Run("players.connected", () => Connect(player.PlayerId));
 
-    private void OnDisconnected(PlayerId id, Entity entity, DisconnectReason reason) =>
-        watchdog.Run("players.disconnected", () => Disconnect(id, reason));
+    private void OnDisconnected(Player player, Guid readyMId, DisconnectReason reason) =>
+        watchdog.Run("players.disconnected", () => Disconnect(player.PlayerId, reason));
 
     private void Connect(PlayerId id)
     {

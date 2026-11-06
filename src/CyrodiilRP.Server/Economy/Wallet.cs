@@ -1,6 +1,6 @@
-using OblivionMp.Sdk.Common.Archetypes;
-using OblivionMp.Sdk.Common.Archetypes.Mixins;
-using OblivionMp.Sdk.Serverside.Items;
+using OblivionMP.SDK.Common.Archetypes;
+using OblivionMP.SDK.Common.Archetypes.Mixins;
+using OblivionMP.SDK.Serverside.Items;
 using ReadyM.Api.Idents;
 using ReadyM.Relay.Common.Oblivion.ECS.Values;
 using ReadyM.Relay.Common.Oblivion.Items;

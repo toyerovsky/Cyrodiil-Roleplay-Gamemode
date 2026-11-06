@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
-using OblivionMp.Sdk;
-using OblivionMp.Sdk.Archetypes.Extensions;
+using OblivionMP.SDK;
+using OblivionMP.SDK.Archetypes.Extensions;
 using ReadyM.SDK.Attributes;
 
 namespace CyrodiilRP.Client.Admin;
