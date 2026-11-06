@@ -21,10 +21,6 @@ internal static partial class FactionRules
 
     public const int MaxMembers = 100;
 
-    public const int RankUp = -1;
-
-    public const int RankDown = 1;
-
     // An invitation is good for this long, on the card at the top of the screen only for the first AskPacing.Timeout.
     public static readonly TimeSpan InviteLasts = TimeSpan.FromMinutes(5);
 
@@ -77,6 +73,9 @@ internal static partial class FactionRules
     // The last member may always leave: the faction goes with them.
     public static Phrase? CheckLeave(FactionRecord faction, FactionMemberRecord member) =>
         IsSoleLeader(faction, member) && faction.Members.Count > 1 ? FactionText.ErrSoleLeader : null;
+
+    public static bool IsSoleLeader(FactionRecord faction, FactionMemberRecord member) =>
+        faction.GetRank(member).IsLeader && faction.CountHolders(faction.LeaderRank) == 1;
 
     // A leader may make another member a leader, and step down once there is another.
     public static Phrase? CheckAssign(FactionRecord faction, FactionMemberRecord actor, FactionMemberRecord target, FactionRankRecord rank)
@@ -160,13 +159,13 @@ internal static partial class FactionRules
         CheckRankChange(faction, actor, rank) ?? CheckMade(rank);
 
     // Between the leader's rank and the entry rank, and never up to the mover's own place.
-    public static Phrase? CheckRankMove(FactionRecord faction, FactionMemberRecord actor, FactionRankRecord rank, int step)
+    public static Phrase? CheckRankMove(FactionRecord faction, FactionMemberRecord actor, FactionRankRecord rank, FactionRankMove move)
     {
         if ((CheckRankChange(faction, actor, rank) ?? CheckMade(rank)) is { } refusal)
             return refusal;
 
-        var place = faction.GetPosition(rank) + step;
-        if (place < 1 || place > faction.Ranks.Count - 2)
+        var place = faction.GetPlaceAfter(rank, move);
+        if (!faction.IsMadePlace(place))
             return FactionText.ErrRankEdge;
 
         return place > faction.GetPosition(actor) ? null : FactionText.ErrRankNotBelow;
@@ -174,9 +173,6 @@ internal static partial class FactionRules
 
     private static bool IsBelow(FactionRecord faction, FactionRankRecord rank, FactionRankRecord than) =>
         faction.GetPosition(rank) > faction.GetPosition(than);
-
-    private static bool IsSoleLeader(FactionRecord faction, FactionMemberRecord member) =>
-        faction.GetRank(member).IsLeader && faction.CountHolders(faction.LeaderRank) == 1;
 
     // The two ranks every faction has stay where they are.
     private static Phrase? CheckMade(FactionRankRecord rank) => rank.Kind switch

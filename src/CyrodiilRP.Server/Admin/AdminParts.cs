@@ -24,6 +24,6 @@ internal static class AdminParts
     // Every faction (a list of StaffFactionView).
     public const string Factions = "factions";
 
-    // One faction in full, by its id (a StaffFactionCardView). The id alone comes back, as a number, once it is gone.
+    // One faction in full, by its id (a StaffFactionLookupView, its card null once the faction is gone).
     public const string Faction = "faction";
 }

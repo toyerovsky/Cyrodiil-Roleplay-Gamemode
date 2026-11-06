@@ -19,9 +19,9 @@ const MINUTE_PRESETS = [15, 60, 1440, 10080, 0];
 // The roles StaffRoleSeeds.cs makes, from the least.
 const ROLES = ["moderator", "admin", "owner"];
 const NO_ROLES = "-";
-const TEXT_FIELDS = ["reason", "roles", "text", "name"];
+const TEXT_FIELDS = ["reason", "roles", "text", "factionName"];
 // The most a field takes, where the server has a limit for it.
-const LONGEST = { text: CHAT_MAX_LENGTH, name: FACTION_NAME_MAX };
+const LONGEST = { text: CHAT_MAX_LENGTH, factionName: FACTION_NAME_MAX };
 
 const fields = ACTIONS[props.dialog.action].fields;
 const current = props.dialog.values.current ?? [];
@@ -52,8 +52,8 @@ function check() {
   if ("health" in values && !(readNumber("health") >= 1 && readNumber("health") <= most.value))
     return { field: "health", text: fill(props.t["dialog.health_range"], { max: most.value }) };
   if ("text" in values && values.text.trim().length === 0) return { field: "text", text: props.t["dialog.text_empty"] };
-  if ("name" in values && !(values.name.trim().length >= FACTION_NAME_MIN && values.name.trim().length <= FACTION_NAME_MAX))
-    return { field: "name", text: fill(props.t["dialog.name_length"], { min: FACTION_NAME_MIN, max: FACTION_NAME_MAX }) };
+  if ("factionName" in values && !(values.factionName.trim().length >= FACTION_NAME_MIN && values.factionName.trim().length <= FACTION_NAME_MAX))
+    return { field: "factionName", text: fill(props.t["dialog.faction_name_length"], { min: FACTION_NAME_MIN, max: FACTION_NAME_MAX }) };
   return null;
 }
 

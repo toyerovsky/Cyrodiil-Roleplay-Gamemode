@@ -57,11 +57,12 @@ describe("the panel's factions", () => {
   const asked = () => game.readSent("AdminAsk");
   const ran = () => game.readSent("AdminRun").map(([line]) => line);
   const click = (selector) => page.find(selector).trigger("click");
+  const lookup = (id, card = null) => JSON.stringify({ id, card });
   const openGuild = async (card = guild()) => {
     await game.emit("State", state());
     await game.emit("Part", "factions", JSON.stringify(LIST));
     await click('[data-faction="7"]');
-    await game.emit("Part", "faction", JSON.stringify(card));
+    await game.emit("Part", "faction", lookup(card.id, card));
   };
   const submitDialog = async () => {
     page.find(".admin-dialog__box").element.dispatchEvent(new Event("submit", { cancelable: true }));
@@ -134,7 +135,7 @@ describe("the panel's factions", () => {
   it("renames under a name of a length the server takes", async () => {
     await openGuild();
     await click('[data-action="factionRename"]');
-    const field = page.find('[data-field="name"]');
+    const field = page.find('[data-field="factionName"]');
     expect(field.attributes("maxlength")).toBe(String(FACTION_NAME_MAX));
     await field.setValue("ab");
     await submitDialog();
@@ -153,16 +154,16 @@ describe("the panel's factions", () => {
     expect(page.find(".admin__status").text()).toBe("Lum gro-Baroth is removed from Fighters Guild.");
 
     await game.emit("Part", "factions", JSON.stringify(LIST.slice(1)));
-    await game.emit("Part", "faction", "7");
+    await game.emit("Part", "faction", lookup(7));
     expect(page.find("[data-card]").exists()).toBe(false);
     expect(page.text()).toContain("Pick a faction");
   });
 
   it("keeps the card of the faction picked when another one's answer arrives late", async () => {
     await openGuild();
-    await game.emit("Part", "faction", JSON.stringify(guild({ id: 9, name: "Mages Guild" })));
+    await game.emit("Part", "faction", lookup(9, guild({ id: 9, name: "Mages Guild" })));
     expect(page.find("[data-card]").attributes("data-card")).toBe("7");
-    await game.emit("Part", "faction", "9");
+    await game.emit("Part", "faction", lookup(9));
     expect(page.find("[data-card]").attributes("data-card")).toBe("7");
   });
 
@@ -170,7 +171,7 @@ describe("the panel's factions", () => {
     await game.emit("State", state({ allowed: ["duty"] }));
     await game.emit("Part", "factions", JSON.stringify(LIST));
     await click('[data-faction="7"]');
-    await game.emit("Part", "faction", JSON.stringify(guild()));
+    await game.emit("Part", "faction", lookup(7, guild()));
     expect(page.findAll("[data-card] [data-action]")).toHaveLength(0);
     expect(page.findAll("[data-member]")).toHaveLength(3);
   });
@@ -179,7 +180,7 @@ describe("the panel's factions", () => {
     await game.emit("State", state({ acting: false, onDuty: false }));
     await game.emit("Part", "factions", JSON.stringify(LIST));
     await click('[data-faction="7"]');
-    await game.emit("Part", "faction", JSON.stringify(guild()));
+    await game.emit("Part", "faction", lookup(7, guild()));
     const buttons = page.findAll("[data-card] [data-action]");
     expect(buttons.length).toBeGreaterThan(0);
     expect(buttons.every((button) => button.element.disabled)).toBe(true);

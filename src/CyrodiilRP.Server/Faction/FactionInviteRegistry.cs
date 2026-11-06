@@ -31,4 +31,14 @@ internal sealed class FactionInviteRegistry(IClock clock)
 
         return taken;
     }
+
+    // Those a player was sent and those they sent.
+    public IReadOnlyList<FactionInvite> TakeAll(OnlinePlayer player)
+    {
+        var taken = _byInvitee.Values.Where(invite => invite.Invitee == player || invite.Inviter == player).ToList();
+        foreach (var invite in taken)
+            _byInvitee.Remove(invite.Invitee);
+
+        return taken;
+    }
 }

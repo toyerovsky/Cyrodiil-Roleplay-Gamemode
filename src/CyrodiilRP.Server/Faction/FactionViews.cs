@@ -33,8 +33,8 @@ internal static class FactionViews
                 FactionRules.CheckMayRename(faction, reader, rank) is null,
                 FactionRules.CheckRankChange(faction, reader, rank) is null,
                 FactionRules.CheckRankDelete(faction, reader, rank) is null,
-                FactionRules.CheckRankMove(faction, reader, rank, FactionRules.RankUp) is null,
-                FactionRules.CheckRankMove(faction, reader, rank, FactionRules.RankDown) is null,
+                FactionRules.CheckRankMove(faction, reader, rank, FactionRankMove.Up) is null,
+                FactionRules.CheckRankMove(faction, reader, rank, FactionRankMove.Down) is null,
                 FactionRules.MayGive(faction, reader, rank)))
             .ToList();
         var members = ListByRank(faction)

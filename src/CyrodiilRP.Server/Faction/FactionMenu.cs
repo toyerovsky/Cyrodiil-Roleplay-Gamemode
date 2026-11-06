@@ -42,7 +42,7 @@ internal sealed partial class FactionMenu(
             return;
         }
 
-        if (chat.CheckPace(player) is { } tooFast)
+        if (chat.CountLine(player) is { } tooFast)
         {
             Refuse(player, tooFast);
             return;

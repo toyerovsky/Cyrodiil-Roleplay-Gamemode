@@ -112,9 +112,9 @@ function pretendFactions(now) {
       })),
     read(id) {
       const faction = find(id);
-      if (!faction) return id;
+      if (!faction) return { id, card: null };
       const count = (rank) => faction.members.filter((each) => each.rank === rank.number).length;
-      return { ...faction, ranks: faction.ranks.map((rank) => ({ ...rank, members: count(rank) })) };
+      return { id, card: { ...faction, ranks: faction.ranks.map((rank) => ({ ...rank, members: count(rank) })) } };
     },
     run(line) {
       const [, verb, mark, ...rest] = line.split(" ");

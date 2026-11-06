@@ -77,7 +77,7 @@ internal sealed partial class RpChat(
         if (!online.TryGet(senderId, out var sender))
             return;
 
-        if (CheckPace(sender) is { } tooFast)
+        if (CountLine(sender) is { } tooFast)
         {
             Refuse(sender, tooFast);
             return;
@@ -111,8 +111,8 @@ internal sealed partial class RpChat(
         SendAround(sender, config.Chat.Say, ChatLineKind.Say, ChatText.Say(new ShownName(sender), cleaned));
     }
 
-    // Null when the player may send another line: one typed, or one a page's button runs. It counts as sent.
-    public Phrase? CheckPace(OnlinePlayer sender) => Admit(sender) ? null : ChatText.TooFast(RateLimitCount, RateLimitWindow.TotalSeconds);
+    // Counts one more line of the player's, typed or run by a page's button. The refusal when that is too many at once.
+    public Phrase? CountLine(OnlinePlayer sender) => Admit(sender) ? null : ChatText.TooFast(RateLimitCount, RateLimitWindow.TotalSeconds);
 
     // A sliding window per player, so a held key or a script cannot flood the server.
     private bool Admit(OnlinePlayer sender)

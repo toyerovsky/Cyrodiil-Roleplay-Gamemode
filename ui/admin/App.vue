@@ -167,13 +167,11 @@ function onPart(kind, data) {
   else if (kind === PARTS.faction) onFaction(data);
 }
 
-// A faction that is gone comes back as its id alone: the card closes.
-function onFaction(data) {
-  if (typeof data === "number") {
-    if (data === factionId.value) factionId.value = null;
-  } else if (data.id === factionId.value) {
-    faction.value = data;
-  }
+// The answer for the faction picked: its card, or none once it is gone, and then the card closes.
+function onFaction(lookup) {
+  if (lookup.id !== factionId.value) return;
+  if (lookup.card) faction.value = lookup.card;
+  else factionId.value = null;
 }
 
 // What a command changed shows again: the card open, the sanctions in force and the audit, which it wrote to.

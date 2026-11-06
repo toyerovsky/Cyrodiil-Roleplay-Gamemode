@@ -270,13 +270,12 @@ internal sealed partial class AdminPanel(
         rpc.SendAdminPart(staff.Id, AdminParts.Factions, JsonSerializer.Serialize(list, AdminJson.Letters.ListStaffFactionView));
     }
 
-    // One dissolved since the list was read comes back as its id alone, so the page drops it.
+    // One dissolved since the list was read comes back without its card, so the page drops it.
     private void SendFaction(OnlinePlayer staff, long id)
     {
-        var json = factions.Find(id) is { } faction
-            ? JsonSerializer.Serialize(FactionViews.BuildStaffCard(faction, factions.MapOnline()), AdminJson.Letters.StaffFactionCardView)
-            : JsonSerializer.Serialize(id, AdminJson.Letters.Int64);
-        rpc.SendAdminPart(staff.Id, AdminParts.Faction, json);
+        var card = factions.Find(id) is { } faction ? FactionViews.BuildStaffCard(faction, factions.MapOnline()) : null;
+        var lookup = new StaffFactionLookupView(id, card);
+        rpc.SendAdminPart(staff.Id, AdminParts.Faction, JsonSerializer.Serialize(lookup, AdminJson.Letters.StaffFactionLookupView));
     }
 
     private T? Parse<T>(string json, JsonTypeInfo<T> type) where T : class

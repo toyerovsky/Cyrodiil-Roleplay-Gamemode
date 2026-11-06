@@ -58,7 +58,9 @@ function forgetAnswer() {
   waiting.value = false;
 }
 
+// One command at a time: a second click before the answer would run it twice.
 function runFaction(line) {
+  if (waiting.value) return;
   answer.value = null;
   waiting.value = true;
   props.bridge.runFaction(line);

@@ -34,7 +34,7 @@ export const ACTIONS = {
   spawnGo: { command: "aspawn", line: "/aspawn go" },
   loreClear: { command: "alore", line: "/alore {number} clear {field}" },
   factionDissolve: { command: "afaction", line: "/afaction dissolve #{id} {reason}", fields: ["reason"] },
-  factionRename: { command: "afaction", line: "/afaction rename #{id} {name}", fields: ["name"] },
+  factionRename: { command: "afaction", line: "/afaction rename #{id} {factionName}", fields: ["factionName"] },
   factionLead: { command: "afaction", line: "/afaction lead #{id} #{member}" },
   factionRemove: { command: "afaction", line: "/afaction remove #{id} #{member}" },
 };

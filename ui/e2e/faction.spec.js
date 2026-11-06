@@ -192,12 +192,12 @@ test("the staff read every faction, rename one, make a leader, remove a member a
 
   await card.getByRole("button", { name: admin("action.factionRename") }).click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByLabel(admin("field.name"))).toBeFocused();
-  await dialog.getByLabel(admin("field.name")).fill("ab");
+  await expect(dialog.getByLabel(admin("field.factionName"))).toBeFocused();
+  await dialog.getByLabel(admin("field.factionName")).fill("ab");
   await page.keyboard.press("Enter");
   await expect(dialog.getByRole("alert")).toHaveText("The name has 3 to 32 characters.");
   await screenshot(page, testInfo, "admin-faction-rename");
-  await dialog.getByLabel(admin("field.name")).fill("Blackwood Company");
+  await dialog.getByLabel(admin("field.factionName")).fill("Blackwood Company");
   await page.keyboard.press("Enter");
   await expect(page.locator(".admin__status")).toHaveText("Fighters Guild is now called Blackwood Company.");
   await expect(card.getByRole("heading", { name: /Blackwood Company/ })).toBeVisible();

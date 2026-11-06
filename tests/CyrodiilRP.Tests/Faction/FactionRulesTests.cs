@@ -180,12 +180,12 @@ public sealed class FactionRulesTests
     {
         var scribe = _guild.AddRank("Scribe");
 
-        Assert.Null(FactionRules.CheckRankMove(Faction, _guild.Leader, scribe, FactionRules.RankUp));
-        Assert.Null(FactionRules.CheckRankMove(Faction, _guild.Leader, _guild.Warder, FactionRules.RankDown));
-        AssertRefused(FactionText.ErrRankEdge, FactionRules.CheckRankMove(Faction, _guild.Leader, _guild.Warder, FactionRules.RankUp));
-        AssertRefused(FactionText.ErrRankEdge, FactionRules.CheckRankMove(Faction, _guild.Leader, scribe, FactionRules.RankDown));
-        AssertRefused(FactionText.ErrRankNotBelow, FactionRules.CheckRankMove(Faction, _guild.Officer, scribe, FactionRules.RankUp));
-        AssertRefused(FactionText.ErrRankFixed, FactionRules.CheckRankMove(Faction, _guild.Leader, Faction.EntryRank, FactionRules.RankUp));
+        Assert.Null(FactionRules.CheckRankMove(Faction, _guild.Leader, scribe, FactionRankMove.Up));
+        Assert.Null(FactionRules.CheckRankMove(Faction, _guild.Leader, _guild.Warder, FactionRankMove.Down));
+        AssertRefused(FactionText.ErrRankEdge, FactionRules.CheckRankMove(Faction, _guild.Leader, _guild.Warder, FactionRankMove.Up));
+        AssertRefused(FactionText.ErrRankEdge, FactionRules.CheckRankMove(Faction, _guild.Leader, scribe, FactionRankMove.Down));
+        AssertRefused(FactionText.ErrRankNotBelow, FactionRules.CheckRankMove(Faction, _guild.Officer, scribe, FactionRankMove.Up));
+        AssertRefused(FactionText.ErrRankFixed, FactionRules.CheckRankMove(Faction, _guild.Leader, Faction.EntryRank, FactionRankMove.Up));
     }
 
     [Fact]

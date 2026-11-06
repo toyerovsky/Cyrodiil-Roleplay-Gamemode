@@ -98,6 +98,7 @@ describe("the menu's faction tab", () => {
   const type = (field, text) => page.find(`[data-field="${field}"]`).setValue(text);
   const submit = (field) => page.find(`[data-field="${field}"]`).element.form.dispatchEvent(new Event("submit", { cancelable: true }));
   const ran = () => game.readSent("MenuFaction").map(([line]) => line);
+  const answerDone = () => game.emit("Answer", "Done.", true);
 
   it("offers a player in no faction to found one, for the fee the server names", async () => {
     await game.emit("State", state(null));
@@ -154,6 +155,7 @@ describe("the menu's faction tab", () => {
     await game.emit("State", state(null, { faction: "Mages Guild", by: "Breton", leftMs: 240_000 }));
     expect(page.find('[data-part="invite"]').text()).toContain("Breton invites you to join Mages Guild.");
     await click('[data-action="accept"]');
+    await answerDone();
     await click('[data-action="decline"]');
     expect(ran()).toEqual(["/faction accept", "/faction decline"]);
   });
@@ -224,6 +226,7 @@ describe("the menu's faction tab", () => {
   it("turns a permission on or off by what the rank holds", async () => {
     await game.emit("State", state(asChampion()));
     await click('[data-rank="4"] [data-perm="Invite"]');
+    await answerDone();
     await click('[data-rank="4"] [data-perm="Ranks"]');
     expect(ran()).toEqual(["/faction perm #4 invite off", "/faction perm #4 ranks on"]);
   });
@@ -248,15 +251,27 @@ describe("the menu's faction tab", () => {
     await game.emit("State", state(asChampion()));
     expect(page.find('[data-rank="4"] [data-action="up"]').exists()).toBe(false);
     await click('[data-rank="5"] [data-action="up"]');
+    await answerDone();
     await click('[data-rank="5"] [data-action="delete"]');
     expect(page.find('[data-rank="5"] [data-action="delete"]').text()).toBe("Sure?");
     await click('[data-rank="5"] [data-action="delete"]');
+    await answerDone();
     await type("rank", "Journeyman");
     submit("rank");
     await flushPromises();
     expect(ran()).toEqual(["/faction rankmove #5 up", "/faction rankdel #5", "/faction rankadd Journeyman"]);
     expect(page.find('[data-rank="1"] [data-action]').exists()).toBe(false);
     expect(page.find('[data-rank="2"] [data-action="delete"]').exists()).toBe(false);
+  });
+
+  it("runs one command at a time, the next only after the server answered", async () => {
+    await game.emit("State", state(asChampion()));
+    await click('[data-rank="5"] [data-action="up"]');
+    await click('[data-rank="5"] [data-action="up"]');
+    expect(ran()).toEqual(["/faction rankmove #5 up"]);
+    await answerDone();
+    await click('[data-rank="5"] [data-action="up"]');
+    expect(ran()).toEqual(["/faction rankmove #5 up", "/faction rankmove #5 up"]);
   });
 
   it("lets a member without permissions only read the roll and leave, on the second click", async () => {

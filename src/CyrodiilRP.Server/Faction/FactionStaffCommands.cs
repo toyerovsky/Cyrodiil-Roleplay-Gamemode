@@ -137,7 +137,7 @@ internal sealed partial class FactionStaffCommands(
         }
 
         factions.SetRank(faction, member, rank);
-        audit.Log(LeadAction, call.Sender.Ref, CharacterRecord.FormatRef(member.CharacterId), new MemberDetails(faction.Name));
+        audit.Log(LeadAction, call.Sender.Ref, CharacterRecord.FormatRef(member.CharacterId), new MemberDetails(faction.Ref, faction.Name));
         factions.Tell(faction, FactionText.MemberRank(member.Name, rank.Name), except: call.Sender);
         call.Reply(FactionText.StaffLead(member.Name, faction.Name));
     }
@@ -151,14 +151,14 @@ internal sealed partial class FactionStaffCommands(
             return;
         }
 
-        if (FactionRules.CheckLeave(faction, member) is not null)
+        if (FactionRules.IsSoleLeader(faction, member))
         {
             call.Refuse(FactionText.StaffErrSoleLeader(member.Name, faction.Name));
             return;
         }
 
         factions.RemoveMember(faction, member);
-        audit.Log(RemoveAction, call.Sender.Ref, CharacterRecord.FormatRef(member.CharacterId), new MemberDetails(faction.Name));
+        audit.Log(RemoveAction, call.Sender.Ref, CharacterRecord.FormatRef(member.CharacterId), new MemberDetails(faction.Ref, faction.Name));
         if (factions.FindOnline(member) is { } removed && removed != call.Sender)
             chat.Notify(removed, FactionText.Kicked(faction.Name));
 
@@ -170,5 +170,6 @@ internal sealed partial class FactionStaffCommands(
 
     private sealed record RenameDetails(string From, string To);
 
-    private sealed record MemberDetails(string Faction);
+    // Faction: its ref, which a new name does not change.
+    private sealed record MemberDetails(string Faction, string Name);
 }

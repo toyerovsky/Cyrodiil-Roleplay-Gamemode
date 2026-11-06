@@ -29,7 +29,8 @@ code, the commands and the texts.
 - A new rank stands right above the entry rank. A deleted rank leaves its holders at the entry rank.
 - Leaving: the only leader cannot leave while others are in. The last member may, and the faction is dissolved.
 - An invitation shows as a card at the top of the screen (Y joins, N declines) for 30 s and is good for 5 minutes, on
-  the Faction tab or with `/faction accept`. One invitation a player at a time.
+  the Faction tab or with `/faction accept`. One invitation a player at a time. It ends when either of the two players
+  leaves the game, and with its faction.
 - A faction holds 100 members at most.
 - `/f <text>` reaches the faction's members in the game, wherever they are: `[Fighters Guild] Marcus Varro: text`.
 - Inside a faction members read each other's names from the roll: its notices and `/f` use the character's name, not the
@@ -41,14 +42,14 @@ code, the commands and the texts.
 |---|---|---|
 | `/faction` | Opens the F10 menu on the Faction tab | `Faction/FactionCommands.cs` |
 | `/faction create <name>` | Founds a faction | `FactionCommands.Found`, `Factions.FoundAsync` |
-| `/faction invite <number>`, `accept`, `decline` | An invitation and its answer | `FactionCommands.cs`, `FactionInviteRegistry.cs` |
+| `/faction invite <number>`, `accept`, `decline` | An invitation and its answer | `FactionInvites.cs`, `FactionInviteRegistry.cs` |
 | `/faction kick <member>`, `leave` | Off the roll | `FactionCommands.cs` |
-| `/faction rank <member> <rank>` | Gives a rank | `FactionRules.CheckAssign` |
-| `/faction perm <rank> <invite\|kick\|ranks> [on\|off]` | Gives or takes a permission, turns it without on or off | `FactionRules.CheckGrant` |
-| `/faction rankadd`, `rankdel`, `rankname`, `rankmove <rank> <up\|down>` | The ranks themselves | `FactionRules.cs` |
+| `/faction rank <member> <rank>` | Gives a rank | `FactionRankCommands.Assign`, `FactionRules.CheckAssign` |
+| `/faction perm <rank> <invite\|kick\|ranks> [on\|off]` | Gives or takes a permission, turns it without on or off | `FactionRankCommands.Grant`, `FactionRules.CheckGrant` |
+| `/faction rankadd`, `rankdel`, `rankname`, `rankmove <rank> <up\|down>` | The ranks themselves | `FactionRankCommands.cs`, `FactionRules.cs` |
 | `/faction info` | Name, ranks and the members in the game, in the chat | `FactionCommands.Describe` |
 | `/f <text>` | Faction chat (`ChatLineKind.Faction`) | `FactionCommands.Speak` |
-| H wheel | "Invite to the faction" (`player.faction_invite`, Order 45), for a rank that invites | `FactionCommands.cs` |
+| H wheel | "Invite to the faction" (`player.faction_invite`, Order 45), for a rank that invites | `FactionInvites.cs` |
 | F10 | Tab `faction`: found one or answer an invitation, or the roll and the ranks with their buttons | `ui/menu/FactionTab.vue` |
 | `/afaction dissolve <faction> <reason>` | Staff: dissolves, the reason in the audit log | `Faction/FactionStaffCommands.cs` |
 | `/afaction rename`, `lead`, `remove` | Staff: a new name, a member made a leader, a member off the roll | `FactionStaffCommands.cs` |
@@ -69,8 +70,10 @@ the roll log are. Changing one needs the permission `afaction` (administrators) 
   `character_id`, so one faction a character). `FactionBook` reads and writes them.
 - **Memory**: `Factions.Load` reads every faction once as the mod starts (`Mod.Init`). `FactionRegistry` holds
   `FactionRecord`s for the update thread, so a permission check, `/f` and the menu never wait for the database. Every
-  change is made in memory and queued to the writer in the same order. Founding alone waits for the database, for the
-  faction's id, with the name held meanwhile.
+  change goes through `Factions`, which makes it in memory and queues it to the writer in the same order. Founding
+  alone waits for the database, for the faction's id, with the name held meanwhile.
+- **Commands**: `FactionCommands` picks the verb of `/faction` and keeps founding, removing, leaving and the listing.
+  The invitations are `FactionInvites`' and the ranks `FactionRankCommands`'.
 - **Rules**: `FactionRules` is the one place that says who may do what. The commands refuse by it, and `FactionViews`
   asks it for every "can" the pages get, so a page offers nothing the server would refuse.
 - **The Faction tab**: its buttons send `/faction ...` lines (`MenuFaction` -> `FactionRun`). `FactionMenu` runs them
@@ -78,7 +81,8 @@ the roll log are. Changing one needs the permission `afaction` (administrators) 
   menu as it is after it. The client puts both on the page, or the answer in the corner if the menu closed meanwhile.
   The lines count against the chat's rate limit.
 - **The staff's tab**: asks `AdminParts.Factions` and `AdminParts.Faction` and runs `/afaction` through the panel's own
-  `AdminRun`. A faction gone since the list was read comes back as its id alone, and the card closes.
+  `AdminRun`. A faction gone since the list was read comes back without its card (`StaffFactionLookupView`), and the
+  card closes.
 - **Audit**: `faction.found` (name, fee), `faction.end` (the last member left), `faction.dissolve`, `faction.rename`,
   `faction.lead`, `faction.remove`.
 

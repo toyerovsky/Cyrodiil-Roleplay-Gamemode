@@ -3,18 +3,20 @@ using CyrodiilRP.Data.Factions;
 
 namespace CyrodiilRP.Server.Faction;
 
-// The update thread's copy of a faction, its ranks from the top down and its members. The database rows are the truth.
+// The update thread's copy of a faction, its ranks from the top down and its members. The database rows are the truth,
+// so it is changed only through Factions, which writes every change down.
 internal sealed class FactionRecord(long id, string name, DateTimeOffset foundedAt)
 {
     private const string RefPrefix = "faction:";
     private const int FixedRanks = 2;
+    private const int OnePlace = 1;
 
     private readonly List<FactionRankRecord> _ranks = [];
     private readonly Dictionary<long, FactionMemberRecord> _members = [];
 
     public long Id { get; } = id;
 
-    public string Name { get; set; } = name;
+    public string Name { get; private set; } = name;
 
     public DateTimeOffset FoundedAt { get; } = foundedAt;
 
@@ -76,7 +78,19 @@ internal sealed class FactionRecord(long id, string name, DateTimeOffset founded
 
     public int GetPosition(FactionMemberRecord member) => GetPosition(GetRank(member));
 
+    // The ranks a faction made stand between the two every faction has.
+    public bool IsMadePlace(int position) => position > 0 && position <= _ranks.Count - FixedRanks;
+
+    // Where the rank would stand after the move.
+    public int GetPlaceAfter(FactionRankRecord rank, FactionRankMove move) => GetPosition(rank) + move switch
+    {
+        FactionRankMove.Up => -OnePlace,
+        FactionRankMove.Down => OnePlace,
+    };
+
     public int CountHolders(FactionRankRecord rank) => _members.Values.Count(member => member.RankNumber == rank.Number);
+
+    public void Rename(string name) => Name = name;
 
     public void PutMember(FactionMemberRecord member) => _members[member.CharacterId] = member;
 
@@ -96,12 +110,11 @@ internal sealed class FactionRecord(long id, string name, DateTimeOffset founded
         _ranks.RemoveAt(GetPosition(rank));
     }
 
-    // One place up (-1) or down (+1).
-    public void MoveRank(FactionRankRecord rank, int step)
+    public void MoveRank(FactionRankRecord rank, FactionRankMove move)
     {
-        var from = GetPosition(rank);
-        _ranks.RemoveAt(from);
-        _ranks.Insert(from + step, rank);
+        var to = GetPlaceAfter(rank, move);
+        _ranks.RemoveAt(GetPosition(rank));
+        _ranks.Insert(to, rank);
     }
 
     public IReadOnlyList<FactionRank> BuildRankRows() =>

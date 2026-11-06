@@ -17,8 +17,7 @@ namespace CyrodiilRP.Server.Admin;
 [JsonSerializable(typeof(AdminItemFilter))]
 [JsonSerializable(typeof(List<AdminItemView>))]
 [JsonSerializable(typeof(List<StaffFactionView>))]
-[JsonSerializable(typeof(StaffFactionCardView))]
-[JsonSerializable(typeof(long))]
+[JsonSerializable(typeof(StaffFactionLookupView))]
 internal sealed partial class AdminJson : JsonSerializerContext
 {
     // A whole lore card in letters as they are: in escapes six bytes long one written in Polish would not fit a message.

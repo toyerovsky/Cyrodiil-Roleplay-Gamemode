@@ -213,6 +213,6 @@
   "ui.admin.action.factionDissolve": "Dissolve",
   "ui.admin.action.factionLead": "Make leader",
   "ui.admin.action.factionRemove": "Remove",
-  "ui.admin.field.name": "New name",
-  "ui.admin.dialog.name_length": "The name has {min} to {max} characters."
+  "ui.admin.field.factionName": "New name",
+  "ui.admin.dialog.faction_name_length": "The name has {min} to {max} characters."
 }

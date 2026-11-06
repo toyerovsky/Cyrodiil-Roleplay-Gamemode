@@ -57,9 +57,23 @@ public sealed class FactionInviteRegistryTests
         Assert.Same(kept, _invites.Find(_burz));
     }
 
-    private FactionInvite Invite(FactionRecord faction, OnlinePlayer invitee)
+    [Fact]
+    public void A_player_who_leaves_takes_the_invitations_they_got_and_those_they_sent()
     {
-        var inviter = CreatePlayer();
+        var got = Invite(_guild.Faction, _azzan);
+        var sent = Invite(_guild.Faction, CreatePlayer(), inviter: _azzan);
+        var kept = Invite(_guild.Faction, _burz);
+
+        Assert.Equal([got, sent], _invites.TakeAll(_azzan));
+
+        Assert.Null(_invites.Find(sent.Invitee));
+        Assert.Same(kept, _invites.Find(_burz));
+    }
+
+    private FactionInvite Invite(FactionRecord faction, OnlinePlayer invitee) => Invite(faction, invitee, CreatePlayer());
+
+    private FactionInvite Invite(FactionRecord faction, OnlinePlayer invitee, OnlinePlayer inviter)
+    {
         var invite = new FactionInvite(
             faction, inviter, invitee, _clock.MonotonicMs + (long)FactionRules.InviteLasts.TotalMilliseconds, new PlayerAsk(inviter, invitee));
         _invites.Put(invite);

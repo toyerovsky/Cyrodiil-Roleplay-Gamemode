@@ -91,7 +91,7 @@ public sealed class FactionRecordTests
         var guild = new Guild();
         var scribe = guild.AddRank("Scribe");
 
-        guild.Faction.MoveRank(scribe, FactionRules.RankUp);
+        guild.Faction.MoveRank(scribe, FactionRankMove.Up);
 
         Assert.Equal(["Master", "Scribe", "Warder", "Associate"], guild.Faction.Ranks.Select(rank => rank.Name));
         var rows = guild.Faction.BuildRankRows();

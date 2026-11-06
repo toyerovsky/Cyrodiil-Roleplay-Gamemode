@@ -213,6 +213,6 @@
   "ui.admin.action.factionDissolve": "Rozwiąż",
   "ui.admin.action.factionLead": "Mianuj liderem",
   "ui.admin.action.factionRemove": "Usuń",
-  "ui.admin.field.name": "Nowa nazwa",
-  "ui.admin.dialog.name_length": "Nazwa ma od {min} do {max} znaków."
+  "ui.admin.field.factionName": "Nowa nazwa",
+  "ui.admin.dialog.faction_name_length": "Nazwa ma od {min} do {max} znaków."
 }

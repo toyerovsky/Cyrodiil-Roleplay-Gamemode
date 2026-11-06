@@ -22,7 +22,8 @@ public static class FactionBook
     {
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
 
-        var faction = new Faction { Name = founding.Name, NameKey = Faction.MakeNameKey(founding.Name), FoundedAt = founding.At };
+        var name = ColumnLengths.Cut(founding.Name, ColumnLengths.FactionName);
+        var faction = new Faction { Name = name, NameKey = Faction.MakeNameKey(name), FoundedAt = founding.At };
         db.Factions.Add(faction);
         await db.SaveChangesAsync(ct);
 
@@ -30,7 +31,7 @@ public static class FactionBook
         {
             FactionId = faction.Id,
             Number = FactionRank.LeaderNumber,
-            Name = founding.LeaderRankName,
+            Name = ColumnLengths.Cut(founding.LeaderRankName, ColumnLengths.FactionRankName),
             Position = 0,
             Kind = FactionRankKind.Leader,
         });
@@ -38,7 +39,7 @@ public static class FactionBook
         {
             FactionId = faction.Id,
             Number = FactionRank.EntryNumber,
-            Name = founding.EntryRankName,
+            Name = ColumnLengths.Cut(founding.EntryRankName, ColumnLengths.FactionRankName),
             Position = 1,
             Kind = FactionRankKind.Entry,
         });
@@ -104,10 +105,11 @@ public static class FactionBook
 
     public static Task RenameAsync(CyrodiilContext db, long factionId, string name, CancellationToken ct)
     {
-        var key = Faction.MakeNameKey(name);
+        var stored = ColumnLengths.Cut(name, ColumnLengths.FactionName);
+        var key = Faction.MakeNameKey(stored);
         return db.Factions
             .Where(f => f.Id == factionId)
-            .ExecuteUpdateAsync(s => s.SetProperty(f => f.Name, name).SetProperty(f => f.NameKey, key), ct);
+            .ExecuteUpdateAsync(s => s.SetProperty(f => f.Name, stored).SetProperty(f => f.NameKey, key), ct);
     }
 
     // The members go first, as they hold the ranks, which go with the faction. False when it was gone already.

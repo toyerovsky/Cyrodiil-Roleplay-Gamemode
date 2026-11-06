@@ -27,6 +27,7 @@ internal sealed partial class PlayerMenus(
     Introductions introductions,
     ShownNames names,
     Factions factions,
+    FactionInvites invites,
     RpConfig config,
     Localizer translations)
 {
@@ -81,19 +82,19 @@ internal sealed partial class PlayerMenus(
             HelpListing.Build(commands.ListAvailable(player), Translate),
             dice.BuildView(player),
             BuildLore(player),
-            BuildFaction(player, character.Id),
+            BuildFaction(player),
             translations.Locales,
             player.Locale);
         return JsonSerializer.Serialize(view, MenuJson.Default.MenuView);
     }
 
-    private FactionMenuView BuildFaction(OnlinePlayer player, long characterId)
+    private FactionMenuView BuildFaction(OnlinePlayer player)
     {
-        var invite = factions.Invites.Find(player) is { } waiting
-            ? new FactionInviteView(waiting.Faction.Name, names.Shown(player, waiting.Inviter), factions.Invites.CountMsLeft(waiting))
+        var invite = invites.Find(player) is { } waiting
+            ? new FactionInviteView(waiting.Faction.Name, names.Shown(player, waiting.Inviter), invites.CountMsLeft(waiting))
             : null;
-        var card = factions.FindOf(player) is { } faction && faction.FindMember(characterId) is { } member
-            ? FactionViews.BuildCard(faction, member, factions.MapOnline())
+        var card = factions.FindMembership(player) is { } own
+            ? FactionViews.BuildCard(own.Faction, own.Member, factions.MapOnline())
             : null;
         return new FactionMenuView(config.Factions.FoundingFee, invite, card);
     }

@@ -10,13 +10,14 @@ using ReadyM.SDK.Attributes;
 namespace CyrodiilRP.Server.Faction;
 
 // The mode's own factions: read once as the server starts, kept in memory for the update thread, and every change
-// written to the database in the order it was made. Who may make a change is FactionRules' to say, not this class's.
+// written to the database in the order it was made. A change to a faction goes through here, so memory and the
+// database never part. Who may make a change is FactionRules' to say, not this class's.
 [Service]
 internal sealed partial class Factions(
     Persistence persistence,
     OnlinePlayers online,
     RpChat chat,
-    Asks asks,
+    Callbacks callbacks,
     SystemClock clock,
     ILogger logger)
 {
@@ -27,10 +28,11 @@ internal sealed partial class Factions(
     private const string RanksJob = "factions.ranks";
     private const string RenameJob = "factions.rename";
     private const string DissolveJob = "factions.dissolve";
+    private const string DissolvedEvent = "factions.dissolved";
 
     private readonly FactionRegistry _registry = new();
 
-    public FactionInviteRegistry Invites { get; } = new(clock);
+    public event Action<FactionRecord>? Dissolved;
 
     public IEnumerable<FactionRecord> All => _registry.All;
 
@@ -50,6 +52,11 @@ internal sealed partial class Factions(
     public FactionRecord? Find(long id) => _registry.Find(id);
 
     public FactionRecord? FindOf(OnlinePlayer player) => player.Character is { } character ? _registry.FindOf(character.Id) : null;
+
+    public FactionMembership? FindMembership(OnlinePlayer player) =>
+        player.Character is { } character && _registry.FindOf(character.Id) is { } faction && faction.FindMember(character.Id) is { } member
+            ? new FactionMembership(faction, member)
+            : null;
 
     public bool IsNameTaken(string name) => _registry.IsNameTaken(name);
 
@@ -121,37 +128,57 @@ internal sealed partial class Factions(
         _ = persistence.Writer.EnqueueAsync(RankJob, (db, ct) => FactionBook.SetMemberRankAsync(db, member.CharacterId, rank.Number, ct));
     }
 
-    // After its ranks changed in memory: a new one, a name, a place, a permission, or one gone.
-    public void SaveRanks(FactionRecord faction)
+    // Right above the entry rank, with no permission yet.
+    public void AddRank(FactionRecord faction, string name)
     {
-        var rows = faction.BuildRankRows();
-        _ = persistence.Writer.EnqueueAsync(RanksJob, (db, ct) => FactionBook.SaveRanksAsync(db, faction.Id, rows, ct));
+        faction.AddRank(new FactionRankRecord(faction.NextRankNumber, name, FactionRankKind.Custom, []));
+        SaveRanks(faction);
+    }
+
+    // The rank of this number under another name or with other permissions.
+    public void ReplaceRank(FactionRecord faction, FactionRankRecord rank)
+    {
+        faction.ReplaceRank(rank);
+        SaveRanks(faction);
+    }
+
+    // Whoever held it falls to the entry rank.
+    public void RemoveRank(FactionRecord faction, FactionRankRecord rank)
+    {
+        faction.RemoveRank(rank);
+        SaveRanks(faction);
+    }
+
+    public void MoveRank(FactionRecord faction, FactionRankRecord rank, FactionRankMove move)
+    {
+        faction.MoveRank(rank, move);
+        SaveRanks(faction);
     }
 
     public void Rename(FactionRecord faction, string name)
     {
-        faction.Name = name;
+        faction.Rename(name);
         _ = persistence.Writer.EnqueueAsync(RenameJob, (db, ct) => FactionBook.RenameAsync(db, faction.Id, name, ct));
     }
 
-    // Its invitations go with it.
     public void Dissolve(FactionRecord faction)
     {
-        foreach (var invite in Invites.TakeAll(faction))
-            asks.Close(invite.Ask);
-
         _registry.Remove(faction);
         _ = persistence.Writer.EnqueueAsync(DissolveJob, (db, ct) => FactionBook.DissolveAsync(db, faction.Id, ct));
+        callbacks.Raise(DissolvedEvent, Dissolved, faction);
     }
 
     private void Start() => online.Left += OnLeft;
 
     private void OnLeft(OnlinePlayer player)
     {
-        if (Invites.Take(player) is { } invite)
-            asks.Close(invite.Ask);
+        if (FindMembership(player) is { } own)
+            own.Faction.PutMember(own.Member with { LastSeenAt = clock.UtcNow });
+    }
 
-        if (player.Character is { } character && _registry.FindOf(character.Id) is { } faction && faction.FindMember(character.Id) is { } member)
-            faction.PutMember(member with { LastSeenAt = clock.UtcNow });
+    private void SaveRanks(FactionRecord faction)
+    {
+        var rows = faction.BuildRankRows();
+        _ = persistence.Writer.EnqueueAsync(RanksJob, (db, ct) => FactionBook.SaveRanksAsync(db, faction.Id, rows, ct));
     }
 }

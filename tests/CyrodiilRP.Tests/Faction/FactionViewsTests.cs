@@ -128,7 +128,7 @@ public sealed class FactionViewsTests
     [Fact]
     public void A_faction_goes_to_the_staff_under_the_names_the_panel_reads_with_letters_as_they_are()
     {
-        _guild.Faction.Name = "Zażółć";
+        _guild.Faction.Rename("Zażółć");
         var list = FactionViews.BuildStaffList([_guild.Faction], Nobody);
         var card = FactionViews.BuildStaffCard(_guild.Faction, Nobody);
 
