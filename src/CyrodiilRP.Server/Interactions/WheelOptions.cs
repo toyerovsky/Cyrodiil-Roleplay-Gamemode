@@ -8,8 +8,8 @@ namespace CyrodiilRP.Server.Interactions;
 // open a while.
 internal sealed class WheelOptions(IWheelRules rules)
 {
-    // The places on a wheel.
-    public const int MaxOptions = 8;
+    // The places on a page of a wheel. A wheel of more turns its pages on the page (ui/radial/paging.js).
+    public const int PageSize = 8;
 
     // Two characters' positions are their middles, a body's width apart when they touch.
     private const float BodySlack = 75f;
@@ -37,9 +37,6 @@ internal sealed class WheelOptions(IWheelRules rules)
 
             var reason = state.Refusal is { } refusal ? rules.Translate(actor, refusal) : "";
             items.Add(new WheelItemView(option.Id, rules.Translate(actor, option.Label), option.Icon, !state.IsOpen, reason));
-
-            if (items.Count == MaxOptions)
-                break;
         }
 
         return items;

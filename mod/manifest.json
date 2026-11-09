@@ -12,6 +12,10 @@
     {
       "uniqueId": "Roleplay.HungerAndThirst",
       "minimumVersion": "0.1.0"
+    },
+    {
+      "uniqueId": "Roleplay.Emotes",
+      "minimumVersion": "0.1.0"
     }
   ]
 }

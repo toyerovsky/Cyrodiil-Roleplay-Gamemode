@@ -15,6 +15,7 @@ import {
   NAME_MAX_LENGTH,
   NAME_MIN_LENGTH,
   REASON_MIN_LENGTH,
+  WHEEL_PAGE_SIZE,
 } from "../shared/limits.js";
 
 const SRC = fileURLToPath(new URL("../../src/", import.meta.url));
@@ -33,6 +34,7 @@ describe("a page's limits", () => {
     expect(NAME_MAX_LENGTH).toBe(readConstant("CyrodiilRP.Server/Characters/NameRules.cs", "MaxLength"));
     expect(REASON_MIN_LENGTH).toBe(readConstant("CyrodiilRP.Server/Commands/CommandCall.cs", "MinReasonLength"));
     expect(MAX_MINUTES).toBe(readConstant("CyrodiilRP.Server/Commands/CommandLine.cs", "MaxMinutes"));
+    expect(WHEEL_PAGE_SIZE).toBe(readConstant("CyrodiilRP.Server/Interactions/WheelOptions.cs", "PageSize"));
     expect(MOST_ITEM_PIECES).toBe(readConstant("CyrodiilRP.Server/Admin/ItemCommands.cs", "MostPieces"));
     expect(FACTION_NAME_MIN).toBe(readConstant("CyrodiilRP.Server/Faction/FactionRules.cs", "MinNameLength"));
     expect(FACTION_NAME_MAX).toBe(readConstant("CyrodiilRP.Server/Faction/FactionRules.cs", "MaxNameLength"));

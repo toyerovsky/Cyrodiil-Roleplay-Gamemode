@@ -1,0 +1,7 @@
+{
+  "emotes.option": "Emotes",
+  "emotes.title": "Emotes",
+  "emotes.stop": "Stop",
+  "emotes.err.unknown": "That emote is no longer there.",
+  "emotes.err.not_in_world": "Your character is not in the world yet."
+}

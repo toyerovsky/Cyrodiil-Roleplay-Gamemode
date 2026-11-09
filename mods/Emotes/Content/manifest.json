@@ -1,0 +1,14 @@
+{
+  "uniqueId": "Roleplay.Emotes",
+  "version": "0.1.0",
+  "name": "Emotes",
+  "author": "ReadyM",
+  "description": "Emotes for roleplay: the game's own idles and any a mod registers through IEmotes, played on the character for everyone around. The gamemode puts them on the G wheel.",
+  "link": "https://ready.mp",
+  "dependencies": [
+    {
+      "uniqueId": "OblivionMP.SDK",
+      "minimumVersion": "1.0.0"
+    }
+  ]
+}

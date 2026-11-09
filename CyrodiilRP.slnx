@@ -20,10 +20,14 @@
         <Project Path="src/Roleplay.Jobs.Common/Roleplay.Jobs.Common.csproj" />
         <Project Path="src/Roleplay.Jobs.Client/Roleplay.Jobs.Client.csproj" />
         <Project Path="src/Roleplay.Jobs.Server/Roleplay.Jobs.Server.csproj" />
+        <Project Path="src/Roleplay.Emotes.Common/Roleplay.Emotes.Common.csproj" />
+        <Project Path="src/Roleplay.Emotes.Client/Roleplay.Emotes.Client.csproj" />
+        <Project Path="src/Roleplay.Emotes.Server/Roleplay.Emotes.Server.csproj" />
     </Folder>
     <Folder Name="/tests/">
         <Project Path="tests/CyrodiilRP.Tests/CyrodiilRP.Tests.csproj" />
         <Project Path="tests/Roleplay.HungerAndThirst.Tests/Roleplay.HungerAndThirst.Tests.csproj" />
         <Project Path="tests/Roleplay.Jobs.Tests/Roleplay.Jobs.Tests.csproj" />
+        <Project Path="tests/Roleplay.Emotes.Tests/Roleplay.Emotes.Tests.csproj" />
     </Folder>
 </Solution>

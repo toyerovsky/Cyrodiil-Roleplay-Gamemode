@@ -11,6 +11,7 @@ tools.
 | [`HungerAndThirst/`](HungerAndThirst/README.md) | `Roleplay.HungerAndThirst` | food and drink meters, a satchel (Alt+H), effects per tier through SDK statuses |
 | [`Jobs/`](Jobs/README.md) | `Roleplay.Jobs` | woodcutting (vanilla trees), mining ore nodes and quarrying |
 | [`StatusTest/`](StatusTest/README.md) | `Roleplay.StatusTest` | test bench for SDK statuses on the numpad, not for players |
+| [`Emotes/`](Emotes/README.md) | `Roleplay.Emotes` | emotes on the G wheel, the game's idles and any a mod registers (`IEmotes`), code in `src/Roleplay.Emotes.*` |
 
 ## They need an unreleased SDK
 

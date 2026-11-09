@@ -50,7 +50,6 @@ internal sealed partial class Feeding(
         var thirstier = sustenance.TryGetMeters(target.Id, out var meters) && meters.Hydration < meters.Satiety;
         var items = sustenance.CarriedBy(actor.Id)
             .OrderByDescending(carried => thirstier ? carried.Food.Hydration : carried.Food.Satiety)
-            .Take(WheelOptions.MaxOptions)
             .Select(carried => ToItem(actor, target, carried))
             .ToList();
         if (items.Count == 0)
