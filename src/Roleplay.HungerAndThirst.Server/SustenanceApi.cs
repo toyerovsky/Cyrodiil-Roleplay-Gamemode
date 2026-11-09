@@ -31,4 +31,6 @@ public sealed partial class SustenanceApi(SustenanceService sustenance, FoodTabl
     }
 
     public void Refill(PlayerId player) => sustenance.Refill(player);
+
+    public void SetMeters(PlayerId player, int satiety, int hydration) => sustenance.SetMeters(player, satiety, hydration);
 }

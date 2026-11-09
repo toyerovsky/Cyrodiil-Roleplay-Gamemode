@@ -17,7 +17,7 @@ const ROLL_AREAS = ["L_ICMarketDistrict", "L_Tamriel", "L_PersistentDungeon-2C17
 const SPAWN = { x: 25610, y: -91240, z: 1215 };
 const SPAWN_HERE = { x: 26002, y: -90418, z: 1198 };
 const ALL_COMMANDS = [
-  "duty", "aheal", "ahp", "arevive", "agoto", "abring", "aback", "atp", "afreeze", "aunfreeze", "amute", "aunmute", "awarn", "akick",
+  "duty", "aheal", "afeed", "ahp", "arevive", "agoto", "abring", "aback", "atp", "afreeze", "aunfreeze", "amute", "aunmute", "awarn", "akick",
   "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "amsg", "alore", "afaction",
 ];
 const ADMIN_COMMANDS = ["agold", "aitem", "aroles", "atime", "aweather", "aban", "aunban", "aspawn", "afaction"];
@@ -269,6 +269,7 @@ export function pretendGame(readym) {
   const answers = {
     duty: () => (onDuty ? staff["staff.duty_on"] : fill(staff["staff.duty_off"].other, { count: 42 })),
     aheal: (name) => fill(admin["admin.healed"], { name }),
+    afeed: (name) => fill(admin["admin.fed"], { name }),
     afreeze: (name) => fill(sanctionTexts["sanctions.frozen"], { name }),
     awarn: (name) => fill(sanctionTexts["sanctions.warned"], { name }),
     atp: (place) => fill(admin["admin.teleported_to"], { place }),

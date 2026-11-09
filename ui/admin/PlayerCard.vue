@@ -23,7 +23,7 @@ const props = defineProps({
 const emit = defineEmits(["act", "search", "lore"]);
 
 // Of a pair, the one that fits the player shows: a frozen player gets Unfreeze, not Freeze. Revive only for the dead,
-// health only for the living.
+// health and feed only for the living.
 const FITS = {
   freeze: (player) => !player.frozen,
   unfreeze: (player) => player.frozen,
@@ -31,6 +31,7 @@ const FITS = {
   unmute: (player) => player.muted,
   revive: (player) => player.health === 0,
   health: (player) => player.health > 0,
+  feed: (player) => player.health > 0,
 };
 // What a dialog starts from: the health's most, the roles held now.
 const DIALOG_VALUES = {

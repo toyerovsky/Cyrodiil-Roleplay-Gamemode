@@ -79,6 +79,7 @@
   "ui.admin.action.back": "Back",
   "ui.admin.action.heal": "Heal",
   "ui.admin.action.health": "Health",
+  "ui.admin.action.feed": "Feed",
   "ui.admin.action.message": "Message",
   "ui.admin.action.giveNow": "Give",
   "ui.admin.action.revive": "Revive",

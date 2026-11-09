@@ -8,6 +8,7 @@ export const ACTIONS = {
   bring: { command: "abring", line: "/abring {number}" },
   back: { command: "aback", line: "/aback {number}" },
   heal: { command: "aheal", line: "/aheal {number}" },
+  feed: { command: "afeed", line: "/afeed {number}" },
   health: { command: "ahp", line: "/ahp {number} {health}", fields: ["health"] },
   message: { command: "amsg", line: "/amsg {number} {text}", fields: ["text"] },
   revive: { command: "arevive", line: "/arevive {number}" },
@@ -41,11 +42,11 @@ export const ACTIONS = {
 
 // The card's buttons in their order. A pair shows the one that fits: a frozen player gets Unfreeze, not Freeze.
 export const PLAYER_ACTIONS = [
-  "goto", "bring", "back", "heal", "health", "revive", "message", "freeze", "unfreeze", "warn", "mute", "unmute", "gold", "roles", "kick", "ban",
+  "goto", "bring", "back", "heal", "feed", "health", "revive", "message", "freeze", "unfreeze", "warn", "mute", "unmute", "gold", "roles", "kick", "ban",
 ];
 
 // What a button does to a character in the world: a player away gets none of them.
-export const WORLD_ACTIONS = ["goto", "bring", "back", "heal", "health", "revive"];
+export const WORLD_ACTIONS = ["goto", "bring", "back", "heal", "feed", "health", "revive"];
 
 // The lift of each kind of sanction the sanctions tab lists.
 export const LIFTS = { ban: "liftBan", "admin.mute": "liftMute", "admin.freeze": "liftFreeze" };

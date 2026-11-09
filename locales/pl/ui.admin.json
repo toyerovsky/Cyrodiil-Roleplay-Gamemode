@@ -79,6 +79,7 @@
   "ui.admin.action.back": "Cofnij",
   "ui.admin.action.heal": "Ulecz",
   "ui.admin.action.health": "Zdrowie",
+  "ui.admin.action.feed": "Nakarm",
   "ui.admin.action.message": "Wiadomość",
   "ui.admin.action.giveNow": "Daj",
   "ui.admin.action.revive": "Wskrześ",

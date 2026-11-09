@@ -202,6 +202,11 @@ test("a card's health and message ask first, a ban offers its common lengths", a
   const card = page.getByRole("region", { name: /\[3\] Lucia/ });
   await expect(card.getByRole("button", { name: t("action.revive") })).toHaveCount(0);
 
+  await card.getByRole("button", { name: t("action.feed") }).click();
+  expect((await readSent(page, "AdminRun")).at(-1)).toEqual(["/afeed 3"]);
+  await expect(page.locator(".admin__status")).toContainText("Lucia Gallus is no longer hungry or thirsty.");
+  await screenshot(page, testInfo, "admin-card-fed");
+
   await card.getByRole("button", { name: t("action.health") }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByLabel("Health, from 1 to 90")).toBeFocused();

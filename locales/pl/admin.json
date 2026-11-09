@@ -1,5 +1,6 @@
 {
   "admin.healed": "Uleczono: {name}.",
+  "admin.fed": "{name}: głód i pragnienie zaspokojone.",
   "admin.not_in_world": "Postaci {name} nie ma w świecie.",
   "admin.went_to": "Stoisz obok: {name}.",
   "admin.brought": "{name} jest teraz obok ciebie.",
@@ -23,6 +24,7 @@
   "admin.no_character": "{name} nie ma jeszcze postaci.",
   "admin.cmd.heal": "/aheal [numer] - ulecz do pełna, bez numeru siebie",
   "admin.cmd.health": "/ahp <numer> <zdrowie> - ustaw zdrowie postaci, od 1 do jej maksimum",
+  "admin.cmd.feed": "/afeed [numer] - zaspokój głód i pragnienie, bez numeru siebie",
   "admin.health_range": "Zdrowie postaci {name} może wynosić od 1 do {max}.",
   "admin.health_set": "{name} ma teraz {health} z {max} zdrowia.",
   "admin.dead": "Postać {name} nie żyje: najpierw /arevive.",
