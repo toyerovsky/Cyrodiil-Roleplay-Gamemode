@@ -144,6 +144,18 @@ public sealed partial class SustenanceService(
             player, config.StartSatiety, config.StartHydration);
     }
 
+    /// <summary>Sets a player's meters, kept within the scale. The tier effects follow on the next tick.</summary>
+    public void SetMeters(PlayerId player, int satiety, int hydration)
+    {
+        Track(player);
+        Meters meters = _meters[player];
+        meters.Satiety = SustenanceScale.Clamp(satiety);
+        meters.Hydration = SustenanceScale.Clamp(hydration);
+        Publish(player, meters);
+        logger.LogInformation("HungerAndThirst: {Player} set to satiety {Satiety}, hydration {Hydration}.",
+            player, meters.Satiety, meters.Hydration);
+    }
+
     /// <summary>The player's current decay rates, 0 while loading or dead.</summary>
     public (float Satiety, float Hydration) RatesOf(PlayerId player)
     {

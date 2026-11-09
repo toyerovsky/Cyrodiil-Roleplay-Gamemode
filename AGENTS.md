@@ -18,7 +18,9 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
 - **Names over heads:** drawn by the mode: the character's name to those who know it, the race to strangers (see the
   lore card), `[Staff]` in another colour on duty.
 - **Interaction wheels:** G opens the actions of your own character, H the actions towards the player in front of
-  you.
+  you. A wheel of more than eight turns its pages with the wedges either side of twelve, Q and E or the mouse wheel.
+- **Emotes:** Emotes on the G wheel opens a wheel of every emote of the Emotes mod (`mods/Emotes`), Stop first: the
+  game's own idles and any another mod registers through its `IEmotes`.
 - **Party:** an invitation from the H wheel, taken up with Y from the card at the top of the screen (N declines), a
   leader, kicking, leaving from the G wheel, the `/p` chat, a panel of the members on screen with their health and
   distance.

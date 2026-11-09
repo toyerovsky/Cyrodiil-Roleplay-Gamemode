@@ -418,6 +418,14 @@
   overflow-wrap: anywhere;
 }
 
+.rp-radial__caption {
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.2;
+  font-family: var(--font-body);
+  color: var(--night-muted);
+}
+
 .rp-radial__label {
   font-weight: 700;
   font-size: 19px;

@@ -10,6 +10,7 @@ public static class StaffPermissions
     public const string Roles = "aroles";
     public const string Heal = "aheal";
     public const string Health = "ahp";
+    public const string Feed = "afeed";
     public const string GoTo = "agoto";
     public const string Bring = "abring";
     public const string Position = "apos";

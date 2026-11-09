@@ -24,4 +24,10 @@ internal static class WheelIcons
     public const string Book = "book";
     public const string Bread = "bread";
     public const string Flask = "flask";
+    public const string Emote = "emote";
+    public const string Stop = "stop";
+
+    // The page draws these on the wedges that turn a wheel of more than a page.
+    public const string Previous = "previous";
+    public const string Next = "next";
 }

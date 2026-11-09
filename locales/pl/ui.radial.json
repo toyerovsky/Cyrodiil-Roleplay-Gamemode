@@ -1,5 +1,9 @@
 {
   "ui.radial.wheel": "Opcje",
   "ui.radial.close": "Zamknij",
-  "ui.radial.hint": "Kliknij opcję albo naciśnij jej numer. Esc albo ten sam klawisz zamyka."
+  "ui.radial.hint": "Kliknij opcję albo naciśnij jej numer. Esc albo ten sam klawisz zamyka.",
+  "ui.radial.hint_paged": "Kliknij opcję albo naciśnij jej numer. Q i E albo kółko myszy zmieniają stronę. Esc albo ten sam klawisz zamyka.",
+  "ui.radial.next": "Następna strona",
+  "ui.radial.previous": "Poprzednia strona",
+  "ui.radial.page": "Strona {page} z {pages}"
 }

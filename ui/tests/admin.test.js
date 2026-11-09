@@ -9,7 +9,7 @@ import { mountPage } from "./readym.js";
 const NOW = Date.UTC(2026, 9, 27, 12, 0);
 const ACCOUNT = "3f2b9d4e-8a1c-4c6e-9b7a-1d2e3f4a5b6c";
 const EVERYTHING = ["duty", "aheal", "arevive", "agoto", "abring", "aback", "atp", "afreeze", "aunfreeze", "amute", "aunmute", "awarn",
-  "akick", "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "ahp", "amsg"];
+  "akick", "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "ahp", "amsg", "afeed"];
 const SELF = 3;
 
 const player = (number, name, changes = {}) => ({
@@ -301,8 +301,21 @@ describe("the staff's panel", () => {
     expect(await actions(4)).toContain("revive");
     expect(await actions(4)).not.toContain("health");
     const away = await actions(5);
-    expect(away.filter((action) => ["goto", "bring", "back", "heal", "health", "revive"].includes(action))).toEqual([]);
+    expect(away.filter((action) => ["goto", "bring", "back", "heal", "feed", "health", "revive"].includes(action))).toEqual([]);
     expect(away).toContain("message");
+  });
+
+  it("feeds a living player from the button beside heal, and offers it to nobody dead", async () => {
+    await game.emit("State", state({ players: [player(3, "Lucia"), player(4, "Brannoc", { health: 0 })] }));
+    await open(3);
+    const actions = page.findAll(".admin-card__actions button").map((each) => each.attributes("data-action"));
+    expect(actions.indexOf("feed")).toBe(actions.indexOf("heal") + 1);
+
+    await page.find('[data-action="feed"]').trigger("click");
+    expect(game.readSent("AdminRun")).toEqual([["/afeed 3"]]);
+
+    await open(4);
+    expect(page.find('[data-action="feed"]').exists()).toBe(false);
   });
 
   it("sets health within the character's most, and sends a message from the staff", async () => {

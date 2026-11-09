@@ -38,4 +38,8 @@ public interface ISustenance
     /// <summary>Fills a player's meters to the server's start values, for a mod that gives the player a new
     /// character. The meters are kept per ReadyM account, so without this a new character inherits the last one's.</summary>
     void Refill(PlayerId player);
+
+    /// <summary>Sets a player's meters, from 0 to <see cref="SustenanceScale.Max"/> (full), for a staff tool or a
+    /// story event. A value outside the scale is held to it. The tier effects follow on the next tick.</summary>
+    void SetMeters(PlayerId player, int satiety, int hydration);
 }

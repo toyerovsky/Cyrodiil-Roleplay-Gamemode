@@ -11,3 +11,4 @@ export const FACTION_NAME_MAX = 32;
 export const FACTION_RANK_NAME_MIN = 2;
 export const FACTION_RANK_NAME_MAX = 24;
 export const BANK_MOST_AT_ONCE = 1000000;
+export const WHEEL_PAGE_SIZE = 8;

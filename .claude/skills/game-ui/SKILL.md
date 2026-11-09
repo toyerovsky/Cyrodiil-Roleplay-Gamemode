@@ -42,7 +42,8 @@ description: How Cyrodiil RP shows anything to a player. Use before writing play
   `Run`.
 - An option that does what a command does runs the command (`commands.Run(player, "/roll", chat)`), so its checks and
   refusals are the command's own. One that needs typing starts the command in the chat.
-- Eight places a wheel. The server picks the player in front from the positions it holds (`Proximity.FindNearestInFront`).
+- Eight places a page. A wheel of more pages on the page (`ui/radial/paging.js`): Next and Previous either side of
+  twelve, Q and E, the mouse wheel. Order the options so the ones used most are on the first. The server picks the player in front from the positions it holds (`Proximity.FindNearestInFront`).
 
 ## Pages
 

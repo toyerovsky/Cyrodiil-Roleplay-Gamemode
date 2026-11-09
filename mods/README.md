@@ -11,14 +11,15 @@ tools.
 | [`HungerAndThirst/`](HungerAndThirst/README.md) | `Roleplay.HungerAndThirst` | food and drink meters, a satchel (Alt+H), effects per tier through SDK statuses |
 | [`Jobs/`](Jobs/README.md) | `Roleplay.Jobs` | woodcutting (vanilla trees), mining ore nodes and quarrying |
 | [`StatusTest/`](StatusTest/README.md) | `Roleplay.StatusTest` | test bench for SDK statuses on the numpad, not for players |
+| [`Emotes/`](Emotes/README.md) | `Roleplay.Emotes` | emotes on the G wheel, the game's idles and any a mod registers (`IEmotes`), code in `src/Roleplay.Emotes.*` |
 
 ## They need an unreleased SDK
 
 The SDK features these mods use are in no `ReadyM.SDK.Oblivion.*` package yet. They are on oblivion-mod's
 `rp-framework` branch, main plus the commits below.
 
-**Pinned:** this repository builds and was tested against oblivion-mod **`de27d442`** (`rp-framework` on 2026-11-06,
-on main `80144ae3`), whose `readym-gameserver` is `0070a67b`. The branch gets rebased onto main, so check out the
+**Pinned:** this repository builds and was tested against oblivion-mod **`814a3fa4`** (`rp-framework` on 2026-11-09,
+on main `e32ad22c`), whose `readym-gameserver` is `d4635f06`. The branch gets rebased onto main, so check out the
 commit, not the branch's tip, and move this pin in the same change that ports the code to a newer one.
 
 - **Statuses** (`IStatuses`, client and server): Fortify, Drain, Damage, Restore or any magic effect on a player, for a
@@ -32,7 +33,7 @@ game's OblivionMp mod (`main.dll`, `OblivionMpCSharpMod.dll`) and the SDK mod.
 
 ```powershell
 git clone --branch rp-framework git@github.com:readycodeio/oblivion-mod.git
-git -C oblivion-mod checkout de27d442                # the pin above
+git -C oblivion-mod checkout 814a3fa4                # the pin above
 git -C oblivion-mod submodule update --init --recursive readym-gameserver
 $env:OBLIVION_MOD_ROOT = "$PWD\oblivion-mod\"   # or leave oblivion-mod next to this repository
 dotnet test mods/Jobs/Roleplay.Jobs.sln

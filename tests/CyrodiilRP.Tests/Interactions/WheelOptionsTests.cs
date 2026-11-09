@@ -75,12 +75,14 @@ public sealed class WheelOptionsTests
     }
 
     [Fact]
-    public void A_wheel_holds_no_more_than_its_places()
+    public void A_wheel_of_more_than_a_page_keeps_every_option_in_order()
     {
-        for (var i = 0; i < WheelOptions.MaxOptions + 2; i++)
+        for (var i = 0; i < WheelOptions.PageSize + 2; i++)
             _options.Add(CreateOption($"option{i}", order: i));
 
-        Assert.Equal(WheelOptions.MaxOptions, _options.BuildItems(_actor, _target).Count);
+        var items = _options.BuildItems(_actor, _target);
+
+        Assert.Equal(Enumerable.Range(0, WheelOptions.PageSize + 2).Select(i => $"option{i}"), items.Select(item => item.Id));
     }
 
     [Fact]

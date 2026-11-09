@@ -1,5 +1,6 @@
 {
   "admin.healed": "Healed {name}.",
+  "admin.fed": "{name} is no longer hungry or thirsty.",
   "admin.not_in_world": "{name} is not in the world.",
   "admin.went_to": "You are next to {name}.",
   "admin.brought": "{name} is next to you.",
@@ -19,6 +20,7 @@
   "admin.no_character": "{name} has no character yet.",
   "admin.cmd.heal": "/aheal [number] - heal to full, yourself without a number",
   "admin.cmd.health": "/ahp <number> <health> - set a character's health, from 1 to its most",
+  "admin.cmd.feed": "/afeed [number] - fill hunger and thirst, yourself without a number",
   "admin.health_range": "{name}'s health goes from 1 to {max}.",
   "admin.health_set": "{name} has {health} of {max} health now.",
   "admin.dead": "{name} is dead: /arevive first.",

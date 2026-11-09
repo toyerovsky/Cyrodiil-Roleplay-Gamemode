@@ -2,12 +2,15 @@
 import { computed, useId, useTemplateRef } from "vue";
 import RpIcon from "./RpIcon.vue";
 
-// items: [{ id, label, icon, disabled, reason }]. The highlight is the v-model: a disabled wedge lights up too, so the hub
-// can say why it is closed, but it is never selected.
+// items: [{ id, label, icon, disabled, reason, key }], key the one a wedge shows, its place from 1 without one. The
+// highlight is the v-model: a disabled wedge lights up too, so the hub can say why it is closed, but it is never
+// selected. turn rotates the wedges clockwise by that share of one. caption is a line under the title.
 const props = defineProps({
   items: { type: Array, default: () => [] },
   title: { type: String, default: "" },
+  caption: { type: String, default: "" },
   label: { type: String, required: true },
+  turn: { type: Number, default: 0 },
 });
 const highlight = defineModel({ type: String, default: null });
 const emit = defineEmits(["select"]);
@@ -64,15 +67,17 @@ function drawSector(center, outer, inner, startDegrees, endDegrees) {
   return `M${ox1} ${oy1}A${outer} ${outer} 0 ${large} 1 ${ox2} ${oy2}L${ix2} ${iy2}A${inner} ${inner} 0 ${large} 0 ${ix1} ${iy1}Z`;
 }
 
+const middleOf = (index) => TOP + (index + props.turn) * geometry.value.segment;
+
 function drawWedge(index) {
   const { center, outer, inner, segment, gap } = geometry.value;
-  const middle = TOP + index * segment;
+  const middle = middleOf(index);
   return drawSector(center, outer, inner, middle - segment / 2 + gap, middle + segment / 2 - gap);
 }
 
 const rimArc = computed(() => {
   const { center, outer, segment, gap } = geometry.value;
-  const middle = TOP + currentIndex.value * segment;
+  const middle = middleOf(currentIndex.value);
   const radius = outer + ARC_OFFSET;
   const [x1, y1] = plotPoint(center, radius, middle - segment / 2 + gap);
   const [x2, y2] = plotPoint(center, radius, middle + segment / 2 - gap);
@@ -80,8 +85,8 @@ const rimArc = computed(() => {
 });
 
 function place(index, share) {
-  const { center, outer, inner, segment } = geometry.value;
-  const [x, y] = plotPoint(center, inner + (outer - inner) * share, TOP + index * segment);
+  const { center, outer, inner } = geometry.value;
+  const [x, y] = plotPoint(center, inner + (outer - inner) * share, middleOf(index));
   return { left: `${(x / DRAWN_SIZE) * PERCENT}%`, top: `${(y / DRAWN_SIZE) * PERCENT}%` };
 }
 
@@ -97,7 +102,7 @@ function followPointer(event) {
     highlight.value = null;
     return;
   }
-  const degrees = (Math.atan2(dy, dx) * HALF_CIRCLE) / Math.PI - TOP;
+  const degrees = (Math.atan2(dy, dx) * HALF_CIRCLE) / Math.PI - TOP - props.turn * segment;
   const index = Math.round((((degrees % FULL_CIRCLE) + FULL_CIRCLE) % FULL_CIRCLE) / segment) % count;
   highlight.value = props.items[index]?.id ?? null;
 }
@@ -158,10 +163,11 @@ defineExpose({ focus: () => root.value.focus() });
       :style="placeIcon(index)"
     ><RpIcon :name="item.icon" /></span>
     <span v-for="(item, index) in items" :key="`${item.id}-number`" class="rp-radial__number" :style="placeNumber(index)" aria-hidden="true">
-      {{ index + 1 }}
+      {{ item.key ?? index + 1 }}
     </span>
     <div class="rp-radial__hub" aria-live="polite">
       <span v-if="title" class="rp-radial__title">{{ title }}</span>
+      <span v-if="caption" class="rp-radial__caption">{{ caption }}</span>
       <span v-if="current" class="rp-radial__label">{{ current.label }}</span>
       <span v-if="current?.disabled" class="rp-radial__reason">{{ current.reason }}</span>
     </div>
