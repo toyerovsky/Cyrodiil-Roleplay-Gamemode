@@ -58,11 +58,27 @@ public sealed class WoodShareTests
     }
 
     [Fact]
-    public void Gnarl_bark_is_worth_its_game_value_and_lumber_camps_are_off_by_default()
+    public void Firewood_is_the_drop_and_lumber_camps_are_off_by_default()
     {
         var config = new WoodcuttingConfig();
 
-        Assert.Equal(("0x00044E5E", 1), (Bark.Item, Bark.Value)); // INGR SEGnarlBark in Oblivion.esm
+        var drop = Assert.Single(config.Drops);
+        Assert.Equal("custom:jobs.firewood", drop.Item);
+        Assert.Equal(1, drop.Value);
+        Assert.Equal(2, config.Items.Count);
+        var firewood = config.Items[0];
+        Assert.Equal("jobs.firewood", firewood.Key);
+        Assert.Equal("0x00025946", firewood.Base); // MISC StoneWallStone01, "Stone Brick", in Oblivion.esm
+        Assert.Equal("Firewood", firewood.Name);
+        Assert.Equal("/Game/Forms/worldobjects/static/Wood01.Wood01", firewood.Mesh);
+        var lumberAxe = config.Items[1];
+        Assert.Equal("jobs.lumber-axe", lumberAxe.Key);
+        Assert.Equal("0x00000D7F", lumberAxe.Base); // WEAP WeapIronBattleAxe in Oblivion.esm
+        Assert.Equal(1, lumberAxe.Damage);
+        Assert.Null(lumberAxe.Value);
+        Assert.Null(lumberAxe.Weight);
+        Assert.Equal(["custom:jobs.lumber-axe"], config.GiveOnJoin);
+        Assert.Equal("custom:jobs.lumber-axe", config.Axes[0].Item);
         Assert.False(config.LumberCampsOnly);
         Assert.True(config.LumberCampsFromMarkers);
         Assert.Equal("Lumber", config.LumberCampMarkerName);

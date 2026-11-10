@@ -10,6 +10,8 @@ public sealed partial class JobsConfig
 
     public MiningConfig Mining { get; set; } = new();
 
+    public CarryConfig Carrying { get; set; } = new();
+
     // Where felled trees and when they grow back are kept, next to the server DLL.
     public string SaveFile { get; set; } = "felled-trees.json";
 
