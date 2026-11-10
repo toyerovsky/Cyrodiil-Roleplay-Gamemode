@@ -39,7 +39,7 @@ cd ui; npm ci; npx playwright install chromium
 ```
 
 `pack.ps1` needs PowerShell 7, on Linux `pwsh`. It packs for a Windows or a Linux server from either OS. It builds
-`CyrodiilRP`, `Roleplay.HungerAndThirst` and `Roleplay.Jobs`, refuses while that server runs and keeps each deployed
+`CyrodiilRP`, `Roleplay.HungerAndThirst`, `Roleplay.Jobs` and `Roleplay.Emotes`, refuses while that server runs and keeps each deployed
 `server/config.json`: a new mod is put together in `<server>/mods-staging`, the deployed config copied into it as it is (an empty one too), and the
 folders are swapped. Until the swap the deployed mod stays as it was. A deploy that stops half way leaves the mod
 deployed before, config and all, in `mods-staging/<mod>.previous`, and the next one refuses until it is gone.

@@ -2,7 +2,7 @@
 
 <#
     Builds everything and puts it into the server: the pages, the client half and the server half go to
-    <server>/mods/CyrodiilRP, the Hunger and Thirst and Jobs mods beside it, the database gets the pending migrations,
+    <server>/mods/CyrodiilRP, the Hunger and Thirst, Jobs and Emotes mods beside it, the database gets the pending migrations,
     and the platform's chat and MarkerMod go to mods-disabled/: both chats answer K, and the mode draws the names over
     heads itself. Each deployed server/config.json (database, owners) is kept.
 
@@ -34,7 +34,7 @@ $tests = Join-Path $root 'tests/CyrodiilRP.Tests'
 $sdkFeed = Join-Path $root '.sdk'
 
 # The mods with a folder of their own under mods/, by the id they deploy as.
-$roleplayMods = [ordered] @{ 'Roleplay.HungerAndThirst' = 'HungerAndThirst'; 'Roleplay.Jobs' = 'Jobs' }
+$roleplayMods = [ordered] @{ 'Roleplay.HungerAndThirst' = 'HungerAndThirst'; 'Roleplay.Jobs' = 'Jobs'; 'Roleplay.Emotes' = 'Emotes' }
 
 function Write-Step([string] $text) { Write-Host "`n== $text" -ForegroundColor Cyan }
 
