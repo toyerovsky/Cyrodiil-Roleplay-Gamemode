@@ -4,12 +4,13 @@ A roleplay gamemode for OblivionMP: a mod with a server half (`src/CyrodiilRP.Se
 (`src/CyrodiilRP.Client`) on the SDK, PostgreSQL through EF Core (`src/CyrodiilRP.Data`) with its own
 migrator (`src/CyrodiilRP.Migrator`), Vue pages (`ui/`) and texts in `locales/`.
 
-The SDK is built from an oblivion-mod checkout on its `rp-framework` branch, not the 1.0 packages: the server half
-feeds players through the Hunger and Thirst mod (`src/Roleplay.HungerAndThirst.*`, `ISustenance`), which needs that
-branch's statuses. The checkout is the `oblivion-mod` folder next to this repository, or
-`-p:OblivionModRoot=<path>`
-(`Directory.Build.props`), at the commit pinned in [mods/README.md](mods/README.md). The server needs `Roleplay.HungerAndThirst` installed (a manifest dependency) and the
-`rp-framework` build of the relay, the game's OblivionMp mod and the SDK mod.
+The SDK comes with the server, not from nuget.org: the server half feeds players through the Hunger and Thirst mod
+(`src/Roleplay.HungerAndThirst.*`, `ISustenance`), which needs the statuses of oblivion-mod's `rp-framework` branch, and
+that branch's SDK is released nowhere. A server package from *rp-framework CI* carries it as NuGet packages in `sdk/`.
+`pack.ps1` copies them into `.sdk/`, the source `nuget.config` names, and `Directory.Build.props` reads the version from
+them, so the mods compile against what that server loads and no oblivion-mod checkout is needed. After unpacking a new
+server, run `./pack.ps1 -PackOnly` once before building in an IDE. The server needs `Roleplay.HungerAndThirst` installed
+(a manifest dependency) and the `rp-framework` build of the game's OblivionMp mod.
 
 `src/CyrodiilRP.Common` goes to every player with the client, so it holds only what both halves read: the RPC contract
 (`RpContracts`), the chat's line and limits (`ChatLine`, `ChatLineKind`, `ChatLimits`), the mark of the mode's
@@ -31,16 +32,17 @@ cd ui; npm ci; npx playwright install chromium
 ## Build and deploy
 
 ```powershell
-./pack.ps1                 # build, database up, migrations, the mod into the server's mods/ (its config.json kept)
+./pack.ps1                 # build, database up, migrations, the mods into the server's mods/ (their config.json kept)
 ./pack.ps1 -Test           # the tests first, and the packed mod on the real server before it is installed
 ./pack.ps1 -SkipDatabase   # leave the database alone
-./pack.ps1 -PackOnly       # only build the mod into out/mods/CyrodiilRP
+./pack.ps1 -PackOnly       # only build the mods into out/mods
 ```
 
-`pack.ps1` needs PowerShell 7, on Linux `pwsh`, where the server's file is `server` and not `server.exe`. It refuses
-while that server runs and keeps the deployed `server/config.json`: the new mod is put together in `<server>/mods-staging`, the deployed config copied into it as it is (an empty one too), and the
+`pack.ps1` needs PowerShell 7, on Linux `pwsh`. It packs for a Windows or a Linux server from either OS. It builds
+`CyrodiilRP`, `Roleplay.HungerAndThirst` and `Roleplay.Jobs`, refuses while that server runs and keeps each deployed
+`server/config.json`: a new mod is put together in `<server>/mods-staging`, the deployed config copied into it as it is (an empty one too), and the
 folders are swapped. Until the swap the deployed mod stays as it was. A deploy that stops half way leaves the mod
-deployed before, config and all, in `mods-staging/CyrodiilRP.previous`, and the next one refuses until it is gone.
+deployed before, config and all, in `mods-staging/<mod>.previous`, and the next one refuses until it is gone.
 The server refuses a config without a connection string and a database at another migration than its own build
 (`Run CyrodiilRP.Migrator` in its log). After a model change:
 `dotnet ef migrations add <Name> --project src/CyrodiilRP.Data --output-dir Migrations`.

@@ -5,8 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="$(OblivionModRoot)OblivionMP.SDK.Common\OblivionMP.SDK.Common.csproj" />
-        <ProjectReference Include="$(CoreSdkSrc)ReadyM.Api.Generators\ReadyM.Api.Generators.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+        <PackageReference Include="ReadyM.SDK.Oblivion.Common" />
     </ItemGroup>
 
 </Project>

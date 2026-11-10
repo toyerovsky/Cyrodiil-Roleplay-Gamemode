@@ -27,9 +27,9 @@ commit, not the branch's tip, and move this pin in the same change that ports th
 - **Jobs' APIs**: `IFoliage`, `IProps` (client and server), `IAnimations`, `IWeaponHits`, `ILocalProps`,
   `IEquippedWeapon` (client). Design: [Jobs/docs/SDK-CHANGES.md](Jobs/docs/SDK-CHANGES.md).
 
-So the mods build against the SDK projects of an oblivion-mod checkout, not the packages
-([`Directory.Build.props`](Directory.Build.props)), and a server running them needs that build of the relay, the
-game's OblivionMp mod (`main.dll`, `OblivionMpCSharpMod.dll`) and the SDK mod.
+So Jobs and HungerAndThirst build against the packages of the server they are for, as the gamemode does
+([DEVELOPMENT.md](../DEVELOPMENT.md)): `pack.ps1` takes them from the server and builds, packs and deploys both mods. A
+server running them needs the `rp-framework` build of the game's OblivionMp mod (`main.dll`, `OblivionMpCSharpMod.dll`).
 
 ```powershell
 git clone --branch rp-framework git@github.com:readycodeio/oblivion-mod.git
@@ -46,4 +46,3 @@ Release` lays it out in its `Output/mods/<id>/`, ready to copy into a server's `
 
 - Folding them into `CyrodiilRP`: saving per character in its database instead of JSON files, its pages and texts
   (`locales/`), its coding standard. Until then StatusTest keeps its own style and is not in `CyrodiilRP.slnx`.
-- Switching to the packages once a release carries these SDK features.
