@@ -145,8 +145,9 @@ does not regrow the forest.
 
 **Its own items.** Oblivion has no log or firewood item, so the mod makes them at run time through the SDK's
 `ICustomItems`, with no plugin: each entry of `items` is a copy of a game-file item (`base`) with whatever of `name`,
-`value`, `weight`, `damage`, `mesh` and `scale` it sets in place of the base's. A felled tree gives **Firewood** (a Stone
-Brick shown with a static mesh, so it drops, bounces and sounds like what it looks like), and the **Lumber Axe** is an
+`value`, `weight`, `damage`, `armor`, `mesh`, `scale`, `icon` (another item's inventory icon) and `enchantment` it sets
+in place of the base's (the config's comment shows an enchantment's shape). A felled tree gives **Firewood** (a Stone
+Brick shown with a static mesh and Gnarl Bark's icon, so it drops, bounces and sounds like what it looks like), and the **Lumber Axe** is an
 Iron Battle Axe that does 1 damage in a fight and chops as a tier 1 axe. A drop, an axe or `giveOnJoin` names one as
 `"custom:"` and its `key`; `giveOnJoin` gives each player one of each on joining when they carry none (the lumber axe,
 by default). Custom items last one server session: a restart loses those in saved inventories.
@@ -184,8 +185,8 @@ by default). Custom items last one server session: a restart loses those in save
 - A tree is a foliage mesh whose name (not its folder) holds "tree" and not "branch", "bark", "shrub", "bush" or
   "stump": the fallen-branch meshes (`SM_Branches_TreeBark_*`) near Weye counted as trees before.
 - Firewood on a chopping block.
-- **Custom items:** the firewood's mesh (`Wood01`) is a plank, waiting for a better pick, and the inventory icon is
-  still the Stone Brick's. Seen working in game: the lumber axe, firewood with its mesh, collision and sounds. A
+- **Custom items:** the firewood's mesh (`Wood01`) is a plank, waiting for a better pick. Its Gnarl Bark icon, armor
+  ratings and enchantments are untested in game. Seen working in game: the lumber axe, firewood with its mesh, collision and sounds. A
   replaced mesh does not show on a weapon in hand yet.
 - **Mining by damage, normal attacks included, is untested in game**, as are bark chips and chips flying back towards
   the one who struck. Before it, seen working: iron (KotN's vein, whose mesh comes from

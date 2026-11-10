@@ -7,6 +7,7 @@ using OblivionMP.SDK.Common.Archetypes;
 using OblivionMP.SDK.Common.Archetypes.Mixins;
 using OblivionMP.SDK.Common.Foliage;
 using OblivionMP.SDK.Common.Items;
+using OblivionMP.SDK.Common.Statuses;
 using OblivionMP.SDK.Serverside.Foliage;
 using OblivionMP.SDK.Serverside.Items;
 using OblivionMP.SDK.Serverside.Props;
@@ -426,7 +427,23 @@ public sealed partial class WoodcuttingService(
             copy = copy.WithMesh(item.Mesh);
         if (item.Scale is { } scale)
             copy = copy.WithScale(scale);
+        if (item.Armor is { } armor)
+            copy = copy.WithArmorRating(armor);
+        if (item.Icon.Length > 0)
+            copy = copy.WithIconOf(new FormId(ParseFormId(item.Icon)));
+        if (item.Enchantment is { } enchantment)
+            copy = copy.WithEnchantment(enchantment.Charge, enchantment.Effects.Select(EnchantmentEffectOf).ToArray());
         customItems.Define(item.Key, copy);
+    }
+
+    private static EnchantmentEffect EnchantmentEffectOf(JobEnchantmentEffect effect)
+    {
+        var status = effect.Stat.Length == 0
+            ? StatusEffect.Custom(effect.Effect, effect.Magnitude)
+            : StatusEffect.Custom(effect.Effect, Enum.TryParse<Stat>(effect.Stat, out var stat)
+                ? stat
+                : throw new FormatException($"Jobs config: '{effect.Stat}' is no stat. Name one as the SDK's Stat does, such as Health or Blade."), effect.Magnitude);
+        return effect.Duration == 0 ? EnchantmentEffect.Constant(status) : EnchantmentEffect.OnStrike(status, effect.Duration);
     }
 
     private void AddCustomAxes()

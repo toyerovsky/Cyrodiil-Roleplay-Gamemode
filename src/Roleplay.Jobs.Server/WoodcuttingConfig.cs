@@ -114,11 +114,11 @@ public sealed class WoodcuttingConfig : IHitRules
     ];
 
     // The items woodcutting makes, which the game has none of. Firewood is a Stone Brick (a plain misc item) shown as
-    // the firewood clutter that lies by hearths (Wood01).
+    // a wooden plank (Wood01), with Gnarl Bark's icon.
     // A Lumber Axe is an Iron Battle Axe that does next to no harm in a fight.
     public List<JobItem> Items { get; set; } =
     [
-        new() { Key = "jobs.firewood", Base = "0x00025946", Name = "Firewood", Value = 1, Weight = 2f, Mesh = "/Game/Forms/worldobjects/static/Wood01.Wood01" },
+        new() { Key = "jobs.firewood", Base = "0x00025946", Name = "Firewood", Value = 1, Weight = 2f, Mesh = "/Game/Forms/worldobjects/static/Wood01.Wood01", Icon = "0x00044E5E" },
         new() { Key = "jobs.lumber-axe", Base = "0x00000D7F", Name = "Lumber Axe", Damage = 1 },
     ];
 

@@ -119,10 +119,14 @@
     ],
 
     // The items woodcutting makes, which the game has none of: each a copy of base (a form id) with name, value,
-    // weight, damage (a weapon's), mesh and scale (on the ground and in hand), whichever are set, in place of the base's. mesh is the Unreal asset it is shown with, a StaticMesh or a TES form's
-    // asset whose mesh is taken. Firewood is a Stone Brick (a plain misc item) shown as the firewood by hearths (Wood01).
+    // weight, damage (a weapon's), armor (an armor's rating, as the game shows it), mesh and scale (on the ground and in
+    // hand), icon (the form id of the item whose inventory icon it shows) and enchantment, whichever are set, in place of
+    // the base's. An enchantment is { "charge": <a weapon's>, "effects": [ { "effect": "FIDG", "stat": "", "magnitude":
+    // 10, "duration": 1 } ] }: effect a magic effect's four letter code, stat the stat it works on when it names one
+    // (Health, Strength, Blade, ...), duration how many seconds a weapon's lasts on whoever it strikes, 0 for apparel's. mesh is the Unreal asset it is shown with, a StaticMesh or a TES form's
+    // asset whose mesh is taken. Firewood is a Stone Brick (a plain misc item) shown as a wooden plank (Wood01), with Gnarl Bark's icon.
     "items": [
-      { "key": "jobs.firewood", "base": "0x00025946", "name": "Firewood", "value": 1, "weight": 2, "mesh": "/Game/Forms/worldobjects/static/Wood01.Wood01" },
+      { "key": "jobs.firewood", "base": "0x00025946", "name": "Firewood", "value": 1, "weight": 2, "mesh": "/Game/Forms/worldobjects/static/Wood01.Wood01", "icon": "0x00044E5E" },
       { "key": "jobs.lumber-axe", "base": "0x00000D7F", "name": "Lumber Axe", "damage": 1 }
     ],
 
