@@ -11,6 +11,9 @@ public static class VanillaEmotes
 {
     private const string IdleAnims = "/Game/Art/Animation/Humanoid/ThirdPerson/IdleAnims/";
     private const string DlcAnims = "/Game/Art/Animation/Humanoid/ThirdPerson/DlcAnims/";
+    private const string TorchPose = "/Game/Art/Animation/Humanoid/ThirdPerson/Passive/Locomotion/Normal/";
+    private const string StaffGuard = "/Game/Art/Animation/Humanoid/ThirdPerson/Staff/Combat/Block/";
+    private const string StaffPose = "/Game/Art/Animation/Humanoid/ThirdPerson/Staff/Locomotion/Normal/";
     private const string Polish = "pl";
 
     public static IReadOnlyList<Emote> All { get; } =
@@ -41,6 +44,13 @@ public static class VanillaEmotes
         Montage("read", "AM_Humanoid_Read_Book", "Read", "Czytaj"),
         Montage("drink", "AM_Humanoid_Drink_Mug_Idle", "Drink", "Pij"),
         Montage("drunk", "AM_Humanoid_Drunk", "Stagger", "Zatocz się"),
+        Sequence("pick_up", IdleAnims, "A_Humanoid_Pickup_Ground", "Pick up", "Podnieś"),
+        Sequence("pick_up_waist", IdleAnims, "A_Humanoid_Pickup_Medium_Height", "Pick up from a table", "Podnieś ze stołu"),
+        Sequence("carry_shoulder", TorchPose, "A_Humanoid_Passive_Torch_Idle", "Carry on the shoulder", "Nieś na ramieniu"),
+        Sequence("carry_front", StaffGuard, "A_Humanoid_Staff_Block_Idle", "Carry in front", "Nieś przed sobą"),
+        Sequence("carry_pole", StaffPose, "A_Humanoid_Staff_Idle", "Carry a pole", "Nieś drąg"),
+        Sequence("hold_up", IdleAnims, "A_Humanoid_HoldUp", "Hold up", "Unieś"),
+        Sequence("carry_low", IdleAnims, "A_Humanoid_Talk_HandsClasped_Still", "Carry low", "Nieś nisko"),
     ];
 
     private static Emote Sequence(string id, string folder, string asset, string name, string polish) =>
