@@ -21,9 +21,12 @@ packages in `sdk/`.
 
 - **Statuses** (`IStatuses`, client and server): Fortify, Drain, Damage, Restore or any magic effect on a player, for a
   time or until removed. Used by HungerAndThirst and StatusTest. Design: [StatusTest/docs/SDK-CHANGES.md](StatusTest/docs/SDK-CHANGES.md).
-- **Jobs' APIs**: `IFoliage`, `IProps` (client and server), `IAnimations`, `IWeaponHits`, `ILocalProps`,
-  `IEquippedWeapon` (client). Design: [Jobs/docs/SDK-CHANGES.md](Jobs/docs/SDK-CHANGES.md). Emotes plays through
+- **Jobs' APIs**: `IFoliage`, `IProps` (client and server), `IAnimations`, `IWeaponHits`, `ILocalProps` (with
+  `FindRest` for carrying), `IEquippedWeapon` (client). Design: [Jobs/docs/SDK-CHANGES.md](Jobs/docs/SDK-CHANGES.md). Emotes plays through
   `IAnimations` too (`Play`, and `PlayOn` for another player's character).
+- **Custom items** (`ICustomItems`, server): an item defined at run time as a copy of a game-file item with its name,
+  value, weight, damage, mesh or scale replaced. Jobs makes its firewood and lumber axe so. Design: oblivion-mod's
+  `docs/features/custom-items/manual.md`.
 
 So Jobs, HungerAndThirst and Emotes build against the packages of the server they are for, as the gamemode does
 ([DEVELOPMENT.md](../DEVELOPMENT.md)): `pack.ps1` takes them from the server and builds, packs and deploys the three. A

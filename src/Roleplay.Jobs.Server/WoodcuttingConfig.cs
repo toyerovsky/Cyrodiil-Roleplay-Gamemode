@@ -86,6 +86,7 @@ public sealed class WoodcuttingConfig : IHitRules
     public float MaxGlanceChance { get; set; } = 0.5f;
     public List<Axe> Axes { get; set; } =
     [
+        Axe("custom:jobs.lumber-axe", "Lumber Axe", 1, 168),
         Axe("0x00000D7F", "Iron Battle Axe", 1, 168),
         Axe("0x0003A85F", "Fine Iron Battle Axe", 1, 185),
         Axe("0x000229B6", "Steel Battle Axe", 2, 224),
@@ -106,11 +107,24 @@ public sealed class WoodcuttingConfig : IHitRules
     // times in ten. The count is kept between Min and Max. Kinds, when not empty, limits the entry to trees whose mesh
     // name holds one of them, as Kinds below match. A felled tree's yield is shared by everyone who hit it, by their
     // hits, most valuable first (Value, the item's gold value as the game has it): whoever did most of the work gets
-    // the best of it. Oblivion has no log item, so the wood is a stand-in until the mod ships one.
+    // the best of it. Item is a form id, or "custom:" and the Key of one of Items.
     public List<TreeDrop> Drops { get; set; } =
     [
-        new() { Item = "0x00044E5E", Name = "Gnarl Bark", Value = 1, Base = 3f, ScaleExponent = 2f, ScalesWithWood = true, Min = 1, Max = 20 },
+        new() { Item = "custom:jobs.firewood", Name = "Firewood", Value = 1, Base = 3f, ScaleExponent = 2f, ScalesWithWood = true, Min = 1, Max = 20 },
     ];
+
+    // The items woodcutting makes, which the game has none of. Firewood is a Stone Brick (a plain misc item) shown as
+    // a wooden plank (Wood01), with Gnarl Bark's icon.
+    // A Lumber Axe is an Iron Battle Axe that does next to no harm in a fight.
+    public List<JobItem> Items { get; set; } =
+    [
+        new() { Key = "jobs.firewood", Base = "0x00025946", Name = "Firewood", Value = 1, Weight = 2f, Mesh = "/Game/Forms/worldobjects/static/Wood01.Wood01", Icon = "0x00044E5E" },
+        new() { Key = "jobs.lumber-axe", Base = "0x00000D7F", Name = "Lumber Axe", Damage = 1 },
+    ];
+
+    // What every player is given, one of each, on joining when they carry none: a form id or "custom:" and a key of
+    // Items.
+    public List<string> GiveOnJoin { get; set; } = ["custom:jobs.lumber-axe"];
 
     // Real minutes until a felled tree grows back.
     public float RespawnMinutes { get; set; } = 30f;

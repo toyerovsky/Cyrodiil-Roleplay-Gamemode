@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using OblivionMP.SDK.Common.Archetypes;
 using OblivionMP.SDK.Common.Archetypes.Mixins;
 using OblivionMP.SDK.Common.Foliage;
+using OblivionMP.SDK.Common.Items;
+using OblivionMP.SDK.Common.Statuses;
 using OblivionMP.SDK.Serverside.Foliage;
 using OblivionMP.SDK.Serverside.Items;
 using OblivionMP.SDK.Serverside.Props;
@@ -37,12 +39,14 @@ public sealed partial class WoodcuttingService(
     INetworkedEvents events,
     IFoliage foliage,
     IProps props,
+    ICustomItems customItems,
     WoodcuttingRpcHandlers rpc,
     FelledTreeStore store,
     JobAreas areas,
     JobsConfig config,
     ILogger logger)
 {
+    private const string CustomItemPrefix = "custom:";
     // The client reports a hit a moment after it landed, from where it stood then
     private const float ReachSlack = 100f;
     // The client names the tree its axe struck; the slack only covers float rounding on the wire
@@ -62,8 +66,9 @@ public sealed partial class WoodcuttingService(
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private WoodcuttingConfig Settings => config.Woodcutting;
     private TreeFilter _filter = new([], []);
-    private Dictionary<uint, Axe> _axes = [];
-    private Dictionary<TreeDrop, FormId> _dropItems = [];
+    private readonly Dictionary<NetworkFormId, Axe> _axes = [];
+    // Axes that are custom items, until those exist: from the server tick after Start
+    private readonly List<Axe> _customAxesWaiting = [];
     private double _nextRegrowCheck;
 
     private double Now => _clock.Elapsed.TotalSeconds;
@@ -71,8 +76,20 @@ public sealed partial class WoodcuttingService(
     private void Start()
     {
         _filter = new TreeFilter(Settings.TreeMeshes, Settings.ExcludedMeshes);
-        _axes = Settings.Axes.ToDictionary(axe => ParseFormId(axe.Item));
-        _dropItems = Settings.Drops.ToDictionary(drop => drop, drop => new FormId(ParseFormId(drop.Item)));
+        foreach (var axe in Settings.Axes)
+        {
+            CheckItem(axe.Item);
+            if (axe.Item.StartsWith(CustomItemPrefix, StringComparison.Ordinal))
+                _customAxesWaiting.Add(axe);
+            else
+                _axes.Add(new FormId(ParseFormId(axe.Item)), axe);
+        }
+        foreach (var gift in Settings.GiveOnJoin)
+            CheckItem(gift);
+        foreach (var item in Settings.Items)
+            DefineItem(item);
+        foreach (var drop in Settings.Drops)
+            CheckItem(drop.Item);
 
         rpc.Ready += OnReady;
         rpc.HitReported += OnHit;
@@ -94,7 +111,7 @@ public sealed partial class WoodcuttingService(
         logger.LogInformation(
             "Jobs: woodcutting by damage, {Normal} a normal attack and {Power} a power attack. Trees are meshes with {Trees} but not {Excluded}; {Health} health for a scale 1 oak, {Drops} drops, {Axes} axes, back after {Minutes} min; {Where}. {Felled} trees felled.",
             Settings.NormalDamage, Settings.PowerDamage, TreeFilter.Join(_filter.TreeMeshes), TreeFilter.Join(_filter.ExcludedMeshes), Settings.BaseHealth,
-            _dropItems.Count, _axes.Count, Settings.RespawnMinutes,
+            Settings.Drops.Count, Settings.Axes.Count, Settings.RespawnMinutes,
             Settings.LumberCampsOnly ? $"only in {areas.LumberCamps.Count} lumber camps" : "anywhere", store.Felled.Count);
     }
 
@@ -129,6 +146,7 @@ public sealed partial class WoodcuttingService(
     private void OnReady(PlayerId player)
     {
         _ready.Add(player);
+        GiveOnJoin(player);
         rpc.SendWoodcuttingRules(player, TreeFilter.Join(_filter.TreeMeshes), TreeFilter.Join(_filter.ExcludedMeshes),
             Settings.HitRadius, Settings.LumberCampsOnly, Settings.TreesFall,
             Settings.FallSeconds, Settings.FallDegrees, Settings.FallLieSeconds, Settings.FallSinkSeconds, Settings.FallSinkDepth,
@@ -187,7 +205,7 @@ public sealed partial class WoodcuttingService(
             foreach (var ready in _ready)
                 rpc.SendTreeStruck(ready, at.X, at.Y, at.Z, character.Position.X, character.Position.Y, character.Position.Z);
         }
-        rpc.SendChopProgress(player, kind.Match, Math.Min(tally.Hits, health), health, _axes.Count > 0 ? Settings.WearPerDamage * damage : 0f);
+        rpc.SendChopProgress(player, kind.Match, Math.Min(tally.Hits, health), health, Settings.Axes.Count > 0 ? Settings.WearPerDamage * damage : 0f);
         if (tally.Hits < health)
             return;
 
@@ -285,7 +303,7 @@ public sealed partial class WoodcuttingService(
         var given = new List<string>();
         foreach (var (drop, count) in drops)
         {
-            _inventories.Add(character.As<Equipment>(), new InventoryEntry(_dropItems[drop], count, 0));
+            _inventories.Add(character.As<Equipment>(), new InventoryEntry(ResolveItem(drop.Item), count, 0));
             given.Add($"{count} {drop.Name}");
         }
         Felled(player, $"{done} You get {string.Join(", ", given)}.", string.Join('|', given));
@@ -334,19 +352,20 @@ public sealed partial class WoodcuttingService(
         if (Settings.LumberCampsOnly && !areas.LumberCamps.Any(camp => camp.Holds(tree.Position)))
             return "This tree is not for felling. Lumber camps are marked on your map.";
         (axe, condition) = BestAxeEquipped(character);
-        return _axes.Count > 0 && axe is null ? "Only a battle axe fells a tree." : null;
+        return Settings.Axes.Count > 0 && axe is null ? "Only a battle axe fells a tree." : null;
     }
 
     // The highest tier axe the character has equipped and its condition, or null for none (and always when no axe is
     // needed)
     private (Axe? Axe, float Condition) BestAxeEquipped(MainCharacter character)
     {
+        AddCustomAxes();
         Axe? best = null;
         var condition = 1f;
         for (var i = 0; i < character.ItemsCount; i++)
         {
             var entry = character.GetItems(i);
-            if (entry.Worn != 0 && _axes.TryGetValue(entry.FormId.FormId.Value, out var axe) && (best is null || axe.Tier > best.Tier))
+            if (entry.Worn != 0 && _axes.TryGetValue(entry.FormId, out var axe) && (best is null || axe.Tier > best.Tier))
             {
                 best = axe;
                 condition = HitDamage.ConditionOf(entry.Health, axe.Durability);
@@ -391,6 +410,94 @@ public sealed partial class WoodcuttingService(
         {
             logger.LogError(exception, "Jobs: the {What} of {Player} failed.", what, player);
         }
+    }
+
+    private void DefineItem(JobItem item)
+    {
+        var copy = CustomItem.CopyOf(new FormId(ParseFormId(item.Base)));
+        if (item.Name.Length > 0)
+            copy = copy.WithName(item.Name);
+        if (item.Value is { } value)
+            copy = copy.WithValue(value);
+        if (item.Weight is { } weight)
+            copy = copy.WithWeight(weight);
+        if (item.Damage is { } damage)
+            copy = copy.WithDamage(damage);
+        if (item.Mesh.Length > 0)
+            copy = copy.WithMesh(item.Mesh);
+        if (item.Scale is { } scale)
+            copy = copy.WithScale(scale);
+        if (item.Armor is { } armor)
+            copy = copy.WithArmorRating(armor);
+        if (item.Icon.Length > 0)
+            copy = copy.WithIconOf(new FormId(ParseFormId(item.Icon)));
+        if (item.Enchantment is { } enchantment)
+            copy = copy.WithEnchantment(enchantment.Charge, enchantment.Effects.Select(EnchantmentEffectOf).ToArray());
+        customItems.Define(item.Key, copy);
+    }
+
+    private static EnchantmentEffect EnchantmentEffectOf(JobEnchantmentEffect effect)
+    {
+        var status = effect.Stat.Length == 0
+            ? StatusEffect.Custom(effect.Effect, effect.Magnitude)
+            : StatusEffect.Custom(effect.Effect, Enum.TryParse<Stat>(effect.Stat, out var stat)
+                ? stat
+                : throw new FormatException($"Jobs config: '{effect.Stat}' is no stat. Name one as the SDK's Stat does, such as Health or Blade."), effect.Magnitude);
+        return effect.Duration == 0 ? EnchantmentEffect.Constant(status) : EnchantmentEffect.OnStrike(status, effect.Duration);
+    }
+
+    private void AddCustomAxes()
+    {
+        for (var i = _customAxesWaiting.Count - 1; i >= 0; i--)
+        {
+            if (!customItems.TryGet(_customAxesWaiting[i].Item[CustomItemPrefix.Length..], out var item))
+                continue;
+            _axes.Add(item, _customAxesWaiting[i]);
+            _customAxesWaiting.RemoveAt(i);
+        }
+    }
+
+    private void GiveOnJoin(PlayerId player)
+    {
+        if (Settings.GiveOnJoin.Count == 0)
+            return;
+        if (!entities.TryLookup<MainCharacter, PlayerId>(player, out var character))
+        {
+            logger.LogWarning("Jobs: {Player} is ready but has no character, so is given nothing on joining.", player);
+            return;
+        }
+
+        var inventory = character.As<Equipment>();
+        foreach (var gift in Settings.GiveOnJoin)
+        {
+            var item = ResolveItem(gift);
+            var carried = false;
+            for (var i = 0; i < inventory.ItemsCount && !carried; i++)
+                carried = inventory.GetItems(i).FormId == item;
+            if (carried)
+                continue;
+            _inventories.Add(inventory, new InventoryEntry(item, 1, 0));
+            logger.LogInformation("Jobs: {Player} was given {Item} on joining.", player, gift);
+        }
+    }
+
+    private void CheckItem(string text)
+    {
+        if (!text.StartsWith(CustomItemPrefix, StringComparison.Ordinal))
+            ParseFormId(text);
+        else if (Settings.Items.All(item => item.Key != text[CustomItemPrefix.Length..]))
+            throw new FormatException($"Jobs config: '{text}' names no item in items.");
+    }
+
+    // A custom item exists from the server tick after it was defined, long before a tree can come down
+    private NetworkFormId ResolveItem(string text)
+    {
+        if (!text.StartsWith(CustomItemPrefix, StringComparison.Ordinal))
+            return new FormId(ParseFormId(text));
+
+        return customItems.TryGet(text[CustomItemPrefix.Length..], out var item)
+            ? item
+            : throw new InvalidOperationException($"Jobs: the custom item '{text}' does not exist yet.");
     }
 
     private static uint ParseFormId(string text)

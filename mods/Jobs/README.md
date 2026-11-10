@@ -17,13 +17,23 @@ Roleplay jobs for the ReadyM Roleplay server on OblivionMP, from the game's own 
   fifteen normal ones) and does not run out.
   Quarries are where a server says: around every map marker named "...Quarry..." in its plugins, or in its config.
   Rock outside a quarry is left alone, and the first attack on it says where stone can be had.
+- **Carrying:** U picks up the barrel, crate, sack or log in front of you and puts down the one in hand. It hangs on
+  your right hand for everyone near, with your arms held out (the game's hand-to-hand idle, on the upper body only,
+  played again before it ends), and sits one way while you stand and another while you move. It weighs its weight on
+  you as a Burden (a log 300, so you barely move). You put it down where you stand when you die or leave, and what lies
+  in the world stays over restarts (`carryables.json`). Put down, it is swept from in front of your chest to its spot
+  and let fall onto whatever is below, the ground or another carryable, so barrels stack; with something in the way, or
+  nothing to land on, it stays in your hand. Dropped by dying or leaving, it lands at your feet without that check. Each kind is of a category (Beam, Box, Barrel, Sack) and takes
+  its weight and how it hangs in the hand from it, unless the kind gives its own, so a new plank or pole is one line
+  with `"category": "Beam"`.
 
 The server decides everything. A felled tree, a spent node and a block of quarried stone are networked events
 (`TreeFelledEvent`, `OreMinedEvent`, `StoneQuarriedEvent`), so other mods can refuse or react to them.
 
 > **Needs SDK features no package has yet.** It builds against an oblivion-mod checkout on its rp-framework branch
 > (see [../README.md](../README.md)), which carries new SDK APIs: `IFoliage` and `IProps` (client and server),
-> `IAnimations`, `IWeaponHits`, `IEquippedWeapon` and `ILocalProps` (client). The relay, the game's OblivionMp mod and
+> `IAnimations`, `IWeaponHits`, `IEquippedWeapon` and `ILocalProps` (client), with `ILocalProps.FindRest` for carrying,
+> and `ICustomItems` (server) for the firewood and the lumber axe. The relay, the game's OblivionMp mod and
 > the SDK mod must be that build too. What changed in the SDK and why: [docs/SDK-CHANGES.md](docs/SDK-CHANGES.md).
 
 ## How trees work in Oblivion Remastered
@@ -63,13 +73,13 @@ real references, and are not handled yet.
   when it lands. `tools/HitBoxProbe` shows the hit box's state.
 - **Sharing:** a tree's damage adds up for everyone who strikes it, and what it gives is shared by that damage, most
   valuable first, as an ore node's is: whoever did most of the work gets the best of it, and one last hit snuck in
-  gets little or nothing. Gnarl Bark is worth 1 gold, so with bark alone the share is simply by damage.
+  gets little or nothing. Firewood is worth 1 gold, so with it alone the share is simply by damage.
 - **Lumber camps** (`lumberCampsOnly`, off by default): a tree can only be felled within 30 m of a lumber camp, a map
   marker named "...Lumber..." or one in the config. The first attack on a tree outside every camp says where wood can
   be had.
 - **The panel:** a small half-transparent plate at the top right, 30% down the screen, shows the tree, vein or quarry
   last hit ("Oak", "Iron vein", "Aleswell Quarry"), its progress ("12 / 20" and a thin bar), and under it what came of
-  it: what the player got ("+3 Gnarl Bark"), a hint, or why a hit did not count (no axe, too far, outside a lumber
+  it: what the player got ("+3 Firewood"), a hint, or why a hit did not count (no axe, too far, outside a lumber
   camp, someone felled it a moment before). It fades six seconds after the last hit and steps aside while a game menu
   is open. Its page is `Content/web/panel.html` (plain HTML, Cinzel and Alegreya, the fonts' OFL licences beside
   them), hosted by `JobsPanel`; opened in a browser it shows a preview with a mock game (C, P, M, R and Q).
@@ -84,7 +94,7 @@ A mod that draws its own woodcutting interface (a CEF page, a widget) injects `I
 | `ShowMessages` | false keeps woodcutting out of Jobs' own panel, for a mod that draws its own |
 | `LumberCampsOnly`, `LumberCamps` | whether trees are kept to lumber camps, and the camps (name, center, radius) |
 | `HitCounted` | a hit of this player's the server counted: the tree's `FoliageId`, `Kind` ("Oak", empty for an unlisted kind), `Damage` so far (everyone's), `Health` |
-| `ChopEnded` | `Felled` (a tree this player hit came down) or `Refused`, the sentence Jobs has for it, and `Gains`, what the player got, each such as "3 Gnarl Bark" |
+| `ChopEnded` | `Felled` (a tree this player hit came down) or `Refused`, the sentence Jobs has for it, and `Gains`, what the player got, each such as "3 Firewood" |
 | `TreeFelled` | any tree coming down near this player, theirs included (`ByLocalPlayer`), with its kind, scale and `Feller` |
 | `TreeGrewBack` | a felled tree's `FoliageId` |
 
@@ -133,11 +143,23 @@ The server log lists every camp (`Jobs: lumber camp ...`), and warns when camps 
 Felled trees are saved to `server/felled-trees.json` on every change, with the time each grows back, so a restart
 does not regrow the forest.
 
-**The reward is a stand-in.** Oblivion has no log or firewood item. Until the mod ships one (a plugin plus a SyncMap
-entry), a felled tree gives Gnarl Bark; `drops` takes any form id.
+**Its own items.** Oblivion has no log or firewood item, so the mod makes them at run time through the SDK's
+`ICustomItems`, with no plugin: each entry of `items` is a copy of a game-file item (`base`) with whatever of `name`,
+`value`, `weight`, `damage`, `armor`, `mesh`, `scale`, `icon` (another item's inventory icon) and `enchantment` it sets
+in place of the base's (the config's comment shows an enchantment's shape). A felled tree gives **Firewood** (a Stone
+Brick shown with a static mesh and Gnarl Bark's icon, so it drops, bounces and sounds like what it looks like), and the **Lumber Axe** is an
+Iron Battle Axe that does 1 damage in a fight and chops as a tier 1 axe. A drop, an axe or `giveOnJoin` names one as
+`"custom:"` and its `key`; `giveOnJoin` gives each player one of each on joining when they carry none (the lumber axe,
+by default). Custom items last one server session: a restart loses those in saved inventories.
 
 ## Not done yet
 
+- **Carrying, seen in game:** picking up and putting down, the four assets, and the log's two fits, measured with bare
+  hands drawn, and then the Beam fit. Not yet: the hold animation (looping, and on other players, whose arms come down
+  only when it runs out), the switch between the fits, the Burden and the Speed drain. Box, Barrel and Sack hang at
+  offset 0. It
+  hangs on the body only, so in first person view it is where the body's hand is, not the arms'. Nothing yet gives a
+  log from a felled tree, and a weapon in hand still shows next to what is carried.
 - **Woodcutting by damage, normal attacks included, is untested in game**, as are lumber camps and the three
   networked events. Power attacks counting was seen working, once they connect. The
   felling, the fall and the stump were seen working with the old G key.
@@ -163,6 +185,9 @@ entry), a felled tree gives Gnarl Bark; `drops` takes any form id.
 - A tree is a foliage mesh whose name (not its folder) holds "tree" and not "branch", "bark", "shrub", "bush" or
   "stump": the fallen-branch meshes (`SM_Branches_TreeBark_*`) near Weye counted as trees before.
 - Firewood on a chopping block.
+- **Custom items:** the firewood's mesh (`Wood01`) is a plank, waiting for a better pick. Its Gnarl Bark icon, armor
+  ratings and enchantments are untested in game. Seen working in game: the lumber axe, firewood with its mesh, collision and sounds. A
+  replaced mesh does not show on a weapon in hand yet.
 - **Mining by damage, normal attacks included, is untested in game**, as are bark chips and chips flying back towards
   the one who struck. Before it, seen working: iron (KotN's vein, whose mesh comes from
   its blueprint) and madness nodes, warhammer hits on them, the drops, the flying bricks. Not yet:

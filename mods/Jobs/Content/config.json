@@ -84,11 +84,12 @@
     "lumberCampRadius": 3000,
     "lumberCamps": [],
 
-    // The axes that chop, by form id, each with a tier by its material: against a tree whose kind has a higher tier it
+    // The axes that chop, by form id or "custom:" and the key of one of items, each with a tier by its material: against a tree whose kind has a higher tier it
     // makes it tougher (tierPenalty), a lower one hit harder (normalTierBonus, powerTierBonus). The player needs one
     // equipped; the best one equipped counts. [] lets any weapon chop, at the plain health. durability is the axe's
     // full durability, as the game's data has it.
     "axes": [
+      { "item": "custom:jobs.lumber-axe", "name": "Lumber Axe", "tier": 1, "durability": 168 },
       { "item": "0x00000D7F", "name": "Iron Battle Axe", "tier": 1, "durability": 168 },
       { "item": "0x0003A85F", "name": "Fine Iron Battle Axe", "tier": 1, "durability": 185 },
       { "item": "0x000229B6", "name": "Steel Battle Axe", "tier": 2, "durability": 224 },
@@ -107,16 +108,30 @@
     // grows with the cube of its scale: scaleExponent 3 is that, 2 counts the trunk's cross-section alone and keeps a
     // giant from giving tenfold, 0 gives the same from any tree. A fraction is a chance of one more: 4.3 gives 5 three
     // times in ten. The count is kept between min and max. kinds, when not empty, limits the entry to trees whose mesh
-    // name holds one of them, as the kinds below match. item is a form id, name what the message calls it, value its
-    // gold value as the game has it. A felled tree's yield is shared by everyone who hit it, by their damage, most
-    // valuable first: whoever did most of the work gets the best of it. Oblivion has no log item, so the wood is a
-    // stand-in until the mod ships one. A second entry, for leaves from a tree's crown, half the time, more from a bigger
+    // name holds one of them, as the kinds below match. item is a form id, or "custom:" and the key of one of items, name
+    // what the message calls it, value its gold value. A felled tree's yield is shared by everyone who hit it, by their
+    // damage, most valuable first: whoever did most of the work gets the best of it. A second entry, for leaves from a tree's crown, half the time, more from a bigger
     // tree, oaks and maples only, would read:
     //   { "item": "0x000A793E", "name": "Wormwood Leaves", "value": 1, "chance": 0.5, "base": 2, "scaleExponent": 1,
     //     "scalesWithWood": false, "min": 1, "max": 6, "kinds": [ "Oak", "Maple" ] }
     "drops": [
-      { "item": "0x00044E5E", "name": "Gnarl Bark", "value": 1, "chance": 1, "base": 3, "scaleExponent": 2, "scalesWithWood": true, "min": 1, "max": 20, "kinds": [] }
+      { "item": "custom:jobs.firewood", "name": "Firewood", "value": 1, "chance": 1, "base": 3, "scaleExponent": 2, "scalesWithWood": true, "min": 1, "max": 20, "kinds": [] }
     ],
+
+    // The items woodcutting makes, which the game has none of: each a copy of base (a form id) with name, value,
+    // weight, damage (a weapon's), armor (an armor's rating, as the game shows it), mesh and scale (on the ground and in
+    // hand), icon (the form id of the item whose inventory icon it shows) and enchantment, whichever are set, in place of
+    // the base's. An enchantment is { "charge": <a weapon's>, "effects": [ { "effect": "FIDG", "stat": "", "magnitude":
+    // 10, "duration": 1 } ] }: effect a magic effect's four letter code, stat the stat it works on when it names one
+    // (Health, Strength, Blade, ...), duration how many seconds a weapon's lasts on whoever it strikes, 0 for apparel's. mesh is the Unreal asset it is shown with, a StaticMesh or a TES form's
+    // asset whose mesh is taken. Firewood is a Stone Brick (a plain misc item) shown as a wooden plank (Wood01), with Gnarl Bark's icon.
+    "items": [
+      { "key": "jobs.firewood", "base": "0x00025946", "name": "Firewood", "value": 1, "weight": 2, "mesh": "/Game/Forms/worldobjects/static/Wood01.Wood01", "icon": "0x00044E5E" },
+      { "key": "jobs.lumber-axe", "base": "0x00000D7F", "name": "Lumber Axe", "damage": 1 }
+    ],
+
+    // What every player is given, one of each, on joining when they carry none: a form id or "custom:" and a key of items.
+    "giveOnJoin": [ "custom:jobs.lumber-axe" ],
 
     // Real minutes until a felled tree grows back.
     "respawnMinutes": 30,
@@ -315,6 +330,68 @@
     // Lets every player place a node of the kind Shift+J picks 150 cm in front of them, or remove the placed node in front
     // of them, with J. For building a server's nodes; leave it off on a live server.
     "allowNodePlacement": false
+  },
+
+  "carrying": {
+    // The carry key picks up the barrel, crate, sack or log in front of the player (within reach centimeters of a spot a
+    // little ahead of them) and puts down the one in hand. It hangs on socket of the character's hand for everyone near,
+    // weighs its kind's weight on the carrier as a Burden, and is put down where they stand when they die or leave.
+    "carryKey": "U",
+    "reach": 150,
+    "socket": "Weapon_Socket",
+
+    // A carrier holds their arms out with holdAnimation, a sequence that plays on the upper body only, over and over
+    // while they carry (holdAnimationFirstPerson in first person view). Empty holds nothing. A carrier faster than
+    // movingAbove centimeters a second is moving: what they carry takes its kind's moving fit.
+    "holdAnimation": "/Game/Art/Animation/Humanoid/ThirdPerson/HandToHand/Locomotion/Normal/A_Humanoid_HandToHand_Idle.A_Humanoid_HandToHand_Idle",
+    "holdAnimationFirstPerson": "/Game/Art/Animation/Humanoid/FirstPerson/HandToHand/Locomotion/Normal/A_Humanoid_HandToHand_Idle_FP.A_Humanoid_HandToHand_Idle_FP",
+    "movingAbove": 50,
+
+    // A thing is put down putDownAhead centimeters in front of the player: carried there level, carryHeight above the
+    // character's position, then let fall at most maxDrop, stopping on the first thing it meets, the ground or another
+    // carryable, so they stack. With something in the way, or nothing to land on, it stays in hand. One a carrier drops
+    // by dying or leaving lands feetBelowPosition under their position, where their feet are, with no such check.
+    "putDownAhead": 80,
+    "carryHeight": 40,
+    "maxDrop": 400,
+    "feetBelowPosition": 90,
+
+    // The shapes of things to carry. Every kind of a category takes its weight (a Burden on the carrier, in the game's
+    // weight units), drainSpeed (points of Speed drained, 0 for none) and fits, unless it gives its own. standing places
+    // it relative to the hand socket while the carrier stands, moving while they move (null keeps the standing fit):
+    // offsetX/Y/Z in centimeters, pitch, yaw and roll in degrees. With allowPlacement on, Ctrl and the numpad move the
+    // one in hand and Alt and the numpad turn it, for the pose you are in, and the panel and the client log show the fit
+    // to copy here.
+    "categories": [
+      { "name": "Beam", "weight": 300, "drainSpeed": 0,
+        "standing": { "offsetX": -8, "offsetY": -22, "offsetZ": 18, "pitch": 50, "yaw": -10, "roll": 50 }, "moving": null },
+      { "name": "Box", "weight": 25, "drainSpeed": 0, "standing": { "offsetX": 0, "offsetY": 0, "offsetZ": 0, "pitch": 0, "yaw": 0, "roll": 0 }, "moving": null },
+      { "name": "Barrel", "weight": 30, "drainSpeed": 0, "standing": { "offsetX": 0, "offsetY": 0, "offsetZ": 0, "pitch": 0, "yaw": 0, "roll": 0 }, "moving": null },
+      { "name": "Sack", "weight": 15, "drainSpeed": 0, "standing": { "offsetX": 0, "offsetY": 0, "offsetZ": 0, "pitch": 0, "yaw": 0, "roll": 0 }, "moving": null }
+    ],
+
+    // The kinds that can be carried: asset is a TES form's Unreal asset (/Game/Forms/<group>/<type>/<EditorID>.<EditorID>)
+    // or a StaticMesh, scale its size in the world and in the hand, category one of the categories above. weight,
+    // drainSpeed, standing and moving given here win over the category's; null takes the category's. The moving fit is
+    // the kind's, else the category's, else the standing fit. A carryable whose kind leaves this list stays in the save
+    // file but is not placed.
+    "kinds": [
+      { "name": "Barrel", "asset": "/Game/Forms/worldobjects/static/MiddleBarrelTopped04.MiddleBarrelTopped04", "scale": 0.6, "category": "Barrel",
+        "weight": null, "drainSpeed": null, "standing": null, "moving": null },
+      { "name": "Crate", "asset": "/Game/Forms/worldobjects/container/PCCrateClutterMiddle01.PCCrateClutterMiddle01", "scale": 0.45, "category": "Box",
+        "weight": null, "drainSpeed": null, "standing": null, "moving": null },
+      { "name": "Sack", "asset": "/Game/Forms/worldobjects/container/Sack01.Sack01", "scale": 1, "category": "Sack",
+        "weight": null, "drainSpeed": null, "standing": null, "moving": null },
+      { "name": "Log", "asset": "/Game/Forms/worldobjects/static/LandscapeLogBirch01.LandscapeLogBirch01", "scale": 0.35, "category": "Beam",
+        "weight": null, "drainSpeed": null, "standing": null, "moving": null }
+    ],
+
+    // Lets every player place carryables in front of them with Shift and the carry key (the next kind each time) and
+    // fit the one in hand on the numpad. For setting up a server; leave it off on a live server.
+    "allowPlacement": false,
+
+    // The carryables lying in the world, next to the server DLL.
+    "saveFile": "carryables.json"
   },
 
   // Felled trees and when they grow back, next to the server DLL.
