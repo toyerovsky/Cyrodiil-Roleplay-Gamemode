@@ -8,8 +8,8 @@ using ReadyM.SDK.Client.Entities;
 
 namespace CyrodiilRP.Client.Traders;
 
-// The game names a trader or a banker after the person it is made from, so the mode puts its own label over each. A
-// marker needs the person's pawn, which comes and goes with its cell, so they are looked over every second.
+// The game names a trader, a banker or a stablemaster after the person it is made from, so the mode puts its own label
+// over each. A marker needs the person's pawn, which comes and goes with its cell, so they are looked over every second.
 [Service]
 internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers, RpcHandlers rpc)
 {
@@ -42,12 +42,14 @@ internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers
     {
         rpc.TraderLabelled += OnTraderLabelled;
         rpc.BankerLabelled += OnBankerLabelled;
+        rpc.StablemasterLabelled += OnStablemasterLabelled;
     }
 
     private void Stop()
     {
         rpc.TraderLabelled -= OnTraderLabelled;
         rpc.BankerLabelled -= OnBankerLabelled;
+        rpc.StablemasterLabelled -= OnStablemasterLabelled;
         foreach (var shown in _shown.Values)
             markers.DestroyMarker(shown.Handle);
         _shown.Clear();
@@ -56,6 +58,8 @@ internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers
     private void OnTraderLabelled(string label) => SetLabel(TraderOrigin.SpawnerRefId, label);
 
     private void OnBankerLabelled(string label) => SetLabel(TraderOrigin.BankerSpawnerRefId, label);
+
+    private void OnStablemasterLabelled(string label) => SetLabel(TraderOrigin.StablemasterSpawnerRefId, label);
 
     private void SetLabel(uint origin, string label)
     {

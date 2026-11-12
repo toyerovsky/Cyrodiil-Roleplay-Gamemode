@@ -260,6 +260,35 @@ namespace CyrodiilRP.Data.Migrations
                     b.ToTable("character_conditions", (string)null);
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.CharacterHorse", b =>
+                {
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("character_id");
+
+                    b.Property<DateTimeOffset>("BoughtAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("bought_at");
+
+                    b.Property<string>("Horse")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("horse");
+
+                    b.Property<int>("Price")
+                        .HasColumnType("integer")
+                        .HasColumnName("price");
+
+                    b.HasKey("CharacterId")
+                        .HasName("pk_character_horses");
+
+                    b.ToTable("character_horses", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_character_horses_price", "price >= 0");
+                        });
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.DiceRoll", b =>
                 {
                     b.Property<long>("Id")
@@ -840,6 +869,16 @@ namespace CyrodiilRP.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_character_conditions_characters_character_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.CharacterHorse", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithOne()
+                        .HasForeignKey("CyrodiilRP.Data.CharacterHorse", "CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_character_horses_characters_character_id");
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.DiceRoll", b =>

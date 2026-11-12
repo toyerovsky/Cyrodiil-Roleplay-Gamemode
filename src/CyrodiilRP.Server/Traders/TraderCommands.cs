@@ -15,7 +15,7 @@ using ReadyM.SDK.Server.Entities;
 
 namespace CyrodiilRP.Server.Traders;
 
-// /anpc stands the mode's people, a trader of a shop or a banker, takes one away and lists them.
+// /anpc stands the mode's people, a trader of a shop, a banker or a stablemaster, takes one away and lists them.
 [Service]
 internal sealed partial class TraderCommands(
     CommandRegistry commands,
@@ -31,6 +31,7 @@ internal sealed partial class TraderCommands(
     private const string Here = "here";
     private const string Trader = "trader";
     private const string Banker = "banker";
+    private const string Stable = "stable";
     private const string Remove = "remove";
     private const string List = "list";
     private const string ShopSeparator = ", ";
@@ -110,17 +111,22 @@ internal sealed partial class TraderCommands(
                 {
                     TraderSpotKind.Shop => TraderText.Placed(shop, spot.Id),
                     TraderSpotKind.Banker => TraderText.PlacedBanker(spot.Id),
+                    TraderSpotKind.Stablemaster => TraderText.PlacedStablemaster(spot.Id),
                 });
         });
     }
 
-    // The shop of the spot to make: a trader's own, or the bank for a banker. Null once the call is refused.
+    // The shop of the spot to make: a trader's own, the bank for a banker or the stable for a stablemaster. Null once the
+    // call is refused.
     private static string? ReadShop(CommandCall call)
     {
         switch (call.Words.Count > 1 ? call.Words[1] : string.Empty)
         {
             case Banker:
                 return TraderRules.BankShop;
+
+            case Stable:
+                return TraderRules.StableShop;
 
             case Trader:
                 var shop = call.Words.Count > 2 ? call.Words[2] : string.Empty;

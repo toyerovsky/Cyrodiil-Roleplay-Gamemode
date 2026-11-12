@@ -12,23 +12,14 @@ internal sealed partial class ChatCommands(
     CommandRegistry commands,
     RpChat chat,
     OnlinePlayers online,
-    SelfMenu self,
     InteractionMenu interactions,
     RpConfig config)
 {
-    private const string ActionOption = "self.me";
-    private const string OocOption = "self.ooc";
-    private const string PlayersOption = "self.players";
-    private const string HelpOption = "self.help";
     private const string GreetOption = "player.greet";
     private const string MessageOption = "player.pm";
 
     private const int GreetOrder = 10;
     private const int MessageOrder = 20;
-    private const int ActionOrder = 30;
-    private const int OocOrder = 40;
-    private const int PlayersOrder = 60;
-    private const int HelpOrder = 70;
 
     private void Start()
     {
@@ -43,11 +34,6 @@ internal sealed partial class ChatCommands(
         commands.Add(new CommandSpec { Name = "players", Usage = ChatText.CmdPlayers, Category = CommandCategory.General, Aliases = ["who"] },
             ListPlayers);
 
-        self.Add(new SelfOption { Id = ActionOption, Label = ChatText.OptionMe, Icon = WheelIcons.Action, Order = ActionOrder, Speaks = true, Run = p => chat.Prefill(p, "/me ") });
-        self.Add(new SelfOption { Id = OocOption, Label = ChatText.OptionLocalOoc, Icon = WheelIcons.Bubble, Order = OocOrder, Speaks = true, Run = p => chat.Prefill(p, "/b ") });
-        self.Add(new SelfOption { Id = PlayersOption, Label = ChatText.OptionPlayers, Icon = WheelIcons.People, Order = PlayersOrder, Run = p => RunCommand(p, "/players") });
-        self.Add(new SelfOption { Id = HelpOption, Label = ChatText.OptionHelp, Icon = WheelIcons.Question, Order = HelpOrder, Run = p => RunCommand(p, "/help") });
-
         interactions.Add(new InteractionOption { Id = GreetOption, Label = ChatText.OptionGreet, Icon = WheelIcons.Hand, Order = GreetOrder, Speaks = true, Run = Greet });
         interactions.Add(new InteractionOption
         {
@@ -60,8 +46,6 @@ internal sealed partial class ChatCommands(
             Run = (actor, target) => chat.Prefill(actor, $"/pm {target.Number} "),
         });
     }
-
-    private void RunCommand(OnlinePlayer player, string line) => commands.Run(player, line, chat);
 
     private void Greet(OnlinePlayer actor, OnlinePlayer target) =>
         chat.SendAround(actor, config.Chat.Emote, ChatLineKind.Action, ChatText.Greet(new ShownName(actor), new ShownName(target)));

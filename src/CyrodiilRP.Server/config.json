@@ -26,6 +26,15 @@
     "foundingFee": 500
   },
 
+  // The gold each horse costs at a stablemaster, as the game's own stables ask. 0 gives it away.
+  "stable": {
+    "paint": 500,
+    "bay": 1000,
+    "chestnut": 2500,
+    "white": 4000,
+    "black": 5000
+  },
+
   // Notice boards: the notices a board holds (a new one on a full board takes the oldest down), a notice's length, the
   // notices one character has up at once, the minutes between two of them, the days one stays up, and the game's form
   // whose mesh stands for a board.

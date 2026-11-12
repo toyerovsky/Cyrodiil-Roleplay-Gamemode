@@ -1,11 +1,13 @@
 import admin from "../../locales/en/admin.json";
 import chat from "../../locales/en/chat.json";
 import dice from "../../locales/en/dice.json";
-import economy from "../../locales/en/economy.json";
 import emotes from "../../locales/en/emotes.json";
 import exchange from "../../locales/en/exchange.json";
+import feeding from "../../locales/en/feeding.json";
+import lore from "../../locales/en/lore.json";
+import party from "../../locales/en/party.json";
 import sanctions from "../../locales/en/sanctions.json";
-import staff from "../../locales/en/staff.json";
+import stable from "../../locales/en/stable.json";
 import { fill } from "../shared/locale.js";
 
 const SELF_KEY = "g";
@@ -21,14 +23,9 @@ const selfWheel = (withStaff) => ({
   items: [
     option("self.emotes", emotes["emotes.option"], "emote"),
     option("self.roll", dice["dice.option.board"], "dice"),
-    option("self.me", chat["chat.option.me"], "action"),
-    option("self.ooc", chat["chat.option.local_ooc"], "bubble"),
-    option("self.gold", economy["economy.option.gold"], "coins"),
-    option("self.players", chat["chat.option.players"], "people"),
-    option("self.help", chat["chat.option.help"], "question"),
-    ...(withStaff
-      ? [option("self.staff_chat", staff["staff.option.chat"], "shield"), option("self.admin", admin["admin.option.panel"], "card")]
-      : []),
+    option("self.lore", lore["lore.option.card"], "book"),
+    option("self.horse", stable["stable.option.call"], "horse"),
+    ...(withStaff ? [option("self.admin", admin["admin.option.panel"], "card")] : []),
   ],
 });
 
@@ -45,8 +42,11 @@ const interactionWheel = (withStaff) => ({
   title: "Lucia Gallus",
   items: [
     option("player.greet", chat["chat.option.greet"], "hand"),
+    option("player.lore", lore["lore.option.read"], "book"),
     option("player.pm", chat["chat.option.pm"], "letter"),
     option("player.trade", exchange["exchange.option"], "scales", fill(exchange["exchange.target_busy"], { name: "Lucia Gallus" })),
+    option("player.feed", feeding["feeding.option"], "bread"),
+    option("player.party_invite", party["party.option.invite"], "banner"),
     ...(withStaff
       ? [
           option("player.heal", admin["admin.option.heal"], "heart"),
@@ -59,7 +59,7 @@ const interactionWheel = (withStaff) => ({
 });
 
 // G opens the own wheel and H the one over Lucia Gallus, who is busy with another trade. #interaction starts on that one,
-// #staff with a staff member's options, #emotes on the emotes, which G opens there.
+// #staff on it too with a staff member's options, two pages of them, #emotes on the emotes, which G opens there.
 export function pretendGame(readym) {
   const scenario = location.hash.slice(1);
   const withStaff = scenario === "staff";
@@ -73,7 +73,7 @@ export function pretendGame(readym) {
 
   readym.onSend((name) => {
     if (name === "WheelReady") {
-      if (scenario === "interaction") show(interactionWheel(withStaff), INTERACTION_KEY);
+      if (scenario === "interaction" || withStaff) show(interactionWheel(withStaff), INTERACTION_KEY);
       else show(ownWheel(), SELF_KEY);
     } else if (name === "WheelPick" || name === "WheelClose") {
       open = false;

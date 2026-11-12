@@ -31,14 +31,16 @@ internal sealed partial class WebPages(CefHost cef, PawnWatch pawn, ILogger logg
     // Beside the bank's: a window at a thing in the world, and one of them open at a time.
     public const int BoardLayer = 9;
 
-    public const int ExchangeLayer = 10;
+    public const int StableLayer = 10;
 
-    public const int AdminLayer = 11;
+    public const int ExchangeLayer = 11;
 
-    public const int FormLayer = 12;
+    public const int AdminLayer = 12;
+
+    public const int FormLayer = 13;
 
     // Over everything, the chat's log too.
-    public const int WelcomeLayer = 13;
+    public const int WelcomeLayer = 14;
 
     // The game rebuilds the overlay CEF draws on after every load, and a page shown before it is there never comes up,
     // without a word. So a page that should be up is shown again this long after each new pawn.

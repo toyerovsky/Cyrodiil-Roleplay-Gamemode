@@ -149,6 +149,28 @@ public static partial class RpContracts
     [ClientToServer]
     public static partial void BankClose();
 
+    // The label over the mode's stablemasters, in the player's language.
+    [ServerToClient]
+    public static partial void StablemasterLabel(string text);
+
+    // A StableView as JSON: opens the stable's window or brings it up to date.
+    [ServerToClient]
+    public static partial void StableState(string json);
+
+    // What a purchase came to, in the player's language: bought or refused.
+    [ServerToClient]
+    public static partial void StableAnswer(string text, bool bought);
+
+    [ServerToClient]
+    public static partial void StableClosed();
+
+    // One of the horses the window offered, by the name it came under.
+    [ClientToServer]
+    public static partial void StableBuy(string horse);
+
+    [ClientToServer]
+    public static partial void StableClose();
+
     // The menu key: the server answers with the menu on its first tab.
     [ClientToServer]
     public static partial void OpenMenu();

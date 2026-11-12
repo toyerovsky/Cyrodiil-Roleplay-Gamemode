@@ -5,13 +5,15 @@ const chat = readTexts("chat");
 const dice = readTexts("dice");
 const exchange = readTexts("exchange");
 const emotes = readTexts("emotes");
+const admin = readTexts("admin");
+const stable = readTexts("stable");
 const fill = (text, args) => text.replace(/\{(\w+)\}/g, (_, name) => String(args[name]));
 
 test("the own wheel picks with the mouse, opens again on G and picks by number", async ({ page }, testInfo) => {
   await page.goto("/radial/index.html");
   const wheel = page.getByRole("listbox", { name: t("wheel") });
   await expect(wheel).toBeFocused();
-  await expect(wheel.getByRole("option")).toHaveCount(7);
+  await expect(wheel.getByRole("option")).toHaveCount(4);
   await expect(page.getByText("Marius Varro")).toBeVisible();
 
   // The icons let the pointer through: the wheel picks by the pointer's angle, as a player points.
@@ -23,9 +25,10 @@ test("the own wheel picks with the mouse, opens again on G and picks by number",
 
   await page.keyboard.press("g");
   await expect(wheel).toBeFocused();
-  await page.keyboard.press("5");
+  await expect(wheel.getByRole("option", { name: stable("option.call") })).toBeVisible();
+  await page.keyboard.press("4");
   await expect(wheel).toBeHidden();
-  expect(await readSent(page, "WheelPick")).toEqual([["self.roll"], ["self.gold"]]);
+  expect(await readSent(page, "WheelPick")).toEqual([["self.roll"], ["self.horse"]]);
 });
 
 test("the wheel over another player says why an option is closed and the same key puts it away", async ({ page }, testInfo) => {
@@ -47,7 +50,7 @@ test("the wheel over another player says why an option is closed and the same ke
   expect(await readSent(page, "WheelClose")).toHaveLength(1);
 });
 
-test("a staff member's wheel of nine options pages, and the right mouse button closes it", async ({ page }, testInfo) => {
+test("a staff member's wheel over another player of ten options pages, and the right mouse button closes it", async ({ page }, testInfo) => {
   await page.goto("/radial/index.html#staff");
   const wheel = page.getByRole("listbox", { name: t("wheel") });
   await expect(wheel.getByRole("option")).toHaveCount(10);
@@ -57,6 +60,12 @@ test("a staff member's wheel of nine options pages, and the right mouse button c
   await wheel.click({ button: "right" });
   await expect(wheel).toBeHidden();
   expect(await readSent(page, "WheelClose")).toHaveLength(1);
+
+  // The own wheel keeps the staff's panel, on one page.
+  await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
+  await page.keyboard.press("g");
+  await expect(wheel.getByRole("option")).toHaveCount(5);
+  await expect(wheel.getByRole("option", { name: admin("option.panel") })).toBeVisible();
 });
 
 test("the emotes turn their pages from the wedges by the top, the keys and the mouse wheel, and pick by number", async ({ page }, testInfo) => {

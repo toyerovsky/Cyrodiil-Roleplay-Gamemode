@@ -43,9 +43,5 @@
   "chat.cmd.help": "/help - komendy, których możesz użyć",
   "chat.greet": "* {name} pozdrawia postać {target}.",
   "chat.option.greet": "Przywitaj się",
-  "chat.option.pm": "Prywatna wiadomość",
-  "chat.option.me": "Opisz czynność",
-  "chat.option.local_ooc": "Poza postacią",
-  "chat.option.players": "Kto jest online",
-  "chat.option.help": "Komendy"
+  "chat.option.pm": "Prywatna wiadomość"
 }

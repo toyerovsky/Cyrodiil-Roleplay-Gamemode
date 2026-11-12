@@ -8,6 +8,5 @@
   "economy.delivered": {
     "one": "Received {count} gold coin",
     "other": "Received {count} gold coins"
-  },
-  "economy.option.gold": "My gold"
+  }
 }

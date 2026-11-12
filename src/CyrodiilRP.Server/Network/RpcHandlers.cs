@@ -45,6 +45,10 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId>? BankLeft;
 
+    public event Action<PlayerId, string>? StableBought;
+
+    public event Action<PlayerId>? StableLeft;
+
     public event Action<PlayerId>? MenuAsked;
 
     public event Action<PlayerId, string>? LanguageChosen;
@@ -124,6 +128,10 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnBankWithdraw(RpcContext context, int amount) => callbacks.Raise("rpc.bank_withdraw", BankWithdrawn, context.Sender, amount);
 
     partial void OnBankClose(RpcContext context) => callbacks.Raise("rpc.bank_close", BankLeft, context.Sender);
+
+    partial void OnStableBuy(RpcContext context, string horse) => callbacks.Raise("rpc.stable_buy", StableBought, context.Sender, horse);
+
+    partial void OnStableClose(RpcContext context) => callbacks.Raise("rpc.stable_close", StableLeft, context.Sender);
 
     partial void OnOpenMenu(RpcContext context) => callbacks.Raise("rpc.open_menu", MenuAsked, context.Sender);
 

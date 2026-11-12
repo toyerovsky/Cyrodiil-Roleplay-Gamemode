@@ -13,7 +13,6 @@
   "staff.message_received": "[Staff to you] {name}: {text}",
   "staff.message_notice": "A message from the staff ({name}): read it in the chat. Answer with /pm.",
   "staff.message_sent": "[Staff to {name}] {text}",
-  "staff.option.chat": "Staff chat",
   "staff.cmd.duty": "/duty - go on duty or off it: the staff act only on duty, where everyone sees it",
   "staff.duty_on": "You are on duty: your name shows it.",
   "staff.duty_off": {

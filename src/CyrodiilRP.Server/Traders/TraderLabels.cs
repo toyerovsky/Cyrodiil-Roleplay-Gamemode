@@ -6,7 +6,7 @@ using ReadyM.SDK.Attributes;
 
 namespace CyrodiilRP.Server.Traders;
 
-// The client puts them over every trader and every banker it sees.
+// The client puts them over every trader, banker and stablemaster it sees.
 [Service]
 internal sealed partial class TraderLabels(RpcHandlers rpc, OnlinePlayers online, RpChat chat)
 {
@@ -20,5 +20,6 @@ internal sealed partial class TraderLabels(RpcHandlers rpc, OnlinePlayers online
     {
         rpc.SendTraderLabel(player.Id, chat.Translate(player, TraderText.Label));
         rpc.SendBankerLabel(player.Id, chat.Translate(player, BankText.Label));
+        rpc.SendStablemasterLabel(player.Id, chat.Translate(player, StableText.Label));
     }
 }

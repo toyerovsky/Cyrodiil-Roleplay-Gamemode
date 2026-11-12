@@ -13,7 +13,6 @@
   "staff.message_received": "[Administracja do ciebie] {name}: {text}",
   "staff.message_notice": "Wiadomość od administracji ({name}): przeczytaj ją na czacie. Odpowiedz przez /pm.",
   "staff.message_sent": "[Administracja do: {name}] {text}",
-  "staff.option.chat": "Czat administracji",
   "staff.cmd.duty": "/duty - wejdź na służbę albo z niej zejdź: administracja działa tylko na służbie, a wszyscy to widzą",
   "staff.duty_on": "Jesteś na służbie: widać to przy twoim imieniu.",
   "staff.duty_off": {

@@ -1,10 +1,11 @@
 {
-  "trader.cmd.npc": "/anpc here trader <shop> | here banker | remove | list - stand a trader or a banker where you stand, take away the one in front of you, or list them",
+  "trader.cmd.npc": "/anpc here trader <shop> | here banker | here stable | remove | list - stand a trader, a banker or a stablemaster where you stand, take away the one in front of you, or list them",
   "trader.unknown_shop": "No shop \"{shop}\". The shops: {shops}.",
   "trader.not_in_world": "You have to be in the world to stand a trader.",
   "trader.not_settled": "The server still has you in cell {seen}, but you stand in cell {here}: the game has not caught up after a long jump. Walk a few steps, or rejoin, and try again.",
   "trader.placed": "A {shop} trader stands here now (#{id}). They appear in a moment.",
   "trader.placed_banker": "A banker stands here now (#{id}). They appear in a moment.",
+  "trader.placed_stablemaster": "A stablemaster stands here now (#{id}). They appear in a moment.",
   "trader.place_failed": "The trader could not be saved, so none stands here. Try again in a moment.",
   "trader.none_in_front": "No trader stands in front of you.",
   "trader.removed": "Trader #{id} is gone.",

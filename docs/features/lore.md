@@ -193,6 +193,4 @@ Not tested (needs 2 players):
   online player by number. Only the H wheel's "Introduce yourself" is limited to the say range.
 - **Friends and guilds** as a third visibility level come later.
 - **Optional `AdminTabs.Lore`** (a tab listing online players' cards) was not built.
-- **Wheel caps:** see `dice.md`. The lore card adds one G option and two H options to wheels capped at 8
-  (`WheelOptions.MaxOptions`): staff lose "Staff panel" on G and staff options on H. Still open.
 - **Page bundle:** see `dice.md`.

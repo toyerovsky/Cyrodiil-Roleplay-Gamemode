@@ -26,6 +26,7 @@ internal static class WheelIcons
     public const string Flask = "flask";
     public const string Emote = "emote";
     public const string Stop = "stop";
+    public const string Horse = "horse";
 
     // The page draws these on the wedges that turn a wheel of more than a page.
     public const string Previous = "previous";

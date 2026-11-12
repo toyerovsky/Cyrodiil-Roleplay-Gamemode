@@ -13,6 +13,7 @@ const PAGES = [
   { url: "/asks/index.html#trade", root: ".asks", text: ["ui.asks", "title.trade"] },
   { url: "/trader/index.html", root: ".trader__panel", text: ["ui.trader", "shop.general"] },
   { url: "/bank/index.html", root: ".bank__panel", text: ["ui.bank", "all_carried"] },
+  { url: "/stable/index.html#owned", root: ".stable__panel", text: ["ui.stable", "purse"] },
   { url: "/notices/index.html", root: ".notices__panel", text: ["ui.notices", "post"] },
   { url: "/notices/index.html#full", root: ".notices__panel", text: ["ui.notices", "take_down"] },
   { url: "/menu/index.html", root: ".menu", text: ["ui.menu", "tab.character"] },

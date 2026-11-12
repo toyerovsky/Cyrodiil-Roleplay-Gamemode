@@ -155,14 +155,8 @@ Not tested (needs 2 players):
 
 ## 8. Known gaps and next steps
 
-- **G wheel cap.** `WheelOptions.MaxOptions = 8` and `BuildItems` stops at 8. With Dice (20) and Lore card (25) a staff
-  member has 9 self options, so "Staff panel" (`self.admin`, Order 105) is cut. In a party, "Leave the party" (50) also
-  comes in and "Staff chat" (100) is cut too. Open: a second page, or more slots.
-- **H wheel cap, same limit.** Dice adds "Roll against" (25), the lore card adds
-  "Read card" (11) and "Introduce yourself" (12, hidden once both know each other). With Greet, Private message, Trade and
-  Invite to party, a player already has 7 H options. A staff member with `aheal` reaches 8 at "Heal" (100), so "Staff
-  card" (105), "Mute" (120) and "Kick" (130) are cut. A party leader looking at a member can lose "Hand over the lead"
-  (42). Same open question.
+- **Wheel caps** are gone: a wheel of more than eight options turns its pages (`WheelOptions.PageSize`), so no option is
+  cut.
 - **Modifiers** are refused "not rolled yet": not built.
 - **"Roll against" has no cooldown of its own** (the board's 1.5 s applies to board throws only; `/roll` goes through the
   chat's flood limit).

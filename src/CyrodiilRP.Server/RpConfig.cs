@@ -21,5 +21,7 @@ internal sealed partial class RpConfig
 
     public FactionSettings Factions { get; set; } = new();
 
+    public StableSettings Stable { get; set; } = new();
+
     public NoticeBoardSettings NoticeBoards { get; set; } = new();
 }

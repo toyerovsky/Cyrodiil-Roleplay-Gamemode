@@ -19,7 +19,8 @@ using ReadyM.SDK.Server.Entities;
 namespace CyrodiilRP.Server.Traders;
 
 // The cell saves its people, so a trader placed once is there after a restart. Every client in the cell shows it, and
-// the cell's master moves it. A banker is stood and kept the same way, under an origin of its own.
+// the cell's master moves it. A banker and a stablemaster are stood and kept the same way, each under an origin of its
+// own.
 [Service]
 internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, ServerRefIds refIds, TraderSpots spots, Proximity proximity, Timers timers)
 {
@@ -39,7 +40,7 @@ internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, Ser
     public bool TryFind(TraderSpotRecord spot, out Npc npc) =>
         refs.TryFindNpc(spot.NpcRefId, out npc) && npc.SpawnerRefId == TraderRules.FindOrigin(spot.Kind);
 
-    // The person of ours nearest in front of the player, of either kind.
+    // The person of ours nearest in front of the player, of any kind.
     public TraderSpotRecord? FindNearestInFront(OnlinePlayer actor, float reach, float coneDegrees, out float distance)
     {
         TraderSpotRecord? nearest = null;

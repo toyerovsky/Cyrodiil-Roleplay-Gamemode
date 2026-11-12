@@ -14,7 +14,7 @@ server, run `./pack.ps1 -PackOnly` once before building in an IDE. The server ne
 
 `src/CyrodiilRP.Common` goes to every player with the client, so it holds only what both halves read: the RPC contract
 (`RpContracts`), the chat's line and limits (`ChatLine`, `ChatLineKind`, `ChatLimits`), the mark of the mode's
-traders and bankers (`TraderOrigin`) and the staff's mark in a nickname (`Nameplate`). What a page shows (the `*View` records) and its JSON context (`*Json`) are the server's, in the
+traders, bankers and stablemasters (`TraderOrigin`) and the staff's mark in a nickname (`Nameplate`). What a page shows (the `*View` records) and its JSON context (`*Json`) are the server's, in the
 folder of the service that builds them: the client hands the JSON to the page as it comes and never reads it.
 
 ## Setup
@@ -57,5 +57,6 @@ The server refuses a config without a connection string and a database at anothe
 | `chat` | ranges of say, shout, whisper and emotes, in game units (about centimetres) |
 | `economy` | `maxPayment`: the most gold one trade or `/agold` moves |
 | `factions` | `foundingFee`: the gold a founder pays from what they carry (500 by default, 0 founds for free) |
+| `stable` | the gold each horse costs at a stablemaster: `paint`, `bay`, `chestnut`, `white`, `black` (500, 1000, 2500, 4000 and 5000 by default, as the game's stables ask; 0 gives it away, below 0 stops the mod) |
 | `noticeBoards` | the notice boards: `shown` (10), `minLength` and `maxLength` (1 and 300), `perCharacter` (3), `cooldownMinutes` (5), `expiryDays` (7) and `asset`, the game's form a board stands as (`docs/features/notice-board.md`) |
 | `lore` | the lore card: `catalogMode` (`Canon` by default) and `allowImplausibleSubtypes` (`false`: no kinds that do not fit the race's body, such as the Senche) |

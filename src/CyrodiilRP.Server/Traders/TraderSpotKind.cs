@@ -8,4 +8,7 @@ internal enum TraderSpotKind
 
     // Keeps a character's gold (Bank/).
     Banker,
+
+    // Sells the game's horses (Stable/).
+    Stablemaster,
 }

@@ -41,9 +41,5 @@
   "chat.cmd.help": "/help - the commands you can use",
   "chat.greet": "* {name} greets {target}.",
   "chat.option.greet": "Greet",
-  "chat.option.pm": "Private message",
-  "chat.option.me": "Describe an action",
-  "chat.option.local_ooc": "Out of character",
-  "chat.option.players": "Who is online",
-  "chat.option.help": "Commands"
+  "chat.option.pm": "Private message"
 }

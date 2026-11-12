@@ -34,6 +34,8 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
 
+    public DbSet<CharacterHorse> CharacterHorses => Set<CharacterHorse>();
+
     public DbSet<NoticeBoard> NoticeBoards => Set<NoticeBoard>();
 
     public DbSet<Notice> Notices => Set<Notice>();
@@ -188,6 +190,15 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.HasKey(x => x.CharacterId);
             entity.Property(x => x.CharacterId).ValueGeneratedNever();
             entity.HasOne<Character>().WithOne().HasForeignKey<BankAccount>(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CharacterHorse>(entity =>
+        {
+            entity.ToTable("character_horses", t => t.HasCheckConstraint("ck_character_horses_price", "price >= 0"));
+            entity.HasKey(x => x.CharacterId);
+            entity.Property(x => x.CharacterId).ValueGeneratedNever();
+            entity.Property(x => x.Horse).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.HasOne<Character>().WithOne().HasForeignKey<CharacterHorse>(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<NoticeBoard>(entity =>

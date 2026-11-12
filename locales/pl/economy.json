@@ -12,6 +12,5 @@
     "few": "Otrzymano {count} sztuki złota",
     "many": "Otrzymano {count} sztuk złota",
     "other": "Otrzymano {count} sztuki złota"
-  },
-  "economy.option.gold": "Moje złoto"
+  }
 }

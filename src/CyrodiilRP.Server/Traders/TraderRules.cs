@@ -27,8 +27,14 @@ internal static class TraderRules
     // The shop a banker's spot is stored under. No shop of stocks.json may take the name.
     public const string BankShop = "bank";
 
+    // The shop a stablemaster's spot is stored under. No shop of stocks.json may take the name.
+    public const string StableShop = "stable";
+
     private static readonly IReadOnlyList<FormId> ShopOutfit = [Items.Clothes.MiddleShirt01, Items.Clothes.MiddlePants01, Items.Clothes.MiddleShoes01];
     private static readonly IReadOnlyList<FormId> BankerOutfit = [Items.Clothes.UpperShirt01, Items.Clothes.UpperPants01, Items.Clothes.UpperShoes01];
+
+    // What Petrine of Bruma's stables wears.
+    private static readonly IReadOnlyList<FormId> StablemasterOutfit = [Items.Clothes.LowerShirt10, Items.Clothes.LowerPants08, Items.Clothes.LowerShoes01];
 
     public const float WanderRadius = 50f;
 
@@ -49,16 +55,27 @@ internal static class TraderRules
     {
         TraderSpotKind.Shop => TraderOrigin.SpawnerRefId,
         TraderSpotKind.Banker => TraderOrigin.BankerSpawnerRefId,
+        TraderSpotKind.Stablemaster => TraderOrigin.StablemasterSpawnerRefId,
     };
 
     public static IReadOnlyList<FormId> FindOutfit(TraderSpotKind kind) => kind switch
     {
         TraderSpotKind.Shop => ShopOutfit,
         TraderSpotKind.Banker => BankerOutfit,
+        TraderSpotKind.Stablemaster => StablemasterOutfit,
     };
 
-    // A person the mode stood, of either kind.
-    public static bool IsOurs(uint spawnerRefId) => spawnerRefId is TraderOrigin.SpawnerRefId or TraderOrigin.BankerSpawnerRefId;
+    // A person the mode stood, of any kind.
+    public static bool IsOurs(uint spawnerRefId) =>
+        spawnerRefId is TraderOrigin.SpawnerRefId or TraderOrigin.BankerSpawnerRefId or TraderOrigin.StablemasterSpawnerRefId;
+
+    // The kind a spot stands by the shop it is stored under.
+    public static TraderSpotKind FindKind(string shop) => shop switch
+    {
+        BankShop => TraderSpotKind.Banker,
+        StableShop => TraderSpotKind.Stablemaster,
+        _ => TraderSpotKind.Shop,
+    };
 
     // Rounded up, in whole gold.
     public static int ComputePrice(int value) => (value * MarkupPercent + 99) / 100;

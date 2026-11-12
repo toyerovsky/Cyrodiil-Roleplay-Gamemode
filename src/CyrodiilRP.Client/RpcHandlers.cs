@@ -57,6 +57,14 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action? BankClosed;
 
+    public event Action<string>? StablemasterLabelled;
+
+    public event Action<string>? StableChanged;
+
+    public event Action<string, bool>? StableAnswered;
+
+    public event Action? StableClosed;
+
     public event Action<string>? MenuChanged;
 
     public event Action<string>? AdminChanged;
@@ -153,6 +161,14 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnBankAnswer(string text, bool done) => BankAnswered?.Invoke(text, done);
 
     partial void OnBankClosed() => BankClosed?.Invoke();
+
+    partial void OnStablemasterLabel(string text) => StablemasterLabelled?.Invoke(text);
+
+    partial void OnStableState(string json) => StableChanged?.Invoke(json);
+
+    partial void OnStableAnswer(string text, bool bought) => StableAnswered?.Invoke(text, bought);
+
+    partial void OnStableClosed() => StableClosed?.Invoke();
 
     partial void OnMenuState(string json) => MenuChanged?.Invoke(json);
 

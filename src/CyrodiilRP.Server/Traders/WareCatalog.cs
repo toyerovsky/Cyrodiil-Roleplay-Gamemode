@@ -30,8 +30,8 @@ internal sealed class WareCatalog
         var shops = new Dictionary<string, TraderShop>(StringComparer.Ordinal);
         foreach (var (shop, categories) in stocks.Shops)
         {
-            if (shop == TraderRules.BankShop)
-                throw new InvalidOperationException($"stocks.json names a shop {shop}, which is the banker's name.");
+            if (TraderRules.FindKind(shop) != TraderSpotKind.Shop)
+                throw new InvalidOperationException($"stocks.json names a shop {shop}, which is the name of a banker's or a stablemaster's spot.");
 
             var list = new List<Ware>();
             foreach (var (category, ids) in categories)

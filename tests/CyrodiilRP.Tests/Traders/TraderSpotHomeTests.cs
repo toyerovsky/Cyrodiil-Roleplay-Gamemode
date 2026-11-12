@@ -31,16 +31,26 @@ public sealed class TraderSpotHomeTests
     }
 
     [Fact]
-    public void A_spot_of_the_bank_stands_a_banker_under_an_origin_of_its_own_and_any_other_a_trader()
+    public void A_spot_of_the_bank_stands_a_banker_one_of_the_stable_a_stablemaster_and_any_other_a_trader()
     {
         var trader = new TraderSpotRecord(3, Shop, Outside, "32,-6", ByTheInn, 0f);
         var banker = new TraderSpotRecord(4, TraderRules.BankShop, Outside, "32,-6", ByTheInn, 0f);
+        var stablemaster = new TraderSpotRecord(5, TraderRules.StableShop, Outside, "32,-6", ByTheInn, 0f);
 
         Assert.Equal(TraderSpotKind.Shop, trader.Kind);
         Assert.Equal(TraderSpotKind.Banker, banker.Kind);
-        Assert.NotEqual(TraderRules.FindOrigin(trader.Kind), TraderRules.FindOrigin(banker.Kind));
-        Assert.All(Enum.GetValues<TraderSpotKind>(), kind => Assert.True(TraderRules.IsOurs(TraderRules.FindOrigin(kind))));
-        Assert.All(Enum.GetValues<TraderSpotKind>(), kind => Assert.NotEmpty(TraderRules.FindOutfit(kind)));
+        Assert.Equal(TraderSpotKind.Stablemaster, stablemaster.Kind);
+    }
+
+    [Fact]
+    public void Every_kind_stands_under_an_origin_and_in_clothes_of_its_own()
+    {
+        var kinds = Enum.GetValues<TraderSpotKind>();
+
+        Assert.Equal(kinds.Length, kinds.Select(TraderRules.FindOrigin).Distinct().Count());
+        Assert.Equal(kinds.Length, kinds.Select(kind => string.Join(",", TraderRules.FindOutfit(kind).Select(piece => piece.Value))).Distinct().Count());
+        Assert.All(kinds, kind => Assert.True(TraderRules.IsOurs(TraderRules.FindOrigin(kind))));
+        Assert.All(kinds, kind => Assert.NotEmpty(TraderRules.FindOutfit(kind)));
         Assert.False(TraderRules.IsOurs(0));
     }
 }

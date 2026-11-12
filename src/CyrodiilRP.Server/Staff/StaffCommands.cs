@@ -3,7 +3,6 @@ using CyrodiilRP.Data.Staff;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Commands;
 using CyrodiilRP.Server.Infrastructure;
-using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Players;
 using ReadyM.SDK.Attributes;
@@ -18,13 +17,9 @@ internal sealed partial class StaffCommands(
     Persistence persistence,
     RpChat chat,
     Audit audit,
-    SelfMenu self,
     Callbacks callbacks,
     Fire fire)
 {
-    private const string StaffChatOption = "self.staff_chat";
-    private const int StaffChatOrder = 100;
-
     private const string StaffChatAction = "staff.message";
     private const string MessageAction = "staff.message_to";
     private const string RolesAction = "staff.roles";
@@ -41,16 +36,6 @@ internal sealed partial class StaffCommands(
         commands.AddStaff(StaffPermissions.StaffChat, StaffText.CmdChat, SendStaffChat, offDuty: true);
         commands.AddStaff(StaffPermissions.Roles, StaffText.CmdRoles, ManageRoles);
         commands.AddStaff(StaffPermissions.Message, StaffText.CmdMessage, SendMessage);
-
-        self.Add(new SelfOption
-        {
-            Id = StaffChatOption,
-            Label = StaffText.OptionChat,
-            Icon = WheelIcons.Shield,
-            Order = StaffChatOrder,
-            Permission = StaffPermissions.StaffChat,
-            Run = player => chat.Prefill(player, $"/{StaffPermissions.StaffChat} "),
-        });
     }
 
     private void SendStaffChat(CommandCall call)
