@@ -8,6 +8,7 @@ export const PAGES = [
   { name: "asks", title: "Invitations", scenarios: ["", "trade", "outgoing", "introduce", "faction"], game: "Asks/AsksOverlay.cs" },
   { name: "trader", title: "Shop", scenarios: ["", "poor"], game: "Traders/TraderOverlay.cs" },
   { name: "bank", title: "Bank", scenarios: ["", "empty", "rich"], game: "Bank/BankOverlay.cs" },
+  { name: "notices", title: "Notice board", scenarios: ["", "empty", "full", "limit", "wait"], game: "Notices/BoardOverlay.cs" },
   { name: "menu", title: "Player menu", scenarios: ["", "help", "account", "dice", "lore", "faction", "factionmember", "factionless"], game: "PlayerMenu/PlayerMenuOverlay.cs" },
   { name: "admin", title: "Staff panel", scenarios: ["", "card", "items", "offduty", "sanctions", "audit", "world", "nospawn", "dice", "factions"], game: "Admin/AdminOverlay.cs" },
   { name: "frozen", title: "Frozen", scenarios: ["", "long"], game: "Admin/FrozenOverlay.cs" },

@@ -1,0 +1,39 @@
+{
+  "notices.cmd.board": "/aboard here | remove | list - stand a notice board in front of you, take away the one in front of you, or list them",
+  "notices.cmd.notice": "/anotice list | remove <number> - list the notices up on every board with who pinned them, or take one down",
+  "notices.not_in_world": "You have to be in the world to stand a notice board.",
+  "notices.board_placed": "A notice board stands here now (#{id}).",
+  "notices.board_place_failed": "The notice board could not be saved, so none stands here. Try again in a moment.",
+  "notices.none_in_front": "No notice board stands in front of you.",
+  "notices.board_removed": "Notice board #{id} is gone, and its notices with it.",
+  "notices.board_remove_failed": "Notice board #{id} could not be taken away and still stands. Try again in a moment.",
+  "notices.boards_empty": "No notice board stands anywhere.",
+  "notices.board_entry": "#{id}: {area} {cell} ({x}, {y}, {z}), notices up: {count}",
+  "notices.notices_empty": "No notice is up on any board.",
+  "notices.notice_entry": "#{id} on board #{board}, by {author}: {text}",
+  "notices.unknown_notice": "No notice #{id} is up.",
+  "notices.notice_removed": "Notice #{id} is taken down.",
+  "notices.notice_remove_failed": "Notice #{id} could not be taken down. Try again in a moment.",
+  "notices.posted": "Your notice is up on the board.",
+  "notices.too_short": {
+    "one": "A notice needs at least {count} letter.",
+    "other": "A notice needs at least {count} letters."
+  },
+  "notices.too_long": {
+    "one": "A notice holds at most {count} letter.",
+    "other": "A notice holds at most {count} letters."
+  },
+  "notices.too_many": {
+    "one": "You have {count} notice up already, as many as one may. Take it down first.",
+    "other": "You have {count} notices up already, as many as one may. Take one down first."
+  },
+  "notices.too_soon": "You can pin another notice in {minutes} min.",
+  "notices.busy": "Someone is pinning a notice to this board. Try again in a moment.",
+  "notices.failed": "The notice could not be pinned. Try again in a moment.",
+  "notices.taken_down": "You took your notice down.",
+  "notices.not_yours": "That notice is not yours, or it is down already.",
+  "notices.take_down_failed": "The notice could not be taken down. Try again in a moment.",
+  "notices.closed_far": "You walked more than {metres} m away from the notice board.",
+  "notices.closed_gone": "The notice board is gone.",
+  "notices.closed_not_in_world": "You left the world, so the notice board closed."
+}

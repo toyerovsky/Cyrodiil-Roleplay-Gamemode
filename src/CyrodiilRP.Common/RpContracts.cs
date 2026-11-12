@@ -293,4 +293,34 @@ public static partial class RpContracts
     // What it came to, in the player's language, and the menu (a MenuView as JSON) as it is after it.
     [ServerToClient]
     public static partial void FactionAnswer(string text, bool done, string menu);
+
+    // The notice boards standing in the player's area, every one of them: the game's asset each stands as, then four numbers
+    // a board, x, y and z in centimetres and the yaw in degrees.
+    [ServerToClient]
+    public static partial void NoticeBoardsHere(string asset, float[] spots);
+
+    // The game dropped what it showed with its last pawn: the server answers with NoticeBoardsHere.
+    [ClientToServer]
+    public static partial void AskNoticeBoards();
+
+    // A BoardView as JSON: opens the board's window or brings it up to date.
+    [ServerToClient]
+    public static partial void BoardState(string json);
+
+    // What pinning or taking down a notice came to, in the player's language: done or refused.
+    [ServerToClient]
+    public static partial void BoardAnswer(string text, bool done);
+
+    [ServerToClient]
+    public static partial void BoardClosed();
+
+    [ClientToServer]
+    public static partial void BoardPost(string text);
+
+    // One of the player's own notices, by the id the window showed.
+    [ClientToServer]
+    public static partial void BoardTakeDown(long notice);
+
+    [ClientToServer]
+    public static partial void BoardClose();
 }

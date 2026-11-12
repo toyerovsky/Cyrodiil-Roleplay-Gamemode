@@ -38,6 +38,7 @@ export const ACTIONS = {
   factionRename: { command: "afaction", line: "/afaction rename #{id} {factionName}", fields: ["factionName"] },
   factionLead: { command: "afaction", line: "/afaction lead #{id} #{member}" },
   factionRemove: { command: "afaction", line: "/afaction remove #{id} #{member}" },
+  noticeRemove: { command: "anotice", line: "/anotice remove {id}" },
 };
 
 // The card's buttons in their order. A pair shows the one that fits: a frozen player gets Unfreeze, not Freeze.

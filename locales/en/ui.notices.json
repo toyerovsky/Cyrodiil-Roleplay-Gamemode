@@ -1,0 +1,21 @@
+{
+  "ui.notices.title": "Notice board",
+  "ui.notices.lead": "Anyone may read what is pinned here, and nobody signs it. A notice stays up for {days}.",
+  "ui.notices.list": "Notices on the board",
+  "ui.notices.empty": "Nothing is pinned here yet.",
+  "ui.notices.yours": "Yours",
+  "ui.notices.pinned": "Pinned {age}",
+  "ui.notices.take_down": "Take down",
+  "ui.notices.write": "Your notice",
+  "ui.notices.count": "{count} / {max}",
+  "ui.notices.post": "Pin it",
+  "ui.notices.mine": "Your notices up: {count} of {most}.",
+  "ui.notices.too_many": "You have as many notices up as one may. Take one of yours down to pin another.",
+  "ui.notices.wait": "You can pin another notice in {time}.",
+  "ui.notices.full": "The board is full: a new notice takes the oldest one down.",
+  "ui.notices.too_short": "Write a little more: a notice holds {min} to {max} letters.",
+  "ui.notices.hint": "Write your notice, then pin it (Ctrl+Enter). Esc leaves.",
+  "ui.notices.posting": "Pinning it to the board...",
+  "ui.notices.taking_down": "Taking it down...",
+  "ui.notices.close": "Leave"
+}

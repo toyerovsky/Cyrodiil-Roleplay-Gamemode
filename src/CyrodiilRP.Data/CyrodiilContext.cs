@@ -34,6 +34,10 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
 
+    public DbSet<NoticeBoard> NoticeBoards => Set<NoticeBoard>();
+
+    public DbSet<Notice> Notices => Set<Notice>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -184,6 +188,28 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.HasKey(x => x.CharacterId);
             entity.Property(x => x.CharacterId).ValueGeneratedNever();
             entity.HasOne<Character>().WithOne().HasForeignKey<BankAccount>(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<NoticeBoard>(entity =>
+        {
+            entity.ToTable("notice_boards");
+            entity.Property(x => x.Area).HasMaxLength(ColumnLengths.WorldId);
+            entity.Property(x => x.Cell).HasMaxLength(ColumnLengths.WorldId);
+            entity.Property(x => x.PlacedByRef).HasMaxLength(ColumnLengths.Reference);
+        });
+
+        modelBuilder.Entity<Notice>(entity =>
+        {
+            entity.ToTable("notices", t =>
+            {
+                t.HasCheckConstraint("ck_notices_text", "length(text) > 0");
+                t.HasCheckConstraint("ck_notices_expiry", "expires_at > posted_at");
+            });
+            entity.Property(x => x.Text).HasMaxLength(ColumnLengths.NoticeText);
+            entity.HasIndex(x => x.BoardId);
+            entity.HasIndex(x => x.CharacterId);
+            entity.HasOne<NoticeBoard>().WithMany().HasForeignKey(x => x.BoardId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
         });
 
         SnakeCase.Apply(modelBuilder);

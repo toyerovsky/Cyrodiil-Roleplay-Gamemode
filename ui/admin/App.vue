@@ -27,6 +27,8 @@ const card = ref(null);
 const lore = ref(null);
 const loreAsked = ref(false);
 const sanctions = ref(null);
+// The notices up on every board, asked for as the world tab opens.
+const notices = ref(null);
 const audit = ref(null);
 const rolls = ref(null);
 // Every faction, the one picked by its id, and that one in full.
@@ -128,6 +130,7 @@ function searchRolls(filter, before = null) {
 // A tab shows what the server holds as it is now.
 function load(id) {
   if (id === "sanctions") props.bridge.ask(PARTS.sanctions, "");
+  if (id === "world") props.bridge.ask(PARTS.notices, "");
   if (id === "audit") searchAudit(auditFilter);
   if (id === "dice") searchRolls(rollFilter);
   if (id === "factions") readFactions();
@@ -160,6 +163,7 @@ function onPart(kind, data) {
   if (kind === PARTS.card && data.number === selected.value) card.value = data;
   else if (kind === PARTS.lore && data.number === selected.value) lore.value = data.view;
   else if (kind === PARTS.sanctions) sanctions.value = data;
+  else if (kind === PARTS.notices) notices.value = data;
   else if (kind === PARTS.items) found.value = data;
   else if (kind === PARTS.audit) audit.value = data.appended && audit.value ? { ...data, entries: [...audit.value.entries, ...data.entries] } : data;
   else if (kind === PARTS.rolls) rolls.value = data.appended && rolls.value ? { ...data, rolls: [...rolls.value.rolls, ...data.rolls] } : data;
@@ -181,6 +185,7 @@ function onAnswer(text, done) {
   if (selected.value !== null) props.bridge.ask(PARTS.card, String(selected.value));
   if (selected.value !== null && loreAsked.value) props.bridge.ask(PARTS.lore, String(selected.value));
   if (tab.value === "sanctions") props.bridge.ask(PARTS.sanctions, "");
+  if (tab.value === "world") props.bridge.ask(PARTS.notices, "");
   if (tab.value === "audit") searchAudit(auditFilter);
   if (tab.value === "factions") readFactions();
 }
@@ -192,6 +197,7 @@ function reset() {
   lore.value = null;
   loreAsked.value = false;
   sanctions.value = null;
+  notices.value = null;
   audit.value = null;
   rolls.value = null;
   factions.value = null;
@@ -293,7 +299,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             @select="selectFaction"
             @act="act"
           />
-          <WorldTab v-else :view="view" :t="t" :may="may" :can="can" @act="act" />
+          <WorldTab v-else :view="view" :notices="notices" :t="t" :locale="locale" :may="may" :can="can" @act="act" />
         </div>
       </div>
 

@@ -28,4 +28,5 @@ export const PARTS = {
   lore: "lore",
   factions: "factions",
   faction: "faction",
+  notices: "notices",
 };

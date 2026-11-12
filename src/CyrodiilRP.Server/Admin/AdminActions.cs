@@ -12,10 +12,11 @@ internal static class AdminActions
         StaffPermissions.Unmute, StaffPermissions.Warn, StaffPermissions.Kick, StaffPermissions.Ban, StaffPermissions.Unban,
         StaffPermissions.Gold, StaffPermissions.Item, StaffPermissions.Roles, StaffPermissions.Time, StaffPermissions.Weather,
         StaffPermissions.Spawn, StaffPermissions.Health, StaffPermissions.Message, StaffPermissions.Lore, StaffPermissions.FactionManage, StaffPermissions.Feed,
+        StaffPermissions.Notice,
     ];
 
     private static readonly string[] SanctionsTab = [StaffPermissions.Unban, StaffPermissions.Unmute, StaffPermissions.Unfreeze];
-    private static readonly string[] WorldTab = [StaffPermissions.Teleport, StaffPermissions.Time, StaffPermissions.Weather, StaffPermissions.Spawn];
+    private static readonly string[] WorldTab = [StaffPermissions.Teleport, StaffPermissions.Time, StaffPermissions.Weather, StaffPermissions.Spawn, StaffPermissions.Notice];
 
     // Players and the audit for every role, the others only for a role that may use something on them.
     public static IReadOnlyList<string> ListTabs(Func<string, bool> allows)

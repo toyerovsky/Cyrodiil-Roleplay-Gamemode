@@ -1,8 +1,8 @@
-/* The sky and the spawn beside the places, the traders under them. */
+/* The sky and the spawn beside the places, the traders and the notices under them. */
 .admin-world {
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: 0 26px;
   height: 100%;
   overflow-y: auto;
@@ -12,7 +12,7 @@
   display: grid;
   align-content: start;
   gap: 22px;
-  grid-row: span 2;
+  grid-row: span 3;
 }
 
 .admin-world__spawn-at {
@@ -93,4 +93,28 @@
 
 .admin-world__places {
   grid-column: 2;
+}
+
+.admin-world__notices {
+  grid-column: 2;
+  margin-top: 22px;
+}
+
+.admin-notice {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  padding: 8px;
+}
+
+.admin-notice__text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-notice__meta {
+  margin: 4px 0 0;
+  font-size: 15px;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
 }

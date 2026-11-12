@@ -26,4 +26,7 @@ internal static class AdminParts
 
     // One faction in full, by its id (a StaffFactionLookupView, its card null once the faction is gone).
     public const string Faction = "faction";
+
+    // Every notice up on a board, newest first (a list of AdminNoticeView).
+    public const string Notices = "notices";
 }

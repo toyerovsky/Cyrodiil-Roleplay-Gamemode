@@ -28,6 +28,9 @@ internal sealed partial class WebPages(CefHost cef, PawnWatch pawn, ILogger logg
 
     public const int BankLayer = 9;
 
+    // Beside the bank's: a window at a thing in the world, and one of them open at a time.
+    public const int BoardLayer = 9;
+
     public const int ExchangeLayer = 10;
 
     public const int AdminLayer = 11;

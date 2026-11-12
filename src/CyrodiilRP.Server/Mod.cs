@@ -11,6 +11,7 @@ internal sealed partial class Mod(Persistence persistence, StaffRoles roles, Fac
 {
     private void Init()
     {
+        config.NoticeBoards.Check();
         var migration = persistence.RequireSchema();
         roles.Load();
         factions.Load();

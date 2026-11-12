@@ -10,14 +10,14 @@ internal static class StaffRoleSeeds
         StaffPermissions.Bring, StaffPermissions.Position, StaffPermissions.Teleport, StaffPermissions.Back, StaffPermissions.Revive,
         StaffPermissions.Kick, StaffPermissions.Mute, StaffPermissions.Unmute, StaffPermissions.Freeze, StaffPermissions.Unfreeze,
         StaffPermissions.Warn, StaffPermissions.Why, StaffPermissions.Message, StaffPermissions.Health, StaffPermissions.Lore,
-        StaffPermissions.Step, StaffPermissions.Fly, StaffPermissions.Feed,
+        StaffPermissions.Step, StaffPermissions.Fly, StaffPermissions.Feed, StaffPermissions.Notice,
     ];
 
     private static readonly string[] AdminPermissions =
     [
         .. ModeratorPermissions, StaffPermissions.Gold, StaffPermissions.Item, StaffPermissions.Time, StaffPermissions.Weather,
         StaffPermissions.Ban, StaffPermissions.Unban, StaffPermissions.Roles, StaffPermissions.Npc, StaffPermissions.Spawn,
-        StaffPermissions.FactionManage,
+        StaffPermissions.FactionManage, StaffPermissions.Board,
     ];
 
     public static readonly StaffRole[] All =

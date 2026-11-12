@@ -2,10 +2,14 @@
 import { computed, reactive, ref } from "vue";
 import { RpButton, RpChip, RpField } from "../rp/index.js";
 import { fill } from "../shared/locale.js";
+import { formatMoment } from "./format.js";
 
 const props = defineProps({
   view: { type: Object, required: true },
+  // Null until the server answered.
+  notices: { type: Array, default: null },
   t: { type: Object, required: true },
+  locale: { type: String, required: true },
   may: { type: Function, required: true },
   can: { type: Function, required: true },
 });
@@ -130,6 +134,25 @@ function goToSpot() {
         </li>
       </ul>
       <p v-else class="admin__note">{{ t["world.no_traders"] }}</p>
+    </section>
+
+    <section v-if="may('noticeRemove')" class="admin-world__notices">
+      <h3 class="admin__heading">{{ t["world.notices"] }}</h3>
+      <p v-if="!notices" class="admin__note" role="status">{{ t.loading }}</p>
+      <p v-else-if="!notices.length" class="admin__note">{{ t["world.no_notices"] }}</p>
+      <ul v-else class="admin-items">
+        <li v-for="notice in notices" :key="notice.id" class="admin-item admin-notice" :data-notice="notice.id">
+          <div class="admin-notice__body">
+            <p class="admin-notice__text">{{ notice.text }}</p>
+            <p class="admin-notice__meta">
+              {{ fill(t["world.notice_meta"], { author: notice.author, board: notice.board, area: notice.area, date: formatMoment(notice.posted, locale) }) }}
+            </p>
+          </div>
+          <RpButton class="admin-item__button" :disabled="!can('noticeRemove')" @click="act('noticeRemove', { id: notice.id }, notice.author)">
+            {{ t["action.notice_remove"] }}
+          </RpButton>
+        </li>
+      </ul>
     </section>
   </div>
 </template>

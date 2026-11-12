@@ -173,6 +173,26 @@ test("the world: the sky of the area, the places and the traders", async ({ page
   await screenshot(page, testInfo, "admin-world-used");
 });
 
+test("the world: the notices up on every board with who pinned them, and one taken down", async ({ page }, testInfo) => {
+  await page.goto("/admin/index.html#world");
+  const notices = page.locator(".admin-world__notices");
+  await expect(notices.getByRole("heading", { name: t("world.notices") })).toBeVisible();
+  const rows = notices.getByRole("listitem");
+  await expect(rows).toHaveCount(3);
+  await expect(rows.nth(0)).toContainText("By Lucia Gallus, on board #3 in L_ICMarketDistrict, pinned");
+  await expect(rows.nth(1)).toContainText("Brannoc the Unlucky Wanderer of the Gold Coast");
+  await expectNoHorizontalOverflow(page, ".admin-world");
+  await rows.nth(2).scrollIntoViewIfNeeded();
+  await expect(rows.nth(1).getByRole("button", { name: t("action.notice_remove") })).toBeInViewport();
+  await screenshot(page, testInfo, "admin-world-notices");
+
+  await rows.nth(0).getByRole("button", { name: t("action.notice_remove") }).click();
+  expect((await readSent(page, "AdminRun")).at(-1)).toEqual(["/anotice remove 31"]);
+  await expect(page.locator(".admin__status")).toHaveText("Notice #31 is taken down.");
+  await expect(rows).toHaveCount(2);
+  await screenshot(page, testInfo, "admin-world-notice-removed");
+});
+
 test("the items: a kind, a few letters, how many and for whom, then Give", async ({ page }, testInfo) => {
   await page.goto("/admin/index.html#items");
   const panel = page.getByRole("tabpanel", { name: t("tab.items") });

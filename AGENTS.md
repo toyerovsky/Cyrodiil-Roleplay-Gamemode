@@ -30,6 +30,8 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   game's trading and rooms do not apply to it). H over it opens a shop window with the game's icons: food, drinks,
   clothes, potions, tools, weapons, armour, books. It only sells. It cannot be killed for good.
 - **Bank:** a banker NPC keeps a character's gold over deaths and restarts. See `docs/features/bank.md`.
+- **Notice board:** a board the staff stand in the world, H opens its unsigned notices and lets anyone pin one. See
+  `docs/features/notice-board.md`.
 - **Spawn:** the staff set it in the outside world (`/aspawn here`, a button in the panel), a new character goes
   there after closing the game's creator.
 - **Feeding:** Feed on the H wheel opens a wheel of the foods the player carries, what the one in front needs most

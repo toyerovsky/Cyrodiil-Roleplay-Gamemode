@@ -77,6 +77,14 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId, string>? FactionRan;
 
+    public event Action<PlayerId>? NoticeBoardsAsked;
+
+    public event Action<PlayerId, string>? BoardPosted;
+
+    public event Action<PlayerId, long>? BoardTakenDown;
+
+    public event Action<PlayerId>? BoardLeft;
+
     partial void OnSubmitMessage(RpcContext context, string text) =>
         callbacks.Raise("rpc.submit_message", MessageSubmitted, context.Sender, text);
 
@@ -154,4 +162,12 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
         callbacks.Raise("rpc.choose_name_public", NamePublicChosen, context.Sender, namePublic);
 
     partial void OnFactionRun(RpcContext context, string line) => callbacks.Raise("rpc.faction_run", FactionRan, context.Sender, line);
+
+    partial void OnAskNoticeBoards(RpcContext context) => callbacks.Raise("rpc.ask_notice_boards", NoticeBoardsAsked, context.Sender);
+
+    partial void OnBoardPost(RpcContext context, string text) => callbacks.Raise("rpc.board_post", BoardPosted, context.Sender, text);
+
+    partial void OnBoardTakeDown(RpcContext context, long notice) => callbacks.Raise("rpc.board_take_down", BoardTakenDown, context.Sender, notice);
+
+    partial void OnBoardClose(RpcContext context) => callbacks.Raise("rpc.board_close", BoardLeft, context.Sender);
 }

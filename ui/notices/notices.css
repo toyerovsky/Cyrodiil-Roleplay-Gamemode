@@ -1,0 +1,223 @@
+.notices {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 24px;
+  background: radial-gradient(ellipse at center, var(--backdrop-shade) 0%, var(--backdrop-edge) 100%);
+}
+
+/* The notices scroll on their board, and what to write stays in sight under them. */
+.notices__panel.rp-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(1040px, 100%);
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.notices__lead {
+  margin: 0 0 14px;
+  font-size: 16px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+/* The board itself: dark wood the parchment is pinned to. */
+.notices__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  align-items: start;
+  gap: 14px;
+  flex: 1 1 auto;
+  min-height: 120px;
+  margin: 0;
+  padding: 16px;
+  overflow-y: auto;
+  list-style: none;
+  background: linear-gradient(180deg, var(--wood), var(--wood-deep));
+  border: 2px solid var(--gold-dark);
+  border-radius: var(--radius-small);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.45);
+}
+
+.notice {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 18px 16px 10px;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--parchment-light), var(--parchment));
+  border: 1px solid var(--parchment-edge);
+  border-radius: 2px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+}
+
+/* The pin. */
+.notice::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--gold-light), var(--gold-dark));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.notice--mine {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px var(--gold-bright), 0 3px 8px rgba(0, 0, 0, 0.45);
+}
+
+.notice__text {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.notice__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.notice__yours {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+}
+
+.notice__take.rp-button {
+  margin-left: auto;
+  padding: 6px 12px;
+  font-size: 15px;
+}
+
+.notices__empty {
+  margin: 0;
+  padding: 28px 16px;
+  font-size: 18px;
+  text-align: center;
+  color: var(--night-text);
+  background: linear-gradient(180deg, var(--wood), var(--wood-deep));
+  border: 2px solid var(--gold-dark);
+  border-radius: var(--radius-small);
+}
+
+.notices__form {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.notices__heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.notices__label {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.notices__count {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.notices__field {
+  width: 100%;
+  min-height: 104px;
+  padding: 10px 12px;
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+  background: rgba(255, 252, 242, 0.85);
+  color: var(--ink);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1.45;
+  resize: none;
+  outline: none;
+  transition: border-color var(--duration-hover), box-shadow var(--duration-hover);
+}
+
+.notices__field:focus {
+  border-color: var(--gold);
+  box-shadow: var(--focus-ring);
+}
+
+.notices__field[aria-invalid="true"] {
+  border-color: var(--problem);
+  background: var(--problem-wash);
+}
+
+.notices__problem {
+  margin: 0;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--problem);
+}
+
+.notices__acts {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.notices__rule {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.notices__rule--held {
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.notices__acts .rp-button {
+  flex: 0 0 auto;
+  min-width: 160px;
+}
+
+.notices__status {
+  min-height: 24px;
+  margin: 12px 0 0;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.notices__status--done {
+  font-weight: 700;
+  color: var(--confirmed);
+}
+
+.notices__status--refused {
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.notices__footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}

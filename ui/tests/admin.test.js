@@ -399,6 +399,32 @@ describe("the staff's panel", () => {
     expect(game.readSent("AdminRun")).toEqual([["/atp weye"], ["/aweather rain"], ["/atp 100 -200 300"], ["/atime 13:30"]]);
   });
 
+  it("lists the notices up on every board with who pinned them, and takes one down", async () => {
+    await game.emit("State", state({ allowed: [...EVERYTHING, "anotice"] }));
+    await page.find('[data-tab="world"]').trigger("click");
+    expect(game.readSent("AdminAsk").at(-1)).toEqual(["notices", ""]);
+    expect(page.find(".admin-world__notices").text()).toContain("Reading...");
+
+    const notice = { id: 31, board: 3, area: "L_ICMarketDistrict", text: "Lost: a ring.", author: "Lucia Gallus", posted: NOW, until: NOW + 1 };
+    await game.emit("Part", "notices", JSON.stringify([notice]));
+    const row = page.find('[data-notice="31"]');
+    expect(row.find(".admin-notice__text").text()).toBe("Lost: a ring.");
+    expect(row.find(".admin-notice__meta").text()).toContain("By Lucia Gallus, on board #3 in L_ICMarketDistrict, pinned");
+    await row.find("button").trigger("click");
+    expect(game.readSent("AdminRun")).toEqual([["/anotice remove 31"]]);
+
+    await game.emit("Answer", "Notice #31 is taken down.", true);
+    expect(game.readSent("AdminAsk").filter(([kind]) => kind === "notices")).toHaveLength(2);
+    await game.emit("Part", "notices", JSON.stringify([]));
+    expect(page.find(".admin-world__notices").text()).toContain("No notice is up on any board.");
+  });
+
+  it("shows the notices only to a role that may take them down", async () => {
+    await game.emit("State", state());
+    await page.find('[data-tab="world"]').trigger("click");
+    expect(page.find(".admin-world__notices").exists()).toBe(false);
+  });
+
   it("sets the spawn where the staff member stands and goes to it", async () => {
     await game.emit("State", state());
     await page.find('[data-tab="world"]').trigger("click");

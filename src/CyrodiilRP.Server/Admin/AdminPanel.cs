@@ -11,6 +11,7 @@ using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
+using CyrodiilRP.Server.Notices;
 using CyrodiilRP.Server.Players;
 using CyrodiilRP.Server.Staff;
 using Microsoft.Extensions.Logging;
@@ -37,6 +38,7 @@ internal sealed partial class AdminPanel(
     LoreCardViews lore,
     LoreCards cards,
     Factions factions,
+    NoticeBoards notices,
     ILogger logger) : ICommandOutput
 {
     private const string PanelOption = "self.admin";
@@ -183,6 +185,10 @@ internal sealed partial class AdminPanel(
                     SendFaction(player, factionId);
                 break;
 
+            case AdminParts.Notices:
+                SendNotices(player);
+                break;
+
             case AdminParts.Items:
                 if (Parse(argument, AdminJson.Default.AdminItemFilter) is { } items)
                     rpc.SendAdminPart(player.Id, AdminParts.Items, JsonSerializer.Serialize(AdminViews.SearchItems(items), AdminJson.Default.ListAdminItemView));
@@ -276,6 +282,14 @@ internal sealed partial class AdminPanel(
         var card = factions.Find(id) is { } faction ? FactionViews.BuildStaffCard(faction, factions.MapOnline()) : null;
         var lookup = new StaffFactionLookupView(id, card);
         rpc.SendAdminPart(staff.Id, AdminParts.Faction, JsonSerializer.Serialize(lookup, AdminJson.Letters.StaffFactionLookupView));
+    }
+
+    private void SendNotices(OnlinePlayer staff)
+    {
+        var list = notices.ListAllNotices().Select(notice => new AdminNoticeView(notice.Id, notice.BoardId,
+            notices.TryFindBoard(notice.BoardId, out var board) ? board.Area : throw new InvalidOperationException($"Notice #{notice.Id} is up on board #{notice.BoardId}, which is gone."), notice.Text, notice.AuthorName,
+            notice.PostedAt.ToUnixTimeMilliseconds(), notice.ExpiresAt.ToUnixTimeMilliseconds())).ToList();
+        rpc.SendAdminPart(staff.Id, AdminParts.Notices, JsonSerializer.Serialize(list, AdminJson.Letters.ListAdminNoticeView));
     }
 
     private T? Parse<T>(string json, JsonTypeInfo<T> type) where T : class

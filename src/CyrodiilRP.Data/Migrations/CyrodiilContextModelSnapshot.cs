@@ -545,6 +545,107 @@ namespace CyrodiilRP.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.Notice", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("BoardId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("board_id");
+
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("character_id");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<DateTimeOffset>("PostedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("posted_at");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("text");
+
+                    b.HasKey("Id")
+                        .HasName("pk_notices");
+
+                    b.HasIndex("BoardId")
+                        .HasDatabaseName("ix_notices_board_id");
+
+                    b.HasIndex("CharacterId")
+                        .HasDatabaseName("ix_notices_character_id");
+
+                    b.ToTable("notices", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_notices_expiry", "expires_at > posted_at");
+
+                            t.HasCheckConstraint("ck_notices_text", "length(text) > 0");
+                        });
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.NoticeBoard", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Area")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("area");
+
+                    b.Property<string>("Cell")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("cell");
+
+                    b.Property<DateTimeOffset>("PlacedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("placed_at");
+
+                    b.Property<string>("PlacedByRef")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("placed_by_ref");
+
+                    b.Property<float>("X")
+                        .HasColumnType("real")
+                        .HasColumnName("x");
+
+                    b.Property<float>("Y")
+                        .HasColumnType("real")
+                        .HasColumnName("y");
+
+                    b.Property<float>("Yaw")
+                        .HasColumnType("real")
+                        .HasColumnName("yaw");
+
+                    b.Property<float>("Z")
+                        .HasColumnType("real")
+                        .HasColumnName("z");
+
+                    b.HasKey("Id")
+                        .HasName("pk_notice_boards");
+
+                    b.ToTable("notice_boards", (string)null);
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.SpawnPoint", b =>
                 {
                     b.Property<int>("Id")
@@ -632,14 +733,14 @@ namespace CyrodiilRP.Data.Migrations
                             Name = "admin",
                             GrantsAll = false,
                             Label = "Administrator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "anotice", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction", "aboard" }
                         },
                         new
                         {
                             Name = "moderator",
                             GrantsAll = false,
                             Label = "Moderator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "anotice" }
                         });
                 });
 
@@ -817,6 +918,23 @@ namespace CyrodiilRP.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_lore_introductions_characters_known_character_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.Notice", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.NoticeBoard", null)
+                        .WithMany()
+                        .HasForeignKey("BoardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_notices_notice_boards_board_id");
+
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_notices_characters_character_id");
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.Account", b =>

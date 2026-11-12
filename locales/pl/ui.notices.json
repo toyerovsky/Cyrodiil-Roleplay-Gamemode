@@ -1,0 +1,21 @@
+{
+  "ui.notices.title": "Tablica ogłoszeń",
+  "ui.notices.lead": "Każdy może przeczytać, co tu wisi, i nikt tego nie podpisuje. Ogłoszenie wisi przez {days}.",
+  "ui.notices.list": "Ogłoszenia na tablicy",
+  "ui.notices.empty": "Nic tu jeszcze nie wisi.",
+  "ui.notices.yours": "Twoje",
+  "ui.notices.pinned": "Przypięte {age}",
+  "ui.notices.take_down": "Zdejmij",
+  "ui.notices.write": "Twoje ogłoszenie",
+  "ui.notices.count": "{count} / {max}",
+  "ui.notices.post": "Przypnij",
+  "ui.notices.mine": "Twoich ogłoszeń na tablicach: {count} z {most}.",
+  "ui.notices.too_many": "Masz już tyle ogłoszeń, ile wolno. Zdejmij jedno ze swoich, żeby przypiąć kolejne.",
+  "ui.notices.wait": "Kolejne ogłoszenie możesz przypiąć za {time}.",
+  "ui.notices.full": "Tablica jest pełna: nowe ogłoszenie zdejmie najstarsze.",
+  "ui.notices.too_short": "Napisz trochę więcej: ogłoszenie ma od {min} do {max} znaków.",
+  "ui.notices.hint": "Napisz ogłoszenie i przypnij je (Ctrl+Enter). Esc wychodzi.",
+  "ui.notices.posting": "Przypinasz je do tablicy...",
+  "ui.notices.taking_down": "Zdejmujesz je...",
+  "ui.notices.close": "Odejdź"
+}

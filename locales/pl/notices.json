@@ -1,0 +1,45 @@
+{
+  "notices.cmd.board": "/aboard here | remove | list - postaw tablicę ogłoszeń przed sobą, zabierz tę przed tobą albo wypisz wszystkie",
+  "notices.cmd.notice": "/anotice list | remove <numer> - wypisz ogłoszenia ze wszystkich tablic z tym, kto je przypiął, albo zdejmij jedno",
+  "notices.not_in_world": "Musisz być w świecie, żeby postawić tablicę ogłoszeń.",
+  "notices.board_placed": "Tablica ogłoszeń stoi tu teraz (#{id}).",
+  "notices.board_place_failed": "Nie udało się zapisać tablicy, więc żadna tu nie stanęła. Spróbuj ponownie za chwilę.",
+  "notices.none_in_front": "Przed tobą nie stoi żadna tablica ogłoszeń.",
+  "notices.board_removed": "Tablicy ogłoszeń #{id} już nie ma, a z nią jej ogłoszeń.",
+  "notices.board_remove_failed": "Nie udało się zabrać tablicy #{id}, więc wciąż stoi. Spróbuj ponownie za chwilę.",
+  "notices.boards_empty": "Nigdzie nie stoi żadna tablica ogłoszeń.",
+  "notices.board_entry": "#{id}: {area} {cell} ({x}, {y}, {z}), ogłoszeń: {count}",
+  "notices.notices_empty": "Na żadnej tablicy nie wisi żadne ogłoszenie.",
+  "notices.notice_entry": "#{id} na tablicy #{board}, od {author}: {text}",
+  "notices.unknown_notice": "Nie wisi żadne ogłoszenie #{id}.",
+  "notices.notice_removed": "Ogłoszenie #{id} zdjęte.",
+  "notices.notice_remove_failed": "Nie udało się zdjąć ogłoszenia #{id}. Spróbuj ponownie za chwilę.",
+  "notices.posted": "Twoje ogłoszenie wisi na tablicy.",
+  "notices.too_short": {
+    "one": "Ogłoszenie musi mieć co najmniej {count} znak.",
+    "few": "Ogłoszenie musi mieć co najmniej {count} znaki.",
+    "many": "Ogłoszenie musi mieć co najmniej {count} znaków.",
+    "other": "Ogłoszenie musi mieć co najmniej {count} znaku."
+  },
+  "notices.too_long": {
+    "one": "Ogłoszenie może mieć najwyżej {count} znak.",
+    "few": "Ogłoszenie może mieć najwyżej {count} znaki.",
+    "many": "Ogłoszenie może mieć najwyżej {count} znaków.",
+    "other": "Ogłoszenie może mieć najwyżej {count} znaku."
+  },
+  "notices.too_many": {
+    "one": "Masz już {count} ogłoszenie, tyle, ile wolno. Najpierw je zdejmij.",
+    "few": "Masz już {count} ogłoszenia, tyle, ile wolno. Najpierw zdejmij jedno.",
+    "many": "Masz już {count} ogłoszeń, tyle, ile wolno. Najpierw zdejmij jedno.",
+    "other": "Masz już {count} ogłoszenia, tyle, ile wolno. Najpierw zdejmij jedno."
+  },
+  "notices.too_soon": "Kolejne ogłoszenie możesz przypiąć za {minutes} min.",
+  "notices.busy": "Ktoś właśnie przypina ogłoszenie do tej tablicy. Spróbuj ponownie za chwilę.",
+  "notices.failed": "Nie udało się przypiąć ogłoszenia. Spróbuj ponownie za chwilę.",
+  "notices.taken_down": "Zdejmujesz swoje ogłoszenie.",
+  "notices.not_yours": "To ogłoszenie nie jest twoje albo już go nie ma.",
+  "notices.take_down_failed": "Nie udało się zdjąć ogłoszenia. Spróbuj ponownie za chwilę.",
+  "notices.closed_far": "Oddalasz się od tablicy ogłoszeń o ponad {metres} m.",
+  "notices.closed_gone": "Tablicy ogłoszeń już nie ma.",
+  "notices.closed_not_in_world": "Opuszczasz świat, więc tablica ogłoszeń się zamyka."
+}

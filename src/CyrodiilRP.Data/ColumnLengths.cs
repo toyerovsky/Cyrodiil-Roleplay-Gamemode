@@ -60,6 +60,9 @@ internal static class ColumnLengths
 
     public const int FactionRankName = 48;
 
+    // The server allows 300 by default, the column leaves the server owner room to allow more.
+    public const int NoticeText = 1000;
+
     // Never between the two halves of a surrogate pair, which PostgreSQL refuses to store.
     public static string Cut(string value, int length)
     {

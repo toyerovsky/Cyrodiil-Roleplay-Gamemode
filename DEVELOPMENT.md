@@ -57,4 +57,5 @@ The server refuses a config without a connection string and a database at anothe
 | `chat` | ranges of say, shout, whisper and emotes, in game units (about centimetres) |
 | `economy` | `maxPayment`: the most gold one trade or `/agold` moves |
 | `factions` | `foundingFee`: the gold a founder pays from what they carry (500 by default, 0 founds for free) |
+| `noticeBoards` | the notice boards: `shown` (10), `minLength` and `maxLength` (1 and 300), `perCharacter` (3), `cooldownMinutes` (5), `expiryDays` (7) and `asset`, the game's form a board stands as (`docs/features/notice-board.md`) |
 | `lore` | the lore card: `catalogMode` (`Canon` by default) and `allowImplausibleSubtypes` (`false`: no kinds that do not fit the race's body, such as the Senche) |

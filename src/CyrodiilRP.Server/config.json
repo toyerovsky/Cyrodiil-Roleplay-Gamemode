@@ -24,5 +24,18 @@
   // The gold a founder pays from what they carry. 0 founds for free.
   "factions": {
     "foundingFee": 500
+  },
+
+  // Notice boards: the notices a board holds (a new one on a full board takes the oldest down), a notice's length, the
+  // notices one character has up at once, the minutes between two of them, the days one stays up, and the game's form
+  // whose mesh stands for a board.
+  "noticeBoards": {
+    "shown": 10,
+    "minLength": 1,
+    "maxLength": 300,
+    "perCharacter": 3,
+    "cooldownMinutes": 5,
+    "expiryDays": 7,
+    "asset": "/Game/Forms/worldobjects/activator/sign02.sign02"
   }
 }

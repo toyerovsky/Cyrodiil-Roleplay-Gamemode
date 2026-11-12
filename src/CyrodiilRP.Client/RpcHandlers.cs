@@ -97,6 +97,14 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action<string, bool, string>? FactionAnswered;
 
+    public event Action<string, float[]>? NoticeBoardsArrived;
+
+    public event Action<string>? BoardChanged;
+
+    public event Action<string, bool>? BoardAnswered;
+
+    public event Action? BoardClosed;
+
     // A short notice in the corner, as the server's own.
     public void ShowNotice(string text) => ui.ShowMessage(text, MessagePosition.TopLeft, NoticeSeconds);
 
@@ -186,4 +194,12 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnKnownNames(string json) => KnownNamesChanged?.Invoke(json);
 
     partial void OnFactionAnswer(string text, bool done, string menu) => FactionAnswered?.Invoke(text, done, menu);
+
+    partial void OnNoticeBoardsHere(string asset, float[] spots) => NoticeBoardsArrived?.Invoke(asset, spots);
+
+    partial void OnBoardState(string json) => BoardChanged?.Invoke(json);
+
+    partial void OnBoardAnswer(string text, bool done) => BoardAnswered?.Invoke(text, done);
+
+    partial void OnBoardClosed() => BoardClosed?.Invoke();
 }

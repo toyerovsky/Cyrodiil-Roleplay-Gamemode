@@ -1,5 +1,6 @@
 import admin from "../../locales/en/admin.json";
 import factionTexts from "../../locales/en/faction.json";
+import noticeTexts from "../../locales/en/notices.json";
 import sanctionTexts from "../../locales/en/sanctions.json";
 import spawnTexts from "../../locales/en/spawn.json";
 import staff from "../../locales/en/staff.json";
@@ -19,6 +20,7 @@ const SPAWN_HERE = { x: 26002, y: -90418, z: 1198 };
 const ALL_COMMANDS = [
   "duty", "aheal", "afeed", "ahp", "arevive", "agoto", "abring", "aback", "atp", "afreeze", "aunfreeze", "amute", "aunmute", "awarn", "akick",
   "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "amsg", "alore", "afaction",
+  "anotice",
 ];
 const ADMIN_COMMANDS = ["agold", "aitem", "aroles", "atime", "aweather", "aban", "aunban", "aspawn", "afaction"];
 const SELF = 1;
@@ -266,6 +268,15 @@ export function pretendGame(readym) {
     { ...FROZEN, account: "a1b2c3d4-0000-4000-8000-000000000004", by: "J'zargo (jz)", since: now - 9 * MINUTE_MS },
   ];
 
+  // Three notices up, one of them as long as a notice may be and one of several lines.
+  let notices = [
+    { id: 31, board: 3, area: "L_ICMarketDistrict", author: "Lucia Gallus", posted: now - 25 * MINUTE_MS, until: now + 7 * DAY_MS - 25 * MINUTE_MS,
+      text: "Lost: a silver ring with a blue stone, somewhere between the Market District and the Arena.\nA reward for its return." },
+    { id: 30, board: 3, area: "L_ICMarketDistrict", author: "Brannoc the Unlucky Wanderer of the Gold Coast", posted: now - 3 * DAY_MS, until: now + 4 * DAY_MS,
+      text: "Wanted: a steady hand with a bow for the caravan to Bravil, leaving the Imperial City at dawn three days from now. Fair pay in gold and a share of what we sell on the way. Ask at the Merchants Inn for Jeanne, and bring your own arrows, we are not a charity." },
+    { id: 22, board: 1, area: "L_Tamriel", author: "Elsia Ramaryn", posted: now - 6 * DAY_MS, until: now + DAY_MS, text: "Selling a horse. Weye, by the stables." },
+  ];
+
   const answers = {
     duty: () => (onDuty ? staff["staff.duty_on"] : fill(staff["staff.duty_off"].other, { count: 42 })),
     aheal: (name) => fill(admin["admin.healed"], { name }),
@@ -282,6 +293,7 @@ export function pretendGame(readym) {
       const [kind, argument] = args;
       if (kind === "card") emitLater("Part", kind, JSON.stringify(card(Number(argument))));
       if (kind === "sanctions") emitLater("Part", kind, JSON.stringify(sanctions));
+      if (kind === "notices") emitLater("Part", kind, JSON.stringify(notices));
       if (kind === "factions") emitLater("Part", kind, JSON.stringify(guilds.list()));
       if (kind === "faction") emitLater("Part", kind, JSON.stringify(guilds.read(Number(argument))));
       if (kind === "lore") {
@@ -318,6 +330,12 @@ export function pretendGame(readym) {
       if (command === "duty") onDuty = !onDuty;
       if (line === "/aspawn here") spawn = SPAWN_HERE;
       if (command === "alore") lore = lore.filter((field) => field.id !== line.split(" ")[3]);
+      if (command === "anotice") {
+        const id = Number(line.split(" ")[2]);
+        notices = notices.filter((notice) => notice.id !== id);
+        emitLater("Answer", fill(noticeTexts["notices.notice_removed"], { id }), true);
+        return;
+      }
       const who = PLAYERS.find((player) => line.split(" ")[1] === String(player.number))?.name ?? rest.join(" ");
       const text =
         command === "afaction"
