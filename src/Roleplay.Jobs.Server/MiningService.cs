@@ -48,7 +48,8 @@ public sealed partial class MiningService(
     // The client judges a hit on the same node; the slack only covers float rounding on the wire
     private const float HitSlack = 10f;
     // Placement puts a node this far in front of the player, and removes a placed one within this of that spot
-    private const float PlaceAhead = 150f;
+    // How far from the player a node may be placed or removed
+    private const float PlaceReach = 600f;
     // A refusal is said at most this often to one player: every power attack with a sword near a node would repeat it
     private const double RefusalEverySeconds = 8;
 
@@ -87,6 +88,7 @@ public sealed partial class MiningService(
         rpc.NodeHitReported += OnNodeHit;
         rpc.QuarryHitReported += OnQuarryHit;
         rpc.PlaceRequested += OnPlace;
+        rpc.RemoveRequested += OnRemove;
         serverEvents.OnPlayerDisconnected += OnDisconnected;
 
         logger.LogInformation("Jobs: mining running. {Nodes} ore nodes ({Mined} mined out), {Kinds} kinds, {Hammers} warhammers, {Quarries} quarries; placement {Placement}, chips {Chips}.",
@@ -100,6 +102,7 @@ public sealed partial class MiningService(
         rpc.NodeHitReported -= OnNodeHit;
         rpc.QuarryHitReported -= OnQuarryHit;
         rpc.PlaceRequested -= OnPlace;
+        rpc.RemoveRequested -= OnRemove;
         serverEvents.OnPlayerDisconnected -= OnDisconnected;
     }
 
@@ -132,7 +135,8 @@ public sealed partial class MiningService(
             Settings.QuarryLandscape, Settings.ViewDistance, Settings.ExperimentalChips ? Settings.ChipsPerHit : 0,
             string.Join('|', Settings.ChipAssets), Settings.ChipSpeed, Settings.ChipSeconds, Settings.ChipScale, Settings.BurstPieces,
             Settings.BurstSpeed, Settings.BurstSeconds, Settings.BurstScale, Settings.AllowNodePlacement,
-            string.Join('|', Settings.Kinds.Select(kind => kind.Name)));
+            string.Join('|', Settings.Kinds.Select(kind => kind.Name)), string.Join('|', Settings.Kinds.Select(kind => kind.Asset)),
+            string.Join('|', Settings.Kinds.Select(kind => kind.Scale.ToString(CultureInfo.InvariantCulture))));
         foreach (var quarry in areas.Quarries)
             rpc.SendQuarryAvailable(player, quarry.Name, quarry.Center.X, quarry.Center.Y, quarry.Center.Z, quarry.Radius);
         foreach (var (id, standing) in _nodes)
@@ -421,43 +425,35 @@ public sealed partial class MiningService(
         return true;
     }
 
-    private void OnPlace(PlayerId player, int kindIndex)
+    private bool MayPlace(PlayerId player)
     {
-        if (!Settings.AllowNodePlacement)
+        if (Settings.AllowNodePlacement)
+            return true;
+        logger.LogWarning("Jobs: {Player} tried to place or remove an ore node, which this server does not allow.", player);
+        Notice(player, "This server does not let you place ore nodes.");
+        return false;
+    }
+
+    // Just where the player's preview is, nothing in the way checked: for laying out a quarry by eye
+    private void OnPlace(PlayerId player, int kindIndex, Vector3 spot, float yaw, float pitch)
+    {
+        if (!MayPlace(player) || !entities.TryLookup<MainCharacter, PlayerId>(player, out var character))
+            return;
+        if (kindIndex < 0 || kindIndex >= Settings.Kinds.Count)
         {
-            logger.LogWarning("Jobs: {Player} tried to place an ore node, which this server does not allow.", player);
-            Notice(player, "This server does not let you place ore nodes.");
+            Notice(player, "There is no kind of ore node there to place.");
             return;
         }
-        if (!entities.TryLookup<MainCharacter, PlayerId>(player, out var character))
-            return;
-        if (Settings.Kinds.Count == 0)
+        if (!float.IsFinite(spot.X) || !float.IsFinite(spot.Y) || !float.IsFinite(spot.Z) || !float.IsFinite(yaw) || !float.IsFinite(pitch)
+            || Vector3.Distance(character.Position, spot) > PlaceReach)
         {
-            Notice(player, "There are no kinds of ore node to place.");
+            logger.LogWarning("Jobs: {Player} at {Standing} asked for an ore node at {At}, out of reach.", player, character.Position, spot);
+            Notice(player, "That is too far to place an ore node.");
             return;
         }
 
-        var spot = Ahead(character.Position, character.Rotation, PlaceAhead);
-        var near = _nodes.Where(pair => ChopGeometry.HorizontalDistance(OreYield.PositionOf(pair.Value.Node), spot) <= PlaceAhead)
-            .OrderBy(pair => ChopGeometry.HorizontalDistance(OreYield.PositionOf(pair.Value.Node), spot))
-            .Select(pair => (Id: pair.Key, pair.Value))
-            .FirstOrDefault();
-        if (near.Id is not null)
-        {
-            if (!near.Value.Placed)
-            {
-                Notice(player, "That node is in the config: remove it there.");
-                return;
-            }
-            Remove(near.Id);
-            Notice(player, $"Removed the {near.Value.Kind.Name} node.");
-            logger.LogInformation("Jobs: {Player} removed {Node}.", player, near.Id);
-            return;
-        }
-
-        var kind = Settings.Kinds[((kindIndex % Settings.Kinds.Count) + Settings.Kinds.Count) % Settings.Kinds.Count];
-        // Turned to face the player who placed it
-        var node = new OreNode { Kind = kind.Name, X = spot.X, Y = spot.Y, Z = spot.Z, Yaw = character.Rotation + 180f, Scale = 1f };
+        var kind = Settings.Kinds[kindIndex];
+        var node = new OreNode { Kind = kind.Name, X = spot.X, Y = spot.Y, Z = spot.Z, Yaw = yaw, Pitch = pitch, Scale = 1f };
         var id = OreYield.NodeId(node);
         if (_nodes.ContainsKey(id))
         {
@@ -472,6 +468,26 @@ public sealed partial class MiningService(
             SendAvailable(ready, id, standing);
         Notice(player, $"Placed a {kind.Name} node.");
         logger.LogInformation("Jobs: {Player} placed {Node}.", player, id);
+    }
+
+    private void OnRemove(PlayerId player)
+    {
+        if (!MayPlace(player) || !entities.TryLookup<MainCharacter, PlayerId>(player, out var character))
+            return;
+        var standing = character.Position;
+        var near = _nodes.Where(pair => pair.Value.Placed && Vector3.Distance(OreYield.PositionOf(pair.Value.Node), standing) <= PlaceReach)
+            .OrderBy(pair => Vector3.Distance(OreYield.PositionOf(pair.Value.Node), standing))
+            .Select(pair => pair.Key)
+            .FirstOrDefault();
+        if (near is null)
+        {
+            Notice(player, "There is no placed ore node near enough to remove.");
+            return;
+        }
+        var kind = _nodes[near].Kind.Name;
+        Remove(near);
+        Notice(player, $"Removed the {kind} node.");
+        logger.LogInformation("Jobs: {Player} removed {Node}.", player, near);
     }
 
     private void OnDisconnected(Player scope, Guid _, DisconnectReason reason)
@@ -524,7 +540,8 @@ public sealed partial class MiningService(
     private float HitRadiusOf(Standing standing) => Settings.HitRadius * standing.Kind.Scale * standing.Node.Scale;
 
     private Prop PropOf(Standing standing)
-        => new(standing.Kind.Asset, OreYield.PositionOf(standing.Node), new Vector3(0, standing.Node.Yaw, 0), standing.Kind.Scale * standing.Node.Scale);
+        => new(standing.Kind.Asset, OreYield.PositionOf(standing.Node), new Vector3(standing.Node.Pitch, standing.Node.Yaw, 0),
+            standing.Kind.Scale * standing.Node.Scale);
 
     private void SendAvailable(PlayerId player, string id, Standing standing)
         => rpc.SendNodeAvailable(player, id, standing.Kind.Name, standing.Kind.Asset, standing.Node.X, standing.Node.Y, standing.Node.Z,

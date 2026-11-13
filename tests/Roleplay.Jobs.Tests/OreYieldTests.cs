@@ -140,13 +140,13 @@ public class OreYieldTests
         Assert.Equal([1, 2, 3], config.Kinds.Select(kind => kind.Tier));
         Assert.True(config.QuarriesFromMarkers);
         Assert.Equal("Quarry", config.QuarryMarkerName);
-        Assert.Equal(2000f, config.QuarryRadius);
+        Assert.Equal(4000f, config.QuarryRadius);
         Assert.Equal(["Tamriel"], new JobsConfig().MarkerWorldspaces);
         Assert.Equal(9, config.Hammers.Count);
-        Assert.Equal(1, config.Hammers.Single(hammer => hammer.Name == "Iron Warhammer").Tier);
+        Assert.Equal(3, config.Hammers.Single(hammer => hammer.Name == "Iron Warhammer").Tier);
         Assert.Equal(5, config.Hammers.Single(hammer => hammer.Name == "Daedric Warhammer").Tier);
         Assert.All(config.ChipAssets, asset => Assert.StartsWith("/Game/Art/Environment/Architecture/stonewall/SM_stonewallstone0", asset));
-        Assert.False(config.ExperimentalChips);
-        Assert.False(config.AllowNodePlacement);
+        Assert.True(config.ExperimentalChips);
+        Assert.True(config.AllowNodePlacement);
     }
 }

@@ -26,6 +26,9 @@ internal sealed partial class WebPages(CefHost cef, PawnWatch pawn, ILogger logg
 
     public const int TraderLayer = 8;
 
+    // A Jobs foreman's window, beside the trader's: the two never open together.
+    public const int ForemanLayer = TraderLayer;
+
     public const int BankLayer = 9;
 
     // Beside the bank's: a window at a thing in the world, and one of them open at a time.

@@ -10,6 +10,8 @@
         <ProjectReference Include="..\Roleplay.HungerAndThirst.Server\Roleplay.HungerAndThirst.Server.csproj" />
         <!-- Emotes on the G wheel. The Emotes mod ships its own DLLs: pack.ps1 leaves them out of this one. -->
         <ProjectReference Include="..\Roleplay.Emotes.Server\Roleplay.Emotes.Server.csproj" />
+        <!-- The foremen on the interaction key. The Jobs mod ships its own DLLs: pack.ps1 leaves them out of this one. -->
+        <ProjectReference Include="..\Roleplay.Jobs.Server\Roleplay.Jobs.Server.csproj" />
         <ProjectReference Include="..\CyrodiilRP.Common\CyrodiilRP.Common.csproj" />
         <ProjectReference Include="..\CyrodiilRP.Data\CyrodiilRP.Data.csproj" />
         <ProjectReference Include="..\CyrodiilRP.Texts\CyrodiilRP.Texts.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

@@ -3,9 +3,9 @@ using System.Numerics;
 namespace Roleplay.Jobs.Common;
 
 /// <summary>
-/// A piece thrown off a hit (stone off rock, bark off a trunk), or out of a node that bursts: it leaves with a velocity,
-/// tumbles under gravity, and comes to rest where it falls to <paramref name="GroundZ"/>, the height of the ground it
-/// lands on.
+/// A piece thrown off a hit (stone off rock, bark off a trunk), or out of a node that bursts: it leaves with a velocity
+/// and tumbles under gravity, falling on through the ground until it is taken away. It starts no lower than
+/// <paramref name="GroundZ"/>.
 /// </summary>
 public readonly record struct StoneChip(Vector3 Start, Vector3 Velocity, Vector3 Spin, float GroundZ)
 {
@@ -44,24 +44,9 @@ public readonly record struct StoneChip(Vector3 Start, Vector3 Velocity, Vector3
         return new StoneChip(center with { Z = MathF.Max(center.Z, groundZ) }, velocity, new Vector3(spin, spin * 0.6f, spin * 0.3f), groundZ);
     }
 
-    /// <summary>When it lands: the later time its fall reaches the ground.</summary>
-    public float LandsAt
-    {
-        get
-        {
-            var above = Start.Z - GroundZ;
-            return (Velocity.Z + MathF.Sqrt(Velocity.Z * Velocity.Z + 2f * Gravity * MathF.Max(0f, above))) / Gravity;
-        }
-    }
+    /// <summary>Where it is after the given seconds of flight.</summary>
+    public Vector3 PositionAt(float seconds) => Start + Velocity * seconds - new Vector3(0, 0, Gravity * seconds * seconds / 2f);
 
-    /// <summary>Where it is: in flight, or lying where it landed.</summary>
-    public Vector3 PositionAt(float seconds)
-    {
-        var t = MathF.Min(seconds, LandsAt);
-        var position = Start + Velocity * t - new Vector3(0, 0, Gravity * t * t / 2f);
-        return position with { Z = MathF.Max(position.Z, GroundZ) };
-    }
-
-    /// <summary>Pitch, yaw and roll in degrees: it tumbles at its spin until it lands, then lies still.</summary>
-    public Vector3 RotationAt(float seconds) => Spin * MathF.Min(seconds, LandsAt);
+    /// <summary>Pitch, yaw and roll in degrees: it tumbles at its spin all the way.</summary>
+    public Vector3 RotationAt(float seconds) => Spin * seconds;
 }

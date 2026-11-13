@@ -9,7 +9,7 @@ public sealed class MiningConfig : IHitRules
     // does 1). Empty lets any weapon mine, at the plain health.
     public List<Hammer> Hammers { get; set; } =
     [
-        Hammer("0x00019172", "Iron Warhammer", 1, 196),
+        Hammer("0x00019172", "Iron Warhammer", 3, 196),
         Hammer("0x000229BE", "Steel Warhammer", 2, 256),
         Hammer("0x0003A85E", "Fine Steel Warhammer", 2, 282),
         Hammer("0x00025225", "Silver Warhammer", 2, 324),
@@ -67,7 +67,7 @@ public sealed class MiningConfig : IHitRules
     // does not run out.
     public bool QuarriesFromMarkers { get; set; } = true;
     public string QuarryMarkerName { get; set; } = "Quarry";
-    public float QuarryRadius { get; set; } = 2000f;
+    public float QuarryRadius { get; set; } = 4000f;
     public List<AreaConfig> Quarries { get; set; } = [];
     public List<string> QuarryMeshes { get; set; } = ["rock", "cliff", "boulder", "stone"];
     public List<string> ExcludedQuarryMeshes { get; set; } = ["pebble", "path", "decal", "tree", "bush", "shrub"];
@@ -84,8 +84,8 @@ public sealed class MiningConfig : IHitRules
     ];
 
     // Every client within ViewDistance centimeters sees a spent node burst into BurstPieces of ChipAssets, each
-    // BurstScale of its model times the node's scale, flying out at BurstSpeed centimeters a second and lying where they
-    // land for the rest of BurstSeconds.
+    // BurstScale of its model times the node's scale, flying out at BurstSpeed centimeters a second and falling on
+    // through the ground, for BurstSeconds.
     public float ViewDistance { get; set; } = 15000f;
     public int BurstPieces { get; set; } = 14;
     public float BurstSpeed { get; set; } = 500f;
@@ -93,11 +93,11 @@ public sealed class MiningConfig : IHitRules
     public float BurstScale { get; set; } = 0.9f;
 
     // Experimental: every counted hit throws ChipsPerHit chips off where it landed, one of ChipAssets each, ChipScale of
-    // the model, flying back towards the miner at ChipSpeed centimeters a second and lying where they land, at the miner's
-    // feet, for the rest of ChipSeconds. Plain props of each client's own: nothing to pick up. Off with ExperimentalChips
+    // the model, flying back towards the miner at ChipSpeed centimeters a second and falling on through the ground, for
+    // ChipSeconds. Plain props of each client's own: nothing to pick up. Off with ExperimentalChips
     // false.
-    public bool ExperimentalChips { get; set; }
-    public int ChipsPerHit { get; set; } = 3;
+    public bool ExperimentalChips { get; set; } = true;
+    public int ChipsPerHit { get; set; } = 5;
     public float ChipSpeed { get; set; } = 450f;
     public float ChipSeconds { get; set; } = 1.5f;
     public float ChipScale { get; set; } = 0.8f;
@@ -154,13 +154,13 @@ public sealed class MiningConfig : IHitRules
         },
     ];
 
-    // Nodes standing on this server: a kind's Name, where its origin goes (centimeters, the Unreal world), its yaw
-    // (degrees) and scale. Nodes placed in game (AllowNodePlacement) are kept in the save file instead.
+    // Nodes standing on this server: a kind's Name, where its origin goes (centimeters, the Unreal world), its yaw and
+    // pitch (degrees) and scale. Nodes placed in game (AllowNodePlacement) are kept in the save file instead.
     public List<OreNode> Nodes { get; set; } = [];
 
-    // Lets every player place a node of the kind Shift+J picks 150 cm in front of them, or remove the placed node in front
-    // of them, with J. For building a server's nodes; leave it off on a live server.
-    public bool AllowNodePlacement { get; set; }
+    // Lets every player place nodes with the placement mode (Numpad Decimal, the Ores category) and remove the placed one
+    // nearest them. For building a server's nodes; leave it off on a live server.
+    public bool AllowNodePlacement { get; set; } = true;
 
     private static OreDrop Drop(string item, string name, int value, float chance, float @base, int min, int max)
         => new() { Item = item, Name = name, Value = value, Chance = chance, Base = @base, Min = min, Max = max };

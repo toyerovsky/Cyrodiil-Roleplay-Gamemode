@@ -12,6 +12,8 @@ public sealed partial class JobsConfig
 
     public CarryConfig Carrying { get; set; } = new();
 
+    public DocksConfig Docks { get; set; } = new();
+
     // Where felled trees and when they grow back are kept, next to the server DLL.
     public string SaveFile { get; set; } = "felled-trees.json";
 

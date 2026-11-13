@@ -7,5 +7,6 @@ public sealed class OreNode
     public float Y { get; set; }
     public float Z { get; set; }
     public float Yaw { get; set; }
+    public float Pitch { get; set; }
     public float Scale { get; set; } = 1f;
 }

@@ -32,7 +32,8 @@ public sealed partial class CarryService(
     JobsConfig config,
     ILogger logger)
 {
-    private sealed record Carrier(CarryItem Kind, int KindIndex, IReadOnlyList<StatusHandle> Statuses, Vector3 LastPosition, float LastYaw);
+    private sealed record Carrier(CarryItem Kind, int KindIndex, bool Cargo, IReadOnlyList<StatusHandle> Statuses, Vector3 LastPosition,
+        float LastYaw);
 
     private const string IdPrefix = "jobs/carry/";
     private const double WatchEverySeconds = 0.25;
@@ -43,6 +44,36 @@ public sealed partial class CarryService(
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private double _nextWatch;
     private IReadOnlyList<CarryItem> _items = [];
+    private readonly List<Func<Carryable, string?>> _pickUpRules = [];
+
+    /// <summary>A player put something down, by the carry key, dying or leaving: what now lies there.</summary>
+    public event Action<PlayerId, Carryable>? PutDownBy;
+
+    /// <summary>Everything lying in the world.</summary>
+    public IReadOnlyCollection<Carryable> Lying => _lying.Values;
+
+    /// <summary>A rule that can refuse picking up a carryable: the sentence why, or null to allow it.</summary>
+    public void AddPickUpRule(Func<Carryable, string?> rule) => _pickUpRules.Add(rule);
+
+    /// <summary>Lays a crate of the kind from an inlet: cargo, which pays when delivered.</summary>
+    public Carryable LayCargo(string kindName, Vector3 at, float yaw)
+    {
+        if (KindOf(kindName) is null)
+            throw new InvalidOperationException($"Jobs: no carry kind {kindName} to lay as cargo.");
+        var carryable = new Carryable(NewId(), kindName, at.X, at.Y, at.Z, yaw, Cargo: true);
+        store.Add(carryable);
+        Lay(carryable);
+        return carryable;
+    }
+
+    /// <summary>Takes a carryable lying in the world away for good.</summary>
+    public void Clear(string id)
+    {
+        if (!_lying.Remove(id))
+            return;
+        store.Remove(id);
+        props.Remove(id);
+    }
 
     private CarryConfig Settings => config.Carrying;
 
@@ -132,12 +163,25 @@ public sealed partial class CarryService(
         if (character.IsDead)
             return;
 
-        if (CarryReach.Nearest(_lying.Values, character.Position, character.Rotation, Settings.Reach) is not { } carryable)
+        // What a rule refuses (a crate under another) is passed over for the next nearest
+        var allowed = _lying.Values.Where(candidate => RefusalOf(candidate) is null);
+        if (CarryReach.Nearest(allowed, character.Position, character.Rotation, Settings.Reach) is { } carryable)
         {
-            rpc.SendCarryRefused(player, "There is nothing here to pick up.");
+            PickUp(player, carryable);
             return;
         }
-        PickUp(player, carryable);
+        var refused = CarryReach.Nearest(_lying.Values, character.Position, character.Rotation, Settings.Reach);
+        rpc.SendCarryRefused(player, refused is null ? "There is nothing here to pick up." : RefusalOf(refused) ?? "There is nothing here to pick up.");
+    }
+
+    private string? RefusalOf(Carryable carryable)
+    {
+        foreach (var rule in _pickUpRules)
+        {
+            if (rule(carryable) is { } refusal)
+                return refusal;
+        }
+        return null;
     }
 
     private void PickUp(PlayerId player, Carryable carryable)
@@ -151,7 +195,7 @@ public sealed partial class CarryService(
         store.Remove(carryable.Id);
         props.Remove(carryable.Id);
 
-        _carriers[player] = new Carrier(kind, index, ApplyWeight(player, kind), carryable.Position, carryable.Yaw);
+        _carriers[player] = new Carrier(kind, index, carryable.Cargo, ApplyWeight(player, kind), carryable.Position, carryable.Yaw);
         foreach (var ready in _ready)
             rpc.SendCarrying(ready, player.RawValue, index);
         logger.LogInformation("Jobs: {Player} picked up {Id}, a {Kind}.", player, carryable.Id, kind.Name);
@@ -177,12 +221,13 @@ public sealed partial class CarryService(
 
         foreach (var status in carrier.Statuses)
             statuses.Remove(player, status);
-        var carryable = new Carryable(NewId(), carrier.Kind.Name, at.X, at.Y, at.Z, yaw);
+        var carryable = new Carryable(NewId(), carrier.Kind.Name, at.X, at.Y, at.Z, yaw, carrier.Cargo);
         store.Add(carryable);
         Lay(carryable);
         foreach (var ready in _ready)
             rpc.SendCarryStopped(ready, player.RawValue);
         logger.LogInformation("Jobs: {Player} {Why}: {Id}, a {Kind}, lies at {At}.", player, why, carryable.Id, carrier.Kind.Name, at);
+        PutDownBy?.Invoke(player, carryable);
     }
 
     private void OnPlace(PlayerId player, int kindIndex, Vector3 at, float yaw)

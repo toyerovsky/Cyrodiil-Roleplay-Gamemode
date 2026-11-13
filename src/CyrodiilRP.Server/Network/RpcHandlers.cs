@@ -39,6 +39,10 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId>? TraderLeft;
 
+    public event Action<PlayerId, string, int>? ForemanDealt;
+
+    public event Action<PlayerId>? ForemanLeft;
+
     public event Action<PlayerId, int>? BankDeposited;
 
     public event Action<PlayerId, int>? BankWithdrawn;
@@ -122,6 +126,10 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnTraderBuy(RpcContext context, string ware, int count) => callbacks.Raise("rpc.trader_buy", TraderBought, context.Sender, ware, count);
 
     partial void OnTraderClose(RpcContext context) => callbacks.Raise("rpc.trader_close", TraderLeft, context.Sender);
+
+    partial void OnForemanDeal(RpcContext context, string offer, int count) => callbacks.Raise("rpc.foreman_deal", ForemanDealt, context.Sender, offer, count);
+
+    partial void OnForemanClose(RpcContext context) => callbacks.Raise("rpc.foreman_close", ForemanLeft, context.Sender);
 
     partial void OnBankDeposit(RpcContext context, int amount) => callbacks.Raise("rpc.bank_deposit", BankDeposited, context.Sender, amount);
 

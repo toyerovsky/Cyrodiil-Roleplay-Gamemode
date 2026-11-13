@@ -15,7 +15,8 @@ public sealed partial class MiningRpcHandlers(ILogger logger)
     public event Action<PlayerId>? Ready;
     public event Action<PlayerId, string, Vector3, byte>? NodeHitReported;
     public event Action<PlayerId, string, Vector3, byte, string, byte>? QuarryHitReported;
-    public event Action<PlayerId, int>? PlaceRequested;
+    public event Action<PlayerId, int, Vector3, float, float>? PlaceRequested;
+    public event Action<PlayerId>? RemoveRequested;
 
     partial void OnMiningReady(RpcContext context)
         => Raise(context, nameof(OnMiningReady), () => Ready?.Invoke(context.Sender));
@@ -26,8 +27,11 @@ public sealed partial class MiningRpcHandlers(ILogger logger)
     partial void OnQuarryHit(RpcContext context, string quarry, float x, float y, float z, byte struck, string mesh, byte attack)
         => Raise(context, nameof(OnQuarryHit), () => QuarryHitReported?.Invoke(context.Sender, quarry, new Vector3(x, y, z), struck, mesh, attack));
 
-    partial void OnPlaceNode(RpcContext context, int kindIndex)
-        => Raise(context, nameof(OnPlaceNode), () => PlaceRequested?.Invoke(context.Sender, kindIndex));
+    partial void OnPlaceNode(RpcContext context, int kindIndex, float x, float y, float z, float yaw, float pitch)
+        => Raise(context, nameof(OnPlaceNode), () => PlaceRequested?.Invoke(context.Sender, kindIndex, new Vector3(x, y, z), yaw, pitch));
+
+    partial void OnRemoveNode(RpcContext context)
+        => Raise(context, nameof(OnRemoveNode), () => RemoveRequested?.Invoke(context.Sender));
 
     private void Raise(RpcContext context, string message, Action raise)
     {

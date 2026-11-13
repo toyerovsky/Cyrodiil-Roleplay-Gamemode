@@ -16,6 +16,10 @@
     {
       "uniqueId": "Roleplay.Emotes",
       "minimumVersion": "0.1.0"
+    },
+    {
+      "uniqueId": "Roleplay.Jobs",
+      "minimumVersion": "0.1.0"
     }
   ]
 }

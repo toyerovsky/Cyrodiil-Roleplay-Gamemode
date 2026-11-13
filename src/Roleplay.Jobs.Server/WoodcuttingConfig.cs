@@ -55,12 +55,12 @@ public sealed class WoodcuttingConfig : IHitRules
     public float WearPerDamage { get; set; } = 0.4f;
 
     // Every counted hit throws ChipsPerHit pieces of ChipAssets off where it landed, one of them each, ChipScale of the
-    // model, flying back towards the chopper at ChipSpeed centimeters a second and lying where they land, at the
-    // chopper's feet, for the rest of ChipSeconds, for every player within FallViewDistance. Plain props of each
+    // model, flying back towards the chopper at ChipSpeed centimeters a second and falling on through the ground, for
+    // ChipSeconds, for every player within FallViewDistance. Plain props of each
     // client's own: nothing to pick up. 0 turns them off. SM_gnarlbark is the Gnarl Bark ingredient's own model.
     public int ChipsPerHit { get; set; } = 3;
     public float ChipSpeed { get; set; } = 350f;
-    public float ChipSeconds { get; set; } = 1.5f;
+    public float ChipSeconds { get; set; } = 3f;
     public float ChipScale { get; set; } = 1f;
     public List<string> ChipAssets { get; set; } = ["/Game/Art/Environment/clutter/SM_gnarlbark.SM_gnarlbark"];
 
@@ -86,7 +86,7 @@ public sealed class WoodcuttingConfig : IHitRules
     public float MaxGlanceChance { get; set; } = 0.5f;
     public List<Axe> Axes { get; set; } =
     [
-        Axe("custom:jobs.lumber-axe", "Lumber Axe", 1, 168),
+        Axe("custom:jobs.lumber-axe", "Lumber Axe", 5, 168),
         Axe("0x00000D7F", "Iron Battle Axe", 1, 168),
         Axe("0x0003A85F", "Fine Iron Battle Axe", 1, 185),
         Axe("0x000229B6", "Steel Battle Axe", 2, 224),
@@ -120,14 +120,23 @@ public sealed class WoodcuttingConfig : IHitRules
     [
         new() { Key = "jobs.firewood", Base = "0x00025946", Name = "Firewood", Value = 1, Weight = 2f, Mesh = "/Game/Forms/worldobjects/static/Wood01.Wood01", Icon = "0x00044E5E" },
         new() { Key = "jobs.lumber-axe", Base = "0x00000D7F", Name = "Lumber Axe", Damage = 1 },
+        new() { Key = "test.barrel", Base = "0x00025946", Name = "Test Barrel", Mesh = "/Game/Forms/worldobjects/static/MiddleBarrelTopped04.MiddleBarrelTopped04" },
+        new() { Key = "test.crate", Base = "0x00025946", Name = "Test Crate", Mesh = "/Game/Forms/worldobjects/container/PCCrateClutterMiddle01.PCCrateClutterMiddle01" },
+        new() { Key = "test.sack", Base = "0x00025946", Name = "Test Sack", Mesh = "/Game/Forms/worldobjects/container/Sack01.Sack01" },
+        new() { Key = "test.log", Base = "0x00025946", Name = "Test Log", Mesh = "/Game/Forms/worldobjects/static/LandscapeLogBirch01.LandscapeLogBirch01", Scale = 0.35f },
+        new() { Key = "test.fire-axe", Base = "0x00000D7F", Name = "Test Fire Axe", Enchantment = new() { Charge = 1000, Effects = [new() { Effect = "FIDG", Magnitude = 15, Duration = 1 }] } },
+        new() { Key = "test.cuirass", Base = "0x0001C6D1", Name = "Test Cuirass", Armor = 40f, Enchantment = new() { Charge = 0, Effects = [new() { Effect = "FOHE", Magnitude = 20, Duration = 0 }] } },
+        new() { Key = "test.log-axe", Base = "0x00000D7F", Name = "Log Battle Axe", Mesh = "/Game/Forms/worldobjects/static/LandscapeLogBirch01.LandscapeLogBirch01", Scale = 0.25f },
     ];
 
     // What every player is given, one of each, on joining when they carry none: a form id or "custom:" and a key of
-    // Items.
-    public List<string> GiveOnJoin { get; set; } = ["custom:jobs.lumber-axe"];
+    // Items. The test.* items, for trying custom items out; the lumber axe is bought from the lumber camp leader
+    // (Docks.Foremen).
+    public List<string> GiveOnJoin { get; set; } =
+        ["custom:test.barrel", "custom:test.crate", "custom:test.sack", "custom:test.log", "custom:test.log-axe", "custom:test.fire-axe", "custom:test.cuirass"];
 
     // Real minutes until a felled tree grows back.
-    public float RespawnMinutes { get; set; } = 30f;
+    public float RespawnMinutes { get; set; } = 2f;
 
     // What a felled tree leaves until it grows back, sized to the tree. A TES form's Unreal asset or a StaticMesh.
     // The stump stands where the trunk did, StumpSink centimeters into the ground and turned at random. Stump01 is the

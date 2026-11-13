@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using OblivionMP.SDK;
 using ReadyM.SDK.Attributes;
 using ReadyM.SDK.Events;
-using OblivionMpCSharpMod.Input;
 using Roleplay.Jobs.Common;
 
 namespace Roleplay.Jobs.Client;
@@ -12,12 +11,11 @@ namespace Roleplay.Jobs.Client;
 /// Mining is hitting: every attack the player lands on an ore node, or on rock inside a quarry, normal or power, goes
 /// to the server, which counts its damage if a warhammer is in hand. There is no key and no animation of this mod's
 /// own: the game's attacks are the swings. A counted hit wears the hammer by its damage and, with the experimental
-/// chips, throws stone off, back towards the miner; a spent node bursts into pieces for everyone near. Rock struck outside any quarry earns a hint, once. With
-/// placement allowed, J places a node or removes the placed one in front, and Shift+J picks the kind to place.
+/// chips, throws stone off, back towards the miner; a spent node bursts into pieces for everyone near. Rock struck
+/// outside any quarry earns a hint, once. Placing nodes is <see cref="PlacementClient"/>'s.
 /// </summary>
 [Service]
 public sealed partial class MiningClient(
-    IInput input,
     IPlayers players,
     IWeaponHits weaponHits,
     IEquippedWeapon equippedWeapon,
@@ -26,22 +24,16 @@ public sealed partial class MiningClient(
     MiningClientRpc rpc,
     ILogger logger)
 {
-    private const Key PlaceKey = Key.J;
     private const string QuarryHint = "This stone won't split cleanly. Quarries are marked on your map.";
 
     private readonly Dictionary<string, OreNodeView> _nodes = [];
     private readonly List<MarkedArea> _quarries = [];
-    private IDisposable? _placeBind;
-    private IDisposable? _cycleBind;
     private bool _askedForRules;
     private MiningRules? _rules;
-    private int _placeKind;
     private bool _hinted;
 
     private void Start()
     {
-        _placeBind = input.RegisterKeyBind(PlaceKey, OnPlaceKey, KeySource.UnhandledByUi);
-        _cycleBind = input.RegisterKeyBind(ModifierKeys.Shift, PlaceKey, OnCycleKey);
         rpc.RulesReceived += OnRules;
         rpc.QuarryAvailable += OnQuarryAvailable;
         rpc.NodeAvailable += OnNodeAvailable;
@@ -54,8 +46,6 @@ public sealed partial class MiningClient(
 
     private void Stop()
     {
-        _placeBind?.Dispose();
-        _cycleBind?.Dispose();
         rpc.RulesReceived -= OnRules;
         rpc.QuarryAvailable -= OnQuarryAvailable;
         rpc.NodeAvailable -= OnNodeAvailable;
@@ -196,7 +186,7 @@ public sealed partial class MiningClient(
             || ChopGeometry.HorizontalDistance(character.Position, position) > rules.ViewDistance)
             return;
 
-        // The server's prop goes at once; pieces of it fly out where it stood and lie on the ground it stood on
+        // The server's prop goes at once; pieces of it fly out where it stood and fall through the ground
         var center = position + new Vector3(0f, 0f, 40f * scale);
         for (var i = 0; i < rules.BurstPieces; i++)
         {
@@ -216,19 +206,5 @@ public sealed partial class MiningClient(
         chips.ThrowOffHit(rules.ChipAssets, rules.ChipsPerHit, at, from, groundZ, rules.ChipSpeed, rules.ChipScale, rules.ChipSeconds);
     }
 
-    private void OnPlaceKey()
-    {
-        if (_rules is not { PlacementAllowed: true })
-            return;
-        rpc.SendPlaceNode(_placeKind);
-    }
-
-    private void OnCycleKey()
-    {
-        if (_rules is not { PlacementAllowed: true, KindNames.Count: > 0 } rules)
-            return;
-        _placeKind = (_placeKind + 1) % rules.KindNames.Count;
-        panel.Say(PanelLineKind.Note, $"J places {rules.KindNames[_placeKind]} nodes.");
-    }
 
 }
