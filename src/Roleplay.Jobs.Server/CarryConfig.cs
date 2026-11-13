@@ -55,7 +55,7 @@ public sealed class CarryConfig
 
     // Lets every player place carryables in front of them (Shift and the carry key, the next kind each time) and nudge
     // the one in hand on the numpad, logging the fit to copy here: for setting up a server, off for play.
-    public bool AllowPlacement { get; set; }
+    public bool AllowPlacement { get; set; } = true;
 
     // Where the carryables lying in the world are kept, next to the server DLL.
     public string SaveFile { get; set; } = "carryables.json";

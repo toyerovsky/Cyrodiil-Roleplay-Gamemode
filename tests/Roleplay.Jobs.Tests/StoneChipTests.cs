@@ -51,18 +51,15 @@ public class StoneChipTests
     }
 
     [Fact]
-    public void It_flies_under_gravity_lands_on_the_ground_and_lies_still_there()
+    public void It_flies_under_gravity_and_falls_on_through_the_ground()
     {
-        // Up at 490 cm/s from 245 cm above the ground: lands after 1 + sqrt(2) / 2... worked out below
         var chip = new StoneChip(new Vector3(0f, 0f, 245f), new Vector3(100f, 0f, 490f), new Vector3(360f, 0f, 0f), 0f);
 
         Assert.Equal(new Vector3(50f, 0f, 245f + 245f - 122.5f), chip.PositionAt(0.5f));
-        var lands = (490f + MathF.Sqrt(490f * 490f + 2f * 980f * 245f)) / 980f;
-        Assert.Equal(lands, chip.LandsAt, 0.0001f);
-        Assert.Equal(0f, chip.PositionAt(lands).Z, 0.01f);
-        Assert.Equal(chip.PositionAt(lands), chip.PositionAt(lands + 3f));
-        Assert.Equal(chip.RotationAt(lands), chip.RotationAt(lands + 3f));
+        Assert.Equal(new Vector3(300f, 0f, 245f + 1470f - 4410f), chip.PositionAt(3f));
+        Assert.True(chip.PositionAt(3f).Z < chip.GroundZ);
         Assert.Equal(new Vector3(180f, 0f, 0f), chip.RotationAt(0.5f));
+        Assert.Equal(new Vector3(1080f, 0f, 0f), chip.RotationAt(3f));
     }
 
     [Theory]

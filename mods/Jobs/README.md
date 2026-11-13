@@ -26,14 +26,36 @@ Roleplay jobs for the ReadyM Roleplay server on OblivionMP, from the game's own 
   nothing to land on, it stays in your hand. Dropped by dying or leaving, it lands at your feet without that check. Each kind is of a category (Beam, Box, Barrel, Sack) and takes
   its weight and how it hangs in the hand from it, unless the kind gives its own, so a new plank or pole is one line
   with `"category": "Beam"`.
+- **The job ladder:** a new player starts on the docks and works up.
+  - **Docks:** crate deposits, drawn as yellow box outlines 3 m on a side. An inlet keeps a pile of 14 crates lying in it
+    for a crowd of new players: a tight pyramid, 3 by 3 on the floor, 2 by 2 on them and one on top, each spot filled
+    again 10 s after its crate was taken once the crates under it are there. Only a crate with nothing on it can be
+    taken, so the nearest top crate is picked up. The pile is packed by the crate's size, which the first player with
+    setup allowed measures in their game (`ILocalProps.TryMeasure`); until then it is a flat 3 by 3. Carry it to an outlet and put it down there: the crate is delivered, can no longer
+    be picked up, and is cleared away 10 s later. The **Dock Foreman** pays 1 gold a delivered crate when you ask (H),
+    and remembers what he owes you over restarts (`wages.json`, by ReadyM account).
+  - **Lumber:** the **Lumber Camp Leader** sells the Lumber Axe for 50 gold, about 50 crates, and buys firewood at 1
+    gold each; a tree gives more than one.
+  - **Quarry:** the **Quarry Foreman** sells an Iron Warhammer for 150 gold and buys stone bricks at 1 gold each.
+  - Foremen are people Jobs stands and keeps itself (`ForemanNpcs`), labelled over their heads. H on one opens their
+    window, laid out like a trader's: the wages owed with a button to collect them, then For sale and Wanted, each with
+    a count. The window is the gamemode's (`ui/foreman`, `ForemanWindows`): it asks Jobs through `IJobForemen`, so Jobs
+    works without it but its foremen then have no window.
+  - Setting up (`docks.allowSetup`): the placement mode's Jobs category (see below) places the foremen and the crate
+    inlets and outlets. A deposit settles where a crate would come to rest. Kept in `docks.json`.
+- Placement mode, for setting up a server: Numpad Decimal turns it on and off. A preview stands 250 cm in front of
+  you, facing you. Numpad + and - change the category (Jobs: the foremen and deposits, with `docks.allowSetup`; Ores:
+  the ore nodes, with `mining.allowNodePlacement`), / and * the item in it, 4 and 6 turn it, 8 and 2 tilt it (ores),
+  7 and 9 lower and raise it, 5 places it, 0 removes the nearest placed one of the category. Ores go exactly where the
+  preview is, through anything, for laying out a quarry by eye. A foreman has no preview: they stand at the spot.
 
 The server decides everything. A felled tree, a spent node and a block of quarried stone are networked events
 (`TreeFelledEvent`, `OreMinedEvent`, `StoneQuarriedEvent`), so other mods can refuse or react to them.
 
 > **Needs SDK features no package has yet.** It builds against an oblivion-mod checkout on its rp-framework branch
 > (see [../README.md](../README.md)), which carries new SDK APIs: `IFoliage` and `IProps` (client and server),
-> `IAnimations`, `IWeaponHits`, `IEquippedWeapon` and `ILocalProps` (client), with `ILocalProps.FindRest` for carrying,
-> and `ICustomItems` (server) for the firewood and the lumber axe. The relay, the game's OblivionMp mod and
+> `IAnimations`, `IWeaponHits`, `IEquippedWeapon` and `ILocalProps` (client), with `ILocalProps.FindRest` for carrying
+> and `ILocalProps.PlaceBox` for the docks' deposits, and `ICustomItems` (server) for the firewood and the lumber axe. The relay, the game's OblivionMp mod and
 > the SDK mod must be that build too. What changed in the SDK and why: [docs/SDK-CHANGES.md](docs/SDK-CHANGES.md).
 
 ## How trees work in Oblivion Remastered
@@ -149,10 +171,16 @@ does not regrow the forest.
 in place of the base's (the config's comment shows an enchantment's shape). A felled tree gives **Firewood** (a Stone
 Brick shown with a static mesh and Gnarl Bark's icon, so it drops, bounces and sounds like what it looks like), and the **Lumber Axe** is an
 Iron Battle Axe that does 1 damage in a fight and chops as a tier 1 axe. A drop, an axe or `giveOnJoin` names one as
-`"custom:"` and its `key`; `giveOnJoin` gives each player one of each on joining when they carry none (the lumber axe,
-by default). Custom items last one server session: a restart loses those in saved inventories.
+`"custom:"` and its `key`; `giveOnJoin` gives each player one of each on joining when they carry none (nothing by
+default: the lumber axe is bought). Custom items last one server session: a restart loses those in saved inventories.
 
 ## Not done yet
+
+- **The job ladder is untested in game**: the yellow outlines (a TriggerBox's shape shown in game, as the engine draws a
+  weapon's hit box), foremen standing and keeping their place, their labels, the H wheel on them, restocking and
+  delivering, wages, buying and selling. The lumber axe is a custom item, so one bought is lost on a restart, as all
+  custom items still are; the warhammer is the game's own. The setup keys are for every player while
+  `allowSetup` is on, not staff alone, since Jobs has no staff roles.
 
 - **Carrying, seen in game:** picking up and putting down, the four assets, and the log's two fits, measured with bare
   hands drawn, and then the Beam fit. Not yet: the hold animation (looping, and on other players, whose arms come down
@@ -199,8 +227,8 @@ by default). Custom items last one server session: a restart loses those in save
   often, and the team's servers keep harvesting to marked places anyway. Quarries replaced them.
 - A quarry is a circle around its marker, so it can reach rock on the far side of a hill; a server wanting less sets
   `quarryRadius`. A quarry does not run out.
-- No ore node ships: a server places its own, in `mining.nodes` or in game with `allowNodePlacement` (J places one of
-  the kind Shift+J picked, or removes the placed one in front).
+- No ore node ships: a server places its own, in `mining.nodes` or in game with `allowNodePlacement` and the
+  placement mode's Ores category.
 - Experimental, off by default (`experimentalChips`): every counted hit throws stone bricks off where it landed, to
   lie a moment at the miner's feet.
 

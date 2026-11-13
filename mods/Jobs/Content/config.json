@@ -63,12 +63,12 @@
     "maxGlanceChance": 0.5,
 
     // Every counted hit throws chipsPerHit pieces of chipAssets off where it landed, one of them each, chipScale of the
-    // model, flying back towards the chopper at chipSpeed centimeters a second and lying where they land, at the
-    // chopper's feet, for the rest of chipSeconds, for every player within fallViewDistance. Plain props of each
+    // model, flying back towards the chopper at chipSpeed centimeters a second and falling on through the ground, for
+    // chipSeconds, for every player within fallViewDistance. Plain props of each
     // client's own: nothing to pick up. 0 turns them off. SM_gnarlbark is the Gnarl Bark ingredient's own model.
     "chipsPerHit": 3,
     "chipSpeed": 350,
-    "chipSeconds": 1.5,
+    "chipSeconds": 3.0,
     "chipScale": 1,
     "chipAssets": [ "/Game/Art/Environment/clutter/SM_gnarlbark.SM_gnarlbark" ],
 
@@ -89,7 +89,7 @@
     // equipped; the best one equipped counts. [] lets any weapon chop, at the plain health. durability is the axe's
     // full durability, as the game's data has it.
     "axes": [
-      { "item": "custom:jobs.lumber-axe", "name": "Lumber Axe", "tier": 1, "durability": 168 },
+      { "item": "custom:jobs.lumber-axe", "name": "Lumber Axe", "tier": 5, "durability": 168 },
       { "item": "0x00000D7F", "name": "Iron Battle Axe", "tier": 1, "durability": 168 },
       { "item": "0x0003A85F", "name": "Fine Iron Battle Axe", "tier": 1, "durability": 185 },
       { "item": "0x000229B6", "name": "Steel Battle Axe", "tier": 2, "durability": 224 },
@@ -127,14 +127,23 @@
     // asset whose mesh is taken. Firewood is a Stone Brick (a plain misc item) shown as a wooden plank (Wood01), with Gnarl Bark's icon.
     "items": [
       { "key": "jobs.firewood", "base": "0x00025946", "name": "Firewood", "value": 1, "weight": 2, "mesh": "/Game/Forms/worldobjects/static/Wood01.Wood01", "icon": "0x00044E5E" },
-      { "key": "jobs.lumber-axe", "base": "0x00000D7F", "name": "Lumber Axe", "damage": 1 }
+      { "key": "jobs.lumber-axe", "base": "0x00000D7F", "name": "Lumber Axe", "damage": 1 },
+      { "key": "test.barrel", "base": "0x00025946", "name": "Test Barrel", "mesh": "/Game/Forms/worldobjects/static/MiddleBarrelTopped04.MiddleBarrelTopped04" },
+      { "key": "test.crate", "base": "0x00025946", "name": "Test Crate", "mesh": "/Game/Forms/worldobjects/container/PCCrateClutterMiddle01.PCCrateClutterMiddle01" },
+      { "key": "test.sack", "base": "0x00025946", "name": "Test Sack", "mesh": "/Game/Forms/worldobjects/container/Sack01.Sack01" },
+      { "key": "test.log", "base": "0x00025946", "name": "Test Log", "mesh": "/Game/Forms/worldobjects/static/LandscapeLogBirch01.LandscapeLogBirch01", "scale": 0.35 },
+      { "key": "test.fire-axe", "base": "0x00000D7F", "name": "Test Fire Axe", "enchantment": { "charge": 1000, "effects": [ { "effect": "FIDG", "magnitude": 15, "duration": 1 } ] } },
+      { "key": "test.cuirass", "base": "0x0001C6D1", "name": "Test Cuirass", "armor": 40, "enchantment": { "charge": 0, "effects": [ { "effect": "FOHE", "magnitude": 20, "duration": 0 } ] } },
+      { "key": "test.log-axe", "base": "0x00000D7F", "name": "Log Battle Axe", "mesh": "/Game/Forms/worldobjects/static/LandscapeLogBirch01.LandscapeLogBirch01", "scale": 0.25 }
     ],
 
     // What every player is given, one of each, on joining when they carry none: a form id or "custom:" and a key of items.
-    "giveOnJoin": [ "custom:jobs.lumber-axe" ],
+    // The test.* items above, for trying custom items out; the lumber axe is bought from the lumber camp leader
+    // (docks.foremen).
+    "giveOnJoin": [ "custom:test.barrel", "custom:test.crate", "custom:test.sack", "custom:test.log", "custom:test.log-axe", "custom:test.fire-axe", "custom:test.cuirass" ],
 
     // Real minutes until a felled tree grows back.
-    "respawnMinutes": 30,
+    "respawnMinutes": 2,
 
     // What a felled tree leaves until it grows back, sized to the tree: a TES form's Unreal asset (every vanilla form's
     // is /Game/Forms/<group>/<type>/<EditorID>.<EditorID>) or a StaticMesh. The stump stands where the trunk did,
@@ -184,7 +193,7 @@
     // attack does powerTierBonus more for every tier above (a normal attack normalTierBonus more, 0 here: it always
     // does 1). Empty lets any weapon mine, at the plain health.
     "hammers": [
-      { "item": "0x00019172", "name": "Iron Warhammer", "tier": 1, "durability": 196 },
+      { "item": "0x00019172", "name": "Iron Warhammer", "tier": 3, "durability": 196 },
       { "item": "0x000229BE", "name": "Steel Warhammer", "tier": 2, "durability": 256 },
       { "item": "0x0003A85E", "name": "Fine Steel Warhammer", "tier": 2, "durability": 282 },
       { "item": "0x00025225", "name": "Silver Warhammer", "tier": 2, "durability": 324 },
@@ -245,7 +254,7 @@
     // (centimeters, the Unreal world; radius 0 for quarryRadius).
     "quarriesFromMarkers": true,
     "quarryMarkerName": "Quarry",
-    "quarryRadius": 2000,
+    "quarryRadius": 4000,
     "quarries": [],
     "quarryMeshes": [ "rock", "cliff", "boulder", "stone" ],
     "excludedQuarryMeshes": [ "pebble", "path", "decal", "tree", "bush", "shrub" ],
@@ -261,8 +270,8 @@
     ],
 
     // Every client within viewDistance centimeters sees a spent node burst into burstPieces of chipAssets, each
-    // burstScale of its model times the node's scale, flying out at burstSpeed centimeters a second and lying where they
-    // land for the rest of burstSeconds.
+    // burstScale of its model times the node's scale, flying out at burstSpeed centimeters a second and falling on
+    // through the ground, for burstSeconds.
     "viewDistance": 15000,
     "burstPieces": 14,
     "burstSpeed": 500,
@@ -270,11 +279,11 @@
     "burstScale": 0.9,
 
     // Experimental: every counted hit throws chipsPerHit chips off where it landed, one of chipAssets each, chipScale of
-    // the model, flying back towards the miner at chipSpeed centimeters a second and lying where they land, at the miner's
-    // feet, for the rest of chipSeconds. Plain props of each client's own: nothing to pick up. Off with experimentalChips
+    // the model, flying back towards the miner at chipSpeed centimeters a second and falling on through the ground, for
+    // chipSeconds. Plain props of each client's own: nothing to pick up. Off with experimentalChips
     // false.
-    "experimentalChips": false,
-    "chipsPerHit": 3,
+    "experimentalChips": true,
+    "chipsPerHit": 5,
     "chipSpeed": 450,
     "chipSeconds": 1.5,
     "chipScale": 0.8,
@@ -321,15 +330,15 @@
       }
     ],
 
-    // Nodes standing on this server: a kind's name, where its origin goes (centimeters, the Unreal world), its yaw
-    // (degrees) and scale, such as
-    //   { "kind": "Iron", "x": 12345, "y": -67890, "z": 1234, "yaw": 90, "scale": 1 }
+    // Nodes standing on this server: a kind's name, where its origin goes (centimeters, the Unreal world), its yaw and
+    // pitch (degrees) and scale, such as
+    //   { "kind": "Iron", "x": 12345, "y": -67890, "z": 1234, "yaw": 90, "pitch": 0, "scale": 1 }
     // Nodes placed in game (allowNodePlacement) are kept in nodeSaveFile instead.
     "nodes": [],
 
-    // Lets every player place a node of the kind Shift+J picks 150 cm in front of them, or remove the placed node in front
-    // of them, with J. For building a server's nodes; leave it off on a live server.
-    "allowNodePlacement": false
+    // Lets every player place nodes with the placement mode (Numpad Decimal, the Ores category) and remove the placed one
+    // nearest them. For building a server's nodes; leave it off on a live server.
+    "allowNodePlacement": true
   },
 
   "carrying": {
@@ -388,10 +397,66 @@
 
     // Lets every player place carryables in front of them with Shift and the carry key (the next kind each time) and
     // fit the one in hand on the numpad. For setting up a server; leave it off on a live server.
-    "allowPlacement": false,
+    "allowPlacement": true,
 
     // The carryables lying in the world, next to the server DLL.
     "saveFile": "carryables.json"
+  },
+
+  "docks": {
+    // The docks: crates of crateKind (a carrying kind) come from inlets and go to outlets, deposits zoneSize centimeters
+    // on a side. An inlet keeps a pile of crates lying in it for a crowd of new players: a
+    // pyramid of touching crates, inletRows by inletRows on the floor and one fewer each way on each of up to inletLayers
+    // layers (14 by default), crateGap centimeters between neighbours, each spot filled again restockSeconds after its
+    // crate was taken, once the crates under it are there. The pile is packed by the crate's size, which the first player
+    // allowed to set up the docks measures in their game (kept in saveFile); until then it is a flat square crateSpacing
+    // apart. Only the top crates can be taken. A crate from an inlet put down in an outlet is delivered: the dock foreman
+    // owes whoever carried it wage gold, and it is cleared away within clearSeconds. Each deposit stands on a pallet built
+    // of palletBoard (a TES form's Unreal asset or a StaticMesh): runners under a deck of boards, the pile's footprint
+    // and palletMargin centimeters more each way. The board's size is measured as the crate's is; the pile stands on the
+    // pallet. Empty for no pallet. palletWoodShare is how much of the board's measured height, from the top, is wood (the
+    // rest is nails sticking out below); palletRunnerInset how far in from each side the outer runners lie, as a share of
+    // the pallet's width, so they are under the deck boards' nails.
+    "crateKind": "Crate",
+    "zoneSize": 300,
+    "inletRows": 3,
+    "inletLayers": 3,
+    "crateGap": 2,
+    "crateSpacing": 90,
+    "restockSeconds": 10,
+    "clearSeconds": 10,
+    "wage": 1,
+    "palletBoard": "/Game/Forms/worldobjects/static/LooseBoard01.LooseBoard01",
+    "palletMargin": 4,
+    "palletWoodShare": 0.5,
+    "palletRunnerInset": 0.13,
+
+    // The foremen players talk to with the interaction key (H), in a window like a shop's: each pays the wages owed
+    // (paysWages), sells what is in sells and buys what is in buys, at price gold each. An item is a form id, or
+    // "custom:" and the key of one of woodcutting.items; icon the game's editor id whose icon the window shows for it,
+    // from those the shops have (empty for none). They are made from baseNpc, a person with no services of their own. The first three are
+    // placed with Numpad 2, 3 and 4.
+    "baseNpc": "0x000025FA",
+    "foremen": [
+      { "name": "Dock Foreman", "paysWages": true, "sells": [], "buys": [] },
+      { "name": "Lumber Camp Leader", "paysWages": false,
+        "sells": [ { "item": "custom:jobs.lumber-axe", "name": "Lumber Axe", "price": 50, "icon": "WeapIronWarAxe" } ],
+        "buys": [ { "item": "custom:jobs.firewood", "name": "Firewood", "price": 1, "icon": "" } ] },
+      { "name": "Quarry Foreman", "paysWages": false,
+        "sells": [ { "item": "0x00019172", "name": "Iron Warhammer", "price": 150, "icon": "WeapIronMace" } ],
+        "buys": [ { "item": "0x00025946", "name": "Stone Brick", "price": 1, "icon": "" }, { "item": "0x00025947", "name": "Stone Brick", "price": 1, "icon": "" } ] }
+    ],
+
+    // How far in front of a player a foreman or deposit counts for removing, in centimeters.
+    "reach": 300,
+
+    // Lets every player place foremen and deposits with the placement mode (Numpad Decimal, the Jobs category) and
+    // remove the nearest (Numpad 0). For setting up a server; leave it off on a live server.
+    "allowSetup": true,
+
+    // The deposits and foremen, and the wages owed, next to the server DLL.
+    "saveFile": "docks.json",
+    "wagesFile": "wages.json"
   },
 
   // Felled trees and when they grow back, next to the server DLL.

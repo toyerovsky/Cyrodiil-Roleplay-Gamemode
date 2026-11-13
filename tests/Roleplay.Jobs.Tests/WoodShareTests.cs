@@ -65,7 +65,7 @@ public sealed class WoodShareTests
         var drop = Assert.Single(config.Drops);
         Assert.Equal("custom:jobs.firewood", drop.Item);
         Assert.Equal(1, drop.Value);
-        Assert.Equal(2, config.Items.Count);
+        Assert.Equal(9, config.Items.Count);
         var firewood = config.Items[0];
         Assert.Equal("jobs.firewood", firewood.Key);
         Assert.Equal("0x00025946", firewood.Base); // MISC StoneWallStone01, "Stone Brick", in Oblivion.esm
@@ -77,7 +77,7 @@ public sealed class WoodShareTests
         Assert.Equal(1, lumberAxe.Damage);
         Assert.Null(lumberAxe.Value);
         Assert.Null(lumberAxe.Weight);
-        Assert.Equal(["custom:jobs.lumber-axe"], config.GiveOnJoin);
+        Assert.All(config.GiveOnJoin, item => Assert.StartsWith("custom:test.", item)); // the lumber axe is bought from the lumber camp leader
         Assert.Equal("custom:jobs.lumber-axe", config.Axes[0].Item);
         Assert.False(config.LumberCampsOnly);
         Assert.True(config.LumberCampsFromMarkers);

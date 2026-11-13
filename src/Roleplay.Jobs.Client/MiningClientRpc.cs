@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using Microsoft.Extensions.Logging;
 using ReadyM.SDK.Attributes;
@@ -19,11 +20,13 @@ public sealed partial class MiningClientRpc(ILogger logger)
 
     partial void OnMiningRules(float hitRadius, string quarryMeshes, string excludedQuarryMeshes, bool quarryLandscape,
         float viewDistance, int chipsPerHit, string chipAssets, float chipSpeed, float chipSeconds, float chipScale,
-        int burstPieces, float burstSpeed, float burstSeconds, float burstScale, bool placementAllowed, string kindNames)
+        int burstPieces, float burstSpeed, float burstSeconds, float burstScale, bool placementAllowed, string kindNames,
+        string kindAssets, string kindScales)
         => Raise(nameof(OnMiningRules), () => RulesReceived?.Invoke(new MiningRules(hitRadius,
             new TreeFilter(TreeFilter.Split(quarryMeshes), TreeFilter.Split(excludedQuarryMeshes)), quarryLandscape, viewDistance,
             chipsPerHit, Split(chipAssets), chipSpeed, chipSeconds, chipScale, burstPieces, burstSpeed, burstSeconds, burstScale,
-            placementAllowed, Split(kindNames))));
+            placementAllowed, Split(kindNames), Split(kindAssets),
+            Split(kindScales).Select(scale => float.Parse(scale, NumberStyles.Float, CultureInfo.InvariantCulture)).ToList())));
 
     partial void OnQuarryAvailable(string name, float x, float y, float z, float radius)
         => Raise(nameof(OnQuarryAvailable), () => QuarryAvailable?.Invoke(new MarkedArea(name, new Vector3(x, y, z), radius)));

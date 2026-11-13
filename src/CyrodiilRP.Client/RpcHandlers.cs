@@ -47,6 +47,12 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action? TraderClosed;
 
+    public event Action<string>? ForemanChanged;
+
+    public event Action<string, bool>? ForemanAnswered;
+
+    public event Action? ForemanClosed;
+
     public event Action<string>? TraderLabelled;
 
     public event Action<string>? BankerLabelled;
@@ -135,6 +141,12 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnTraderAnswer(string text, bool bought) => TraderAnswered?.Invoke(text, bought);
 
     partial void OnTraderClosed() => TraderClosed?.Invoke();
+
+    partial void OnForemanState(string json) => ForemanChanged?.Invoke(json);
+
+    partial void OnForemanAnswer(string text, bool done) => ForemanAnswered?.Invoke(text, done);
+
+    partial void OnForemanClosed() => ForemanClosed?.Invoke();
 
     partial void OnTraderLabel(string text) => TraderLabelled?.Invoke(text);
 

@@ -33,7 +33,7 @@ public sealed partial class ChipThrower(ILocalProps localProps)
     }
 
     /// <summary>Throws <paramref name="count"/> chips off a hit at <paramref name="at"/>, back towards
-    /// <paramref name="from"/> (who struck), to land at <paramref name="groundZ"/>.</summary>
+    /// <paramref name="from"/> (who struck), starting no lower than <paramref name="groundZ"/>.</summary>
     public void ThrowOffHit(IReadOnlyList<string> assets, int count, Vector3 at, Vector2 from, float groundZ, float speed, float scale, float seconds)
     {
         for (var i = 0; i < count; i++)

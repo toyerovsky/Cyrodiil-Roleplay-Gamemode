@@ -36,9 +36,9 @@ public sealed class JobAreasTests : IDisposable
 
         Assert.Equal("Great Forest Quarry", quarry.Name);
         Assert.True(Vector3.Distance(new Vector3(1000f, -2000f, 100f), quarry.Center) < 0.01f, $"{quarry.Center}"); // 100/70 cm a unit, Y flipped
-        Assert.Equal(2000f, quarry.Radius);
-        Assert.True(quarry.Holds(new Vector3(2500f, -2000f, 100f)));
-        Assert.False(quarry.Holds(new Vector3(3001f, -2000f, 100f)));
+        Assert.Equal(4000f, quarry.Radius);
+        Assert.True(quarry.Holds(new Vector3(4500f, -2000f, 100f)));
+        Assert.False(quarry.Holds(new Vector3(5001f, -2000f, 100f)));
         Assert.Empty(_logger.Warnings);
     }
 

@@ -169,7 +169,7 @@ Copy-Item (Join-Path $clientBuild 'CyrodiilRP.Client.dll'), (Join-Path $clientBu
 Copy-Item (Join-Path $root 'ui/dist') (Join-Path $client 'web') -Recurse
 
 # The SDK and what it is built on come with the server, whether or not the server folder names each file.
-$sdkFamily = 'ReadyM.*', 'OblivionMp.*', 'Friflo.*', 'Yooni.*', 'LiteNetLib*', 'DryIoc*', 'Serilog*', 'Superpower*', 'Roleplay.HungerAndThirst.*', 'Roleplay.Emotes.*'
+$sdkFamily = 'ReadyM.*', 'OblivionMp.*', 'Friflo.*', 'Yooni.*', 'LiteNetLib*', 'DryIoc*', 'Serilog*', 'Superpower*', 'Roleplay.HungerAndThirst.*', 'Roleplay.Emotes.*', 'Roleplay.Jobs.*'
 $serverPublish = Join-Path $publish 'server'
 Get-ChildItem $serverPublish -Filter '*.dll' |
     Where-Object { $name = $_.Name; -not $shipped.ContainsKey($name) -and -not ($sdkFamily | Where-Object { $name -like $_ }) } |

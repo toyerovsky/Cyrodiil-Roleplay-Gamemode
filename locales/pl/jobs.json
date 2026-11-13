@@ -1,0 +1,5 @@
+{
+  "jobs.said": "{text}",
+  "jobs.closed_gone": "Brygadzisty już nie ma.",
+  "jobs.closed_far": "Oddalasz się od brygadzisty o ponad {metres} m."
+}

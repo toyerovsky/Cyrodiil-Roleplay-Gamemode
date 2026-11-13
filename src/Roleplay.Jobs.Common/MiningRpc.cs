@@ -19,12 +19,13 @@ public static partial class MiningRpc
     // (TreeFilter's lists); with quarryLandscape the bare ground there counts too. chipsPerHit above 0 throws that many
     // chipAssets off every counted hit, at chipSpeed centimeters a second, for chipSeconds (experimental). A spent node
     // bursts into burstPieces of chipAssets, burstScale of the model times its scale, flying for burstSeconds.
-    // placementAllowed lets this player place and remove nodes with the placement key; kindNames are the kinds it
-    // cycles through, joined with '|'.
+    // placementAllowed lets this player place and remove nodes; kindNames are the kinds it picks from, joined with '|',
+    // kindAssets their assets and kindScales their scales (invariant numbers), in the same order, for the preview.
     [ServerToClient]
     public static partial void MiningRules(float hitRadius, string quarryMeshes, string excludedQuarryMeshes, bool quarryLandscape,
         float viewDistance, int chipsPerHit, string chipAssets, float chipSpeed, float chipSeconds, float chipScale,
-        int burstPieces, float burstSpeed, float burstSeconds, float burstScale, bool placementAllowed, string kindNames);
+        int burstPieces, float burstSpeed, float burstSeconds, float burstScale, bool placementAllowed, string kindNames,
+        string kindAssets, string kindScales);
 
     // A quarry: name is its map marker's, and rock within radius centimeters of (x, y, z) can be quarried.
     [ServerToClient]
@@ -63,8 +64,12 @@ public static partial class MiningRpc
     [ServerToClient]
     public static partial void Struck(float x, float y, float z, float fromX, float fromY, float groundZ);
 
-    // Places a node of the kind at kindIndex in front of the player, or removes the placed node in front of them. Only
-    // for a player the server allows to place.
+    // Places a node of the kind at kindIndex with its origin at (x, y, z), turned to yaw and tilted to pitch, just there:
+    // nothing in the way stops it. Only for a player the server allows to place.
     [ClientToServer]
-    public static partial void PlaceNode(int kindIndex);
+    public static partial void PlaceNode(int kindIndex, float x, float y, float z, float yaw, float pitch);
+
+    // Removes the placed node nearest the player, within reach. Only for a player the server allows to place.
+    [ClientToServer]
+    public static partial void RemoveNode();
 }

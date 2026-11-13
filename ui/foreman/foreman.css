@@ -1,0 +1,67 @@
+/* A foreman's window is a trader's (trader.css), with the dock wages above what they deal in. */
+.foreman__panel.rp-panel {
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto auto;
+}
+
+/* The dock foreman deals in nothing but wages: a small window. */
+.foreman__panel--wages.rp-panel {
+  grid-template-rows: auto auto auto auto auto;
+  height: auto;
+  width: min(640px, 100%);
+}
+
+.foreman__wages {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 14px;
+  padding: 14px 18px;
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+}
+
+.foreman__owed {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.foreman__wages-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 20px;
+  font-family: var(--font-title);
+}
+
+.foreman__wages-line {
+  margin: 0;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.foreman__wages-sum {
+  margin: 0;
+  font-weight: 700;
+  font-size: 19px;
+}
+
+.foreman__collect.rp-button {
+  flex: none;
+  min-width: 200px;
+}
+
+/* Something the shops have no icon for: the hand that deals it. */
+.foreman__no-icon {
+  width: 48px;
+  height: 48px;
+  padding: 8px;
+  color: var(--gold-dark);
+}
+
+.foreman__no-icon--large {
+  width: 96px;
+  height: 96px;
+  padding: 16px;
+}

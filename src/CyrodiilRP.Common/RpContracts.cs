@@ -125,6 +125,24 @@ public static partial class RpContracts
     [ClientToServer]
     public static partial void TraderClose();
 
+    // A ForemanView as JSON: opens a Jobs foreman's window or brings it up to date.
+    [ServerToClient]
+    public static partial void ForemanState(string json);
+
+    // What a deal came to: done or refused. The Jobs mod's own sentence, in English.
+    [ServerToClient]
+    public static partial void ForemanAnswer(string text, bool done);
+
+    [ServerToClient]
+    public static partial void ForemanClosed();
+
+    // A deal from the window: "pay" for the wages owed, or an offer's id and how many.
+    [ClientToServer]
+    public static partial void ForemanDeal(string offer, int count);
+
+    [ClientToServer]
+    public static partial void ForemanClose();
+
     // The label over the mode's bankers, in the player's language.
     [ServerToClient]
     public static partial void BankerLabel(string text);
