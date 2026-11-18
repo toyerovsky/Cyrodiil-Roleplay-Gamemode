@@ -28,5 +28,9 @@ defineProps({
       <dt>{{ t["character.gold"] }}</dt>
       <dd>{{ fill(t.gold, { count: character.gold.toLocaleString(locale) }) }}</dd>
     </div>
+    <div class="menu__fact" data-fact="specialization">
+      <dt>{{ t["character.specialization"] }}</dt>
+      <dd>{{ character.specialization ?? t["character.specialization_none"] }}</dd>
+    </div>
   </dl>
 </template>

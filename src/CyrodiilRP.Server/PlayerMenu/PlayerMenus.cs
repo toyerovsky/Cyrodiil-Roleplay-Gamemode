@@ -8,6 +8,7 @@ using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
+using CyrodiilRP.Server.Specializations;
 using ReadyM.Api.Idents;
 using ReadyM.SDK.Attributes;
 
@@ -29,6 +30,7 @@ internal sealed partial class PlayerMenus(
     Factions factions,
     FactionInvites invites,
     RpConfig config,
+    CharacterSpecializations specializations,
     Localizer translations)
 {
     private void Start()
@@ -75,9 +77,10 @@ internal sealed partial class PlayerMenus(
 
         string Translate(Phrase phrase) => translations.Get(player.Locale, phrase);
         int? gold = wallet.TryCount(player.Id, out var carried) ? carried : null;
+        var specialization = specializations.FindName(player) is { } name ? Translate(name) : null;
         var view = new MenuView(
             tab,
-            MenuCards.BuildCharacter(player, character, gold, DateTimeOffset.UtcNow),
+            MenuCards.BuildCharacter(player, character, gold, specialization, DateTimeOffset.UtcNow),
             MenuCards.BuildAccount(player, conditions.ListTitled(player), Translate),
             HelpListing.Build(commands.ListAvailable(player), Translate),
             dice.BuildView(player),

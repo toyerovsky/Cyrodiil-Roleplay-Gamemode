@@ -53,6 +53,10 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId>? StableLeft;
 
+    public event Action<PlayerId, string>? MentorChosen;
+
+    public event Action<PlayerId>? MentorLeft;
+
     public event Action<PlayerId>? MenuAsked;
 
     public event Action<PlayerId, string>? LanguageChosen;
@@ -141,7 +145,13 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     partial void OnStableClose(RpcContext context) => callbacks.Raise("rpc.stable_close", StableLeft, context.Sender);
 
+    partial void OnMentorChoose(RpcContext context, string specialization) =>
+        callbacks.Raise("rpc.mentor_choose", MentorChosen, context.Sender, specialization);
+
+    partial void OnMentorClose(RpcContext context) => callbacks.Raise("rpc.mentor_close", MentorLeft, context.Sender);
+
     partial void OnOpenMenu(RpcContext context) => callbacks.Raise("rpc.open_menu", MenuAsked, context.Sender);
+
 
     partial void OnChooseLanguage(RpcContext context, string locale) =>
         callbacks.Raise("rpc.choose_language", LanguageChosen, context.Sender, locale);

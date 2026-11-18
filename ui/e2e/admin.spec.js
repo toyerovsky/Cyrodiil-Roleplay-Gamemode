@@ -32,7 +32,7 @@ test("the panel opens on the players, a card runs its buttons and asks for a rea
   expect((await readSent(page, "AdminRun")).at(-1)).toEqual(["/awarn 4 Running from the guards mid scene"]);
   await expect(page.locator(".admin__status")).toContainText("Warned Brannoc");
 
-  await card.getByRole("button", { name: t("action.heal") }).click();
+  await card.getByRole("button", { name: t("action.heal"), exact: true }).click();
   expect((await readSent(page, "AdminRun")).at(-1)).toEqual(["/aheal 4"]);
 
   await card.getByLabel(t("card.item_search")).fill("lock");

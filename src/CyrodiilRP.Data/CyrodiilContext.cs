@@ -36,6 +36,10 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<CharacterHorse> CharacterHorses => Set<CharacterHorse>();
 
+    public DbSet<CharacterSpecialization> CharacterSpecializations => Set<CharacterSpecialization>();
+
+    public DbSet<CharacterCapOverride> CharacterCapOverrides => Set<CharacterCapOverride>();
+
     public DbSet<NoticeBoard> NoticeBoards => Set<NoticeBoard>();
 
     public DbSet<Notice> Notices => Set<Notice>();
@@ -199,6 +203,27 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.Property(x => x.CharacterId).ValueGeneratedNever();
             entity.Property(x => x.Horse).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
             entity.HasOne<Character>().WithOne().HasForeignKey<CharacterHorse>(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CharacterSpecialization>(entity =>
+        {
+            entity.ToTable("character_specializations", t =>
+            {
+                t.HasCheckConstraint("ck_character_specializations_price", "price >= 0");
+                t.HasCheckConstraint("ck_character_specializations_changes", "changes >= 0");
+            });
+            entity.HasKey(x => x.CharacterId);
+            entity.Property(x => x.CharacterId).ValueGeneratedNever();
+            entity.Property(x => x.Specialization).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.HasOne<Character>().WithOne().HasForeignKey<CharacterSpecialization>(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CharacterCapOverride>(entity =>
+        {
+            entity.ToTable("character_cap_overrides", t => t.HasCheckConstraint("ck_character_cap_overrides_cap", "cap >= 0 AND cap <= 100"));
+            entity.HasKey(x => new { x.CharacterId, x.Stat });
+            entity.Property(x => x.Stat).HasMaxLength(ColumnLengths.EnumName);
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<NoticeBoard>(entity =>

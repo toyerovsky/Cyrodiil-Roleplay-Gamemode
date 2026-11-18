@@ -30,11 +30,22 @@ internal static class TraderRules
     // The shop a stablemaster's spot is stored under. No shop of stocks.json may take the name.
     public const string StableShop = "stable";
 
+    // The shops a mentor's or the registrar's spot is stored under. No shop of stocks.json may take these names.
+    public const string WarriorMentorShop = "mentor.warrior";
+    public const string MageMentorShop = "mentor.mage";
+    public const string SupportMentorShop = "mentor.support";
+    public const string RegistrarShop = "registrar";
+
     private static readonly IReadOnlyList<FormId> ShopOutfit = [Items.Clothes.MiddleShirt01, Items.Clothes.MiddlePants01, Items.Clothes.MiddleShoes01];
     private static readonly IReadOnlyList<FormId> BankerOutfit = [Items.Clothes.UpperShirt01, Items.Clothes.UpperPants01, Items.Clothes.UpperShoes01];
 
     // What Petrine of Bruma's stables wears.
     private static readonly IReadOnlyList<FormId> StablemasterOutfit = [Items.Clothes.LowerShirt10, Items.Clothes.LowerPants08, Items.Clothes.LowerShoes01];
+
+    private static readonly IReadOnlyList<FormId> WarriorMentorOutfit = [Items.Clothes.LowerShirt10, Items.Clothes.MiddlePants01, Items.Clothes.MiddleShoes01];
+    private static readonly IReadOnlyList<FormId> MageMentorOutfit = [Items.Clothes.UpperRobe02, Items.Clothes.MiddleShoes01];
+    private static readonly IReadOnlyList<FormId> SupportMentorOutfit = [Items.Clothes.LowerRobe03, Items.Clothes.LowerShoes01];
+    private static readonly IReadOnlyList<FormId> RegistrarOutfit = [Items.Clothes.UpperShirt04, Items.Clothes.UpperPants04, Items.Clothes.UpperShoes02];
 
     public const float WanderRadius = 50f;
 
@@ -56,6 +67,10 @@ internal static class TraderRules
         TraderSpotKind.Shop => TraderOrigin.SpawnerRefId,
         TraderSpotKind.Banker => TraderOrigin.BankerSpawnerRefId,
         TraderSpotKind.Stablemaster => TraderOrigin.StablemasterSpawnerRefId,
+        TraderSpotKind.WarriorMentor => TraderOrigin.WarriorMentorSpawnerRefId,
+        TraderSpotKind.MageMentor => TraderOrigin.MageMentorSpawnerRefId,
+        TraderSpotKind.SupportMentor => TraderOrigin.SupportMentorSpawnerRefId,
+        TraderSpotKind.Registrar => TraderOrigin.RegistrarSpawnerRefId,
     };
 
     public static IReadOnlyList<FormId> FindOutfit(TraderSpotKind kind) => kind switch
@@ -63,17 +78,27 @@ internal static class TraderRules
         TraderSpotKind.Shop => ShopOutfit,
         TraderSpotKind.Banker => BankerOutfit,
         TraderSpotKind.Stablemaster => StablemasterOutfit,
+        TraderSpotKind.WarriorMentor => WarriorMentorOutfit,
+        TraderSpotKind.MageMentor => MageMentorOutfit,
+        TraderSpotKind.SupportMentor => SupportMentorOutfit,
+        TraderSpotKind.Registrar => RegistrarOutfit,
     };
 
     // A person the mode stood, of any kind.
     public static bool IsOurs(uint spawnerRefId) =>
-        spawnerRefId is TraderOrigin.SpawnerRefId or TraderOrigin.BankerSpawnerRefId or TraderOrigin.StablemasterSpawnerRefId;
+        spawnerRefId is TraderOrigin.SpawnerRefId or TraderOrigin.BankerSpawnerRefId or TraderOrigin.StablemasterSpawnerRefId
+            or TraderOrigin.WarriorMentorSpawnerRefId or TraderOrigin.MageMentorSpawnerRefId or TraderOrigin.SupportMentorSpawnerRefId
+            or TraderOrigin.RegistrarSpawnerRefId;
 
     // The kind a spot stands by the shop it is stored under.
     public static TraderSpotKind FindKind(string shop) => shop switch
     {
         BankShop => TraderSpotKind.Banker,
         StableShop => TraderSpotKind.Stablemaster,
+        WarriorMentorShop => TraderSpotKind.WarriorMentor,
+        MageMentorShop => TraderSpotKind.MageMentor,
+        SupportMentorShop => TraderSpotKind.SupportMentor,
+        RegistrarShop => TraderSpotKind.Registrar,
         _ => TraderSpotKind.Shop,
     };
 

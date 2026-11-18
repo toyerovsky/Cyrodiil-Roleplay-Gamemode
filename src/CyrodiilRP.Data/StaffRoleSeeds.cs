@@ -17,7 +17,7 @@ internal static class StaffRoleSeeds
     [
         .. ModeratorPermissions, StaffPermissions.Gold, StaffPermissions.Item, StaffPermissions.Time, StaffPermissions.Weather,
         StaffPermissions.Ban, StaffPermissions.Unban, StaffPermissions.Roles, StaffPermissions.Npc, StaffPermissions.Spawn,
-        StaffPermissions.FactionManage, StaffPermissions.Board,
+        StaffPermissions.FactionManage, StaffPermissions.Board, StaffPermissions.Specialization, StaffPermissions.Cap, StaffPermissions.Stat,
     ];
 
     public static readonly StaffRole[] All =

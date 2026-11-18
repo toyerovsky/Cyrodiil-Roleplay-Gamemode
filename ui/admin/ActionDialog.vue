@@ -35,7 +35,12 @@ const problem = ref(null);
 const inputs = useTemplateRef("inputs");
 const titleId = useId();
 
-const title = computed(() => fill(props.t["dialog.title"], { action: props.t[`action.${props.dialog.action}`], name: props.dialog.name }));
+const title = computed(() =>
+  fill(props.t["dialog.title"], { action: fill(props.t[`action.${props.dialog.action}`], props.dialog.values), name: props.dialog.name }),
+);
+// The highest a cap or a value takes: the game's 100, and a value no more than the cap it has now.
+const MOST_STAT = 100;
+const mostValue = computed(() => Math.min(MOST_STAT, props.dialog.values.most ?? MOST_STAT));
 const most = computed(() => Math.min(MOST_ITEM_PIECES, props.dialog.values.most ?? MOST_ITEM_PIECES));
 
 function check() {
@@ -52,6 +57,10 @@ function check() {
   if ("health" in values && !(readNumber("health") >= 1 && readNumber("health") <= most.value))
     return { field: "health", text: fill(props.t["dialog.health_range"], { max: most.value }) };
   if ("text" in values && values.text.trim().length === 0) return { field: "text", text: props.t["dialog.text_empty"] };
+  if ("cap" in values && !(readNumber("cap") >= 0 && readNumber("cap") <= MOST_STAT))
+    return { field: "cap", text: fill(props.t["dialog.cap_range"], { max: MOST_STAT }) };
+  if ("value" in values && !(readNumber("value") >= 0 && readNumber("value") <= mostValue.value))
+    return { field: "value", text: fill(props.t["dialog.value_range"], { max: mostValue.value }) };
   if ("factionName" in values && !(values.factionName.trim().length >= FACTION_NAME_MIN && values.factionName.trim().length <= FACTION_NAME_MAX))
     return { field: "factionName", text: fill(props.t["dialog.faction_name_length"], { min: FACTION_NAME_MIN, max: FACTION_NAME_MAX }) };
   return null;
@@ -79,7 +88,7 @@ onMounted(() => inputs.value?.[0]?.focus());
         <RpField
           ref="inputs"
           v-model="values[field]"
-          :label="fill(t[`field.${field}`], { max: most })"
+          :label="fill(t[`field.${field}`], { max: field === 'value' ? mostValue : field === 'cap' ? MOST_STAT : most })"
           :invalid="problem?.field === field"
           :inputmode="TEXT_FIELDS.includes(field) ? 'text' : 'numeric'"
           :maxlength="LONGEST[field]"

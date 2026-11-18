@@ -7,6 +7,8 @@
   "ui.welcome.slots": "Twoje postacie",
   "ui.welcome.last_played": "Ostatnia gra",
   "ui.welcome.time_played": "Czas gry",
+  "ui.welcome.specialization": "Specjalizacja",
+  "ui.welcome.specialization_none": "Jeszcze żadna",
   "ui.welcome.hours_minutes": "{hours} godz. {minutes} min",
   "ui.welcome.minutes": "{minutes} min",
   "ui.welcome.play": "Graj",

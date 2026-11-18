@@ -83,7 +83,7 @@ export function pretendGame(readym) {
   const staffMember = scenario === "help";
   const view = (tab) => ({
     tab,
-    character: { firstName: "Marcus", lastName: "Varro", createdAt: now - 3 * DAY_MS, playedSeconds: PLAYED_SECONDS, gold: 1240 },
+    character: { firstName: "Marcus", lastName: "Varro", createdAt: now - 3 * DAY_MS, playedSeconds: PLAYED_SECONDS, gold: 1240, specialization: "Healer" },
     account: {
       nickname: "Toyer",
       createdAt: now - 41 * DAY_MS,

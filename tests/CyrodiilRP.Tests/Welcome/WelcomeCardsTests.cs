@@ -17,7 +17,7 @@ public sealed class WelcomeCardsTests
         var player = CreatePlayer(previousVisit: LastPlayed);
         player.Character = CharacterRecord.Create(new CharacterSnapshot(7, "Marcus", "Varro", Created, LastPlayed, PlayedSeconds), []);
 
-        var view = WelcomeCards.Build(player);
+        var view = WelcomeCards.Build(player, "Wizard");
 
         Assert.False(view.FirstVisit);
         Assert.Equal("toyer", view.Nickname);
@@ -26,6 +26,7 @@ public sealed class WelcomeCardsTests
         Assert.Equal("Varro", character.LastName);
         Assert.Equal(LastPlayed.ToUnixTimeMilliseconds(), character.LastPlayedAt);
         Assert.Equal(PlayedSeconds, character.PlayedSeconds);
+        Assert.Equal("Wizard", character.Specialization);
         Assert.Equal(0, view.EmptySlots);
         Assert.Equal(CharacterSlots.Locked, view.LockedSlots);
     }
@@ -33,7 +34,7 @@ public sealed class WelcomeCardsTests
     [Fact]
     public void A_first_visit_has_no_character_and_the_open_slot_empty()
     {
-        var view = WelcomeCards.Build(CreatePlayer(previousVisit: null));
+        var view = WelcomeCards.Build(CreatePlayer(previousVisit: null), specialization: null);
 
         Assert.True(view.FirstVisit);
         Assert.Empty(view.Characters);
@@ -44,10 +45,19 @@ public sealed class WelcomeCardsTests
     [Fact]
     public void A_returning_player_without_a_character_is_not_a_first_visit()
     {
-        var view = WelcomeCards.Build(CreatePlayer(previousVisit: LastPlayed));
+        var view = WelcomeCards.Build(CreatePlayer(previousVisit: LastPlayed), specialization: null);
 
         Assert.False(view.FirstVisit);
         Assert.Equal(CharacterSlots.Open, view.EmptySlots);
+    }
+
+    [Fact]
+    public void A_character_who_has_not_chosen_shows_no_specialization()
+    {
+        var player = CreatePlayer(previousVisit: LastPlayed);
+        player.Character = CharacterRecord.Create(new CharacterSnapshot(7, "Marcus", "Varro", Created, LastPlayed, PlayedSeconds), []);
+
+        Assert.Null(Assert.Single(WelcomeCards.Build(player, specialization: null).Characters).Specialization);
     }
 
     private static OnlinePlayer CreatePlayer(DateTimeOffset? previousVisit) =>

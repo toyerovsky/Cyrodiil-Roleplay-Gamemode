@@ -9,7 +9,12 @@ import { mountPage } from "./readym.js";
 const NOW = Date.UTC(2026, 9, 27, 12, 0);
 const ACCOUNT = "3f2b9d4e-8a1c-4c6e-9b7a-1d2e3f4a5b6c";
 const EVERYTHING = ["duty", "aheal", "arevive", "agoto", "abring", "aback", "atp", "afreeze", "aunfreeze", "amute", "aunmute", "awarn",
-  "akick", "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "ahp", "amsg", "afeed"];
+  "akick", "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "ahp", "amsg", "afeed", "aspec", "acap", "astat"];
+const STATS = [
+  { id: "Blade", name: "Blade", value: 28, cap: 30, overridden: false },
+  { id: "HandToHand", name: "Hand to Hand", value: 40, cap: 60, overridden: true },
+  { id: "Speed", name: "Speed", value: 55, cap: null, overridden: false },
+];
 const SELF = 3;
 
 const player = (number, name, changes = {}) => ({
@@ -91,6 +96,90 @@ describe("the staff's panel", () => {
 
     await button("Go on duty").trigger("click");
     expect(game.readSent("AdminRun")).toEqual([["/duty"]]);
+  });
+
+  it("names the specialization on a character's card, and none for a player still without a character", async () => {
+    await game.emit("State", state());
+    await page.find('[data-player="4"]').trigger("click");
+    await game.emit("Part", "card", card(4, { specialization: "Knight" }));
+    expect(page.find('[data-fact="specialization"] dd').text()).toBe("Knight");
+
+    await game.emit("Part", "card", card(4, { specialization: null }));
+    expect(page.find('[data-fact="specialization"] dd').text()).toBe("None yet");
+
+    await game.emit("Part", "card", card(4, { specialization: null, characterCreatedAt: null }));
+    expect(page.find('[data-fact="specialization"]').exists()).toBe(false);
+  });
+
+  it("lists every stat with its value and cap, marks a cap the staff set, and offers Clear only there", async () => {
+    await game.emit("State", state());
+    await open(4);
+    await game.emit("Part", "card", card(4, { specializationId: "Wizard", stats: STATS }));
+
+    const row = (id) => page.find(`[data-stat="${id}"]`);
+    expect(row("Blade").findAll("td").map((cell) => cell.text())[0]).toBe("28");
+    expect(row("Speed").findAll("td")[1].text()).toBe("100");
+    expect(row("HandToHand").findAll("td")[1].text()).toBe("60 set by staff");
+    expect(row("HandToHand").find('[data-act="clear"]').exists()).toBe(true);
+    expect(row("Blade").find('[data-act="clear"]').exists()).toBe(false);
+    expect(page.find('[data-spec="Wizard"]').attributes("aria-pressed")).toBe("true");
+
+    await row("HandToHand").find('[data-act="clear"]').trigger("click");
+    expect(game.readSent("AdminRun").at(-1)).toEqual(["/acap 4 HandToHand clear"]);
+  });
+
+  it("sets a specialization only on the second click of its chip", async () => {
+    await game.emit("State", state());
+    await open(4);
+    await game.emit("Part", "card", card(4, { specializationId: "Wizard", stats: STATS }));
+
+    await page.find('[data-spec="Healer"]').trigger("click");
+    expect(page.find('[data-spec="Healer"]').text()).toBe("Set it? Click again");
+    expect(game.readSent("AdminRun")).toEqual([]);
+    await page.find('[data-spec="Wizard"]').trigger("click");
+    expect(game.readSent("AdminRun")).toEqual([]);
+
+    await page.find('[data-spec="none"]').trigger("click");
+    await page.find('[data-spec="none"]').trigger("click");
+    expect(game.readSent("AdminRun")).toEqual([["/aspec 4 none"]]);
+  });
+
+  it("asks a cap of 0 to 100 and a value no higher than the cap", async () => {
+    await game.emit("State", state());
+    await open(4);
+    await game.emit("Part", "card", card(4, { stats: STATS }));
+
+    await page.find('[data-stat="Blade"] [data-act="cap"]').trigger("click");
+    let dialog = page.find('[role="dialog"]');
+    expect(dialog.text()).toContain("Cap of Blade: Brannoc");
+    await dialog.find("input").setValue("101");
+    await dialog.trigger("submit");
+    expect(page.find('[role="alert"]').text()).toBe("Give a cap from 0 to 100.");
+    await dialog.find("input").setValue("80");
+    await dialog.trigger("submit");
+    expect(game.readSent("AdminRun").at(-1)).toEqual(["/acap 4 Blade 80"]);
+
+    await page.find('[data-stat="Blade"] [data-act="value"]').trigger("click");
+    dialog = page.find('[role="dialog"]');
+    expect(dialog.find("label").text()).toContain("Value, 0 to 30");
+    await dialog.find("input").setValue("31");
+    await dialog.trigger("submit");
+    expect(page.find('[role="alert"]').text()).toBe("Give a value from 0 to 30, at most the cap.");
+    await dialog.find("input").setValue("30");
+    await dialog.trigger("submit");
+    expect(game.readSent("AdminRun").at(-1)).toEqual(["/astat 4 Blade 30"]);
+  });
+
+  it("shows no specialization section without the commands, and a note while it is not read", async () => {
+    await game.emit("State", state({ allowed: EVERYTHING.filter((command) => !["aspec", "acap", "astat"].includes(command)) }));
+    await open(4);
+    await game.emit("Part", "card", card(4, { stats: STATS }));
+    expect(page.find("[data-spec]").exists()).toBe(false);
+    expect(page.find("[data-act]").exists()).toBe(false);
+    expect(page.find('[data-stat="Blade"]').exists()).toBe(true);
+
+    await game.emit("Part", "card", card(4, { stats: null }));
+    expect(page.find(".admin-spec").text()).toContain("The specialization is not read yet.");
   });
 
   it("asks for the card of the player picked and offers the lift that fits", async () => {

@@ -11,4 +11,16 @@ internal enum TraderSpotKind
 
     // Sells the game's horses (Stable/).
     Stablemaster,
+
+    // Teaches the warrior's specializations (Specializations/).
+    WarriorMentor,
+
+    // Teaches the mage's specializations.
+    MageMentor,
+
+    // Teaches the support's specializations.
+    SupportMentor,
+
+    // Teaches every specialization, in the Imperial Palace.
+    Registrar,
 }

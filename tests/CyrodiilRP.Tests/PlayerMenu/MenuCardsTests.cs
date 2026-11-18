@@ -21,10 +21,11 @@ public sealed class MenuCardsTests
         var player = CreatePlayer();
         player.PlayCountedUntil = Now.AddSeconds(-45);
 
-        var card = MenuCards.BuildCharacter(player, CreateCharacter(), Gold, Now);
+        var card = MenuCards.BuildCharacter(player, CreateCharacter(), Gold, "Healer", Now);
 
         Assert.Equal(WrittenSeconds + 45, card.PlayedSeconds);
         Assert.Equal(Gold, card.Gold);
+        Assert.Equal("Healer", card.Specialization);
         Assert.Equal(Now.AddDays(-3).ToUnixTimeMilliseconds(), card.CreatedAt);
     }
 

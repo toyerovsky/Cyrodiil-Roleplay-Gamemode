@@ -186,6 +186,28 @@ public static partial class RpContracts
     [ClientToServer]
     public static partial void StableBuy(string horse);
 
+    // The labels over the mode's warrior, mage and support mentors and the registrar, in the player's language.
+    [ServerToClient]
+    public static partial void MentorLabels(string warrior, string mage, string support, string registrar);
+
+    // A MentorView as JSON: opens a mentor's window or brings it up to date.
+    [ServerToClient]
+    public static partial void MentorState(string json);
+
+    // What a choice came to, in the player's language: chosen or refused.
+    [ServerToClient]
+    public static partial void MentorAnswer(string text, bool chosen);
+
+    [ServerToClient]
+    public static partial void MentorClosed();
+
+    // One of the specializations the window offered, by the name it came under.
+    [ClientToServer]
+    public static partial void MentorChoose(string specialization);
+
+    [ClientToServer]
+    public static partial void MentorClose();
+
     [ClientToServer]
     public static partial void StableClose();
 

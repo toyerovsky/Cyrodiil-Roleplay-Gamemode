@@ -23,5 +23,7 @@ internal sealed partial class RpConfig
 
     public StableSettings Stable { get; set; } = new();
 
+    public SpecializationSettings Specializations { get; set; } = new();
+
     public NoticeBoardSettings NoticeBoards { get; set; } = new();
 }

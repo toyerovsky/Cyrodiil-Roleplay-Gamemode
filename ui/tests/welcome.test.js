@@ -35,6 +35,15 @@ describe("the welcome", () => {
     expect(page.find(".welcome").exists()).toBe(false);
   });
 
+  it("names the character's specialization, or says there is none yet", async () => {
+    await game.emit("Welcome", back({ characters: [{ ...marcus, specialization: "Wizard" }] }));
+    expect(page.find('[data-fact="specialization"] dt').text()).toBe("Specialization");
+    expect(page.find('[data-fact="specialization"] dd').text()).toBe("Wizard");
+
+    await game.emit("Welcome", back({ characters: [{ ...marcus, specialization: null }] }));
+    expect(page.find('[data-fact="specialization"] dd').text()).toBe("None yet");
+  });
+
   it("greets a returning player by their nickname, with their character and the locked slot", async () => {
     await game.emit("Welcome", back());
 

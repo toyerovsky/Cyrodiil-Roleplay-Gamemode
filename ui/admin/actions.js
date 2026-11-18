@@ -39,6 +39,10 @@ export const ACTIONS = {
   factionLead: { command: "afaction", line: "/afaction lead #{id} #{member}" },
   factionRemove: { command: "afaction", line: "/afaction remove #{id} #{member}" },
   noticeRemove: { command: "anotice", line: "/anotice remove {id}" },
+  spec: { command: "aspec", line: "/aspec {number} {specialization}" },
+  cap: { command: "acap", line: "/acap {number} {stat} {cap}", fields: ["cap"] },
+  capClear: { command: "acap", line: "/acap {number} {stat} clear" },
+  statValue: { command: "astat", line: "/astat {number} {stat} {value}", fields: ["value"] },
 };
 
 // The card's buttons in their order. A pair shows the one that fits: a frozen player gets Unfreeze, not Freeze.

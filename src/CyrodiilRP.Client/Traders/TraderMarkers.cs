@@ -8,7 +8,7 @@ using ReadyM.SDK.Client.Entities;
 
 namespace CyrodiilRP.Client.Traders;
 
-// The game names a trader, a banker or a stablemaster after the person it is made from, so the mode puts its own label
+// The game names a trader, a banker, a stablemaster, a mentor or the registrar after the person it is made from, so the mode puts its own label
 // over each. A marker needs the person's pawn, which comes and goes with its cell, so they are looked over every second.
 [Service]
 internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers, RpcHandlers rpc)
@@ -43,6 +43,7 @@ internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers
         rpc.TraderLabelled += OnTraderLabelled;
         rpc.BankerLabelled += OnBankerLabelled;
         rpc.StablemasterLabelled += OnStablemasterLabelled;
+        rpc.MentorsLabelled += OnMentorsLabelled;
     }
 
     private void Stop()
@@ -50,6 +51,7 @@ internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers
         rpc.TraderLabelled -= OnTraderLabelled;
         rpc.BankerLabelled -= OnBankerLabelled;
         rpc.StablemasterLabelled -= OnStablemasterLabelled;
+        rpc.MentorsLabelled -= OnMentorsLabelled;
         foreach (var shown in _shown.Values)
             markers.DestroyMarker(shown.Handle);
         _shown.Clear();
@@ -60,6 +62,14 @@ internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers
     private void OnBankerLabelled(string label) => SetLabel(TraderOrigin.BankerSpawnerRefId, label);
 
     private void OnStablemasterLabelled(string label) => SetLabel(TraderOrigin.StablemasterSpawnerRefId, label);
+
+    private void OnMentorsLabelled(MentorLabelSet labels)
+    {
+        SetLabel(TraderOrigin.WarriorMentorSpawnerRefId, labels.Warrior);
+        SetLabel(TraderOrigin.MageMentorSpawnerRefId, labels.Mage);
+        SetLabel(TraderOrigin.SupportMentorSpawnerRefId, labels.Support);
+        SetLabel(TraderOrigin.RegistrarSpawnerRefId, labels.Registrar);
+    }
 
     private void SetLabel(uint origin, string label)
     {

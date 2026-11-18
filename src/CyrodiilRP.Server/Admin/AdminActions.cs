@@ -12,7 +12,7 @@ internal static class AdminActions
         StaffPermissions.Unmute, StaffPermissions.Warn, StaffPermissions.Kick, StaffPermissions.Ban, StaffPermissions.Unban,
         StaffPermissions.Gold, StaffPermissions.Item, StaffPermissions.Roles, StaffPermissions.Time, StaffPermissions.Weather,
         StaffPermissions.Spawn, StaffPermissions.Health, StaffPermissions.Message, StaffPermissions.Lore, StaffPermissions.FactionManage, StaffPermissions.Feed,
-        StaffPermissions.Notice,
+        StaffPermissions.Notice, StaffPermissions.Specialization, StaffPermissions.Cap, StaffPermissions.Stat,
     ];
 
     private static readonly string[] SanctionsTab = [StaffPermissions.Unban, StaffPermissions.Unmute, StaffPermissions.Unfreeze];

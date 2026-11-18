@@ -35,6 +35,23 @@
     "black": 5000
   },
 
+  // Specializations taught by mentors and the registrar. The first choice costs firstPrice, a change changePrice once
+  // changeCooldownSeconds (real seconds) passed since the last choice: 30 in a Debug build and 60 in a Release one when
+  // it is left out, as here; a live server sets its own (259200 is three days). A specialization's own stats grow to 100, its trained
+  // ones stop at the trained caps and the rest at the limited ones. A character who has not chosen yet stops at
+  // unchosenSkillCap in every skill. potions: which potions fortify only a specialization's own stats (PlayerMade, All
+  // or Off).
+  "specializations": {
+    "firstPrice": 0,
+    "changePrice": 1000,
+    "trainedSkillCap": 60,
+    "limitedSkillCap": 30,
+    "trainedAttributeCap": 75,
+    "limitedAttributeCap": 50,
+    "unchosenSkillCap": 50,
+    "potions": "PlayerMade"
+  },
+
   // Notice boards: the notices a board holds (a new one on a full board takes the oldest down), a notice's length, the
   // notices one character has up at once, the minutes between two of them, the days one stays up, and the game's form
   // whose mesh stands for a board.
