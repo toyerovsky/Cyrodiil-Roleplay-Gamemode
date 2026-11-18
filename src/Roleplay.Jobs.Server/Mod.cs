@@ -8,10 +8,11 @@ namespace Roleplay.Jobs.Server;
 // server mod folder is, before any service starts, and offers IJobForemen to the mods that depend on this one.
 [ModEntry]
 public sealed partial class Mod(IDependencyContainer services, FelledTreeStore store, OreNodeStore nodes, CarryableStore carryables,
-    DocksStore docks, WageStore wages, JobForemen foremen, JobAreas areas, ILogger logger)
+    DocksStore docks, WageStore wages, JobForemen foremen, JobAreas areas, HerbRegistry herbs, ILogger logger)
 {
     private void Init()
     {
+        herbs.UseFolder(ModDirectory);
         store.UseFolder(ModDirectory);
         nodes.UseFolder(ModDirectory);
         carryables.UseFolder(ModDirectory);

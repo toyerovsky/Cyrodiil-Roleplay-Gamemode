@@ -24,6 +24,7 @@
     <!-- The shipped server config, parsed the way the SDK parses it. -->
     <ItemGroup>
         <None Include="..\..\mods\Jobs\Content\config.json" Link="config.json" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\..\mods\Jobs\Content\herbs.json" Link="herbs.json" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>

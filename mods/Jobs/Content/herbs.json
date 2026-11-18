@@ -1,0 +1,1073 @@
+[
+  {
+    "plant": "0x000336A5",
+    "editorId": "Alkanet",
+    "ingredient": "0x0003365C",
+    "name": "Alkanet Flower",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336BF",
+    "editorId": "AloeVera",
+    "ingredient": "0x000A7924",
+    "name": "Aloe Vera Leaves",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336A4",
+    "editorId": "ArrowrootPlant",
+    "ingredient": "0x0003365E",
+    "name": "Arrowroot",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x0009DAB6",
+    "editorId": "Bergamot01",
+    "ingredient": "0x000A7933",
+    "name": "Bergamot Seeds",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x0009DAB7",
+    "editorId": "Bergamot02",
+    "ingredient": "0x000A7933",
+    "name": "Bergamot Seeds",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336A7",
+    "editorId": "BlackberryBush",
+    "ingredient": "0x00033663",
+    "name": "Blackberry",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x0007B7D0",
+    "editorId": "BloodGrassPLANT",
+    "ingredient": "0x00033664",
+    "name": "Bloodgrass",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x00062515",
+    "editorId": "CairnBolete01",
+    "ingredient": "0x0006251E",
+    "name": "Cairn Bolete Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x00062516",
+    "editorId": "CairnBolete02",
+    "ingredient": "0x0006251E",
+    "name": "Cairn Bolete Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x00062517",
+    "editorId": "CairnBolete03",
+    "ingredient": "0x0006251E",
+    "name": "Cairn Bolete Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x00062518",
+    "editorId": "CairnBolete04",
+    "ingredient": "0x0006251E",
+    "name": "Cairn Bolete Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x00062513",
+    "editorId": "CairnBoleteCluster01",
+    "ingredient": "0x0006251E",
+    "name": "Cairn Bolete Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x00062514",
+    "editorId": "CairnBoleteCluster02",
+    "ingredient": "0x0006251E",
+    "name": "Cairn Bolete Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336CE",
+    "editorId": "CarrotPlant",
+    "ingredient": "0x00033666",
+    "name": "Carrot",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336CA",
+    "editorId": "Columbine",
+    "ingredient": "0x000A7925",
+    "name": "Columbine Root Pulp",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336CD",
+    "editorId": "CornStalk",
+    "ingredient": "0x0003366B",
+    "name": "Corn",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x0001AE9F",
+    "editorId": "DPodCracked01",
+    "ingredient": "0x0001B6B2",
+    "name": "Rot Scale",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x0001AEA0",
+    "editorId": "DPodCracked02",
+    "ingredient": "0x0001B6B2",
+    "name": "Rot Scale",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x0001AEA1",
+    "editorId": "DPodGlow01",
+    "ingredient": "0x0001B6B3",
+    "name": "Withering Moon",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x0001AEA2",
+    "editorId": "DPodGlow02",
+    "ingredient": "0x0001B6B3",
+    "name": "Withering Moon",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x0001AEA3",
+    "editorId": "DPodGrowth01",
+    "ingredient": "0x0001B6B1",
+    "name": "Thorn Hook",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x0001AEA4",
+    "editorId": "DPodGrowth02",
+    "ingredient": "0x0001B6B1",
+    "name": "Thorn Hook",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x000336A8",
+    "editorId": "DomicaRedwort",
+    "ingredient": "0x0002503A",
+    "name": "Redwort Flower",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000336A9",
+    "editorId": "DragonsTonguePlant",
+    "ingredient": "0x00025039",
+    "name": "Dragon's Tongue",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000336D9",
+    "editorId": "Fennel",
+    "ingredient": "0x000A7926",
+    "name": "Fennel Seeds",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336DB",
+    "editorId": "FlaxBlue",
+    "ingredient": "0x000A7927",
+    "name": "Flax Seeds",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x00189D14",
+    "editorId": "FlaxRed",
+    "ingredient": "0x000A7927",
+    "name": "Flax Seeds",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x00189857",
+    "editorId": "FlaxYellow",
+    "ingredient": "0x000A7927",
+    "name": "Flax Seeds",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x0009DAB8",
+    "editorId": "Foxglove",
+    "ingredient": "0x00033687",
+    "name": "Foxglove Nectar",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336AA",
+    "editorId": "GarlicCluster",
+    "ingredient": "0x00033677",
+    "name": "Garlic",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336AC",
+    "editorId": "GinsengRed",
+    "ingredient": "0x00033679",
+    "name": "Ginseng",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x00189D19",
+    "editorId": "GinsengYellow",
+    "ingredient": "0x00033679",
+    "name": "Ginseng",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x00189D1B",
+    "editorId": "Goldenrod01",
+    "ingredient": "0x000336A2",
+    "name": "White Seed Pod",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336AD",
+    "editorId": "GrapeVine",
+    "ingredient": "0x0003367B",
+    "name": "Grapes",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x0007B7CC",
+    "editorId": "HarradaGroundAttackPLANT",
+    "ingredient": "0x0003367D",
+    "name": "Harrada",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0007B7CE",
+    "editorId": "HarradaHanging01PLANT",
+    "ingredient": "0x0003367D",
+    "name": "Harrada",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0007B7CF",
+    "editorId": "HarradaHanging02PLANT",
+    "ingredient": "0x0003367D",
+    "name": "Harrada",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0007B7CD",
+    "editorId": "HarradaUpRightAttackPLANT",
+    "ingredient": "0x0003367D",
+    "name": "Harrada",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000336BE",
+    "editorId": "LadysMantle",
+    "ingredient": "0x000A7928",
+    "name": "Lady's Mantle Leaves",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336C4",
+    "editorId": "LadysSmock",
+    "ingredient": "0x000A7929",
+    "name": "Lady's Smock Leaves",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336DF",
+    "editorId": "Lavender",
+    "ingredient": "0x000A792A",
+    "name": "Lavender Sprig",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336C6",
+    "editorId": "LeekPlant",
+    "ingredient": "0x00033680",
+    "name": "Leek",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336C7",
+    "editorId": "LettucePlant",
+    "ingredient": "0x00033681",
+    "name": "Lettuce",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336E8",
+    "editorId": "LilyoftheValley",
+    "ingredient": "0x000A792B",
+    "name": "Tiger Lily Nectar",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x0005DCE0",
+    "editorId": "ManaBloom01",
+    "ingredient": "0x000704A0",
+    "name": "Ambrosia",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x000707B6",
+    "editorId": "ManaBloom02",
+    "ingredient": "0x0007049E",
+    "name": "Lichor",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x000336C8",
+    "editorId": "Mandrake",
+    "ingredient": "0x00033683",
+    "name": "Mandrake Root",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336D8",
+    "editorId": "MilkThistle",
+    "ingredient": "0x000A792C",
+    "name": "Milk Thistle Seeds",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336CB",
+    "editorId": "Monkshood",
+    "ingredient": "0x000A792E",
+    "name": "Monkshood Root Pulp",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336C9",
+    "editorId": "MorningGloryBlue01",
+    "ingredient": "0x000A792F",
+    "name": "Morning Glory Root Pulp",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x00189869",
+    "editorId": "MorningGloryBlue02",
+    "ingredient": "0x000A792F",
+    "name": "Morning Glory Root Pulp",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x0018986A",
+    "editorId": "MorningGloryBlue03",
+    "ingredient": "0x000A792F",
+    "name": "Morning Glory Root Pulp",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x0018986B",
+    "editorId": "MorningGloryBlue04",
+    "ingredient": "0x000A792F",
+    "name": "Morning Glory Root Pulp",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x00189D50",
+    "editorId": "MorningGloryPurple01",
+    "ingredient": "0x000A792F",
+    "name": "Morning Glory Root Pulp",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x00189D51",
+    "editorId": "MorningGloryPurple02",
+    "ingredient": "0x000A792F",
+    "name": "Morning Glory Root Pulp",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x00189D52",
+    "editorId": "MorningGloryPurple03",
+    "ingredient": "0x000A792F",
+    "name": "Morning Glory Root Pulp",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x00189D53",
+    "editorId": "MorningGloryPurple04",
+    "ingredient": "0x000A792F",
+    "name": "Morning Glory Root Pulp",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336E1",
+    "editorId": "Motherwort",
+    "ingredient": "0x000A7930",
+    "name": "Motherwort Sprig",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000EED5F",
+    "editorId": "MotherwortJM",
+    "ingredient": "0x000A7930",
+    "name": "Motherwort Sprig",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336B1",
+    "editorId": "MshrmBogBeacon01",
+    "ingredient": "0x0008446C",
+    "name": "Bog Beacon Asco Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x00054883",
+    "editorId": "MshrmBogBeacon02",
+    "ingredient": "0x0008446C",
+    "name": "Bog Beacon Asco Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000336B6",
+    "editorId": "MshrmCinnabarPolypore01",
+    "ingredient": "0x0008529B",
+    "name": "Cinnabar Polypore Yellow Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000831DE",
+    "editorId": "MshrmCinnabarPolypore02",
+    "ingredient": "0x0008529C",
+    "name": "Cinnabar Polypore Red Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000336BC",
+    "editorId": "MshrmCloudedFunnelCap",
+    "ingredient": "0x00084472",
+    "name": "Clouded Funnel Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336B7",
+    "editorId": "MshrmDryadsSaddlePolypore",
+    "ingredient": "0x0008529D",
+    "name": "Dryad Saddle Polypore Cap",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x000336B0",
+    "editorId": "MshrmElfCup",
+    "ingredient": "0x0008529E",
+    "name": "Elf Cup Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000336BA",
+    "editorId": "MshrmEmeticRussula",
+    "ingredient": "0x0008529F",
+    "name": "Emetic Russula Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0001C77D",
+    "editorId": "MshrmFlyAmanita01",
+    "ingredient": "0x00084471",
+    "name": "Fly Amanita Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x0001C77C",
+    "editorId": "MshrmFlyAmanita02",
+    "ingredient": "0x00084471",
+    "name": "Fly Amanita Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x0001C765",
+    "editorId": "MshrmFlyAmanita03",
+    "ingredient": "0x00084471",
+    "name": "Fly Amanita Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x0001C718",
+    "editorId": "MshrmFlyAmanita04",
+    "ingredient": "0x00084471",
+    "name": "Fly Amanita Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336AE",
+    "editorId": "MshrmGreenStainCup",
+    "ingredient": "0x0008446A",
+    "name": "Green Stain Cup Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000336AF",
+    "editorId": "MshrmGreenStainShelf",
+    "ingredient": "0x0008529A",
+    "name": "Green Stain Shelf Cap",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x000336BB",
+    "editorId": "MshrmSteelBlueEntoloma",
+    "ingredient": "0x0008446B",
+    "name": "Steel-Blue Entoloma Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000336B2",
+    "editorId": "MshrmStinkhorn",
+    "ingredient": "0x0008446D",
+    "name": "Stinkhorn Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000336B8",
+    "editorId": "MshrmSummerBolete",
+    "ingredient": "0x00084470",
+    "name": "Summer Bolete Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336B4",
+    "editorId": "MshrmTinderPolypore",
+    "ingredient": "0x0008446F",
+    "name": "Tinder Polypore Cap",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336CC",
+    "editorId": "NightshadePlant",
+    "ingredient": "0x00033688",
+    "name": "Nightshade",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x00066538",
+    "editorId": "NirnrootPlant",
+    "ingredient": "0x0004E940",
+    "name": "Nirnroot",
+    "tier": "Master"
+  },
+  {
+    "plant": "0x00066A26",
+    "editorId": "NirnrootPlantSmall",
+    "ingredient": "0x0004E940",
+    "name": "Nirnroot",
+    "tier": "Master"
+  },
+  {
+    "plant": "0x000336DA",
+    "editorId": "Peony",
+    "ingredient": "0x000A7932",
+    "name": "Peony Seeds",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336D1",
+    "editorId": "PotatoPlant",
+    "ingredient": "0x0003368C",
+    "name": "Potato",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336C2",
+    "editorId": "PrimrosePink",
+    "ingredient": "0x000A7934",
+    "name": "Primrose Leaves",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x00189D7A",
+    "editorId": "PrimrosePurple",
+    "ingredient": "0x000A7934",
+    "name": "Primrose Leaves",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336D2",
+    "editorId": "PumpkinVine",
+    "ingredient": "0x0003368D",
+    "name": "Pumpkin",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336D3",
+    "editorId": "RadishPlant",
+    "ingredient": "0x0003368E",
+    "name": "Radish",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336DC",
+    "editorId": "RicePlant",
+    "ingredient": "0x00033690",
+    "name": "Rice",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x00011CFC",
+    "editorId": "RootWispLG01",
+    "ingredient": "0x0007D04E",
+    "name": "Wisp Core",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x00011CFB",
+    "editorId": "Rootwispsm01",
+    "ingredient": "0x0007D04E",
+    "name": "Wisp Core",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x0004343B",
+    "editorId": "SE38DSwampTentacleDeformed",
+    "ingredient": "0x00043410",
+    "name": "Deformed Swamp Tentacle",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x00081EAD",
+    "editorId": "SE38Poddim01",
+    "ingredient": "0x00081E9A",
+    "name": "Mute Screaming Maw",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x00081EAE",
+    "editorId": "SE38Poddim02",
+    "ingredient": "0x00081E9A",
+    "name": "Mute Screaming Maw",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x0004343C",
+    "editorId": "SE38Podwet01",
+    "ingredient": "0x0004340E",
+    "name": "Blind Watcher's Eye",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x0004343D",
+    "editorId": "SE38Podwet02",
+    "ingredient": "0x0004340E",
+    "name": "Blind Watcher's Eye",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x00019525",
+    "editorId": "SEDFungusStalkCluster01",
+    "ingredient": "0x00019529",
+    "name": "Fungus Stalk",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x0001952A",
+    "editorId": "SEDFungusStalkCluster02",
+    "ingredient": "0x00019529",
+    "name": "Fungus Stalk",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x0001AE83",
+    "editorId": "SEDGrummiteEggMound",
+    "ingredient": "0x0001AE82",
+    "name": "Grummite Eggs",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0001AE81",
+    "editorId": "SEDGrummiteEggSac01",
+    "ingredient": "0x0001AE82",
+    "name": "Grummite Eggs",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0001AE95",
+    "editorId": "SEDGrummiteEggSac02",
+    "ingredient": "0x0001AE82",
+    "name": "Grummite Eggs",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0003BAB0",
+    "editorId": "SEDMTreeHangingTar01",
+    "ingredient": "0x0003BABD",
+    "name": "Black Tar",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0003BAB1",
+    "editorId": "SEDMTreeHangingTar02",
+    "ingredient": "0x0003BABD",
+    "name": "Black Tar",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0003BAB2",
+    "editorId": "SEDMTreeHangingTar03a",
+    "ingredient": "0x0003BABD",
+    "name": "Black Tar",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0003BAB3",
+    "editorId": "SEDMTreeHangingTar03b",
+    "ingredient": "0x0003BABD",
+    "name": "Black Tar",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0003E083",
+    "editorId": "SEDMshrmPutridGigantea01",
+    "ingredient": "0x000402E9",
+    "name": "Congealed Putrescence",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x0001F3A9",
+    "editorId": "SEDMushroomCluster01",
+    "ingredient": "0x0001F3AA",
+    "name": "Blister Pod Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0001F3AC",
+    "editorId": "SEDMushroomCluster02",
+    "ingredient": "0x0001F3AA",
+    "name": "Blister Pod Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0003DE5C",
+    "editorId": "SEDPitcherPlant",
+    "ingredient": "0x0003E632",
+    "name": "Letifer Orca Digestive Slime",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x000786EF",
+    "editorId": "SEDSapling02",
+    "ingredient": "0x0003BABD",
+    "name": "Black Tar",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000786F1",
+    "editorId": "SEDSapling03",
+    "ingredient": "0x0003BABD",
+    "name": "Black Tar",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000413DA",
+    "editorId": "SEDSwampTentacle",
+    "ingredient": "0x000413DC",
+    "name": "Swamp Tentacle",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x00040373",
+    "editorId": "SEDWaterRootPod",
+    "ingredient": "0x00040CAF",
+    "name": "Water Root Pod Pit",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x0001A73C",
+    "editorId": "SEMAlocasia01",
+    "ingredient": "0x0001AE7A",
+    "name": "Alocasia Fruit",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x0001A7AC",
+    "editorId": "SEMAlocasia02",
+    "ingredient": "0x0001AE7A",
+    "name": "Alocasia Fruit",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x0001AE7D",
+    "editorId": "SEMAlocasia03",
+    "ingredient": "0x0001AE7A",
+    "name": "Alocasia Fruit",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x0001B023",
+    "editorId": "SEMAsterBloom01",
+    "ingredient": "0x0001B035",
+    "name": "Aster Bloom Core",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x0001B02A",
+    "editorId": "SEMAsterBloom02",
+    "ingredient": "0x0001B035",
+    "name": "Aster Bloom Core",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x0001B02B",
+    "editorId": "SEMAsterBloom03",
+    "ingredient": "0x0001B035",
+    "name": "Aster Bloom Core",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x0001B02D",
+    "editorId": "SEMAsterBloom04",
+    "ingredient": "0x0001B035",
+    "name": "Aster Bloom Core",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x0001B032",
+    "editorId": "SEMAsterBloom05",
+    "ingredient": "0x0001B035",
+    "name": "Aster Bloom Core",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x0001A16D",
+    "editorId": "SEMKelp01",
+    "ingredient": "0x0001A16E",
+    "name": "Red Kelp Gas Bladder",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0001A1A3",
+    "editorId": "SEMKelp02",
+    "ingredient": "0x0001A16E",
+    "name": "Red Kelp Gas Bladder",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0001CE59",
+    "editorId": "SEMMshrmHydnumAzure01",
+    "ingredient": "0x0003BAD3",
+    "name": "Hydnum Azure Giant Spore",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x00030FFD",
+    "editorId": "SEMMshrmHydnumAzure02",
+    "ingredient": "0x0003BAD3",
+    "name": "Hydnum Azure Giant Spore",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0001B5A5",
+    "editorId": "SEMMushroomCluster01",
+    "ingredient": "0x0001B5AA",
+    "name": "Worm's Head Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0001B69C",
+    "editorId": "SEMMushroomCluster02",
+    "ingredient": "0x0001B5AA",
+    "name": "Worm's Head Cap",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000786F6",
+    "editorId": "SEMSapling02",
+    "ingredient": "0x00077AD9",
+    "name": "Unrefined Greenmote",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000786F7",
+    "editorId": "SEMSapling03",
+    "ingredient": "0x00077AD9",
+    "name": "Unrefined Greenmote",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x00011CFF",
+    "editorId": "SEPodGlow01",
+    "ingredient": "0x0001B6AE",
+    "name": "Flame Stalk",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x00011D00",
+    "editorId": "SEPodGlow02",
+    "ingredient": "0x0001B6AE",
+    "name": "Flame Stalk",
+    "tier": "Expert"
+  },
+  {
+    "plant": "0x00011CFD",
+    "editorId": "SEPoddim01",
+    "ingredient": "0x0001B6B0",
+    "name": "Screaming Maw",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x00011CFE",
+    "editorId": "SEPoddim02",
+    "ingredient": "0x0001B6B0",
+    "name": "Screaming Maw",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x00011D01",
+    "editorId": "SEPodwet01",
+    "ingredient": "0x0001B6AF",
+    "name": "Watcher's Eye",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x00011D02",
+    "editorId": "SEPodwet02",
+    "ingredient": "0x0001B6AF",
+    "name": "Watcher's Eye",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000336D6",
+    "editorId": "SacredLotus",
+    "ingredient": "0x000A7936",
+    "name": "Sacred Lotus Seeds",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336E3",
+    "editorId": "SomnaliusPlant",
+    "ingredient": "0x00033696",
+    "name": "Somnalius Frond",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0007B7CB",
+    "editorId": "SpiddalStickPLANT",
+    "ingredient": "0x00033697",
+    "name": "Spiddal Stick",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0007B7D1",
+    "editorId": "SpiddalstickDEAD",
+    "ingredient": "0x00033697",
+    "name": "Spiddal Stick",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000336E9",
+    "editorId": "StJohnsWort",
+    "ingredient": "0x000A7939",
+    "name": "St. Jahn's Wort Nectar",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336E4",
+    "editorId": "StrawberryBush",
+    "ingredient": "0x00033699",
+    "name": "Strawberry",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x00189D7E",
+    "editorId": "TigerLily01",
+    "ingredient": "0x000A792B",
+    "name": "Tiger Lily Nectar",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336E5",
+    "editorId": "TobaccoPlant",
+    "ingredient": "0x0003369D",
+    "name": "Tobacco",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x00009745",
+    "editorId": "TomatoPlant",
+    "ingredient": "0x0003369E",
+    "name": "Tomato",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336C5",
+    "editorId": "VipersBugloss",
+    "ingredient": "0x000A793B",
+    "name": "Viper's Bugloss Leaves",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336E7",
+    "editorId": "WaterHyacinth01",
+    "ingredient": "0x000A793C",
+    "name": "Water Hyacinth Nectar",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x00090C5C",
+    "editorId": "WaterHyacinth02",
+    "ingredient": "0x000A793C",
+    "name": "Water Hyacinth Nectar",
+    "tier": "Apprentice"
+  },
+  {
+    "plant": "0x000336EB",
+    "editorId": "WatermelonVine",
+    "ingredient": "0x000336A0",
+    "name": "Watermelon",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x000336EC",
+    "editorId": "WheatStalk",
+    "ingredient": "0x000336A1",
+    "name": "Wheat Grain",
+    "tier": "Novice"
+  },
+  {
+    "plant": "0x00062519",
+    "editorId": "WispStalkCluster01",
+    "ingredient": "0x0006251F",
+    "name": "Wisp Stalk Caps",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0006251A",
+    "editorId": "WispStalkCluster02",
+    "ingredient": "0x0006251F",
+    "name": "Wisp Stalk Caps",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0006251B",
+    "editorId": "WispStalkCluster03",
+    "ingredient": "0x0006251F",
+    "name": "Wisp Stalk Caps",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0006251C",
+    "editorId": "WispStalkCluster04",
+    "ingredient": "0x0006251F",
+    "name": "Wisp Stalk Caps",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x0006251D",
+    "editorId": "WispStalkCluster05",
+    "ingredient": "0x0006251F",
+    "name": "Wisp Stalk Caps",
+    "tier": "Journeyman"
+  },
+  {
+    "plant": "0x000336C0",
+    "editorId": "Wormwood",
+    "ingredient": "0x000A793E",
+    "name": "Wormwood Leaves",
+    "tier": "Apprentice"
+  }
+]

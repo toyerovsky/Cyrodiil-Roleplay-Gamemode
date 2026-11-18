@@ -14,6 +14,8 @@ public sealed partial class JobsConfig
 
     public DocksConfig Docks { get; set; } = new();
 
+    public HerbalismConfig Herbalism { get; set; } = new();
+
     // Where felled trees and when they grow back are kept, next to the server DLL.
     public string SaveFile { get; set; } = "felled-trees.json";
 
