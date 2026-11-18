@@ -41,6 +41,41 @@ internal sealed class CommandCall(OnlinePlayer sender, string arguments, OnlineP
         return true;
     }
 
+    // A player number or name first, then text. Rest: the text after the player.
+    public bool TryNamedTarget([NotNullWhen(true)] out OnlinePlayer? target, out string rest)
+    {
+        target = null;
+        rest = string.Empty;
+        if (Words.Count == 0)
+        {
+            Refuse(CommandsText.TargetNamed);
+            return false;
+        }
+
+        if (CommandLine.TryPlayerNumber(Words[0], out _))
+        {
+            rest = SkipWords(1);
+            return TryTarget(0, out target);
+        }
+
+        var named = PlayerNames.Take(Arguments, online.All);
+        Phrase? refusal = named.Match switch
+        {
+            PlayerNameMatch.Found => null,
+            PlayerNameMatch.Unknown => CommandsText.NoPlayerNamed,
+            PlayerNameMatch.Ambiguous => CommandsText.AmbiguousName,
+        };
+        if (refusal is not null)
+        {
+            Refuse(refusal);
+            return false;
+        }
+
+        target = named.Player!;
+        rest = named.Rest;
+        return true;
+    }
+
     // A player number, or a ReadyM id for an account that may be offline.
     public bool TryAccount(int index, [NotNullWhen(true)] out AccountTarget? target)
     {

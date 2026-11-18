@@ -3,6 +3,7 @@ using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Players;
+using OblivionMP.SDK.Common.Statuses;
 using ReadyM.SDK.Attributes;
 
 namespace CyrodiilRP.Server.Dice;
@@ -35,6 +36,33 @@ internal sealed partial class Rolls(
         var line = reason is null
             ? DiceText.Rolled(new ShownName(roller), asked, dice, result.Total)
             : DiceText.RolledFor(new ShownName(roller), asked, reason, dice, result.Total);
+        chat.SendAround(roller, config.Chat.Emote, ChatLineKind.Attempt, line);
+        Keep(roller, result);
+        return result;
+    }
+
+    // Value: the roller's level in the stat now, which gives the bonus.
+    public RollResult RollStat(OnlinePlayer roller, Stat stat, int value, SkillRollMode mode)
+    {
+        var skill = stat.DisplayName();
+        var bonus = SkillRolls.FindBonus(value);
+        var reason = mode switch
+        {
+            SkillRollMode.Normal => DiceText.ReasonSkill(skill, bonus),
+            SkillRollMode.Advantage => DiceText.ReasonAdvantage(skill, bonus),
+            SkillRollMode.Disadvantage => DiceText.ReasonDisadvantage(skill, bonus),
+        };
+        var groups = new[] { new DiceGroup(DieKind.D20, SkillRolls.CountDice(mode)) };
+        var rolled = DiceRoller.Roll(groups, chat.Translate(roller, reason), clock.UtcNow, DiceRoller.RollDie);
+        var kept = SkillRolls.Keep(mode, rolled.Dice);
+        var result = rolled with { Total = kept + bonus };
+        var name = new ShownName(roller);
+        var line = mode switch
+        {
+            SkillRollMode.Normal => DiceText.RolledSkill(name, skill, kept, bonus, result.Total),
+            SkillRollMode.Advantage => DiceText.RolledAdvantage(name, skill, rolled.Dice[0].Value, rolled.Dice[1].Value, kept, bonus, result.Total),
+            SkillRollMode.Disadvantage => DiceText.RolledDisadvantage(name, skill, rolled.Dice[0].Value, rolled.Dice[1].Value, kept, bonus, result.Total),
+        };
         chat.SendAround(roller, config.Chat.Emote, ChatLineKind.Attempt, line);
         Keep(roller, result);
         return result;
