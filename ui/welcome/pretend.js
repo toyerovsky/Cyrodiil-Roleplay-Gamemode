@@ -7,7 +7,7 @@ const NICKNAME = "toyer";
 // was never finished. Play and New character hand over to the game, which closes the page.
 export function pretendGame(readym) {
   const scenario = location.hash.slice(1);
-  const characters = scenario === "" ? [{ firstName: "Marcus", lastName: "Varro", lastPlayedAt: Date.now() - 2 * DAY_MS, playedSeconds: PLAYED_SECONDS }] : [];
+  const characters = scenario === "" ? [{ firstName: "Marcus", lastName: "Varro", lastPlayedAt: Date.now() - 2 * DAY_MS, playedSeconds: PLAYED_SECONDS, specialization: "Wizard" }] : [];
   const view = { nickname: NICKNAME, firstVisit: scenario === "first", characters, emptySlots: characters.length ? 0 : 1, lockedSlots: 1 };
 
   readym.onSend((name) => {

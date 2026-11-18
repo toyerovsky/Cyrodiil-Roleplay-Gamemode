@@ -32,6 +32,11 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
 - **Bank:** a banker NPC keeps a character's gold over deaths and restarts. See `docs/features/bank.md`.
 - **Stable:** a stablemaster NPC sells the game's five horses, one a character, called from the G wheel in the open world
   and ridden by its owner alone. See `docs/features/stable.md`.
+- **Specializations:** nine, three in each of the warrior's, the mage's and the support's path, cap how far a
+  character's skills and attributes grow. Chosen at a mentor of the path or the Imperial Registrar, changed later for
+  gold after a cooldown. Shown on the welcome screen, the F10 character tab and the staff's player card, where an
+  administrator also sets the specialization, a stat's cap or its value (`/aspec`, `/acap`, `/astat`). See
+  `docs/features/specializations.md`.
 - **Notice board:** a board the staff stand in the world, H opens its unsigned notices and lets anyone pin one. See
   `docs/features/notice-board.md`.
 - **Spawn:** the staff set it in the outside world (`/aspawn here`, a button in the panel), a new character goes

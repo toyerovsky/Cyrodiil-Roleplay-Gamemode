@@ -16,6 +16,10 @@
   "chat.need_character": "Finish creating your character first.",
   "chat.empty": "Nothing to say. For example: {example}",
   "chat.pm_empty": "Nothing to send. For example: /pm 3 got a minute?",
+  "chat.reply_empty": "Nothing to send. For example: /re on my way",
+  "chat.reply_nobody": "Nobody has sent you a private message yet.",
+  "chat.reply_gone": "The player who wrote to you last is no longer online.",
+  "chat.own_number": "Your number is {number}.",
   "chat.players": {
     "one": "{count} player online: {list}",
     "other": "{count} players online: {list}"
@@ -36,7 +40,9 @@
   "chat.cmd.try": "/try <action> - an attempt that succeeds or fails",
   "chat.cmd.local_ooc": "/b <text> - out of character, nearby",
   "chat.cmd.global_ooc": "/ooc <text> - out of character, to everyone",
-  "chat.cmd.pm": "/pm <number> <text> - a private message",
+  "chat.cmd.pm": "/pm <number or name> <text> - a private message",
+  "chat.cmd.reply": "/re <text> - answer the last private message",
+  "chat.cmd.id": "/id - your own player number",
   "chat.cmd.players": "/players - who is online, with their numbers",
   "chat.cmd.help": "/help - the commands you can use",
   "chat.greet": "* {name} greets {target}.",

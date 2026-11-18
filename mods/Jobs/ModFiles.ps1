@@ -28,6 +28,7 @@ $clientContentFiles = @(
 
 $serverContentFiles = @(
     "config.json"
+    "herbs.json"    # the plants herbalism gates, with their names and the Alchemy each asks
 )
 
 # Added for Debug builds only

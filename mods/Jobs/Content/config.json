@@ -459,6 +459,40 @@
     "wagesFile": "wages.json"
   },
 
+  "herbalism": {
+    // Picking the game's plants follows Alchemy: a plant is known from its tier of Alchemy on (Novice 0, Apprentice 25,
+    // Journeyman 50, Expert 75, Master 100). One not known is often crushed instead, and gives nothing. Off lets anyone
+    // pick anything as the game does.
+    "enabled": true,
+
+    // The plants, each with the name shown over it and its tier, next to the server DLL. A plant not in it is not gated.
+    "herbFile": "herbs.json",
+
+    // Up to recognisedTiersBelow tiers short of a plant, a character sees it is a herb ("???") without knowing which;
+    // further below, nothing shows over it. masteredTiersAbove tiers above it, every harvest finds extraYield more of its
+    // ingredient, even one where the season gives nothing.
+    "recognisedTiersBelow": 1,
+
+    // The chance, 0 to 1, that a character picks a plant they recognise, or one they do not know at all, instead of
+    // crushing it. A plant they know is picked as the game picks it.
+    "recognisedPickChance": 0.5,
+    "unawarePickChance": 0.25,
+
+    // A plant picked without knowing it gives an item named unknownHerbName (its ingredient under another name, worth
+    // nothing), which turns into the ingredient once the picker's Alchemy reaches the plant. Off gives the ingredient.
+    "unknownHerbs": true,
+    "unknownHerbName": "Unknown herb",
+    "masteredTiersAbove": 2,
+    "extraYield": 1,
+
+    // Names (or "???") over the unpicked plants within markerDistance centimeters of the player.
+    "markers": true,
+    "markerDistance": 800,
+
+    // How often each player's Alchemy is read, to tell their client when it reaches another tier.
+    "alchemyCheckSeconds": 2
+  },
+
   // Felled trees and when they grow back, next to the server DLL.
   "saveFile": "felled-trees.json",
 

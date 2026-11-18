@@ -31,7 +31,7 @@ internal sealed class WareCatalog
         foreach (var (shop, categories) in stocks.Shops)
         {
             if (TraderRules.FindKind(shop) != TraderSpotKind.Shop)
-                throw new InvalidOperationException($"stocks.json names a shop {shop}, which is the name of a banker's or a stablemaster's spot.");
+                throw new InvalidOperationException($"stocks.json names a shop {shop}, which is the name of a banker's, a stablemaster's, a mentor's or the registrar's spot.");
 
             var list = new List<Ware>();
             foreach (var (category, ids) in categories)

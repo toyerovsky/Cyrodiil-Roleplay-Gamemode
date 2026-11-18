@@ -13,6 +13,7 @@ using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Notices;
 using CyrodiilRP.Server.Players;
+using CyrodiilRP.Server.Specializations;
 using CyrodiilRP.Server.Staff;
 using Microsoft.Extensions.Logging;
 using ReadyM.Api.Idents;
@@ -39,6 +40,7 @@ internal sealed partial class AdminPanel(
     LoreCards cards,
     Factions factions,
     NoticeBoards notices,
+    CharacterSpecializations specializations,
     ILogger logger) : ICommandOutput
 {
     private const string PanelOption = "self.admin";
@@ -229,7 +231,9 @@ internal sealed partial class AdminPanel(
 
     private async Task SendCardAsync(OnlinePlayer staff, OnlinePlayer target)
     {
-        var card = await views.ReadCardAsync(target);
+        var name = specializations.FindName(target) is { } phrase ? chat.Translate(staff, phrase) : null;
+        var part = new AdminSpecializationPart(name, specializations.Find(target)?.Row?.Specialization.ToString(), specializations.BuildAdminStats(target));
+        var card = await views.ReadCardAsync(target, part);
         if (card is null || !staff.IsLive)
             return;
 

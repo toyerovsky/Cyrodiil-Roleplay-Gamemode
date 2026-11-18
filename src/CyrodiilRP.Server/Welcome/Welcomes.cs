@@ -7,6 +7,7 @@ using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
+using CyrodiilRP.Server.Specializations;
 using ReadyM.Api.Idents;
 using ReadyM.SDK.Attributes;
 using ReadyM.SDK.Server.Entities;
@@ -22,6 +23,7 @@ internal sealed partial class Welcomes(
     GoldDeliveries gold,
     Proximity proximity,
     IEntities entities,
+    CharacterSpecializations specializations,
     Timers timers)
 {
     private const string ShowJob = "welcome.show";
@@ -34,20 +36,43 @@ internal sealed partial class Welcomes(
 
     private readonly PositionHold _hold = new(proximity, entities);
 
+    // The players whose welcome is up: a specialization read after it went out is sent again.
+    private readonly HashSet<OnlinePlayer> _showing = [];
+
     private void Start()
     {
         online.Loaded += OnLoaded;
-        online.Left += player => _hold.Release(player.Id);
+        online.Left += player =>
+        {
+            _hold.Release(player.Id);
+            _showing.Remove(player);
+        };
         rpc.CharacterPlayed += OnPlayed;
+        specializations.Changed += OnSpecializationChanged;
         timers.RunEvery(HoldJob, HoldEvery, Hold);
     }
 
     private void OnLoaded(OnlinePlayer player) =>
         timers.RunAfter(ShowJob, JoinDelay, () =>
         {
-            if (player.IsLive)
-                rpc.SendWelcome(player.Id, JsonSerializer.Serialize(WelcomeCards.Build(player), WelcomeJson.Default.WelcomeView));
+            if (!player.IsLive)
+                return;
+
+            _showing.Add(player);
+            SendWelcome(player);
         });
+
+    private void OnSpecializationChanged(OnlinePlayer player)
+    {
+        if (_showing.Contains(player) && !player.IsPlaying)
+            SendWelcome(player);
+    }
+
+    private void SendWelcome(OnlinePlayer player)
+    {
+        var specialization = specializations.FindName(player) is { } name ? chat.Translate(player, name) : null;
+        rpc.SendWelcome(player.Id, JsonSerializer.Serialize(WelcomeCards.Build(player, specialization), WelcomeJson.Default.WelcomeView));
+    }
 
     private void OnPlayed(PlayerId id)
     {
@@ -55,6 +80,7 @@ internal sealed partial class Welcomes(
             return;
 
         player.IsPlaying = true;
+        _showing.Remove(player);
         player.PlayCountedUntil = DateTimeOffset.UtcNow;
         _hold.Release(player.Id);
         rpc.SendWelcomeClosed(player.Id);

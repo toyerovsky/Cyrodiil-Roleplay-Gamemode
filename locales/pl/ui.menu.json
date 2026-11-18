@@ -8,6 +8,8 @@
   "ui.menu.character.created": "W Cyrodiil od",
   "ui.menu.character.played": "Czas gry",
   "ui.menu.character.gold": "Złoto przy sobie",
+  "ui.menu.character.specialization": "Specjalizacja",
+  "ui.menu.character.specialization_none": "Jeszcze żadna: uczy jej mentor albo cesarski rejestrator",
   "ui.menu.gold": "{count} szt. złota",
   "ui.menu.hours_minutes": "{hours} godz. {minutes} min",
   "ui.menu.minutes": "{minutes} min",

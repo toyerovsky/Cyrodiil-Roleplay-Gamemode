@@ -57,6 +57,9 @@ internal sealed class OnlinePlayer(PlayerId id, Guid readyMId, DateTimeOffset co
     // When the lore card's page last asked, for its own limit.
     public Queue<long> RecentLoreAsks { get; } = new();
 
+    // The account that sent this player the last private message, which /re answers.
+    public Guid? LastPrivateFrom { get; set; }
+
     // The number /players shows and commands take.
     public ushort Number => Id.RawValue;
 

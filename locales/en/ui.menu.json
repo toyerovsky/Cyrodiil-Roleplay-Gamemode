@@ -8,6 +8,8 @@
   "ui.menu.character.created": "In Cyrodiil since",
   "ui.menu.character.played": "Time played",
   "ui.menu.character.gold": "Gold carried",
+  "ui.menu.character.specialization": "Specialization",
+  "ui.menu.character.specialization_none": "None yet: a mentor or the Imperial Registrar teaches one",
   "ui.menu.gold": "{count} gold",
   "ui.menu.hours_minutes": "{hours} h {minutes} min",
   "ui.menu.minutes": "{minutes} min",

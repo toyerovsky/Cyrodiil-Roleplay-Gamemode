@@ -15,7 +15,8 @@ using ReadyM.SDK.Server.Entities;
 
 namespace CyrodiilRP.Server.Traders;
 
-// /anpc stands the mode's people, a trader of a shop, a banker or a stablemaster, takes one away and lists them.
+// /anpc stands the mode's people, a trader of a shop, a banker, a stablemaster, a mentor or the registrar, takes one away
+// and lists them.
 [Service]
 internal sealed partial class TraderCommands(
     CommandRegistry commands,
@@ -32,6 +33,11 @@ internal sealed partial class TraderCommands(
     private const string Trader = "trader";
     private const string Banker = "banker";
     private const string Stable = "stable";
+    private const string Mentor = "mentor";
+    private const string Registrar = "registrar";
+    private const string WarriorPath = "warrior";
+    private const string MagePath = "mage";
+    private const string SupportPath = "support";
     private const string Remove = "remove";
     private const string List = "list";
     private const string ShopSeparator = ", ";
@@ -112,6 +118,9 @@ internal sealed partial class TraderCommands(
                     TraderSpotKind.Shop => TraderText.Placed(shop, spot.Id),
                     TraderSpotKind.Banker => TraderText.PlacedBanker(spot.Id),
                     TraderSpotKind.Stablemaster => TraderText.PlacedStablemaster(spot.Id),
+                    TraderSpotKind.WarriorMentor or TraderSpotKind.MageMentor or TraderSpotKind.SupportMentor =>
+                        TraderText.PlacedMentor(spot.Shop, spot.Id),
+                    TraderSpotKind.Registrar => TraderText.PlacedRegistrar(spot.Id),
                 });
         });
     }
@@ -127,6 +136,23 @@ internal sealed partial class TraderCommands(
 
             case Stable:
                 return TraderRules.StableShop;
+
+            case Registrar:
+                return TraderRules.RegistrarShop;
+
+            case Mentor:
+                switch (call.Words.Count > 2 ? call.Words[2] : string.Empty)
+                {
+                    case WarriorPath:
+                        return TraderRules.WarriorMentorShop;
+                    case MagePath:
+                        return TraderRules.MageMentorShop;
+                    case SupportPath:
+                        return TraderRules.SupportMentorShop;
+                    default:
+                        call.Refuse(TraderText.UnknownPath);
+                        return null;
+                }
 
             case Trader:
                 var shop = call.Words.Count > 2 ? call.Words[2] : string.Empty;

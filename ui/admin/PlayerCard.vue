@@ -5,6 +5,7 @@ import { fill } from "../shared/locale.js";
 import { PLAYER_ACTIONS, WORLD_ACTIONS } from "./actions.js";
 import { isUnknownItem, SEARCH_FROM } from "./items.js";
 import LoreSection from "./LoreSection.vue";
+import SpecializationSection from "./SpecializationSection.vue";
 import { formatPlayed } from "../shared/format.js";
 import { formatDate, formatMoment } from "./format.js";
 
@@ -99,6 +100,10 @@ const act = (action, values = {}) => emit("act", action, { number: props.player.
           <dt>{{ t["card.played"] }}</dt>
           <dd>{{ formatPlayed(card.playedSeconds, t, locale) }}</dd>
         </div>
+        <div v-if="card.characterCreatedAt !== null" class="admin-fact" data-fact="specialization">
+          <dt>{{ t["card.specialization"] }}</dt>
+          <dd>{{ card.specialization ?? t["card.specialization_none"] }}</dd>
+        </div>
         <div class="admin-fact">
           <dt>{{ t["card.area"] }}</dt>
           <dd class="admin-fact__code">{{ card.area ?? t["card.away"] }}</dd>
@@ -120,6 +125,16 @@ const act = (action, values = {}) => emit("act", action, { number: props.player.
         </li>
       </ul>
       <p v-else class="admin__note">{{ t["card.no_sanctions"] }}</p>
+
+      <SpecializationSection
+        v-if="card.characterCreatedAt !== null"
+        :card="card"
+        :t="t"
+        :locale="locale"
+        :may="may"
+        :can="can"
+        @act="(action, values) => act(action, values)"
+      />
 
       <LoreSection
         :lore="lore"

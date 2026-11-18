@@ -61,7 +61,7 @@ internal sealed partial class AdminViews(
         ItemCatalog.Shipped.Search(filter.Text, filter.Type, ItemsShown).Select(item => new AdminItemView(item.Id, item.Name, item.Type, 0, false)).ToList();
 
     // Null when the target left while the database answered.
-    public async Task<AdminCardView?> ReadCardAsync(OnlinePlayer target)
+    public async Task<AdminCardView?> ReadCardAsync(OnlinePlayer target, AdminSpecializationPart specialization)
     {
         var conditions = target.Character?.Conditions.Values.Where(c => SanctionKeys.Contains(c.Key)).ToList() ?? [];
         var query = new AuditQuery(null, null, target.ReadyMId.ToString(), null, null, null, HistorySize);
@@ -89,6 +89,9 @@ internal sealed partial class AdminViews(
             ToMilliseconds(target.PreviousVisitAt),
             ToMilliseconds(target.Character?.CreatedAt),
             target.Character?.PlayedSeconds ?? 0,
+            specialization.Name,
+            specialization.Id,
+            specialization.Stats,
             area,
             position,
             sanctions,

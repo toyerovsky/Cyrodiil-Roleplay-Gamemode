@@ -71,6 +71,15 @@ describe("the player's menu", () => {
     expect(page.find(".menu__content").text()).toContain("October 24, 2026");
   });
 
+  it("names the character's specialization, or where to get one", async () => {
+    const character = { firstName: "Marcus", lastName: "Varro", createdAt: CREATED, playedSeconds: 59, gold: 10 };
+    await game.emit("State", state({ character: { ...character, specialization: "Healer" } }));
+    expect(page.find('[data-fact="specialization"]').text()).toBe("SpecializationHealer");
+
+    await game.emit("State", state({ character: { ...character, specialization: null } }));
+    expect(page.find('[data-fact="specialization"] dd').text()).toBe("None yet: a mentor or the Imperial Registrar teaches one");
+  });
+
   it("leaves out the gold the server cannot count", async () => {
     await game.emit("State", state({ character: { firstName: "Marcus", lastName: "Varro", createdAt: CREATED, playedSeconds: 59, gold: null } }));
     expect(page.find(".menu__content").text()).not.toContain("Gold carried");

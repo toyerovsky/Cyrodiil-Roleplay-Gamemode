@@ -31,8 +31,10 @@ internal sealed partial class ChatCommands(
         AddSpeech("b", ChatText.CmdLocalOoc, CommandCategory.Messages, SayLocalOoc);
         AddSpeech("ooc", ChatText.CmdGlobalOoc, CommandCategory.Messages, SayGlobalOoc, "o");
         AddSpeech("pm", ChatText.CmdPm, CommandCategory.Messages, SendPrivate);
+        AddSpeech("re", ChatText.CmdReply, CommandCategory.Messages, Reply);
         commands.Add(new CommandSpec { Name = "players", Usage = ChatText.CmdPlayers, Category = CommandCategory.General, Aliases = ["who"] },
             ListPlayers);
+        commands.Add(new CommandSpec { Name = "id", Usage = ChatText.CmdId, Category = CommandCategory.General }, ShowOwnNumber);
 
         interactions.Add(new InteractionOption { Id = GreetOption, Label = ChatText.OptionGreet, Icon = WheelIcons.Hand, Order = GreetOrder, Speaks = true, Run = Greet });
         interactions.Add(new InteractionOption
@@ -107,19 +109,49 @@ internal sealed partial class ChatCommands(
 
     private void SendPrivate(CommandCall call)
     {
-        if (!call.TryTarget(0, out var target))
+        if (!call.TryNamedTarget(out var target, out var text))
             return;
 
-        var text = call.SkipWords(1);
         if (text.Length == 0)
         {
             call.Refuse(ChatText.PmEmpty);
             return;
         }
 
-        chat.SendTo(target, ChatLineKind.Private, ChatText.PmFrom(call.Sender.Number, call.Sender.OocName, text));
-        chat.SendTo(call.Sender, ChatLineKind.Private, ChatText.PmTo(target.Number, target.OocName, text));
+        SendPrivate(call.Sender, target, text);
     }
+
+    private void Reply(CommandCall call)
+    {
+        if (call.Sender.LastPrivateFrom is not { } readyMId)
+        {
+            call.Refuse(ChatText.ReplyNobody);
+            return;
+        }
+
+        if (!online.TryFind(readyMId, out var target))
+        {
+            call.Refuse(ChatText.ReplyGone);
+            return;
+        }
+
+        if (call.Arguments.Length == 0)
+        {
+            call.Refuse(ChatText.ReplyEmpty);
+            return;
+        }
+
+        SendPrivate(call.Sender, target, call.Arguments);
+    }
+
+    private void SendPrivate(OnlinePlayer sender, OnlinePlayer target, string text)
+    {
+        target.LastPrivateFrom = sender.ReadyMId;
+        chat.SendTo(target, ChatLineKind.Private, ChatText.PmFrom(sender.Number, sender.OocName, text));
+        chat.SendTo(sender, ChatLineKind.Private, ChatText.PmTo(target.Number, target.OocName, text));
+    }
+
+    private static void ShowOwnNumber(CommandCall call) => call.Reply(ChatText.OwnNumber(call.Sender.Number));
 
     private void ListPlayers(CommandCall call)
     {

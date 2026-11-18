@@ -20,9 +20,22 @@ const SPAWN_HERE = { x: 26002, y: -90418, z: 1198 };
 const ALL_COMMANDS = [
   "duty", "aheal", "afeed", "ahp", "arevive", "agoto", "abring", "aback", "atp", "afreeze", "aunfreeze", "amute", "aunmute", "awarn", "akick",
   "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "amsg", "alore", "afaction",
-  "anotice",
+  "anotice", "aspec", "acap", "astat",
 ];
-const ADMIN_COMMANDS = ["agold", "aitem", "aroles", "atime", "aweather", "aban", "aunban", "aspawn", "afaction"];
+const ADMIN_COMMANDS = ["agold", "aitem", "aroles", "atime", "aweather", "aban", "aunban", "aspawn", "afaction", "aspec", "acap", "astat"];
+
+// A Knight's caps: what it masters to 100 (no cap), trained 60 or 75, the rest 30 or 50; values as a mid-game knight.
+const STAT_ROWS = [
+  ["Strength", "Strength", 62, null], ["Intelligence", "Intelligence", 34, 50], ["Willpower", "Willpower", 41, 75], ["Agility", "Agility", 45, 50],
+  ["Speed", "Speed", 48, null], ["Endurance", "Endurance", 58, null], ["Personality", "Personality", 39, 75], ["Luck", "Luck", 50, 50],
+  ["Armorer", "Armorer", 44, null], ["Athletics", "Athletics", 51, 60], ["Blade", "Blade", 67, null], ["Block", "Block", 55, null],
+  ["Blunt", "Blunt", 38, null], ["HandToHand", "Hand to Hand", 25, 60], ["HeavyArmor", "Heavy Armor", 61, null], ["Alchemy", "Alchemy", 12, 30],
+  ["Alteration", "Alteration", 9, 30], ["Conjuration", "Conjuration", 7, 30], ["Destruction", "Destruction", 30, 30], ["Illusion", "Illusion", 11, 30],
+  ["Mysticism", "Mysticism", 8, 30], ["Restoration", "Restoration", 36, 60], ["Acrobatics", "Acrobatics", 22, 30], ["LightArmor", "Light Armor", 15, 30],
+  ["Marksman", "Marksman", 19, 30], ["Mercantile", "Mercantile", 24, 30], ["Security", "Security", 10, 30], ["Sneak", "Sneak", 13, 30],
+  ["Speechcraft", "Speechcraft", 33, 60],
+];
+const STATS = STAT_ROWS.map(([id, name, value, cap]) => ({ id, name, value, cap, overridden: false }));
 const SELF = 1;
 const MODERATOR_COMMANDS = ALL_COMMANDS.filter((command) => !ADMIN_COMMANDS.includes(command));
 
@@ -248,6 +261,9 @@ export function pretendGame(readym) {
       previousVisitAt: now - DAY_MS,
       characterCreatedAt: player.character ? now - 3 * DAY_MS : null,
       playedSeconds: 26_712,
+      specialization: specializationId,
+      specializationId,
+      stats: player.area ? stats : stats.map((stat) => ({ ...stat, value: null })),
       area: player.area,
       position: player.area ? "25444 -91022 1210" : null,
       sanctions: player.frozen ? [{ ...FROZEN, account: "3f2b9d4e", by: "Marcus Varro (Toyer)", since: now - 9 * MINUTE_MS }] : [],
@@ -286,6 +302,10 @@ export function pretendGame(readym) {
     atp: (place) => fill(admin["admin.teleported_to"], { place }),
     aspawn: (what) => (what === "go" ? spawnTexts["spawn.went"] : spawnTexts["spawn.set"]),
   };
+
+  let specializationId = "Knight";
+  let stats = STATS.map((stat) => ({ ...stat }));
+  const setStat = (id, change) => (stats = stats.map((stat) => (stat.id === id ? { ...stat, ...change } : stat)));
 
   readym.onSend((name, args) => {
     if (name === "AdminReady") emitLater("State", JSON.stringify(state(scenario === "card" ? 4 : null)));
@@ -330,6 +350,9 @@ export function pretendGame(readym) {
       if (command === "duty") onDuty = !onDuty;
       if (line === "/aspawn here") spawn = SPAWN_HERE;
       if (command === "alore") lore = lore.filter((field) => field.id !== line.split(" ")[3]);
+      if (command === "aspec") specializationId = rest[0] === "none" ? null : rest[0];
+      if (command === "acap") setStat(rest[0], rest[1] === "clear" ? { cap: STATS.find((stat) => stat.id === rest[0]).cap, overridden: false } : { cap: Number(rest[1]), overridden: true });
+      if (command === "astat") setStat(rest[0], { value: Number(rest[1]) });
       if (command === "anotice") {
         const id = Number(line.split(" ")[2]);
         notices = notices.filter((notice) => notice.id !== id);

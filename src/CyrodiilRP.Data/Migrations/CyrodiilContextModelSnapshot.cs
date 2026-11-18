@@ -222,6 +222,30 @@ namespace CyrodiilRP.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.CharacterCapOverride", b =>
+                {
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("character_id");
+
+                    b.Property<string>("Stat")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("stat");
+
+                    b.Property<int>("Cap")
+                        .HasColumnType("integer")
+                        .HasColumnName("cap");
+
+                    b.HasKey("CharacterId", "Stat")
+                        .HasName("pk_character_cap_overrides");
+
+                    b.ToTable("character_cap_overrides", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_character_cap_overrides_cap", "cap >= 0 AND cap <= 100");
+                        });
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.CharacterCondition", b =>
                 {
                     b.Property<long>("CharacterId")
@@ -283,6 +307,41 @@ namespace CyrodiilRP.Data.Migrations
                     b.ToTable("character_horses", null, t =>
                         {
                             t.HasCheckConstraint("ck_character_horses_price", "price >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.CharacterSpecialization", b =>
+                {
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("character_id");
+
+                    b.Property<int>("Changes")
+                        .HasColumnType("integer")
+                        .HasColumnName("changes");
+
+                    b.Property<DateTimeOffset>("ChosenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("chosen_at");
+
+                    b.Property<int>("Price")
+                        .HasColumnType("integer")
+                        .HasColumnName("price");
+
+                    b.Property<string>("Specialization")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("specialization");
+
+                    b.HasKey("CharacterId")
+                        .HasName("pk_character_specializations");
+
+                    b.ToTable("character_specializations", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_character_specializations_changes", "changes >= 0");
+
+                            t.HasCheckConstraint("ck_character_specializations_price", "price >= 0");
                         });
                 });
 
@@ -762,7 +821,7 @@ namespace CyrodiilRP.Data.Migrations
                             Name = "admin",
                             GrantsAll = false,
                             Label = "Administrator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "anotice", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction", "aboard" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "anotice", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction", "aboard", "aspec", "acap", "astat" }
                         },
                         new
                         {
@@ -858,6 +917,16 @@ namespace CyrodiilRP.Data.Migrations
                     b.Navigation("Account");
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.CharacterCapOverride", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_character_cap_overrides_characters_character_id");
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.CharacterCondition", b =>
                 {
                     b.HasOne("CyrodiilRP.Data.Character", null)
@@ -876,6 +945,16 @@ namespace CyrodiilRP.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_character_horses_characters_character_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.CharacterSpecialization", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithOne()
+                        .HasForeignKey("CyrodiilRP.Data.CharacterSpecialization", "CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_character_specializations_characters_character_id");
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.DiceRoll", b =>

@@ -97,6 +97,10 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                 <dt>{{ t.time_played }}</dt>
                 <dd>{{ formatPlayed(each.playedSeconds, t, locale) }}</dd>
               </div>
+              <div class="welcome__fact" data-fact="specialization">
+                <dt>{{ t.specialization }}</dt>
+                <dd>{{ each.specialization ?? t.specialization_none }}</dd>
+              </div>
             </dl>
             <RpButton class="welcome__action" variant="primary" :disabled="!!chosen" :aria-busy="chosen === 'play'" @click="play">
               {{ chosen === "play" ? t.entering : t.play }}

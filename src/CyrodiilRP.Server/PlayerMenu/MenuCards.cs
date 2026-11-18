@@ -8,11 +8,11 @@ namespace CyrodiilRP.Server.PlayerMenu;
 internal static class MenuCards
 {
     // The database's count of the time played and the time since it was last written.
-    public static MenuCharacterView BuildCharacter(OnlinePlayer player, CharacterRecord character, int? gold, DateTimeOffset now)
+    public static MenuCharacterView BuildCharacter(OnlinePlayer player, CharacterRecord character, int? gold, string? specialization, DateTimeOffset now)
     {
         var unwritten = Math.Max(0, (long)(now - player.PlayCountedUntil).TotalSeconds);
         return new MenuCharacterView(
-            character.FirstName, character.LastName, ToMilliseconds(character.CreatedAt), character.PlayedSeconds + unwritten, gold);
+            character.FirstName, character.LastName, ToMilliseconds(character.CreatedAt), character.PlayedSeconds + unwritten, gold, specialization);
     }
 
     // The sanctions soonest over first, those held until lifted last.

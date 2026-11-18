@@ -1,4 +1,5 @@
 using CyrodiilRP.Common;
+using CyrodiilRP.Client.Traders;
 using CyrodiilRP.Common.Chat;
 using OblivionMP.SDK;
 using OblivionMpCSharpMod;
@@ -70,6 +71,14 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     public event Action<string, bool>? StableAnswered;
 
     public event Action? StableClosed;
+
+    public event Action<MentorLabelSet>? MentorsLabelled;
+
+    public event Action<string>? MentorChanged;
+
+    public event Action<string, bool>? MentorAnswered;
+
+    public event Action? MentorClosed;
 
     public event Action<string>? MenuChanged;
 
@@ -181,6 +190,15 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnStableAnswer(string text, bool bought) => StableAnswered?.Invoke(text, bought);
 
     partial void OnStableClosed() => StableClosed?.Invoke();
+
+    partial void OnMentorLabels(string warrior, string mage, string support, string registrar) =>
+        MentorsLabelled?.Invoke(new MentorLabelSet(warrior, mage, support, registrar));
+
+    partial void OnMentorState(string json) => MentorChanged?.Invoke(json);
+
+    partial void OnMentorAnswer(string text, bool chosen) => MentorAnswered?.Invoke(text, chosen);
+
+    partial void OnMentorClosed() => MentorClosed?.Invoke();
 
     partial void OnMenuState(string json) => MenuChanged?.Invoke(json);
 
