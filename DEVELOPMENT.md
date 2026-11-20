@@ -4,13 +4,18 @@ A roleplay gamemode for OblivionMP: a mod with a server half (`src/CyrodiilRP.Se
 (`src/CyrodiilRP.Client`) on the SDK, PostgreSQL through EF Core (`src/CyrodiilRP.Data`) with its own
 migrator (`src/CyrodiilRP.Migrator`), Vue pages (`ui/`) and texts in `locales/`.
 
-The SDK comes with the server, not from nuget.org: the server half feeds players through the Hunger and Thirst mod
+The SDK comes with the repository, not from nuget.org: the server half feeds players through the Hunger and Thirst mod
 (`src/Roleplay.HungerAndThirst.*`, `ISustenance`), which needs the statuses of oblivion-mod's `rp-framework` branch, and
-that branch's SDK is released nowhere. A server package from *rp-framework CI* carries it as NuGet packages in `sdk/`.
-`pack.ps1` copies them into `.sdk/`, the source `nuget.config` names, and `Directory.Build.props` reads the version from
-them, so the mods compile against what that server loads and no oblivion-mod checkout is needed. After unpacking a new
-server, run `./pack.ps1 -PackOnly` once before building in an IDE. The server needs `Roleplay.HungerAndThirst` installed
-(a manifest dependency) and the `rp-framework` build of the game's OblivionMp mod.
+that branch's SDK is released nowhere. Its NuGet packages are in `.sdk/`, the source `nuget.config` names, and
+`Directory.Build.props` reads the version from them, so a clone builds and runs its tests with no server and no
+oblivion-mod checkout. They are kept in Git LFS: run `git lfs install` once before cloning, or `git lfs pull` in a clone
+made without it.
+
+A server package from *rp-framework CI* carries the SDK it was built with in `sdk/`, and `pack.ps1` refuses a server
+built with another one than `.sdk/` holds, so the mods are deployed to what they were compiled against. To move to a
+newer SDK, unpack its server, run `./pack.ps1 -TakeSdk -PackOnly` and commit `.sdk/` with the code that needs it. The
+server needs `Roleplay.HungerAndThirst` installed (a manifest dependency) and the `rp-framework` build of the game's
+OblivionMp mod.
 
 `src/CyrodiilRP.Common` goes to every player with the client, so it holds only what both halves read: the RPC contract
 (`RpContracts`), the chat's line and limits (`ChatLine`, `ChatLineKind`, `ChatLimits`), the mark of the mode's

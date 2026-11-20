@@ -1,6 +1,6 @@
 <Project>
   <ItemGroup>
-    <!-- One version for the three SDK packages: the one in .sdk/, which came with the server (Directory.Build.props). -->
+    <!-- One version for the three SDK packages: the one in .sdk/ (Directory.Build.props). -->
     <PackageVersion Include="ReadyM.SDK.Oblivion.Common" Version="$(OblivionSdkVersion)" />
     <PackageVersion Include="ReadyM.SDK.Oblivion.Client" Version="$(OblivionSdkVersion)" />
     <PackageVersion Include="ReadyM.SDK.Oblivion.Server" Version="$(OblivionSdkVersion)" />
