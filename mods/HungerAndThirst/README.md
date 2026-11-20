@@ -91,6 +91,7 @@ the mod.
 | `src/Roleplay.HungerAndThirst.Client/` | prediction, warnings, the CEF page service, and `ILocalSustenance` |
 | `tests/Roleplay.HungerAndThirst.Tests/` | xUnit tests for the rules, food table, shipped config and save file |
 | `Content/web/` | the pages: `hud.html` (the bars), `satchel.html`, and `index.html` to preview both in a browser |
+| `Content/web/art/` | the bars' pictures, from the game's own vital bar textures (`Art/UI/Modern/HUD/Vitals` of an export), coloured per meter by `tools/bake_vitals.py` |
 | `Content/config.json` | the server config shipped with the mod |
 
 ## Develop

@@ -27,18 +27,19 @@ html, body {
 
 .hidden { display: none !important; }
 
-/* ---- the meters, bottom left, drawn like the game's own health and fatigue bars ----
-   A pale frame with pointed ends, a dark see-through body inside it, and a fill that drains from the right like
-   fatigue. A lighter trail holds where the meter just was and slides after it a moment later. The pointed shape is a
-   clip-path, cut once on the frame and once, inset by the outline, on the body.
+/* ---- the meters, bottom left, drawn with the game's own vital bar textures ----
+   Each bar stacks the game's layers: the dark plate, the trail, the fill, the shine on the fill's moving end, and the
+   gold frame over all of it (art/, baked from the game's export by tools/bake_vitals.py). The fill and the trail are
+   croppers holding a picture of the full bar, so a lower meter cuts the bar shorter the way the game cuts fatigue,
+   rather than squeezing it. The pictures are 3-sliced (border-image), so the pointed ends keep their shape at any
+   width.
 
    Everything inside .hud is sized in container units (cqh, cqw) of the .hud box, so the bars fill whatever box they
    get. In the game that box is the HUD page's own viewport (body.hud-page), placed by SustenancePage.HudPlacement;
    in the browser preview .hud sits at the same rectangle of the screen: 2% to 17% across, 79.5% to 84.5% down. */
 
 .hud {
-  --bar-height: 32cqh;
-  --outline: 2px;
+  --bar-height: 42cqh;
   position: fixed;
   left: 2vw;
   top: 79.5vh;
@@ -48,8 +49,8 @@ html, body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 14cqh;
-  filter: drop-shadow(0 1px 2px var(--shadow));
+  gap: 4cqh;
+  filter: drop-shadow(0 1px 1px var(--shadow));
 }
 
 /* In the game: the page is exactly that rectangle. A little padding keeps the shadow inside it. */
@@ -70,7 +71,7 @@ html, body {
 
 .icon {
   flex: none;
-  height: 100%;
+  height: 70%;
   width: auto;
   aspect-ratio: 1;
   opacity: 0.95;
@@ -93,57 +94,76 @@ html, body {
   50% { fill: #e5432d; }
 }
 
-.bar,
-.body {
-  --tip: calc(var(--h) / 2);
-  clip-path: polygon(var(--tip) 0, calc(100% - var(--tip)) 0, 100% 50%,
-                     calc(100% - var(--tip)) 100%, var(--tip) 100%, 0 50%);
-}
+/* The textures are 32 high. A tip is 32 wide on the plate and frame and 16 on the fill, which the game stretches from 256 to
+   their 512: drawn, every tip is as wide as the bar is high. */
+#satiety { --fill: url(art/fill-food.png); --trail: url(art/trail-food.png); --shine: url(art/shine-food.png); }
+#hydration { --fill: url(art/fill-water.png); --trail: url(art/trail-water.png); --shine: url(art/shine-water.png); }
 
-/* The frame: the pale outline is this element, showing around the inset body. */
 .bar {
   --h: var(--bar-height);
   position: relative;
   flex: 1;
   min-width: 0;
   height: var(--h);
-  background: linear-gradient(to bottom, #f1e9dc, #b9ae9c);
+  container-type: inline-size;
 }
 
-.body {
-  --h: calc(var(--bar-height) - 2 * var(--outline));
+.bar::before,
+.bar::after,
+.fill > i,
+.trail > i {
+  content: "";
   position: absolute;
-  inset: var(--outline);
-  background: linear-gradient(to bottom, rgba(52, 40, 34, 0.92), rgba(28, 21, 18, 0.92));
+  inset: 0;
+  border: 0 solid transparent;
+  border-image-width: 0 var(--h);
 }
 
+.bar::before { border-image: url(art/plate.png) 0 32 fill / 0 var(--h) stretch; }
+.bar::after { border-image: url(art/frame.png) 0 32 fill / 0 var(--h) stretch; }
+
+/* Cut to the fill's pointed start too (measured on T_Vital_Bar_BW), so the shine on a nearly empty meter stays off the
+   empty corners around the point. */
 .fill,
 .trail {
   position: absolute;
   inset: 0 auto 0 0;
   width: 100%;
+  overflow: hidden;
+  clip-path: polygon(calc(var(--h) * 0.81) 0, 100% 0, 100% 100%, calc(var(--h) * 0.81) 100%,
+                     calc(var(--h) * 0.81) 78%, calc(var(--h) * 0.31) 50%, calc(var(--h) * 0.81) 19%);
 }
+
+/* The picture inside stays the bar's full width (100cqw of .bar), so cutting the cropper cuts the bar. */
+.fill > i,
+.trail > i {
+  right: auto;
+  width: 100cqw;
+}
+
+.fill > i { border-image: var(--fill) 0 16 fill / 0 var(--h) stretch; }
+.trail > i { border-image: var(--trail) 0 16 fill / 0 var(--h) stretch; }
 
 /* The fill follows the value closely; the trail slides after it once hud.js lets it go. */
 .fill { transition: width 0.25s linear; }
 .trail { transition: width 0.45s ease-out; }
 
-/* Lighter across the upper part and darker below, as on the vanilla bars. */
-#satiety .fill {
-  background: linear-gradient(to bottom, #e7b763 0%, #c9902f 38%, #a8721e 62%, #7f5615 100%);
+/* The game's end shine: twice as wide as the bar is high, its bright edge 45/64 of the way across, on the cut. */
+.shine {
+  position: absolute;
+  top: 0;
+  right: calc(var(--h) * -38 / 64);
+  width: calc(var(--h) * 2);
+  height: 100%;
+  background: var(--shine) center / 100% 100% no-repeat;
 }
-#satiety .trail { background: linear-gradient(to bottom, #f6dca6, #e3b768); }
 
-#hydration .fill {
-  background: linear-gradient(to bottom, #7fb8e2 0%, #3f86c4 38%, #2e6ea6 62%, #1f4f7c 100%);
-}
-#hydration .trail { background: linear-gradient(to bottom, #c9e3f6, #8dbfe4); }
-
-.meter.critical .bar { background: linear-gradient(to bottom, #f0c8bd, #b06a5c); }
+/* A starving or parched meter: the fill throbs and the frame burns red. */
 .meter.critical .fill { animation: pulse 1.6s ease-in-out infinite; }
+.meter.critical .bar::after { filter: sepia(1) saturate(5) hue-rotate(-35deg) brightness(0.9); }
 
 @keyframes pulse {
-  50% { opacity: 0.5; }
+  50% { opacity: 0.55; }
 }
 
 /* ---- the satchel, a sheet of parchment in the middle ---- */
