@@ -96,28 +96,36 @@ function Use-ServerSdk([string] $server)
     Write-Host "SDK: $($common.BaseName -replace '^ReadyM\.SDK\.Oblivion\.Common\.', '')" -ForegroundColor Green
 }
 
-# "oblivion-server-win64-1.0.0-rc.2": by version, a release is newer than its release candidates, and rc.10 comes
-# after rc.2.
+# Either OS's server: a Linux one can be packed for on Windows.
+function Find-ServerBinary([string] $server)
+{
+    $binary = 'server', 'server.exe' | ForEach-Object { Join-Path $server $_ } | Where-Object { Test-Path $_ -PathType Leaf } | Select-Object -First 1
+    if (-not $binary) { throw "No OblivionMP server in $server (no server or server.exe)." }
+    $binary
+}
+
+# "oblivion-server-win64-1.0.0-rc.2", "oblivion-server-linux64-v1.1-rp-framework-688fc210": by version, a release is
+# newer than the version's other builds, and those go by when the server was built, as a commit's hash has no order.
 function Find-NewestServer
 {
-    $newest = Get-ChildItem $root -Directory -Filter 'oblivion-server-*' | ForEach-Object {
-        $parts = $_.Name.Split('-')
-        $at = [Array]::FindIndex($parts, [Predicate[string]] { param($part) [version]::TryParse($part, [ref] $null) })
+    $servers = foreach ($folder in Get-ChildItem $root -Directory -Filter 'oblivion-server-*')
+    {
+        $parts = $folder.Name.Split('-')
+        $at = [Array]::FindIndex($parts, [Predicate[string]] { param($part) [version]::TryParse($part.TrimStart('v'), [ref] $null) })
         if ($at -ge 0)
         {
-            $label = ($parts | Select-Object -Skip ($at + 1)) -join '-'
-            $sortable = [regex]::Replace($label, '\d+', { param($number) $number.Value.PadLeft(10, '0') })
-            [pscustomobject] @{ Path = $_.FullName; Version = [version] $parts[$at]; Release = $label -eq ''; Label = $sortable }
+            $built = (Get-Item (Find-ServerBinary $folder.FullName)).LastWriteTimeUtc
+            [pscustomobject] @{ Path = $folder.FullName; Version = [version] $parts[$at].TrimStart('v'); Release = $at -eq $parts.Length - 1; Built = $built }
         }
-    } | Sort-Object Version, Release, Label | Select-Object -Last 1
+    }
+    $newest = $servers | Sort-Object Version, Release, Built | Select-Object -Last 1
     if (-not $newest) { throw "No oblivion-server-* folder in ${root}: unpack the server there or give -ServerDir." }
     $newest.Path
 }
 
 if (-not $ServerDir) { $ServerDir = Find-NewestServer }
 $ServerDir = (Resolve-Path $ServerDir).Path
-# Either OS's server: a Linux one can be packed for on Windows.
-if (-not ('server', 'server.exe' | Where-Object { Test-Path (Join-Path $ServerDir $_) -PathType Leaf })) { throw "No OblivionMP server in $ServerDir (no server or server.exe)." }
+Find-ServerBinary $ServerDir | Out-Null
 Write-Host "Server: $ServerDir" -ForegroundColor Green
 Use-ServerSdk $ServerDir
 

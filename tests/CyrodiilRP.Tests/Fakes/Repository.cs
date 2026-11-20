@@ -22,7 +22,7 @@ internal static class Repository
                        .Select(ServerFolder.Parse)
                        .OrderBy(folder => folder.Version)
                        .ThenBy(folder => folder.Release)
-                       .ThenBy(folder => folder.SortableLabel, StringComparer.Ordinal)
+                       .ThenBy(folder => folder.Built)
                        .LastOrDefault()?.Path
                    ?? throw new InvalidOperationException($"No {ServerPrefix}* folder in {Root}: unpack the server there or set {ServerVariable}.");
         }
@@ -45,23 +45,26 @@ internal static class Repository
 
     private static string FindSourceFolder([CallerFilePath] string path = "") => Path.GetDirectoryName(path) ?? "";
 
-    // "oblivion-server-win64-1.0.0-rc.2": version 1.0.0, label rc.2, which comes before the release of 1.0.0.
-    private sealed record ServerFolder(string Path, Version Version, bool Release, string Label)
+    // "oblivion-server-win64-1.0.0-rc.2", "oblivion-server-linux64-v1.1-rp-framework-688fc210": a version's release
+    // comes after its other builds, and those go by when the server was built, as a commit's hash has no order.
+    private sealed record ServerFolder(string Path, Version Version, bool Release, DateTime Built)
     {
-        private const int NumberWidth = 10;
+        private const char VersionMark = 'v';
 
-        // Numbers padded, so rc.10 comes after rc.2.
-        public string SortableLabel => System.Text.RegularExpressions.Regex.Replace(Label, @"\d+", m => m.Value.PadLeft(NumberWidth, '0'));
+        private static readonly string[] Binaries = ["server", "server.exe"];
 
         public static ServerFolder Parse(string path)
         {
-            var parts = System.IO.Path.GetFileName(path).Split('-');
-            var at = Array.FindIndex(parts, part => Version.TryParse(part, out _));
-            if (at < 0)
-                return new ServerFolder(path, new Version(), false, "");
+            var binary = Binaries.Select(name => System.IO.Path.Combine(path, name)).FirstOrDefault(File.Exists)
+                         ?? throw new InvalidOperationException($"No OblivionMP server in {path} (no server or server.exe).");
+            var built = File.GetLastWriteTimeUtc(binary);
 
-            var label = string.Join('-', parts[(at + 1)..]);
-            return new ServerFolder(path, Version.Parse(parts[at]), label.Length == 0, label);
+            var parts = System.IO.Path.GetFileName(path).Split('-');
+            var at = Array.FindIndex(parts, part => Version.TryParse(part.TrimStart(VersionMark), out _));
+            if (at < 0)
+                return new ServerFolder(path, new Version(), false, built);
+
+            return new ServerFolder(path, Version.Parse(parts[at].TrimStart(VersionMark)), at == parts.Length - 1, built);
         }
     }
 }
