@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import texts from "../../locales/en/ui.mentor.json";
 import App from "../mentor/App.vue";
 import { createBridge } from "../mentor/bridge.js";
+import { pictureOf } from "../mentor/pictures.js";
 import { mountPage } from "./readym.js";
 
 const HOUR_MS = 60 * 60 * 1000;
+const NAME_KEY = "ui.mentor.name.";
 const CAPS = { trainedSkill: 60, limitedSkill: 30, trainedAttribute: 75, limitedAttribute: 50, unchosenSkill: 50 };
 const MAGES = [
   { id: "Wizard", path: "Mage", mastered: ["Intelligence", "Destruction"], trained: ["Alchemy", "HandToHand"], majors: ["Destruction", "Alchemy"] },
@@ -129,6 +132,25 @@ describe("the mentor's window", () => {
     await game.emit("State", state({ path: null, chosen: "Knight", offered: MAGES }));
     expect(page.find(".rp-panel__title, h1, h2").text()).toBe("Imperial Registry");
     expect(readSum("specialization")).toBe("Knight");
+  });
+
+  it("draws each specialization's own picture, as decoration beside its name", async () => {
+    await game.emit("State", state());
+    for (const { id } of MAGES) {
+      const picture = row(id).find("img.mentor__picture");
+      expect(picture.attributes("src")).toBe(pictureOf(id));
+      expect(picture.attributes("alt")).toBe("");
+    }
+  });
+
+  it("has a picture for every specialization it can name, each its own", () => {
+    const ids = Object.keys(texts)
+      .filter((key) => key.startsWith(NAME_KEY))
+      .map((key) => key.slice(NAME_KEY.length));
+    expect(ids).toHaveLength(9);
+    const pictures = ids.map(pictureOf);
+    expect(pictures.every(Boolean)).toBe(true);
+    expect(new Set(pictures).size).toBe(ids.length);
   });
 
   it("shows a refusal and lets the player choose again", async () => {

@@ -92,7 +92,7 @@
 
 .mentor__item {
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) minmax(160px, auto);
+  grid-template-columns: 64px minmax(0, 1fr) minmax(160px, auto);
   align-items: center;
   gap: 14px;
   padding: 8px 12px;
@@ -105,14 +105,10 @@
   border-color: var(--gold);
 }
 
-.mentor__icon {
-  width: 30px;
-  height: 30px;
-  color: var(--ink-soft);
-}
-
-.mentor__item--chosen .mentor__icon {
-  color: var(--gold);
+.mentor__picture {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
 }
 
 .mentor__name {

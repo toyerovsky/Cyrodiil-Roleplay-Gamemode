@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, useId, useTemplateRef 
 import { RpButton, RpIcon, RpPanel } from "../rp/index.js";
 import { fill, usePageTexts } from "../shared/locale.js";
 import { isComposing, isHeldPress } from "../shared/press.js";
+import { pictureOf } from "./pictures.js";
 
 const props = defineProps({ bridge: { type: Object, required: true } });
 
@@ -11,7 +12,6 @@ const { locale, t } = usePageTexts(props.bridge, "mentor");
 const SECOND_MS = 1000;
 const MINUTE_MS = 60 * SECOND_MS;
 const HOUR_MS = 60 * MINUTE_MS;
-const PATH_ICONS = { Warrior: "shield", Mage: "book", Support: "flask" };
 
 // The mentor's window as the server last sent it. Null while no mentor's window is open.
 const mentor = ref(null);
@@ -213,7 +213,7 @@ onUnmounted(() => {
           :class="{ 'mentor__item--chosen': specialization.chosen }"
           :data-specialization="specialization.id"
         >
-          <RpIcon :name="PATH_ICONS[specialization.path]" class="mentor__icon" />
+          <img :src="pictureOf(specialization.id)" alt="" class="mentor__picture" />
           <div class="mentor__body">
             <span class="mentor__name">{{ nameOf(specialization) }}</span>
             <span class="mentor__path">{{ t[`path.${specialization.path}`] }}</span>

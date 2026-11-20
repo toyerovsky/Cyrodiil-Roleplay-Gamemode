@@ -85,6 +85,13 @@ test("the registrar teaches all nine and its list scrolls to the last", async ({
   await expect(page.getByRole("list", { name: t("offered") }).getByRole("listitem")).toHaveCount(9);
   await expect(page.locator('[data-sum="specialization"] dd')).toHaveText(t("name.Knight"));
   await expect(page.getByRole("button", { name: action("too_poor", "Thief") })).toBeDisabled();
+  const pictures = page.locator(".mentor__picture");
+  await expect(pictures).toHaveCount(9);
+  await expect
+    .poll(() => pictures.evaluateAll((all) => all.filter((each) => each.complete && each.naturalWidth > 0).length), {
+      message: "every specialization's picture loads",
+    })
+    .toBe(9);
   await expectNoHorizontalOverflow(page, ".mentor__panel");
   await screenshot(page, testInfo, "mentor-registrar");
 
