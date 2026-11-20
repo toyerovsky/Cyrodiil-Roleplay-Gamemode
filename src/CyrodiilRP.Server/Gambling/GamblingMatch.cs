@@ -16,6 +16,8 @@ internal sealed class GamblingMatch(GamblingMode mode, int stake, int roundsToWi
     private int _offer;
     private bool _nextRound;
     private bool _nextReplay;
+    private int _rollingSeat;
+    private int _rerollSeat;
 
     public GamblingMode Mode { get; } = mode;
     public int Stake { get; } = stake;
@@ -34,6 +36,7 @@ internal sealed class GamblingMatch(GamblingMode mode, int stake, int roundsToWi
 
     public int[] Hand(int side) => _hands[side].ToArray();
     public bool Confirmed(int side) => _confirmed[side];
+    public int Picked(int side) => _picks[side];
 
     public bool Allows(int side, GamblingAction action) => action switch
     {
@@ -42,18 +45,25 @@ internal sealed class GamblingMatch(GamblingMode mode, int stake, int roundsToWi
         GamblingAction.Call => Phase == GamblingPhase.Call && Turn == side,
         GamblingAction.Fold => (Phase == GamblingPhase.Call || Phase == GamblingPhase.Raise) && Turn == side,
         GamblingAction.Pick => Phase == GamblingPhase.Reroll && !_confirmed[side],
+        GamblingAction.Select => Phase == GamblingPhase.Reroll && !_confirmed[side],
     };
 
     public void Roll(Func<int, int[]> rollFirst, Func<int, int[]> rollSecond)
     {
-        if (Phase != GamblingPhase.Rolling)
+        RollSeat(First, rollFirst);
+        RollSeat(Second, rollSecond);
+    }
+
+    public void RollSeat(int side, Func<int, int[]> roll)
+    {
+        if (Phase != GamblingPhase.Rolling || side != _rollingSeat)
             throw new InvalidOperationException("This match is not waiting for a roll.");
 
         var count = Mode switch { GamblingMode.Poker => PokerHand.DiceCount, GamblingMode.Favor => 2 };
-        _hands[First] = rollFirst(count);
-        _hands[Second] = rollSecond(count);
-        ValidateRoll(_hands[First], count);
-        ValidateRoll(_hands[Second], count);
+        _hands[side] = roll(count);
+        ValidateRoll(_hands[side], count);
+        _rollingSeat++;
+        if (side == First) return;
         _initial = [_hands[First].ToArray(), _hands[Second].ToArray()];
         var poker = Mode switch { GamblingMode.Poker => true, GamblingMode.Favor => false };
         if (poker)
@@ -116,11 +126,18 @@ internal sealed class GamblingMatch(GamblingMode mode, int stake, int roundsToWi
 
     public void Reroll(Func<int, int[]> rollFirst, Func<int, int[]> rollSecond)
     {
-        if (Phase != GamblingPhase.Reroll || !BothPicked)
+        RerollSeat(First, rollFirst);
+        RerollSeat(Second, rollSecond);
+    }
+
+    public void RerollSeat(int side, Func<int, int[]> roll)
+    {
+        if (Phase != GamblingPhase.Reroll || !BothPicked || side != _rerollSeat)
             throw new InvalidOperationException("Both players must confirm their dice first.");
 
-        Replace(First, rollFirst);
-        Replace(Second, rollSecond);
+        Replace(side, roll);
+        _rerollSeat++;
+        if (side == First) return;
         Score(PokerHand.Evaluate(_hands[First]).CompareTo(PokerHand.Evaluate(_hands[Second])));
     }
 
@@ -226,6 +243,10 @@ internal sealed class GamblingMatch(GamblingMode mode, int stake, int roundsToWi
         _nextReplay = false;
         Array.Clear(_confirmed);
         Array.Clear(_picks);
+        _rollingSeat = First;
+        _rerollSeat = First;
+        _hands[First] = [];
+        _hands[Second] = [];
         Phase = GamblingPhase.Rolling;
     }
 

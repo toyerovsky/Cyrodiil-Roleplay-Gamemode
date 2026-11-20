@@ -9,6 +9,9 @@ internal sealed class GamblingSession(GamblingTableRecord table, PlayerAsk invit
     public GamblingTableRecord Table { get; } = table;
     public PlayerAsk Invite { get; } = invite;
     public GamblingMatch Match { get; } = match;
+    public GamblingThrows Throws { get; } = new();
+    public GamblingPicks Picks { get; } = new();
+    public int ThrowSeat { get; set; } = GamblingMatch.First;
     public GamblingStage Stage { get; set; } = GamblingStage.Invited;
     public TaskCompletionSource<bool> Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     public bool CancellationRequested { get; set; }

@@ -7,4 +7,5 @@ internal enum GamblingAction
     Call,
     Fold,
     Pick,
+    Select,
 }

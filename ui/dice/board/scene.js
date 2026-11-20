@@ -3,6 +3,7 @@
 
 import {
   ACESFilmicToneMapping,
+  Box3,
   CircleGeometry,
   Clock,
   Color,
@@ -14,6 +15,8 @@ import {
   PerspectiveCamera,
   PMREMGenerator,
   Quaternion,
+  Raycaster,
+  RingGeometry,
   Scene,
   ShadowMaterial,
   Source,
@@ -57,6 +60,13 @@ const IDLE_GAP = 2.9;
 // A roll shown for something else fills its small frame, a little room left above the far rim for the numbers.
 const PRESENT_FILL = 0.92;
 const PRESENT_DROP = -0.04;
+// A board fitted to its own canvas (fit: "board", the gambling table) fills this much of it, centred, bark and all.
+const BOARD_FILL = 0.95;
+const FIT_STEPS = 4;
+const EDGE_POINTS = 48;
+// A picked die rises and glows, a gold ring under it on the board.
+const PICKED_LIFT = 0.45;
+const PICKED_GLOW = 0xc98a22;
 
 const gltf = new GLTFLoader();
 
@@ -84,8 +94,9 @@ function pickRandomSets(count) {
 
 // canvas: where the board is drawn. tags: an element the numbers over the landed dice go in. sound: the board's sounds.
 // stage(): the part of the canvas the board must fit in, as a DOMRect (between the page's panels), or null for all of it. onLanded(counts,
-// values, fresh): a throw came to rest. onTimeout(id): the server never answered.
-export function createBoard({ canvas, tags, sound, stage, onLanded, onTimeout }) {
+// values, fresh): a throw came to rest. onTimeout(id): the server never answered. fit: "stage" fits the board into stage()
+// as the dice page does, "board" fills the canvas with the board alone.
+export function createBoard({ canvas, tags, sound, stage, onLanded, onTimeout, boardModel = "board", fit = "stage" }) {
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = SRGBColorSpace;
@@ -96,7 +107,12 @@ export function createBoard({ canvas, tags, sound, stage, onLanded, onTimeout })
   renderer.setClearColor(0x000000, 0);
 
   const scene = new Scene();
-  scene.environment = new PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+  const environmentGenerator = new PMREMGenerator(renderer);
+  const room = new RoomEnvironment();
+  const environment = environmentGenerator.fromScene(room, 0.04);
+  scene.environment = environment.texture;
+  room.dispose();
+  environmentGenerator.dispose();
   scene.environmentIntensity = 0.55;
 
   const camera = new PerspectiveCamera(30, 1, 0.5, 200);
@@ -137,6 +153,13 @@ export function createBoard({ canvas, tags, sound, stage, onLanded, onTimeout })
   let tagData = [];
   const anim = { phase: "idle", id: 0, t: 0, counts: null, values: null, plan: null, throwData: null, from: null, to: null, valueAt: 0, dice: null, impactIndex: 0 };
   const probe = { throws: 0, last: null };
+  let disposed = false;
+  let sharedRequest = 0;
+  let picked = 0;
+  const raycaster = new Raycaster();
+  // The board's outline, top and bottom, which fit: "board" keeps in view.
+  let edge = null;
+  let ring = null;
 
   function template(kind) {
     templates[kind] ??= loadModel(`die-${kind}`)
@@ -214,6 +237,30 @@ export function createBoard({ canvas, tags, sound, stage, onLanded, onTimeout })
     die.q = q.clone();
     die.mesh.position.copy(p);
     die.mesh.quaternion.copy(q);
+    highlight(die, board.indexOf(die));
+  }
+
+  function disposeDie(mesh) {
+    for (const value of new Set(Object.values(mesh.material))) if (value?.isTexture) value.dispose();
+    mesh.material.dispose();
+  }
+
+  function highlight(die, index) {
+    const selected = Boolean(picked & (1 << index));
+    die.mesh.position.y = die.p.y + (selected ? PICKED_LIFT : 0);
+    die.mesh.material.emissive.copy(selected ? new Color(PICKED_GLOW) : die.mesh.userData.restEmission);
+    die.mesh.material.emissiveIntensity = selected ? 0.9 : 1;
+    if (selected && !die.ring) {
+      ring ??= { geometry: new RingGeometry(0.78, 1, 48), material: new MeshBasicMaterial({ color: 0xffc94d, transparent: true, opacity: 0.95, depthWrite: false }) };
+      die.ring = new Mesh(ring.geometry, ring.material);
+      die.ring.rotation.x = -Math.PI / 2;
+      die.ring.renderOrder = 1;
+      scene.add(die.ring);
+    }
+    if (!die.ring) return;
+    die.ring.visible = selected;
+    die.ring.position.set(die.p.x, 0.04, die.p.z);
+    die.ring.scale.setScalar(die.body.radius * 1.2);
   }
 
   // The board holds exactly these dice, each in sets[i] or the player's set. Meshes stay when nothing changed. New dice
@@ -226,11 +273,17 @@ export function createBoard({ canvas, tags, sound, stage, onLanded, onTimeout })
     const keyNow = dice.map((die, i) => `${setOf(i)}:${die.kind}`).join(",");
     if (keyNow !== boardKey) {
       const meshes = await Promise.all(dice.map((die, i) => makeDie(die.kind, setOf(i))));
-      if (ask !== placing) return;
+      if (ask !== placing || disposed) {
+        meshes.forEach(disposeDie);
+        return;
+      }
       const before = board;
-      board.forEach((die) => scene.remove(die.mesh));
+      board.forEach((die) => { scene.remove(die.mesh); disposeDie(die.mesh); if (die.ring) scene.remove(die.ring); });
       board = dice.map((die, i) => ({ ...die, set: setOf(i), model: MODELS[die.kind], body: bodyOf(MODELS[die.kind]), mesh: meshes[i] }));
-      board.forEach((die) => scene.add(die.mesh));
+      board.forEach((die) => {
+        die.mesh.userData.restEmission = die.mesh.material.emissive.clone();
+        scene.add(die.mesh);
+      });
       boardKey = keyNow;
       if (!poses) {
         const row = idleLayout(dice);
@@ -277,12 +330,54 @@ export function createBoard({ canvas, tags, sound, stage, onLanded, onTimeout })
     placeTags();
   }
 
+  function placeCamera(distance) {
+    camera.position.set(0, Math.cos(TILT) * distance, Math.sin(TILT) * distance + LOOK.z);
+    camera.lookAt(LOOK.x, LOOK.y - 0.15, LOOK.z + 0.2);
+    camera.updateMatrixWorld();
+    camera.updateProjectionMatrix();
+  }
+
+  // Where the board's outline falls on the canvas, -1 to 1 either way.
+  function edgeOnCanvas() {
+    const out = { left: Infinity, right: -Infinity, bottom: Infinity, top: -Infinity };
+    const point = new Vector3();
+    for (const at of edge) {
+      point.copy(at).project(camera);
+      out.left = Math.min(out.left, point.x);
+      out.right = Math.max(out.right, point.x);
+      out.bottom = Math.min(out.bottom, point.y);
+      out.top = Math.max(out.top, point.y);
+    }
+    return out;
+  }
+
+  // The board alone fills the canvas, centred: the camera keeps its angle and comes as close as the outline allows.
+  function fitBoard(w, h) {
+    camera.clearViewOffset();
+    let distance = 40;
+    for (let i = 0; i < FIT_STEPS; i++) {
+      placeCamera(distance);
+      const at = edgeOnCanvas();
+      distance *= Math.max(at.right - at.left, at.top - at.bottom) / (2 * BOARD_FILL);
+    }
+    placeCamera(distance);
+    const at = edgeOnCanvas();
+    camera.setViewOffset(w, h, ((at.left + at.right) / 4) * w, -((at.bottom + at.top) / 4) * h, w, h);
+    camera.updateProjectionMatrix();
+  }
+
   // Fits the board into the stage, between the page's panels, and centres it there.
   function resize() {
     const w = canvas.clientWidth || window.innerWidth;
     const h = canvas.clientHeight || window.innerHeight;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
+    if (fit === "board" && edge) {
+      fitBoard(w, h);
+      placeTags();
+      requestRender();
+      return;
+    }
     const canvasRect = canvas.getBoundingClientRect();
     const room = present ? null : stage();
     const usableW = room ? Math.max(200, room.width) / w : 1;
@@ -372,6 +467,30 @@ export function createBoard({ canvas, tags, sound, stage, onLanded, onTimeout })
   const turn = new Quaternion();
   const spinAxis = new Vector3(0.3, 1, 0.2).normalize();
   function step(dt) {
+    if (anim.phase === "shared") {
+      const elapsed = Math.max(0, Date.now() - anim.sharedAt);
+      const progress = Math.min(1, elapsed / anim.sharedDuration);
+      const { tracks, impacts } = anim.throwData;
+      const frame = progress * (Math.max(...tracks.map((track) => track.length)) - 1);
+      const physicalTime = frame / FRAMES_PER_SECOND;
+      while (anim.impactIndex < impacts.length && impacts[anim.impactIndex].t <= physicalTime) {
+        const hit = impacts[anim.impactIndex++];
+        sound.hit(hit.strength, hit.wall);
+      }
+      board.forEach((die, i) => {
+        const track = tracks[i];
+        const index = Math.min(Math.floor(frame), track.length - 1);
+        const a = track[index];
+        const b = track[Math.min(index + 1, track.length - 1)];
+        applyPose(die, a.p.clone().lerp(b.p, frame % 1), a.q.clone().slerp(b.q, frame % 1));
+      });
+      if (progress >= 1) {
+        anim.phase = "idle";
+        probe.last = { landed: board.map((die) => topFace(die.model, die.q).face.value), sets: board.map((die) => die.set) };
+        onLanded();
+      }
+      return;
+    }
     anim.t += dt;
     if (anim.phase === "windup") {
       // Lifted to where the throw leaves from and spun, as if shaken in a hand, until the numbers come. Then turned into
@@ -441,9 +560,10 @@ export function createBoard({ canvas, tags, sound, stage, onLanded, onTimeout })
   let needsRender = true;
   let looping = false;
   const clock = new Clock();
-  const moving = () => ["windup", "flight", "settle-back", "landed"].includes(anim.phase);
+  const moving = () => ["shared", "windup", "flight", "settle-back", "landed"].includes(anim.phase);
 
   function requestRender() {
+    if (disposed) return;
     needsRender = true;
     if (looping) return;
     looping = true;
@@ -452,6 +572,7 @@ export function createBoard({ canvas, tags, sound, stage, onLanded, onTimeout })
   }
 
   function frame() {
+    if (disposed) return;
     const dt = Math.min(clock.getDelta(), MAX_FRAME);
     const active = moving();
     if (active) step(dt);
@@ -465,11 +586,21 @@ export function createBoard({ canvas, tags, sound, stage, onLanded, onTimeout })
   }
 
   async function start() {
-    const loaded = await loadModel("board").then(parseGlb);
+    const loaded = await loadModel(boardModel).then(parseGlb);
+    if (disposed) return;
     loaded.scene.traverse((node) => {
       if (node.isMesh) node.material = new MeshBasicMaterial({ map: node.material.map, color: new Color(1, 1, 1) });
     });
     scene.add(loaded.scene);
+    const box = new Box3().setFromObject(loaded.scene);
+    const rx = (box.max.x - box.min.x) / 2;
+    const rz = (box.max.z - box.min.z) / 2;
+    const cx = (box.max.x + box.min.x) / 2;
+    const cz = (box.max.z + box.min.z) / 2;
+    edge = [box.min.y, box.max.y].flatMap((y) => Array.from({ length: EDGE_POINTS }, (_, i) => {
+      const angle = (i / EDGE_POINTS) * Math.PI * 2;
+      return new Vector3(cx + Math.cos(angle) * rx, y, cz + Math.sin(angle) * rz);
+    }));
     resize();
   }
 
@@ -477,6 +608,54 @@ export function createBoard({ canvas, tags, sound, stage, onLanded, onTimeout })
     probe,
     start,
     resize,
+    async playShared(values, set, data, elapsedMs, durationMs, animate) {
+      const request = ++sharedRequest;
+      const received = Date.now();
+      anim.phase = "loading";
+      picked = 0;
+      showTags([]);
+      const dice = physicalDice({ d6: values.length }, values);
+      const poses = data.tracks.map((track) => animate ? track[0] : track.at(-1));
+      await placeDice(dice, poses, dice.map(() => set));
+      if (disposed || request !== sharedRequest) return;
+      anim.throwData = data;
+      anim.sharedAt = received - elapsedMs;
+      anim.sharedDuration = durationMs;
+      const physicalTime = elapsedMs / durationMs * data.seconds;
+      anim.impactIndex = data.impacts.findIndex((hit) => hit.t > physicalTime);
+      if (anim.impactIndex < 0) anim.impactIndex = data.impacts.length;
+      anim.phase = animate ? "shared" : "idle";
+      if (animate) step(0);
+      requestRender();
+    },
+    select(mask) {
+      picked = mask;
+      board.forEach(highlight);
+      requestRender();
+    },
+    pick(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      raycaster.setFromCamera({ x: (clientX - rect.left) / rect.width * 2 - 1, y: 1 - (clientY - rect.top) / rect.height * 2 }, camera);
+      const hit = raycaster.intersectObjects(board.map((die) => die.mesh))[0];
+      return hit ? board.findIndex((die) => die.mesh === hit.object) : -1;
+    },
+    dispose() {
+      disposed = true;
+      placing++;
+      sharedRequest++;
+      scene.traverse((node) => {
+        if (!node.isMesh) return;
+        node.geometry.dispose();
+        const materials = Array.isArray(node.material) ? node.material : [node.material];
+        for (const material of materials) {
+          for (const value of Object.values(material)) if (value?.isTexture) value.dispose();
+          material.dispose();
+        }
+      });
+      environment.dispose();
+      renderer.dispose();
+      renderer.forceContextLoss();
+    },
     // A roll shown for something else: a small frame and no panels.
     setPresent(on) {
       present = on;

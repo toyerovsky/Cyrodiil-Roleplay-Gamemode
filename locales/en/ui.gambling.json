@@ -39,10 +39,10 @@
   "ui.gambling.you": "Your hand",
   "ui.gambling.total": "Total: {total}",
   "ui.gambling.die": "Die {number}: {value}",
-  "ui.gambling.Raise.you": "Your decision: raise or continue to the reroll.",
-  "ui.gambling.Raise.other": "Your opponent is deciding whether to raise.",
-  "ui.gambling.Call.you": "Your opponent raised. Call {amount} gold or fold the match.",
-  "ui.gambling.Call.other": "Your opponent must call {amount} gold or fold.",
+  "ui.gambling.Raise.you": "Your turn, {name}: raise or continue to the reroll.",
+  "ui.gambling.Raise.other": "{name} is deciding whether to raise.",
+  "ui.gambling.Call.you": "{opponent} raised. Your turn, {name}: call {amount} gold or fold the match.",
+  "ui.gambling.Call.other": "{name} must call {amount} gold or fold.",
   "ui.gambling.Reroll": "Choose dice to reroll. Click or press 1 to 5, then confirm with Space or Enter. Choose none to keep all.",
   "ui.gambling.confirmed": "Your dice are confirmed. Waiting for your opponent.",
   "ui.gambling.RoundResult": "Round complete. The next roll follows shortly.",
@@ -68,5 +68,8 @@
   "ui.gambling.search": "Search games",
   "ui.gambling.cancel": "Cancel game #{id}",
   "ui.gambling.older": "Older games",
-  "ui.gambling.newest": "Newest games"
+  "ui.gambling.newest": "Newest games",
+  "ui.gambling.rolling_name": "Now rolling: {name}",
+  "ui.gambling.wins": "Rounds won: {count}",
+  "ui.gambling.round_winner": "{name} wins the round. The next roll follows shortly."
 }

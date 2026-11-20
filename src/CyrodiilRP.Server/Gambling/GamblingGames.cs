@@ -21,12 +21,11 @@ namespace CyrodiilRP.Server.Gambling;
 [Service]
 internal sealed partial class GamblingGames(
     GamblingTables tables, RpConfig config, Persistence persistence, Wallet wallet, GoldDeliveries deliveries,
-    Rolls rolls, DiceBoards boards, Asks asks, OnlinePlayers online, CommandRegistry commands, Freezes freezes,
+    Rolls rolls, Asks asks, OnlinePlayers online, CommandRegistry commands, Freezes freezes,
     RpcHandlers rpc, RpChat chat, ShownNames names, GamblingLog log, Audit audit, Fire fire, Timers timers, SystemClock clock, ILogger logger)
 {
-    private static readonly TimeSpan WatchEvery = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan WatchEvery = TimeSpan.FromMilliseconds(GamblingPicks.RelayMs);
     private static readonly TimeSpan RetryAfter = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan RoundShown = TimeSpan.FromSeconds(4);
     private readonly GamblingSessionRegistry _registry = new();
     private readonly HashSet<OnlinePlayer> _open = [];
     private bool _ready;
@@ -253,7 +252,7 @@ internal sealed partial class GamblingGames(
         var side = session.Side(player);
         var match = session.Match;
         if (session.Stage != GamblingStage.Playing || version != session.Version || clock.MonotonicMs >= session.ExpiresAt
-            || session.FirstGone || session.SecondGone || !match.Allows(side, action))
+            || session.Throws.Active || session.FirstGone || session.SecondGone || !match.Allows(side, action))
         {
             Refuse(player, GamblingText.Decision);
             return;
@@ -299,7 +298,17 @@ internal sealed partial class GamblingGames(
                     return;
                 }
                 match.Pick(side, amount);
+                session.Picks.Select(side, amount);
                 break;
+            case GamblingAction.Select:
+                if (amount < 0 || amount > GamblingMatch.AllDiceMask)
+                {
+                    Refuse(player, GamblingText.Decision);
+                    return;
+                }
+                session.Picks.Select(side, amount);
+                if (session.Picks.Flush(clock.MonotonicMs)) SendOpen(session);
+                return;
         }
 
         if (action == GamblingAction.Pick && !match.BothPicked)
@@ -319,26 +328,43 @@ internal sealed partial class GamblingGames(
         MarkGone(session);
         if (session.CancellationRequested)
         {
+            session.Throws.Stop();
             session.Match.Cancel();
             session.EndStatus = GamblingStatus.Cancelled;
             Finish(session);
             return;
         }
         if (session.FirstGone || session.SecondGone)
+        {
+            session.Throws.Stop();
             session.Match.Forfeit(session.FirstGone, session.SecondGone);
+        }
 
         var match = session.Match;
-        if (match.Phase == GamblingPhase.Rolling)
+        if (match.Phase == GamblingPhase.Rolling || match.Phase == GamblingPhase.Reroll && match.BothPicked)
         {
-            match.Roll(count => Roll(session, GamblingMatch.First, count), count => Roll(session, GamblingMatch.Second, count));
+            var kind = match.Phase == GamblingPhase.Rolling ? GamblingThrowKind.Initial : GamblingThrowKind.Reroll;
+            if (kind == GamblingThrowKind.Initial) session.Picks.Clear();
+            while (session.ThrowSeat <= GamblingMatch.Second)
+            {
+                var seat = session.ThrowSeat++;
+                Action roll = kind switch
+                {
+                    GamblingThrowKind.Initial => () => match.RollSeat(seat, count => Roll(session, seat, count, kind)),
+                    GamblingThrowKind.Reroll => () => match.RerollSeat(seat, count => Roll(session, seat, count, kind)),
+                };
+                roll();
+                session.Picks.Select(seat, 0);
+                session.Version++;
+                if (session.Throws.Start(clock.MonotonicMs))
+                {
+                    Save(session);
+                    return;
+                }
+            }
+            session.ThrowSeat = GamblingMatch.First;
+            session.Picks.Clear();
             SetDeadline(session);
-            session.Version++;
-        }
-        if (match.Phase == GamblingPhase.Reroll && match.BothPicked)
-        {
-            match.Reroll(count => Roll(session, GamblingMatch.First, count), count => Roll(session, GamblingMatch.Second, count));
-            SetDeadline(session);
-            session.Version++;
         }
 
         if (match.Phase == GamblingPhase.Finished)
@@ -351,14 +377,21 @@ internal sealed partial class GamblingGames(
         Save(session);
     }
 
-    private int[] Roll(GamblingSession session, int side, int count)
+    private int[] Roll(GamblingSession session, int side, int count, GamblingThrowKind kind)
     {
         var player = session.Player(side);
         var reason = GamblingText.Reason(session.Id);
         var pick = new DicePick(count, 0, 0, 0);
         var result = rolls.Roll(player, pick.ToGroups(), reason);
-        boards.Present(player, pick, result, reason);
-        return result.Dice.Select(die => die.Value).ToArray();
+        var values = result.Dice.Select(die => die.Value).ToArray();
+        var indices = kind switch
+        {
+            GamblingThrowKind.Initial => Enumerable.Range(0, count).ToArray(),
+            GamblingThrowKind.Reroll => Enumerable.Range(0, PokerHand.DiceCount)
+                .Where(index => (session.Match.Picked(side) & (1 << index)) != 0).ToArray(),
+        };
+        session.Throws.Add(session.Id, side, session.Match.Round, session.Match.Replay, kind, indices, values, rolls.FindSet(player));
+        return values;
     }
 
     private void Save(GamblingSession session)
@@ -470,6 +503,24 @@ internal sealed partial class GamblingGames(
                 GamblingStage.Playing => () =>
                 {
                     if (session.FirstGone || session.SecondGone) Drive(session);
+                    else if (session.Throws.Active)
+                    {
+                        if (session.Throws.Advance(clock.MonotonicMs))
+                        {
+                            if (session.Throws.Active) SendOpen(session);
+                            else
+                            {
+                                session.Version++;
+                                if (session.ThrowSeat > GamblingMatch.Second)
+                                {
+                                    session.ThrowSeat = GamblingMatch.First;
+                                    session.Picks.Clear();
+                                    SetDeadline(session);
+                                }
+                                Drive(session);
+                            }
+                        }
+                    }
                     else if (clock.MonotonicMs >= session.ExpiresAt)
                     {
                         if (session.Match.Phase == GamblingPhase.Call) AuditGame("gamble.fold", session, session.Player(session.Match.Turn).Ref);
@@ -478,6 +529,7 @@ internal sealed partial class GamblingGames(
                         SetDeadline(session);
                         Drive(session);
                     }
+                    else if (session.Picks.Flush(clock.MonotonicMs)) SendOpen(session);
                 },
                 GamblingStage.Starting => () => { },
                 GamblingStage.Saving => () => { },
@@ -504,8 +556,8 @@ internal sealed partial class GamblingGames(
         }
     }
 
-    private void SetDeadline(GamblingSession session) => session.ExpiresAt = clock.MonotonicMs
-        + (session.Match.Phase == GamblingPhase.RoundResult ? (long)RoundShown.TotalMilliseconds : Settings.DecisionSeconds * 1000L);
+    private void SetDeadline(GamblingSession session) => session.ExpiresAt = GamblingTiming.Deadline(clock.MonotonicMs,
+        session.Match.Phase, Settings.DecisionSeconds, session.Throws.Active);
 
     private int RaiseLimit(GamblingSession session, int side) => wallet.TryCount(session.Player(side).Id, out var mine)
         && wallet.TryCount(session.Player(GamblingMatch.Other(side)).Id, out var theirs) ? Math.Min(session.Match.Stake, Math.Min(mine, theirs)) : 0;
@@ -533,19 +585,26 @@ internal sealed partial class GamblingGames(
         var match = session.Match;
         var side = session.Side(reader);
         var other = GamblingMatch.Other(side);
-        var mine = match.Hand(side);
-        var theirs = match.Hand(other);
+        var mine = session.Throws.Hand(side, match.Round, match.Replay);
+        var theirs = session.Throws.Hand(other, match.Round, match.Replay);
         string Rank(int[] hand) => hand.Length == PokerHand.DiceCount ? chat.Translate(reader, GamblingWords.Hand(PokerHand.Evaluate(hand).Rank)) : string.Empty;
-        var busy = session.Stage != GamblingStage.Playing && session.Stage != GamblingStage.Closed;
+        var rolling = session.Throws.Active;
+        int ShownWins(int seat) => match.Wins[seat] - (rolling && (match.Phase is GamblingPhase.RoundResult or GamblingPhase.Finished)
+            && match.LastWinner == seat ? 1 : 0);
+        var busy = rolling || session.Stage != GamblingStage.Playing && session.Stage != GamblingStage.Closed;
         var winner = match.Winner == GamblingMatch.NoWinner ? GamblingMatch.NoWinner : match.Winner == side ? GamblingMatch.First : GamblingMatch.Second;
         var result = session.Stage == GamblingStage.Closed
             ? chat.Translate(reader, session.EndStatus == GamblingStatus.Cancelled ? GamblingText.Cancelled
                 : winner == GamblingMatch.NoWinner ? GamblingText.Draw : winner == GamblingMatch.First ? GamblingText.Won : GamblingText.Lost)
             : null;
-        return new GamblingMatchView(session.Id, session.Version, match.Mode, match.Phase, busy, match.Stake, match.Pot,
-            match.Round, match.Replay, [match.Wins[side], match.Wins[other]], names.Shown(reader, reader), names.Shown(reader, session.Player(other)),
-            mine, theirs, Rank(mine), Rank(theirs), match.Turn == side, match.Confirmed(side), RaiseLimit(session, side), match.PendingRaise,
-            Math.Max(0, session.ExpiresAt - clock.MonotonicMs), winner, result);
+        return new GamblingMatchView(session.Id, session.Version, match.Mode, rolling ? GamblingPhase.Rolling : match.Phase, busy, match.Stake, match.Pot,
+            match.Round, match.Replay, [ShownWins(side), ShownWins(other)], names.Shown(reader, reader), names.Shown(reader, session.Player(other)),
+            mine, theirs, rolling ? string.Empty : Rank(mine), rolling ? string.Empty : Rank(theirs), !rolling && match.Turn == side,
+            match.Confirmed(side), RaiseLimit(session, side), match.PendingRaise,
+            rolling ? 0 : Math.Max(0, session.ExpiresAt - clock.MonotonicMs), rolling ? GamblingMatch.NoWinner : winner, result,
+            side, rolling ? session.Throws.Current!.Seat : match.Turn, session.Picks.Masks, session.Throws.Published,
+            session.Throws.Current?.Id, session.Throws.Elapsed(clock.MonotonicMs), GamblingThrows.AnimationMs,
+            rolling ? GamblingMatch.NoWinner : match.LastWinner);
     }
 
     private void Refuse(OnlinePlayer player, Phrase phrase)

@@ -39,13 +39,13 @@
   "ui.gambling.you": "Twoje kości",
   "ui.gambling.total": "Suma: {total}",
   "ui.gambling.die": "Kość {number}: {value}",
-  "ui.gambling.Raise.you": "Twoja decyzja: podbij lub przejdź do przerzutu.",
-  "ui.gambling.Raise.other": "Przeciwnik decyduje o podbiciu.",
-  "ui.gambling.Call.you": "Przeciwnik podbił. Wyrównaj {amount} sztuk złota lub spasuj mecz.",
-  "ui.gambling.Call.other": "Przeciwnik musi wyrównać {amount} sztuk złota lub spasować.",
+  "ui.gambling.Raise.you": "Twoja kolej, {name}: podbij lub przejd? do przerzutu.",
+  "ui.gambling.Raise.other": "{name} decyduje o podbiciu.",
+  "ui.gambling.Call.you": "{opponent} podbi?. Twoja kolej, {name}: wyr?wnaj {amount} sztuk z?ota lub spasuj mecz.",
+  "ui.gambling.Call.other": "{name} musi wyr?wna? {amount} sztuk z?ota lub spasowa?.",
   "ui.gambling.Reroll": "Wybierz kości do przerzutu kliknięciem lub klawiszami 1 do 5, potwierdź Spacją lub Enterem. Nie wybieraj żadnej, aby zachować wszystkie.",
   "ui.gambling.confirmed": "Kości potwierdzone. Oczekiwanie na przeciwnika.",
-  "ui.gambling.RoundResult": "Runda zakończona. Za chwilę kolejny rzut.",
+  "ui.gambling.RoundResult": "Runda zako?czona. Za chwil? kolejny rzut.",
   "ui.gambling.Rolling": "Serwer rzuca kośćmi.",
   "ui.gambling.Finished": "Mecz zakończony.",
   "ui.gambling.time": "Pozostało {seconds} s",
@@ -68,5 +68,8 @@
   "ui.gambling.search": "Szukaj gier",
   "ui.gambling.cancel": "Anuluj grę #{id}",
   "ui.gambling.older": "Starsze gry",
-  "ui.gambling.newest": "Najnowsze gry"
+  "ui.gambling.newest": "Najnowsze gry",
+  "ui.gambling.rolling_name": "Teraz rzuca: {name}",
+  "ui.gambling.wins": "Wygrane rundy: {count}",
+  "ui.gambling.round_winner": "{name} wygrywa rund?. Za chwil? kolejny rzut."
 }

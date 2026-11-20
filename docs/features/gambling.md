@@ -1,6 +1,6 @@
 # Gambling
 
-Status: in development on `2026-11-19-gambling` (stage 1: players against players at a gaming table). Stage 2 (a dealer
+Status: v2 in development on `2026-11-20-gambling-v2`, based on stage 1 (`2026-11-19-gambling`). See section 9 for the shared 3D table and its verification. Stage 2 (a dealer
 NPC) and stage 3 (a prop on the table) are described in section 8 and not built yet.
 
 ## 1. What it is
@@ -33,12 +33,12 @@ gold in the inventory (`Wallet`), held by the server in escrow while a game runs
 
 ### Dice Poker
 
-1. Each round both roll five d6 at once.
+1. Each round the challenger rolls five d6, then the opponent rolls five d6 on the shared table.
 2. **Raise:** after the first roll of a round, either player may raise once in that round, by 1 to the original stake.
    The other calls (pays the same) or folds. A fold loses the match and the whole pot to the other player. A player who
    cannot pay the call has to fold or ask for less, so a raise is capped by what the other carries.
 3. **Reroll:** both pick any of their five dice (none to all) and confirm. When both confirmed or the time ran out,
-   the server rerolls the picked dice of both at once and shows both hands.
+   the server rerolls the picked dice in seat order and shows both hands. Kept dice stay where they landed.
 4. The better hand wins the round. The first to win two rounds wins the match
    (`gambling.pokerRoundsToWin`, 2 by default).
 
@@ -107,7 +107,7 @@ match is a draw. No raise, no reroll.
 | Persistence | `src/CyrodiilRP.Data/Entities/GamblingTable.cs`, `GamblingGame.cs`, `Gambling/GamblingBook.cs` | Tables and games, names as they were, JSON rounds, idempotent creation and terminal settlement |
 | Migration | `src/CyrodiilRP.Data/Migrations/20261119221231_Gambling.cs` | `gambling_tables`, `gambling_games`, constraints, indexes and role permissions: administrator `atable`, moderator `agamble` |
 | Config | `src/CyrodiilRP.Server/GamblingSettings.cs`, `RpConfig.cs`, `Mod.cs`, `config.json` | Defaults below, validation at start including pot overflow |
-| Dice | `src/CyrodiilRP.Server/Dice/Rolls.cs`, `DiceBoards.cs` | Every new die goes through `Rolls.Roll` with reason `gambling:<id>`, then `DiceBoards.Present` in the roller's set |
+| Dice | `src/CyrodiilRP.Server/Dice/Rolls.cs`, `DiceBoards.cs` | Every new die goes through `Rolls.Roll` with reason `gambling:<id>`, then a shared `GamblingThrow` in the roller's set |
 | Wire and client | `src/CyrodiilRP.Common/RpContracts.cs`, `Gambling/GamblingMessageKind.cs`, `src/CyrodiilRP.Client/Gambling/GamblingOverlay.cs` | Five RPC names, one typed server message channel for state, refusal and invitation; `PageWindow` holds input |
 | Page | `ui/gambling/` | Game picker, stake, opponents, complete rules, both hands, decisions, countdown and keyboard picks |
 | Invitation | `src/CyrodiilRP.Server/Players/Asks.cs`, `AskBook.cs`, `ui/asks/` | Existing Y/N card with localized game and stake, configurable invitation duration; the gambling window hides so Y/N can answer |
@@ -212,3 +212,141 @@ which wait for a server package from rp-framework CI with its `sdk/`, before it 
   board's mesh, once the game's asset paths are listed.
 - **Own tables anywhere:** needs the SDK to place furniture a character can sit on.
 - **Later games:** liar's dice with hidden dice, cheating with Security against the other's notice.
+
+## 9. v2: the shared animated table (20 November 2026)
+
+The gambling window now uses two instances of the existing three.js board. The reader's own board is always above the
+opponent's. Board identity follows the absolute seat: challenger 0 uses `board.glb`, invited player 1 uses
+`board-negative.glb`, including when seat 1 is the reader. Each throw uses `Rolls.FindSet` for that character's F10 or
+`/dice` choice. Poker has five d6 per board and Favor has two. The actions, pot, timer, names, rank or total and round
+wins sit outside the canvases. G/H, commands, invitation cards, rules, history and staff cancellation keep their existing
+entry points. Esc releases the window without ending the match.
+
+### Events and names
+
+The existing `GamblingState` channel carries the event history under `match.throws`. An event has this shape:
+
+```json
+{
+  "id": 3, "match": 81, "seat": 0, "round": 1, "replay": 0, "kind": "Reroll",
+  "indices": [0, 4], "values": [6, 3], "seed": 197361, "set": "imperial"
+}
+```
+
+Indices are zero based and values correspond to those indices. Event ids increase within one match. `Initial` events
+include every die. `Reroll` events include only the selected dice; keeping all dice produces no throw event. The seed is
+chosen by `RandomNumberGenerator`, separately from the values rolled and logged by `Rolls`. The same event objects are
+projected to both readers, without names or relative seats in them. Future throws are neither rolled nor published
+until their seat's turn begins, including their chat announcements.
+
+The envelope adds `seat`, `turnSeat`, `picks` (two absolute-seat masks), `activeThrow`, `throwElapsedMs`, `animationMs`
+and `roundWinner` (an absolute seat or -1). Existing `wins` and `winner` keep their reader-relative meaning. Names stay
+in `you` and `opponent`: the reader's own character name, and `ShownNames.Shown(reader, opponent)` for the other seat.
+Rolling, turn, call, round and match banners use those reader-specific names. The page never chooses a die value.
+
+### Timing and decisions
+
+`GamblingMatch.RollSeat` and `RerollSeat` enforce seat 0 then seat 1. A published throw holds the server's animation
+gate for **3000 ms**. Only after it expires may the next seat roll. The 100 ms watcher can extend a throw slightly;
+a late tick gives the next seat its full 3000 ms. Persistence can also extend the wait. Actions are refused while the
+gate or a persistence operation is active. A seat keeping every die is skipped without an empty animation.
+
+After the last actual throw lands, the full configured decision countdown starts (45 seconds by default). Favor
+settles or shows a tied round only after its second throw. Poker scores only after both seats have processed their
+rerolls. A nonterminal round result remains for **4000 ms**, then the next round or replay starts. Wins and result
+banners are withheld during the final animation. `GamblingTiming.Deadline` rejects starting a decision while the
+animation gate is active.
+
+`GamblingAct(..., "Select", mask)` relays an unconfirmed live selection. The server checks membership, decision
+version, phase, confirmation, deadline and the five-bit mask. `GamblingPicks` coalesces updates to at most one relay
+per 100 ms per match, with the latest state retained for both seats. `Pick` remains the confirmation action and carries
+the final mask directly. A confirmed seat cannot select again; timeout still keeps unconfirmed dice. The page keeps
+its latest optimistic selection until acknowledged, so an older relay cannot undo a fast second key press.
+
+### Motion and reopening
+
+The existing `planThrow` has a CPU-time search budget. Shared throws use `planPartialThrow` with **eight fixed
+attempts** instead, for both initial and partial throws, so two machines choose the same trajectory for a seed.
+`finishPartialThrow` applies `finishThrow` only to moving dice and preserves each kept position and quaternion exactly.
+Kept dice are bodies of zero inverse mass and inertia, using the existing sphere contact approximation as obstacles.
+The existing full-throw API and its time-budgeted planner remain available to `/roll` and the separate dice page.
+Playback fits the chosen trajectory into the server's 3000 ms window, accounting for time spent loading and planning.
+
+The page reconstructs each seat from its current round's initial event followed by its rerolls. A reopened snapshot
+jumps to those tracks' final poses without sound or replay. New live events animate once. Selection relays do not
+restart animation. Click raycasts, the buttons below the boards and CEF number keys 1-5 all toggle the same mask;
+Space or Enter confirms. Selected meshes lift and glow. Render loops stop when the dice stop; closing the table
+releases both renderers and their resources.
+
+Both board models are emitted as model scripts by `dice-models.mjs` and required by `check-dist.mjs`. A single clearly
+marked fallback in `dice-models.mjs` uses `board.glb` if the negative GLB is absent at build or preview startup. Remove
+that fallback once the negative model is permanently shipped. The negative file arrived during this task and was
+used in the model-script verification. The dice asset budget is now 7 MiB, allowing the second board; three.js and
+the shared renderer remain under `dice/assets`, rather than being counted in the ordinary pages budget.
+
+### Files changed
+
+- Server `Gambling/`: `GamblingGames.cs`, `GamblingMatch.cs`, `GamblingMatchView.cs`, `GamblingSession.cs`,
+  `GamblingAction.cs`; new `GamblingThrow.cs`, `GamblingThrowKind.cs`, `GamblingThrows.cs`, `GamblingPicks.cs`,
+  `GamblingTiming.cs`.
+- Page `ui/gambling/`: `App.vue`, `gambling.css`, `pretend.js`; new `TableBoard.vue`, `table.js`.
+- Shared dice code `ui/dice/board/`: `physics.js`, `scene.js`, `models.js`.
+- Packaging/preview: `ui/scripts/dice-models.mjs`, `ui/scripts/check-dist.mjs`, `ui/vite.config.js`, `ui/pages.js`.
+- Tests: new `tests/CyrodiilRP.Tests/Gambling/GamblingThrowsTests.cs`, `ui/tests/gambling-board.test.js`,
+  `ui/tests/gambling-physics.test.js`; updated `ui/tests/gambling.test.js`, `ui/e2e/gambling.spec.js`.
+- Texts/docs: `locales/en/ui.gambling.json`, `locales/pl/ui.gambling.json`, this document.
+- `ui/dice/models/board-negative.glb` appeared externally during the task and was verified as a packaging input;
+  it was not authored or edited by this implementation.
+
+### Verification and remaining checks
+
+Verified in the sandbox:
+
+- **62/62 xUnit cases passed**, including the existing 53 gambling cases and nine new cases for event serialization,
+  shared payloads, crypto seed range, seat order, delayed second RNG, animation gates and decision deadlines, a late
+  tick, partial event indices, selection coalescing, confirmation and partial scoring. The temporary project under
+  `artifacts/gambling-v2-tests/` compiles the real pure server sources and JSON source-generation context without the
+  missing platform SDK. It does not compile or exercise `GamblingGames`, networking, persistence or game entities.
+- **Direct Node physics assertions passed:** repeatable partial trajectories, server face values, exact kept poses
+  and static obstacle influence. Six full simulations (one d6, five d6 and mixed dice, two seeds each) matched the
+  pre-v2 source exactly. These are additional checks, not a Vitest run.
+- **18 direct Vue DOM/bridge assertions passed** for both viewer seats: own board first, live selection, stale
+  acknowledgements, confirmation, recognition names in rolling/call/results and Esc. The renderer was replaced by a
+  stand-in, so these checks say nothing about appearance.
+- **Preview flow assertions passed:** invite, sequential initial throws, pass/call, fake opponent's live picks,
+  subset reroll, round result, second round and match result, plus the seat-1 view, Favor and hide/reopen during a throw.
+- Vue parsing and separate script/template compilation passed for `App.vue` and `TableBoard.vue`. Changed JS files
+  passed Node syntax checks. The model plugin generated 18 scripts and both board payloads matched their GLB bytes.
+  The missing-model fallback also emitted the original board successfully without changing any asset. EN/PL keys
+  and placeholders match.
+
+Verified outside the sandbox (RMPC, 20 November 2026):
+
+- **Vitest 530/530** (35 files, the three gambling suites included) and `npm run build` with `check-dist`. The window's
+  medallion was cut to 128 px to keep the pages under their 1152 KB budget.
+- **Playwright at `E2E_SIZES=all`, 140/140** for `gambling.spec.js`, `dice.spec.js`, `admin.spec.js` and `menu.spec.js`.
+  The failures on the first run were in the spec, not the app: a click landing in the same millisecond the button
+  mounted on the paused clock (now one frame later, as a player would), two WebGL boards needing more than the default
+  5 s to load in headless runs (`PAGE_MS`, as `dice.spec.js` does), and screenshots taken before a late-loading board
+  drew its first frame.
+- **Layout after the screenshots:** the boards were drawn about 130 px tall at 1366x768. The match panel now takes the
+  full height, the two boards split it, `createBoard({ fit: "board" })` fits the camera to the board's outline (95
+  percent of the canvas, same tilt; `/roll` and the small board keep the old fit), the decision line moved to the top of
+  the actions column and the die toggles beside the player's name. Drawn board height: 275 px at 1366x768, 373 px at
+  1280x1024, 388 px at 1920x1080, 381 px at 2560x1080. Picked dice lift and get a gold ring on the board, in the Reroll
+  phase only. Screenshots opened and judged by eye at all four sizes.
+
+Not run: Docker/PostgreSQL tests and the full SDK-dependent .NET build and server tests, for the same reason as stage 1.
+Nothing was pushed or deployed.
+
+The updated `e2e/gambling.spec.js` drives a complete match with fixed seeds and a controlled clock. Its screenshots
+cover both boards after the initial throws, an opponent's live pick, a partial reroll in flight, round and match
+results, seat 1's negative board above seat 0, and reopening a live throw at rest without replay. Existing rules, call/fold/hide, Favor, invitations, F10 history and
+staff checks remain. Run it with `E2E_SIZES=all`: **1366x768, 1920x1080, 1280x1024 and 2560x1080**, then open and judge
+all screenshots for size, wrapping, scrolling, focus and whether the boards and controls fit. The shared scene/model
+changes also warrant the existing dice-page tests.
+
+Still requiring the game: two actual CEF clients and network delay, mouse raycasts on OB:MP, recognition changes,
+Esc/G focus handoff during a throw, the players' saved dice sets, sound, forfeits/cancellation during animation and
+persistence delays. Daedric dice (dark with red pips) are the least contrasted set on the negative board's dark floor,
+still readable.
