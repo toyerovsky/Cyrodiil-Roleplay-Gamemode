@@ -18,4 +18,6 @@ internal sealed record MenuView(
     [property: JsonPropertyName("language")] string Language)
 {
     public IReadOnlyList<Gambling.GamblingHistoryView> Gambling { get; init; } = [];
+
+    public IReadOnlyList<MenuGuideView> Guides { get; init; } = [];
 }

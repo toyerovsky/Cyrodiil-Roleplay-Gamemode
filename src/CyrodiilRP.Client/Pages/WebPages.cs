@@ -11,6 +11,9 @@ internal sealed partial class WebPages(CefHost cef, PawnWatch pawn, ILogger logg
 
     public const int PartyLayer = 1;
 
+    // The AFK screen, beside the party's panel: over the chat's log, under every window.
+    public const int AwayLayer = PartyLayer;
+
     public const int FrozenLayer = 2;
 
     public const int AsksLayer = 3;
@@ -46,6 +49,9 @@ internal sealed partial class WebPages(CefHost cef, PawnWatch pawn, ILogger logg
     public const int AdminLayer = 12;
 
     public const int FormLayer = 13;
+
+    // A guide's card over every window, beside the name form: a guide shows only while playing, the form only before.
+    public const int GuideLayer = FormLayer;
 
     // Over everything, the chat's log too.
     public const int WelcomeLayer = 14;

@@ -1,8 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using CyrodiilRP.Common.Chat;
+using CyrodiilRP.Data;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Economy;
+using CyrodiilRP.Server.Guide;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
@@ -26,6 +28,7 @@ internal sealed partial class Exchanges(
     RpChat chat,
     Asks asks,
     ShownNames names,
+    Guides guides,
     Audit audit,
     Timers timers,
     SystemClock clock,
@@ -97,7 +100,16 @@ internal sealed partial class Exchanges(
             return;
         }
 
-        Ask(actor, target);
+        guides.ShowFirst(actor, GuideTopic.Exchange, () => AskAgain(actor, target));
+    }
+
+    // Behind a guide the other player may have walked off: the wheel's own check, once more.
+    private void AskAgain(OnlinePlayer actor, OnlinePlayer target)
+    {
+        if (CheckTrade(actor, target) is { } refusal)
+            chat.Notify(actor, refusal);
+        else
+            Ask(actor, target);
     }
 
     // Both see it on screen until it is answered, the one asked in the chat too.

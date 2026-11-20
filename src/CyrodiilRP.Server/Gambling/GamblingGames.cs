@@ -6,6 +6,7 @@ using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Commands;
 using CyrodiilRP.Server.Dice;
 using CyrodiilRP.Server.Economy;
+using CyrodiilRP.Server.Guide;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Lore;
@@ -22,7 +23,7 @@ namespace CyrodiilRP.Server.Gambling;
 internal sealed partial class GamblingGames(
     GamblingTables tables, RpConfig config, Persistence persistence, Wallet wallet, GoldDeliveries deliveries,
     Rolls rolls, Asks asks, OnlinePlayers online, CommandRegistry commands, Freezes freezes,
-    RpcHandlers rpc, RpChat chat, ShownNames names, GamblingLog log, Audit audit, Fire fire, Timers timers, SystemClock clock, ILogger logger)
+    RpcHandlers rpc, RpChat chat, ShownNames names, GamblingLog log, Guides guides, Audit audit, Fire fire, Timers timers, SystemClock clock, ILogger logger)
 {
     private static readonly TimeSpan WatchEvery = TimeSpan.FromMilliseconds(GamblingPicks.RelayMs);
     private static readonly TimeSpan RetryAfter = TimeSpan.FromSeconds(5);
@@ -115,8 +116,11 @@ internal sealed partial class GamblingGames(
         if (!player.IsLoaded || player.Character is null || !player.IsPlaying)
             return;
 
-        _open.Add(player);
-        Send(player, opponent?.Number, rules);
+        guides.ShowFirst(player, GuideTopic.Gambling, () =>
+        {
+            _open.Add(player);
+            Send(player, opponent?.Number, rules);
+        });
     }
 
     public Phrase? Invite(OnlinePlayer actor, OnlinePlayer target, int stake, GamblingMode mode)

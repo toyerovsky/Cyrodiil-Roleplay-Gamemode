@@ -21,6 +21,7 @@
   "chat.reply_gone": "The player who wrote to you last is no longer online.",
   "chat.own_number": "Your number is {number}.",
   "chat.away_now": "Your name shows [AFK] until you move, turn or start to write.",
+  "chat.away_back": "Welcome back. [AFK] is gone from your name.",
   "chat.players": {
     "one": "{count} player online: {list}",
     "other": "{count} players online: {list}"

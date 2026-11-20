@@ -1,5 +1,7 @@
 using System.Text.Json;
+using CyrodiilRP.Data;
 using CyrodiilRP.Server.Chat;
+using CyrodiilRP.Server.Guide;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
@@ -22,6 +24,7 @@ internal sealed partial class ForemanWindows(
     OnlinePlayers online,
     Conversations conversations,
     RpChat chat,
+    Guides guides,
     Timers timers) : ITalkTarget
 {
     private const string WatchJob = "foremen.watch";
@@ -47,12 +50,16 @@ internal sealed partial class ForemanWindows(
         if (foremen.FindByNpc(npcRefId) is not { } foremanId)
             return false;
 
-        if (CheckWindow(actor, foremanId) is { } broken)
-            chat.Notify(actor, broken);
-        else
-            SendState(actor, foremanId);
-
+        guides.ShowFirst(actor, GuideTopic.Foreman, () => Open(actor, foremanId));
         return true;
+    }
+
+    private void Open(OnlinePlayer player, string foremanId)
+    {
+        if (CheckWindow(player, foremanId) is { } broken)
+            chat.Notify(player, broken);
+        else
+            SendState(player, foremanId);
     }
 
     private void OnDealt(PlayerId id, string offer, int count)

@@ -39,4 +39,42 @@ public sealed class AwayRulesTests
         Assert.False(AwayRules.IsAway(stirredAtMs: 0, nowMs: 299_999, after));
         Assert.True(AwayRules.IsAway(stirredAtMs: 0, nowMs: 300_000, after));
     }
+
+    [Fact]
+    public void A_still_player_is_asked_in_the_last_half_minute_before_the_mark()
+    {
+        var after = TimeSpan.FromMinutes(5);
+        var asked = (long)(after - AwayRules.WarnFor).TotalMilliseconds;
+
+        Assert.Equal(AwayStage.Here, AwayRules.StageAfter(stirredAtMs: 0, nowMs: asked - 1, after));
+        Assert.Equal(AwayStage.Warned, AwayRules.StageAfter(stirredAtMs: 0, nowMs: asked, after));
+        Assert.Equal(AwayStage.Warned, AwayRules.StageAfter(stirredAtMs: 0, nowMs: 299_999, after));
+        Assert.Equal(AwayStage.Away, AwayRules.StageAfter(stirredAtMs: 0, nowMs: 300_000, after));
+    }
+
+    [Fact]
+    public void A_server_that_marks_after_a_minute_asks_only_in_its_second_half()
+    {
+        var after = TimeSpan.FromMinutes(1);
+
+        Assert.Equal(AwayStage.Here, AwayRules.StageAfter(stirredAtMs: 0, nowMs: 29_999, after));
+        Assert.Equal(AwayStage.Warned, AwayRules.StageAfter(stirredAtMs: 0, nowMs: 30_000, after));
+    }
+
+    [Fact]
+    public void The_countdown_rounds_up_and_never_goes_below_nothing()
+    {
+        var after = TimeSpan.FromMinutes(5);
+
+        Assert.Equal(30, AwayRules.SecondsLeft(stirredAtMs: 0, nowMs: 270_000, after));
+        Assert.Equal(1, AwayRules.SecondsLeft(stirredAtMs: 0, nowMs: 299_001, after));
+        Assert.Equal(0, AwayRules.SecondsLeft(stirredAtMs: 0, nowMs: 301_000, after));
+    }
+
+    [Fact]
+    public void The_time_away_counts_whole_seconds()
+    {
+        Assert.Equal(300, AwayRules.SecondsSince(sinceMs: 1_000, nowMs: 301_999));
+        Assert.Equal(0, AwayRules.SecondsSince(sinceMs: 5_000, nowMs: 4_000));
+    }
 }

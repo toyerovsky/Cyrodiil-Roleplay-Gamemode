@@ -410,4 +410,35 @@ public static partial class RpContracts
     [ServerToClient]
     public static partial void GamblingState(int kind, string json);
 
+    // A GuideView as JSON: a guide's card over the game, at the first use of a window, the first entry or read again.
+    [ServerToClient]
+    public static partial void Guide(string json);
+
+    // E or Enter on the card: what waited behind it goes on.
+    [ClientToServer]
+    public static partial void GuideContinue();
+
+    // Esc on the card, or (replaced) another window took its place, and then nothing follows the card.
+    [ClientToServer]
+    public static partial void GuideClose(bool replaced);
+
+    // A guide read again from the menu's Help tab, by its topic's name.
+    [ClientToServer]
+    public static partial void ReadGuide(string topic);
+
+    // The player has done nothing for a while: this many seconds before [AFK] shows over their head.
+    [ServerToClient]
+    public static partial void AwayWarning(int secondsLeft);
+
+    // [AFK] shows over the player's head: this many seconds since they last did anything.
+    [ServerToClient]
+    public static partial void AwayMarked(int secondsAway);
+
+    // The player is back, or the warning is over.
+    [ServerToClient]
+    public static partial void AwayEnded();
+
+    // A key or the mouse in one of the mode's pages: the player is at the keyboard while a window holds them still.
+    [ClientToServer]
+    public static partial void ReportPresence();
 }

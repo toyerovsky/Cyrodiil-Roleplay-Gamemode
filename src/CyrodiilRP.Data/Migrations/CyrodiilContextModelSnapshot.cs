@@ -82,6 +82,27 @@ namespace CyrodiilRP.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.AccountGuide", b =>
+                {
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("account_id");
+
+                    b.Property<string>("Topic")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("topic");
+
+                    b.Property<DateTimeOffset>("SeenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("seen_at");
+
+                    b.HasKey("AccountId", "Topic")
+                        .HasName("pk_account_guides");
+
+                    b.ToTable("account_guides", (string)null);
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.AuditEntry", b =>
                 {
                     b.Property<long>("Id")
@@ -1071,6 +1092,16 @@ namespace CyrodiilRP.Data.Migrations
                         .HasName("pk_trader_spots");
 
                     b.ToTable("trader_spots", (string)null);
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.AccountGuide", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_account_guides_accounts_account_id");
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.BankAccount", b =>

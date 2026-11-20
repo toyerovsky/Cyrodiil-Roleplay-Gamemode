@@ -1,7 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using CyrodiilRP.Data;
 using CyrodiilRP.Server.Characters;
 using CyrodiilRP.Server.Chat;
+using CyrodiilRP.Server.Guide;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
@@ -23,6 +25,7 @@ internal sealed partial class BoardWindows(
     Proximity proximity,
     NoticeBoards boards,
     RpChat chat,
+    Guides guides,
     Audit audit,
     Timers timers,
     Fire fire,
@@ -43,8 +46,17 @@ internal sealed partial class BoardWindows(
         if (FindInFront(actor, reach, coneDegrees, out _) is not { } board || actor.Character is not { } character)
             return;
 
-        _open[actor] = new OpenBoard(board, character.Id);
-        SendState(actor);
+        guides.ShowFirst(actor, GuideTopic.NoticeBoard, () => Open(actor, board, character.Id));
+    }
+
+    // Behind a guide the board may be gone, and the window closes as it does for one taken away.
+    private void Open(OnlinePlayer player, BoardRecord board, long characterId)
+    {
+        if (!boards.Boards.Contains(board))
+            return;
+
+        _open[player] = new OpenBoard(board, characterId);
+        SendState(player);
     }
 
     // The board nearest in front, of those in the player's area.

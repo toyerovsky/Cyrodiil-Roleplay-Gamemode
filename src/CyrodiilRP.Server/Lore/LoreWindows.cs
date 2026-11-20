@@ -1,5 +1,7 @@
 using System.Text;
+using CyrodiilRP.Data;
 using CyrodiilRP.Server.Chat;
+using CyrodiilRP.Server.Guide;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
@@ -18,6 +20,7 @@ internal sealed partial class LoreWindows(
     LoreCardViews views,
     LoreTargets targets,
     RpChat chat,
+    Guides guides,
     ILogger logger)
 {
     // Request id 0 is the server's own message, which opens the page.
@@ -36,8 +39,11 @@ internal sealed partial class LoreWindows(
         if (!CanOpen(player))
             return;
 
-        _open.Add(player.Id);
-        rpc.SendLoreAnswer(player.Id, PushId, LoreDesk.BuildEditPush());
+        guides.ShowFirst(player, GuideTopic.Lore, () =>
+        {
+            _open.Add(player.Id);
+            rpc.SendLoreAnswer(player.Id, PushId, LoreDesk.BuildEditPush());
+        });
     }
 
     public void OpenCard(OnlinePlayer reader, OnlinePlayer subject)

@@ -217,4 +217,19 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnGamblingAct(RpcContext context, long game, int version, string action, int amount) =>
         callbacks.Raise("rpc.gambling_act", GamblingActed, context.Sender, new Gambling.GamblingDecision(game, version, action, amount));
 
+    public event Action<PlayerId>? GuideContinued;
+
+    public event Action<PlayerId, bool>? GuideLeft;
+
+    public event Action<PlayerId, string>? GuideAsked;
+
+    public event Action<PlayerId>? PresenceReported;
+
+    partial void OnGuideContinue(RpcContext context) => callbacks.Raise("rpc.guide_continue", GuideContinued, context.Sender);
+
+    partial void OnGuideClose(RpcContext context, bool replaced) => callbacks.Raise("rpc.guide_close", GuideLeft, context.Sender, replaced);
+
+    partial void OnReadGuide(RpcContext context, string topic) => callbacks.Raise("rpc.read_guide", GuideAsked, context.Sender, topic);
+
+    partial void OnReportPresence(RpcContext context) => callbacks.Raise("rpc.report_presence", PresenceReported, context.Sender);
 }

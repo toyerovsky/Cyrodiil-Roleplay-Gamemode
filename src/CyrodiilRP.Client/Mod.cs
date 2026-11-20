@@ -1,11 +1,13 @@
 using CyrodiilRP.Client.Admin;
 using CyrodiilRP.Client.Gambling;
 using CyrodiilRP.Client.Asks;
+using CyrodiilRP.Client.Away;
 using CyrodiilRP.Client.Bank;
 using CyrodiilRP.Client.Chat;
 using CyrodiilRP.Client.Creator;
 using CyrodiilRP.Client.Dice;
 using CyrodiilRP.Client.Exchange;
+using CyrodiilRP.Client.Guide;
 using CyrodiilRP.Client.Interactions;
 using CyrodiilRP.Client.Jobs;
 using CyrodiilRP.Client.Lore;
@@ -48,6 +50,9 @@ internal sealed partial class Mod(IDependencyContainer services, ILogger logger)
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<AdminOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<FrozenOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<WelcomeOverlay>());
+        services.RegisterSingleton<ICefRpcHandler>(services.Resolve<GuideOverlay>());
+        services.RegisterSingleton<ICefRpcHandler>(services.Resolve<AwayOverlay>());
+        services.RegisterSingleton<ICefRpcHandler>(services.Resolve<PresenceReports>());
 
         logger.LogInformation("[CyrodiilRP] Client half up.");
     }

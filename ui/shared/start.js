@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import "../rp/index.js";
+import { watchPresence } from "./presence.js";
 import "./scale.css";
 
 const PREVIEW_BACKDROP = "#3f4a3a";
@@ -15,4 +16,5 @@ export async function startPage(App, createBridge, loadPretendGame) {
   }
 
   createApp(App, { bridge: createBridge(window.readym) }).mount("#root");
+  watchPresence(window.readym);
 }

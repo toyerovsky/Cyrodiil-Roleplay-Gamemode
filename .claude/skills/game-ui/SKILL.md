@@ -29,6 +29,8 @@ description: How Cyrodiil RP shows anything to a player. Use before writing play
 | The staff's tools | the staff's panel, `ui/admin`, `/admin` or the wheels, no key | `AdminPanel`: every button a command of `AdminActions` |
 | A staff action that needs more (a reason, minutes) from the panel | a dialog over the panel that checks it as the server would | `ui/admin/ActionDialog.vue` |
 | Held by the staff (frozen) | a plate at the top, `ui/frozen`, holding the input | `Freezes` sends `Frozen` |
+| What a window is for, the first time a player meets it | a guide's card over everything, `ui/guides`, the window waiting behind it | `guides.ShowFirst(player, GuideTopic.X, open)` in the window's service, texts and numbers in `GuideCatalogue` |
+| Away from the keyboard: asked, then marked | the AFK screen, `ui/away`, under every window, never holding the input | `AwayWatch` sends `AwayWarning`, `AwayMarked`, `AwayEnded` |
 
 - No chat line as a fallback when a page does not show. A page that does not load is a bug to fix, not a second path.
 - Every line is written in its reader's language (`OnlinePlayer.Locale`).

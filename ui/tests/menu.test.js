@@ -141,6 +141,21 @@ describe("the player's menu", () => {
     expect(page.find(".menu__description").text()).toBe("what your character does");
   });
 
+  it("lists the guides on the help tab, read or still ahead, and asks for one to read again", async () => {
+    const guides = [
+      { topic: "Welcome", title: "Welcome to Cyrodiil", seen: true },
+      { topic: "Bank", title: "The bank", seen: false },
+    ];
+    await game.emit("State", state({ tab: "help", guides }));
+
+    expect(page.findAll(".menu__group h2").map((heading) => heading.text())).toEqual(["Guides", "Roleplay", "General"]);
+    expect(page.findAll(".menu__guide-title").map((title) => title.text())).toEqual(["Welcome to Cyrodiil", "The bank"]);
+    expect(page.findAll(".menu__guide-state").map((state) => state.text())).toEqual(["Read", "Still ahead of you"]);
+
+    await page.find('[data-topic="Bank"]').trigger("click");
+    expect(game.readSent("MenuGuide")).toEqual([["Bank"]]);
+  });
+
   it("switches tabs on a click", async () => {
     await game.emit("State", state());
     await page.find('[data-tab="keys"]').trigger("click");

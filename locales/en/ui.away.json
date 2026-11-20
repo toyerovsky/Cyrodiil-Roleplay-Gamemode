@@ -1,0 +1,9 @@
+{
+  "ui.away.warning_title": "Still there?",
+  "ui.away.warning_clock": "until [AFK] shows over your head",
+  "ui.away.warning_hint": "Move, turn the camera or open the chat.",
+  "ui.away.away_title": "You are AFK",
+  "ui.away.away_clock": "away from the keyboard",
+  "ui.away.away_seen": "Others see [AFK] over your head.",
+  "ui.away.away_hint": "Move, turn the camera or open the chat, and the mark goes."
+}

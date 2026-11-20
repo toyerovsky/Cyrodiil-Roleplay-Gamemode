@@ -108,6 +108,14 @@ internal sealed partial class PlayerMenuOverlay(
     [ReceiveFromCef]
     private void OnMenuLoreName(BrowserHandle browser, bool namePublic) => rpc.SendChooseNamePublic(namePublic);
 
+    // A guide of the help tab, read again: its card takes the menu's place, and the menu comes back as it closes.
+    [ReceiveFromCef]
+    private void OnMenuGuide(BrowserHandle browser, string topic)
+    {
+        Window.Close();
+        rpc.SendReadGuide(topic);
+    }
+
     // A button of the faction tab: a /faction command, which the server runs as if typed.
     [ReceiveFromCef]
     private void OnMenuFaction(BrowserHandle browser, string line) => rpc.SendFactionRun(line);

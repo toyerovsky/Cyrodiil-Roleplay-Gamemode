@@ -1,9 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using CyrodiilRP.Data;
 using CyrodiilRP.Data.Bank;
 using CyrodiilRP.Server.Characters;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Economy;
+using CyrodiilRP.Server.Guide;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
@@ -29,6 +31,7 @@ internal sealed partial class Bankers(
     BankAccounts accounts,
     Wallet wallet,
     RpChat chat,
+    Guides guides,
     Audit audit,
     Timers timers,
     Fire fire,
@@ -48,7 +51,7 @@ internal sealed partial class Bankers(
         if (npcs.FindByNpc(npcRefId) is not { Kind: TraderSpotKind.Banker } spot || actor.Character is not { } character)
             return false;
 
-        Open(actor, character.Id, spot);
+        guides.ShowFirst(actor, GuideTopic.Bank, () => Open(actor, character.Id, spot));
         return true;
     }
 

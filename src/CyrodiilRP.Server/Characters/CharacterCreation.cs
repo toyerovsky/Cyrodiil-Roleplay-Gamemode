@@ -77,7 +77,7 @@ internal sealed partial class CharacterCreation(
             switch (result)
             {
                 case CreationResult.Created:
-                    player.IsPlaying = true;
+                    online.StartPlaying(player);
                     spawn.MoveNew(player);
                     chat.SendTo(player, ChatLineKind.System, CharactersText.Welcome(player.Name));
                     chat.SendTo(player, ChatLineKind.System, CharactersText.HelpHint);

@@ -79,7 +79,7 @@ internal sealed partial class Welcomes(
         if (!online.TryGet(id, out var player) || !CharacterSlots.MayPlay(player))
             return;
 
-        player.IsPlaying = true;
+        online.StartPlaying(player);
         _showing.Remove(player);
         player.PlayCountedUntil = DateTimeOffset.UtcNow;
         _hold.Release(player.Id);

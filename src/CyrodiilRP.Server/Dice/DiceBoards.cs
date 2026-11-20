@@ -1,6 +1,8 @@
 using System.Text.Json;
+using CyrodiilRP.Data;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Commands;
+using CyrodiilRP.Server.Guide;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
@@ -22,6 +24,7 @@ internal sealed partial class DiceBoards(
     CommandRegistry commands,
     PlayerMenus menus,
     RpChat chat,
+    Guides guides,
     SystemClock clock,
     ILogger logger)
 {
@@ -43,8 +46,11 @@ internal sealed partial class DiceBoards(
             return;
         }
 
-        _open.Add(player.Id);
-        SendState(player);
+        guides.ShowFirst(player, GuideTopic.Dice, () =>
+        {
+            _open.Add(player.Id);
+            SendState(player);
+        });
     }
 
     public void Close(OnlinePlayer player)

@@ -1,0 +1,9 @@
+{
+  "ui.away.warning_title": "Jesteś tam?",
+  "ui.away.warning_clock": "do [AFK] nad twoją głową",
+  "ui.away.warning_hint": "Rusz się, obróć kamerę albo otwórz czat.",
+  "ui.away.away_title": "Jesteś AFK",
+  "ui.away.away_clock": "z dala od klawiatury",
+  "ui.away.away_seen": "Inni widzą [AFK] nad twoją głową.",
+  "ui.away.away_hint": "Rusz się, obróć kamerę albo otwórz czat, a znak zniknie."
+}

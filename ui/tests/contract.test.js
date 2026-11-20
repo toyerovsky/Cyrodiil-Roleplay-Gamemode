@@ -39,3 +39,14 @@ describe("the messages between a page and the game", () => {
     });
   }
 });
+
+// What every page sends through ui/shared/start.js rather than its own bridge, and the one class of the game it reaches.
+const SHARED = [{ file: "shared/presence.js", game: "Away/PresenceReports.cs" }];
+
+describe("the messages every page sends", () => {
+  for (const { file, game } of SHARED) {
+    it(`${file} sends what ${game} receives`, () => {
+      expect(readUsed(file).sends).toEqual(readDeclared(game).receives);
+    });
+  }
+});

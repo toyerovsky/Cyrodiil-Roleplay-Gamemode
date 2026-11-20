@@ -1,0 +1,167 @@
+.away {
+  --away-shade: 5, 4, 3;
+
+  position: fixed;
+  inset: 0;
+  animation: away-in var(--duration-enter) cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* The game goes dark from every edge, deepest along the top and the bottom where the words stand, and the middle stays
+   clear: the player sees the world they left. */
+.away__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(var(--away-shade), 0.72), rgba(var(--away-shade), 0.5) 24%, rgba(var(--away-shade), 0) 50%,
+      rgba(var(--away-shade), 0) 66%, rgba(var(--away-shade), 0.8)),
+    radial-gradient(ellipse 80% 72% at 50% 56%, rgba(var(--away-shade), 0) 22%, rgba(var(--away-shade), 0.44) 62%, rgba(var(--away-shade), 0.9) 100%);
+}
+
+/* Lighter while it only asks, and breathing, so it reads as a question rather than a verdict. */
+.away--warning .away__veil {
+  background:
+    linear-gradient(180deg, rgba(var(--away-shade), 0.62), rgba(var(--away-shade), 0.42) 24%, rgba(var(--away-shade), 0) 50%,
+      rgba(var(--away-shade), 0) 66%, rgba(var(--away-shade), 0.7)),
+    radial-gradient(ellipse 80% 72% at 50% 56%, rgba(var(--away-shade), 0) 32%, rgba(var(--away-shade), 0.3) 68%, rgba(var(--away-shade), 0.7) 100%);
+  animation: away-breath 2400ms ease-in-out infinite alternate;
+}
+
+/* The title and the clock in the upper third, with no plate: a soft shade under them carries the words over a sunlit
+   scene. The crosshair stays the game's. */
+.away__head,
+.away__foot {
+  position: absolute;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  width: 1500px;
+  max-width: 96vw;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.away__head {
+  top: 17%;
+  gap: 6px;
+  animation: away-settle var(--duration-enter) cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+.away__head::before,
+.away__foot::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -110px 0;
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(var(--away-shade), 0.55), rgba(var(--away-shade), 0.38) 35%,
+    rgba(var(--away-shade), 0.14) 70%, rgba(var(--away-shade), 0) 100%);
+}
+
+.away__crest {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.away__rule {
+  width: 220px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-bright));
+}
+
+.away__rule--right {
+  background: linear-gradient(90deg, var(--gold-bright), transparent);
+}
+
+.away__icon {
+  width: 36px;
+  height: 36px;
+  fill: none;
+  stroke: var(--gold-pale);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 2px rgba(14, 11, 9, 0.9));
+}
+
+.away__title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 72px;
+  line-height: 84px;
+  letter-spacing: 0.04em;
+  color: var(--night-text);
+  text-shadow: 0 2px 3px rgba(8, 6, 5, 0.9), 0 0 16px rgba(14, 11, 9, 0.85);
+}
+
+.away__clock {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin: 0;
+}
+
+.away__time {
+  font-weight: 700;
+  font-size: 60px;
+  line-height: 66px;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold-light);
+  text-shadow: 0 2px 3px rgba(8, 6, 5, 0.9), 0 0 16px rgba(14, 11, 9, 0.85);
+}
+
+.away--warning .away__time {
+  color: var(--night-refusal);
+}
+
+.away__label,
+.away__seen,
+.away__hint {
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(8, 6, 5, 0.95), 0 0 6px rgba(14, 11, 9, 0.9);
+}
+
+.away__label {
+  font-family: var(--font-title);
+  font-size: 19px;
+  line-height: 26px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-pale);
+}
+
+/* What to do about it stands at the bottom, over the darkest of the veil. */
+.away__foot {
+  bottom: 14%;
+  gap: 8px;
+  animation: away-rise var(--duration-enter) cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+.away__seen {
+  font-size: 22px;
+  line-height: 29px;
+  color: var(--parchment);
+}
+
+.away__hint {
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 31px;
+  color: var(--night-text);
+}
+
+@keyframes away-in {
+  from { opacity: 0; }
+}
+
+@keyframes away-settle {
+  from { transform: translate(-50%, -16px); }
+}
+
+@keyframes away-rise {
+  from { transform: translate(-50%, 16px); }
+}
+
+@keyframes away-breath {
+  to { opacity: 0.8; }
+}

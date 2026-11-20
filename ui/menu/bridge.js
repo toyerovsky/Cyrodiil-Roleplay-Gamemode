@@ -1,7 +1,8 @@
 // The menu arrives as JSON: {tab, character, account, help, dice, lore, faction, languages, language}, again after a
 // language, a dice set or the name's visibility is picked. The page closes on Closed, whoever closed it. Its dice tab
 // opens the dice board and its lore tab the lore card, each closing the menu. A button of its faction tab runs a
-// /faction command, answered in the player's language, done or refused, and then with the menu again.
+// /faction command, answered in the player's language, done or refused, and then with the menu again. A guide of its help
+// tab takes the menu's place, which comes back as the guide closes.
 export function createBridge(readym) {
   return {
     onLocale: (handler) => readym.on("Locale", handler),
@@ -16,5 +17,6 @@ export function createBridge(readym) {
     openLore: () => readym.sendMenuLore(),
     setNamePublic: (isPublic) => readym.sendMenuLoreName(isPublic),
     runFaction: (line) => readym.sendMenuFaction(line),
+    readGuide: (topic) => readym.sendMenuGuide(topic),
   };
 }

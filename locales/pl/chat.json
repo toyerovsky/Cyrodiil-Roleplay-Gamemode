@@ -21,6 +21,7 @@
   "chat.reply_gone": "Gracza, który napisał do ciebie ostatni, nie ma już w grze.",
   "chat.own_number": "Twój numer to {number}.",
   "chat.away_now": "Przy twoim imieniu widać [AFK], dopóki się nie ruszysz, nie obrócisz albo nie zaczniesz pisać.",
+  "chat.away_back": "Witaj z powrotem. [AFK] zniknęło z twojego imienia.",
   "chat.players": {
     "one": "{count} gracz online: {list}",
     "few": "{count} gracze online: {list}",

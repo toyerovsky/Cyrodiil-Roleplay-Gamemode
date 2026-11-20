@@ -4,6 +4,7 @@ using CyrodiilRP.Server.Conditions;
 using CyrodiilRP.Server.Dice;
 using CyrodiilRP.Server.Economy;
 using CyrodiilRP.Server.Faction;
+using CyrodiilRP.Server.Guide;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
@@ -32,6 +33,9 @@ internal sealed partial class PlayerMenus(
     FactionInvites invites,
     RpConfig config,
     CharacterSpecializations specializations,
+    SeenGuides seenGuides,
+    GuideCatalogue guideCatalogue,
+    Guides guides,
     Localizer translations)
 {
     private void Start()
@@ -39,6 +43,7 @@ internal sealed partial class PlayerMenus(
         online.Loaded += player => rpc.SendLocale(player.Id, player.Locale);
         rpc.MenuAsked += OnAsked;
         rpc.LanguageChosen += OnLanguageChosen;
+        guides.ReadingEnded += player => Show(player, MenuTabs.Help);
         commands.Add(new CommandSpec { Name = "help", Usage = ChatText.CmdHelp, Category = CommandCategory.General, NeedsCharacter = true },
             call => Show(call.Sender, MenuTabs.Help));
     }
@@ -88,9 +93,12 @@ internal sealed partial class PlayerMenus(
             BuildLore(player),
             BuildFaction(player),
             translations.Locales,
-            player.Locale) { Gambling = gambling.Recent(player) };
+            player.Locale) { Gambling = gambling.Recent(player), Guides = BuildGuides(player, Translate) };
         return JsonSerializer.Serialize(view, MenuJson.Default.MenuView);
     }
+
+    private List<MenuGuideView> BuildGuides(OnlinePlayer player, Func<Phrase, string> translate) =>
+        [.. GuideCatalogue.All.Select(topic => new MenuGuideView(topic, translate(guideCatalogue.Build(topic).Title), seenGuides.Has(player, topic) == true))];
 
     private FactionMenuView BuildFaction(OnlinePlayer player)
     {

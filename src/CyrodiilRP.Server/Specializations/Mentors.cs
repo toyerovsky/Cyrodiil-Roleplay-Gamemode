@@ -5,6 +5,7 @@ using CyrodiilRP.Data.Specializations;
 using CyrodiilRP.Server.Characters;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Economy;
+using CyrodiilRP.Server.Guide;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
@@ -32,6 +33,7 @@ internal sealed partial class Mentors(
     Persistence persistence,
     RpConfig config,
     RpChat chat,
+    Guides guides,
     Audit audit,
     Timers timers,
     Fire fire,
@@ -54,7 +56,7 @@ internal sealed partial class Mentors(
         if (npcs.FindByNpc(npcRefId) is not { } spot || !SpecializationRules.IsTeacher(spot.Kind) || actor.Character is not { } character)
             return false;
 
-        Open(actor, character.Id, spot);
+        guides.ShowFirst(actor, GuideTopic.Mentor, () => Open(actor, character.Id, spot));
         return true;
     }
 

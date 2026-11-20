@@ -4,6 +4,7 @@ import chat from "../../locales/en/chat.json";
 import dice from "../../locales/en/dice.json";
 import economy from "../../locales/en/economy.json";
 import faction from "../../locales/en/faction.json";
+import guides from "../../locales/en/guides.json";
 import party from "../../locales/en/party.json";
 import sanctions from "../../locales/en/sanctions.json";
 import staff from "../../locales/en/staff.json";
@@ -22,6 +23,12 @@ const PLAYER_COMMANDS = {
   messages: ["chat.cmd.local_ooc", "chat.cmd.global_ooc", "chat.cmd.pm", "party.cmd.party", "faction.cmd.chat"],
   general: ["chat.cmd.players", "chat.cmd.help", "economy.cmd.gold", "faction.cmd.faction"],
 };
+// The guides the Help tab lists, the first three read already, as the server orders them (GuideTopic.cs).
+const GUIDES = [
+  ["Welcome", "welcome"], ["Trader", "trader"], ["Bank", "bank"], ["Stable", "stable"], ["Mentor", "mentor"], ["Foreman", "foreman"],
+  ["NoticeBoard", "notice_board"], ["Gambling", "gambling"], ["Dice", "dice"], ["Lore", "lore"], ["Exchange", "exchange"],
+];
+const READ_GUIDES = 3;
 const DICE_SETS = ["altmer", "argonian", "ayleid", "bosmer", "breton", "daedric", "dunmer", "imperial", "khajiit", "nord", "orc", "redguard"];
 const TEXTS = { ...admin, ...chat, ...dice, ...economy, ...faction, ...party, ...sanctions, ...staff, ...trader };
 const STAFF_COMMANDS = [
@@ -93,6 +100,7 @@ export function pretendGame(readym) {
     },
     dice: dice(),
     gambling: HISTORY,
+    guides: GUIDES.map(([topic, key], index) => ({ topic, title: guides[`guides.${key}.title`], seen: index < READ_GUIDES })),
     lore: lore(),
     faction: factions.view(),
     help: [
@@ -113,7 +121,7 @@ export function pretendGame(readym) {
         readym.emit("State", JSON.stringify(view("faction")));
       }, ANSWER_MS);
     }
-    if (name === "MenuClose" || name === "MenuDice" || name === "MenuLore") setTimeout(() => readym.emit("Closed"), 0);
+    if (name === "MenuClose" || name === "MenuDice" || name === "MenuLore" || name === "MenuGuide") setTimeout(() => readym.emit("Closed"), 0);
     if (name === "MenuLoreName") {
       [namePublic] = args;
       send("lore");

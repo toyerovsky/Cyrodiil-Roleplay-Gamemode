@@ -19,4 +19,6 @@ export const PAGES = [
   { name: "welcome", title: "Welcome", scenarios: ["", "first", "empty"], game: "Welcome/WelcomeOverlay.cs" },
   { name: "dice", title: "Dice board", scenarios: ["", "empty", "refuse", "crit", "present"], game: "Dice/DiceOverlay.cs" },
   { name: "lore", title: "Lore card", scenarios: ["", "empty", "view", "nocard", "readonly"], game: "Lore/LoreOverlay.cs" },
+  { name: "guides", title: "Guide", scenarios: ["", "welcome", "read", "trader", "stable", "mentor", "foreman", "noticeboard", "gambling", "dice", "lore", "exchange"], game: "Guide/GuideOverlay.cs" },
+  { name: "away", title: "Away", scenarios: ["", "away", "long"], game: "Away/AwayOverlay.cs" },
 ];

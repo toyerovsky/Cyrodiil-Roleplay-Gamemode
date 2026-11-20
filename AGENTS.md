@@ -17,7 +17,10 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   global OOC, private messages. In-character lines name the speaker as the reader knows them (see the lore card).
 - **Names over heads:** drawn by the mode: the character's name to those who know it, the race to strangers (see the
   lore card), `[Staff]` in another colour on duty, `[AFK]` in grey after a few still minutes or `/afk` (until the
-  player moves, turns or writes), and `...` after the name while they write in the chat.
+  player moves, turns or writes, with a screen that asks first, see `docs/features/away.md`), and `...` after the name
+  while they write in the chat.
+- **Guides:** a card over the screen the first time a player meets a window of the mode, once an account, and a welcome
+  card with the keys at the first entry. See `docs/features/guides.md`.
 - **Interaction wheels:** G opens the actions of your own character, H the actions towards the player in front of
   you. A wheel of more than eight turns its pages with the wedges either side of twelve, Q and E or the mouse wheel.
 - **Emotes:** Emotes on the G wheel opens a wheel of every emote of the Emotes mod (`mods/Emotes`), Stop first: the
@@ -66,8 +69,8 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
 - **Player menu (F10):** tabs with the game's medallions: character (name, since when, time played, gold), account
   (ReadyM nick, previous visit, sanctions in force, the language choice when the server knows a second one), dice
   (the set, the last rolls), lore (name Public or Private, the card as the public reads it), faction (found one, answer
-  an invitation, or the roll and the ranks with their buttons, `/faction` opens this tab), help with the player's
-  commands under headings (`/help` opens this tab) and the mode's keys.
+  an invitation, or the roll and the ranks with their buttons, `/faction` opens this tab), help with the guides and
+  the player's commands under headings (`/help` opens this tab) and the mode's keys.
 - **In-game administration:** staff roles from the database (moderator, administrator, owner), duty with `/duty`
   (staff actions only on duty, which shows in the name over the head), sanctions with a reason and an audit log
   (kick, ban, mute, freeze, warning, lifting them also for offline players), care of a character (healing, health,

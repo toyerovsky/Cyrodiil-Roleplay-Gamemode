@@ -1,4 +1,5 @@
 using System.Text.Json;
+using CyrodiilRP.Data;
 using CyrodiilRP.Server.Dice;
 using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.PlayerMenu;
@@ -31,5 +32,17 @@ public sealed class MenuJsonTests
 
         Assert.Equal("nord", root.GetProperty("set").GetString());
         Assert.Equal(RollNotation.MaxDice, root.GetProperty("maxDice").GetInt32());
+    }
+
+    [Fact]
+    public void A_guide_of_the_help_tab_goes_out_under_the_names_the_page_reads()
+    {
+        var guide = new MenuGuideView(GuideTopic.NoticeBoard, "The notice board", Seen: true);
+
+        var root = JsonDocument.Parse(JsonSerializer.Serialize(guide, MenuJson.Default.MenuGuideView)).RootElement;
+
+        Assert.Equal("NoticeBoard", root.GetProperty("topic").GetString());
+        Assert.Equal("The notice board", root.GetProperty("title").GetString());
+        Assert.True(root.GetProperty("seen").GetBoolean());
     }
 }

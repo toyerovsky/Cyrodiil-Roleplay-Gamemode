@@ -6,6 +6,8 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 {
     public DbSet<Account> Accounts => Set<Account>();
 
+    public DbSet<AccountGuide> AccountGuides => Set<AccountGuide>();
+
     public DbSet<Character> Characters => Set<Character>();
 
     public DbSet<StaffRole> StaffRoles => Set<StaffRole>();
@@ -57,6 +59,14 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.Property(x => x.LastNickname).HasMaxLength(ColumnLengths.Nickname);
             entity.Property(x => x.BanReason).HasMaxLength(ColumnLengths.Reason);
             entity.HasIndex(x => x.ReadyMId).IsUnique();
+        });
+
+        modelBuilder.Entity<AccountGuide>(entity =>
+        {
+            entity.ToTable("account_guides");
+            entity.HasKey(x => new { x.AccountId, x.Topic });
+            entity.Property(x => x.Topic).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.HasOne<Account>().WithMany().HasForeignKey(x => x.AccountId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Character>(entity =>

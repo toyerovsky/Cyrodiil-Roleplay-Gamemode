@@ -62,7 +62,7 @@ The server refuses a config without a connection string and a database at anothe
 | `owners` | ReadyM account ids (the admin panel's Players view) holding every permission |
 | `startingGold` | gold a new character is owed once, in the same write that makes the character, delivered after the starting kit |
 | `chat` | ranges of say, shout, whisper and emotes, in game units (about centimetres) |
-| `away` | `afterMinutes` (5): how long a player stands still, does not turn and does not write before their name shows `[AFK]` |
+| `away` | `afterMinutes` (5): how long a player stands still, does not turn, does not write and touches no window before their name shows `[AFK]`; the screen asks 30 s before (`docs/features/away.md`) |
 | `economy` | `maxPayment`: the most gold one trade or `/agold` moves |
 | `factions` | `foundingFee`: the gold a founder pays from what they carry (500 by default, 0 founds for free) |
 | `stable` | the gold each horse costs at a stablemaster: `paint`, `bay`, `chestnut`, `white`, `black` (500, 1000, 2500, 4000 and 5000 by default, as the game's stables ask; 0 gives it away, below 0 stops the mod) |

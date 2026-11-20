@@ -44,7 +44,7 @@ test("the long help of the staff scrolls, its own heading last", async ({ page }
   await page.goto("/menu/index.html#help");
   await expect(tab(page, "help")).toHaveAttribute("aria-selected", "true");
   const headings = page.getByRole("tabpanel").getByRole("heading");
-  await expect(headings).toHaveText([t("category.roleplay"), t("category.messages"), t("category.general"), t("category.staff")]);
+  await expect(headings).toHaveText([t("guides.heading"), t("category.roleplay"), t("category.messages"), t("category.general"), t("category.staff")]);
   await expectNoHorizontalOverflow(page, ".menu__content");
   await screenshot(page, testInfo, "menu-help-staff");
 
@@ -155,4 +155,20 @@ test("the lore tab shows how strangers see the character, makes the name public 
   await content.getByRole("button", { name: t("lore.open") }).click();
   expect(await readSent(page, "MenuLore")).toEqual([[]]);
   await expect(page.locator(".menu")).toBeHidden();
+});
+
+test("the help tab lists the guides, and one read again takes the menu's place", async ({ page }, testInfo) => {
+  await page.goto("/menu/index.html#help");
+  await expect(tab(page, "help")).toHaveAttribute("aria-selected", "true");
+  const guides = page.locator("[data-guides]");
+  await expect(guides.getByRole("heading", { name: t("guides.heading") })).toBeVisible();
+  await expect(guides.locator(".menu__guide")).toHaveCount(11);
+  await expect(guides.locator(".menu__guide-state--new")).toHaveCount(8);
+  await expectNoHorizontalOverflow(page, ".menu__content");
+  await screenshot(page, testInfo, "menu-guides");
+
+  await guides.locator('[data-topic="NoticeBoard"]').focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("region", { name: "Marcus Varro" })).toHaveCount(0);
+  expect(await readSent(page, "MenuGuide")).toEqual([["NoticeBoard"]]);
 });

@@ -1,0 +1,395 @@
+/* The opening of a film over the game: black bands close in from the top and the bottom, the game darkens towards the
+   text, the title stands in spaced capitals with a flare across it and the picture rises out of the dark. */
+.guide {
+  --guide-band: #050403;
+  --guide-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --guide-weight: cubic-bezier(0.16, 1, 0.3, 1);
+  --guide-step-delay: 110ms;
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: auto;
+  color: var(--night-text);
+  animation: guide-fade var(--duration-fade) var(--guide-ease) both;
+}
+
+.guide__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(6, 5, 4, 0.92) 0%, rgba(6, 5, 4, 0.86) 46%, rgba(6, 5, 4, 0.62) 68%, rgba(6, 5, 4, 0.5) 100%),
+    radial-gradient(ellipse 62% 72% at 74% 50%, transparent 35%, rgba(6, 5, 4, 0.62) 100%);
+}
+
+.guide__folio {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.guide__folio::before {
+  content: "";
+  flex: none;
+  height: 88px;
+  background: var(--guide-band);
+  animation: guide-band-top var(--duration-enter) var(--guide-ease) both;
+}
+
+/* The text's column stops at a line one reads at a glance, so a wide screen spreads the margins instead. */
+.guide__page {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 880px) 520px;
+  grid-template-areas:
+    "head plate"
+    "steps plate"
+    "facts plate";
+  align-content: center;
+  justify-content: center;
+  column-gap: 110px;
+  min-height: 0;
+  padding: 28px 150px;
+  overflow: auto;
+}
+
+.guide__head {
+  grid-area: head;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.guide__eyebrow,
+.guide__purpose,
+.guide__rule {
+  animation: guide-rise var(--duration-fade) var(--guide-ease) both;
+}
+
+.guide__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 23px;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: var(--gold-pale);
+  animation-delay: 160ms;
+}
+
+.guide__eyebrow::before {
+  content: "";
+  width: 64px;
+  height: 1px;
+  background: currentColor;
+}
+
+.guide__title {
+  position: relative;
+  margin: 12px 0 0;
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 76px;
+  line-height: 88px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--night-text);
+  text-shadow: 0 0 36px rgba(228, 196, 131, 0.22), 0 2px 2px rgba(8, 6, 5, 0.8);
+  overflow-wrap: anywhere;
+  transform-origin: left center;
+  animation: guide-title 1100ms var(--guide-weight) both;
+  animation-delay: 260ms;
+}
+
+/* The flare: a line of warm light that flashes across the title as it comes. */
+.guide__title::after {
+  content: "";
+  position: absolute;
+  top: 52%;
+  left: -150px;
+  width: 1180px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 214, 150, 0.85) 32%, #fff3dc 46%, rgba(255, 214, 150, 0.85) 60%, transparent);
+  box-shadow: 0 0 14px 3px var(--glow);
+  opacity: 0;
+  pointer-events: none;
+  animation: guide-flare 1300ms var(--guide-weight) both;
+  animation-delay: 260ms;
+}
+
+.guide__purpose {
+  margin: 14px 0 0;
+  max-width: 38em;
+  font-style: italic;
+  font-size: 24px;
+  line-height: 33px;
+  color: var(--night-muted);
+  animation-delay: 320ms;
+}
+
+.guide__rule {
+  display: block;
+  width: min(440px, 100%);
+  height: 1px;
+  margin: 26px 0 28px;
+  background: linear-gradient(90deg, var(--gold-bright), rgba(201, 162, 89, 0));
+  transform-origin: left center;
+  animation-name: guide-draw;
+  animation-delay: 380ms;
+}
+
+.guide__plate {
+  grid-area: plate;
+  position: relative;
+  align-self: center;
+  width: 520px;
+  margin: 0;
+}
+
+.guide__plate::before {
+  content: "";
+  position: absolute;
+  inset: -14%;
+  background: radial-gradient(closest-side, rgba(6, 5, 4, 0.6) 40%, transparent);
+}
+
+.guide__picture {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  mask-image: radial-gradient(closest-side, #000 58%, transparent 100%);
+  animation: guide-dissolve 1600ms var(--guide-weight) both;
+  animation-delay: 200ms;
+}
+
+.guide__steps {
+  grid-area: steps;
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The steps come one after another, as a film's credits. */
+.guide__step {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 16px;
+  animation: guide-credit var(--duration-fade) var(--guide-ease) both;
+  animation-delay: calc(460ms + var(--order) * var(--guide-step-delay));
+}
+
+.guide__number {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 28px;
+  color: var(--gold-pale);
+  text-align: right;
+}
+
+.guide__text {
+  font-size: 22px;
+  line-height: 31px;
+  color: var(--night-text);
+}
+
+/* After the text in a step, before it in the welcome's lines of keys. */
+.guide__keys {
+  display: flex;
+  order: 1;
+  gap: 6px;
+  align-self: center;
+}
+
+.guide__steps--plain .guide__step {
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+}
+
+.guide__steps--plain .guide__keys {
+  order: 0;
+  justify-content: flex-end;
+}
+
+.guide__keycap,
+.guide__hint {
+  display: inline-grid;
+  place-items: center;
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--parchment-light), var(--parchment-deep));
+  border: 1px solid var(--gold-dark);
+  border-bottom-width: 3px;
+  border-radius: var(--radius-small);
+  white-space: nowrap;
+}
+
+.guide__keycap {
+  min-width: 42px;
+  height: 38px;
+  padding: 0 9px;
+  font-size: 18px;
+}
+
+.guide__facts {
+  grid-area: facts;
+  margin-top: 32px;
+  animation: guide-credit var(--duration-fade) var(--guide-ease) both;
+  animation-delay: calc(540ms + var(--after) * var(--guide-step-delay));
+}
+
+.guide__figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 18px 32px;
+  margin: 0;
+}
+
+.guide__fact {
+  display: flex;
+  flex-direction: column;
+  padding-top: 12px;
+  border-top: 1px solid rgba(201, 162, 89, 0.45);
+}
+
+.guide__fact dd {
+  order: -1;
+  margin: 0;
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 40px;
+  color: var(--night-text);
+}
+
+.guide__fact dt {
+  font-style: italic;
+  font-size: 19px;
+  line-height: 25px;
+  color: var(--night-muted);
+}
+
+/* The lower band holds the keys, as a film holds its subtitles. */
+.guide__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 40px;
+  min-height: 96px;
+  padding: 0 150px;
+  background: var(--guide-band);
+  animation: guide-band-bottom var(--duration-enter) var(--guide-ease) both;
+}
+
+.guide__again {
+  margin: 0;
+  font-style: italic;
+  font-size: 19px;
+  line-height: 25px;
+  color: var(--night-muted);
+}
+
+.guide__buttons {
+  display: flex;
+  flex: none;
+  gap: 14px;
+}
+
+.guide__again,
+.guide__buttons {
+  animation: guide-fade var(--duration-fade) var(--guide-ease) both;
+  animation-delay: var(--duration-enter);
+}
+
+.guide__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 170px;
+  justify-content: center;
+}
+
+.guide__hint {
+  min-width: 34px;
+  height: 28px;
+  padding: 0 7px;
+  font-size: 17px;
+  border-bottom-width: 2px;
+}
+
+.guide--long .guide__title {
+  font-size: 60px;
+  line-height: 70px;
+}
+
+.guide--long .guide__steps {
+  gap: 10px;
+}
+
+/* Narrower than 3:2 the picture gives the text room. */
+@media (max-aspect-ratio: 3/2) {
+  .guide__page {
+    grid-template-columns: minmax(0, 880px) 340px;
+    column-gap: 56px;
+    padding: 28px 72px;
+  }
+
+  .guide__plate {
+    width: 340px;
+  }
+
+  .guide__actions {
+    padding: 0 72px;
+  }
+}
+
+@keyframes guide-fade {
+  from { opacity: 0; }
+}
+
+@keyframes guide-rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+@keyframes guide-band-top {
+  from { transform: translateY(-100%); }
+}
+
+@keyframes guide-band-bottom {
+  from { transform: translateY(100%); }
+}
+
+@keyframes guide-title {
+  from { opacity: 0; transform: scale(1.05); }
+}
+
+@keyframes guide-flare {
+  0% { opacity: 0; transform: scaleX(0.05); }
+  30% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1.15); }
+}
+
+@keyframes guide-draw {
+  from { opacity: 0; transform: scaleX(0); }
+}
+
+@keyframes guide-dissolve {
+  from { opacity: 0; transform: scale(1.1); }
+}
+
+@keyframes guide-credit {
+  from { opacity: 0; transform: translateY(6px); }
+}

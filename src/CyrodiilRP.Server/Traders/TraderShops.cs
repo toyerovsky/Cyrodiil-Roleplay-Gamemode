@@ -1,6 +1,8 @@
 using System.Text.Json;
+using CyrodiilRP.Data;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Economy;
+using CyrodiilRP.Server.Guide;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
@@ -30,6 +32,7 @@ internal sealed partial class TraderShops(
     IEntities entities,
     Inventories inventories,
     RpChat chat,
+    Guides guides,
     Audit audit,
     Timers timers) : ITalkTarget
 {
@@ -54,7 +57,7 @@ internal sealed partial class TraderShops(
         if (npcs.FindByNpc(npcRefId) is not { Kind: TraderSpotKind.Shop } spot)
             return false;
 
-        Open(actor, spot);
+        guides.ShowFirst(actor, GuideTopic.Trader, () => Open(actor, spot));
         return true;
     }
 

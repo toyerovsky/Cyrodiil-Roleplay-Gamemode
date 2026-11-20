@@ -37,6 +37,9 @@ internal sealed partial class OnlinePlayers(
 
     public event Action<OnlinePlayer>? Banned;
 
+    // The player took their character over from the welcome, or has just made it.
+    public event Action<OnlinePlayer>? Playing;
+
     public event Action<OnlinePlayer>? Left;
 
     public event Action<OnlinePlayer>? LocaleChanged;
@@ -55,6 +58,12 @@ internal sealed partial class OnlinePlayers(
     {
         player = _online.Values.FirstOrDefault(p => p.ReadyMId == readyMId);
         return player is not null;
+    }
+
+    public void StartPlaying(OnlinePlayer player)
+    {
+        player.IsPlaying = true;
+        callbacks.Raise("players.playing", Playing, player);
     }
 
     public void RememberNickname(OnlinePlayer player, string nickname)

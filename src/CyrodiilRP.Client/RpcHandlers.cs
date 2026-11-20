@@ -264,4 +264,19 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
         receive();
     }
 
+    public event Action<string>? GuideShown;
+
+    public event Action<int>? AwayWarned;
+
+    public event Action<int>? AwayMarked;
+
+    public event Action? AwayEnded;
+
+    partial void OnGuide(string json) => GuideShown?.Invoke(json);
+
+    partial void OnAwayWarning(int secondsLeft) => AwayWarned?.Invoke(secondsLeft);
+
+    partial void OnAwayMarked(int secondsAway) => AwayMarked?.Invoke(secondsAway);
+
+    partial void OnAwayEnded() => AwayEnded?.Invoke();
 }
