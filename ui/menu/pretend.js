@@ -1,3 +1,4 @@
+import { HISTORY } from "../gambling/pretend.js";
 import admin from "../../locales/en/admin.json";
 import chat from "../../locales/en/chat.json";
 import dice from "../../locales/en/dice.json";
@@ -91,6 +92,7 @@ export function pretendGame(readym) {
       sanctions: scenario === "account" ? [mute(now)] : [],
     },
     dice: dice(),
+    gambling: HISTORY,
     lore: lore(),
     faction: factions.view(),
     help: [

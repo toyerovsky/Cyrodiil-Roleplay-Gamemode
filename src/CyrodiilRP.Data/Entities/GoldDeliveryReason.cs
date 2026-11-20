@@ -4,4 +4,5 @@ namespace CyrodiilRP.Data;
 public enum GoldDeliveryReason
 {
     StartingGold,
+    Gambling,
 }

@@ -1,3 +1,4 @@
+using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Players;
 
 namespace CyrodiilRP.Tests.Players;
@@ -55,6 +56,22 @@ public sealed class AskBookTests
 
         Assert.Equal(TotalMs - LaterMs, Assert.Single(_book.BuildView(_lucia, NowMs + LaterMs, TotalMs, RealName).Asks).LeftMs);
         Assert.Equal(0, Assert.Single(_book.BuildView(_lucia, ExpiresAtMs + LaterMs, TotalMs, RealName).Asks).LeftMs);
+    }
+
+    [Fact]
+    public void A_gambling_invitation_keeps_its_own_duration_and_localizable_stake()
+    {
+        var duration = 2 * TotalMs;
+        var open = _book.Open(new PlayerAsk(_marius, _lucia), AskKinds.Gambling, NowMs + duration, Ignored);
+        var detail = GamblingText.Invitation(GamblingText.Poker, 40);
+        _book.Describe(open.Id, duration, detail);
+
+        var view = Assert.Single(_book.BuildView(_lucia, NowMs, TotalMs, RealName).Asks);
+        Assert.Equal(duration, view.TotalMs);
+        Assert.Equal(duration, view.LeftMs);
+        Assert.Same(detail, _book.Detail(open.Id));
+        Assert.True(_book.Close(open.Ask));
+        Assert.Null(_book.FindAnswerable(_lucia, open.Id));
     }
 
     private static string RealName(OnlinePlayer reader, OnlinePlayer subject) => subject.Name;

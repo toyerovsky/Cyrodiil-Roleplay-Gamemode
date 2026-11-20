@@ -1,6 +1,7 @@
 import audit from "../rp/art/icons/audit.webp";
 import factions from "../rp/art/icons/account.webp";
 import dice from "../rp/art/icons/dice.webp";
+import gambling from "../rp/art/icons/gambling.webp";
 import items from "../rp/art/icons/items.webp";
 import players from "../rp/art/icons/players.webp";
 import sanctions from "../rp/art/icons/sanctions.webp";
@@ -15,6 +16,7 @@ export const TABS = [
   { id: "audit", medallion: audit },
   { id: "world", medallion: world },
   { id: "dice", medallion: dice },
+  { id: "gambling", medallion: gambling },
   { id: "factions", medallion: factions },
 ];
 
@@ -25,6 +27,7 @@ export const PARTS = {
   audit: "audit",
   items: "items",
   rolls: "rolls",
+  gambling: "gambling",
   lore: "lore",
   factions: "factions",
   faction: "faction",

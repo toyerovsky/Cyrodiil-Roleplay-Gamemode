@@ -242,5 +242,6 @@
   "ui.admin.field.cap": "Cap, 0 to {max}",
   "ui.admin.field.value": "Value, 0 to {max}",
   "ui.admin.dialog.cap_range": "Give a cap from 0 to {max}.",
-  "ui.admin.dialog.value_range": "Give a value from 0 to {max}, at most the cap."
+  "ui.admin.dialog.value_range": "Give a value from 0 to {max}, at most the cap.",
+  "ui.admin.tab.gambling": "Gambling"
 }

@@ -1,0 +1,47 @@
+@import "../rp/tokens.css";
+@import "../rp/base.css";
+@import "../rp/components.css";
+@import "../shared/click-through.css";
+
+.gambling { position: fixed; inset: 0; display: grid; place-items: center; padding: 32px; }
+.gambling__panel.rp-panel { pointer-events: auto; width: min(100%, 1050px); max-height: 100%; overflow: hidden; display: flex; flex-direction: column; }
+.gambling__content { overflow-y: auto; min-height: 0; padding: 12px 24px 24px; display: flex; flex-direction: column; gap: 18px; }
+.gambling__medallion { height: 56px; margin-right: 12px; vertical-align: middle; filter: drop-shadow(0 0 10px var(--glow)) drop-shadow(0 4px 6px var(--shadow-deep)); }
+.gambling .gambling__heading { font-size: 30px; color: var(--gold-dark); margin: 0; }
+.gambling p, .gambling h2, .gambling h3 { margin: 0; }
+.gambling h2 { font-size: 24px; }
+.gambling h3 { font-size: 21px; }
+.gambling p, .gambling li { font-size: 20px; line-height: 1.45; }
+.gambling__games, .gambling__actions, .gambling__opponents { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.gambling__form { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.gambling__form .rp-field { width: 320px; max-width: 100%; }
+.gambling__opponents > div { max-width: 100%; }
+.gambling__opponents .rp-chip { white-space: normal; overflow-wrap: anywhere; }
+.gambling__summary { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.gambling__pot { display: flex; flex-direction: column; align-items: flex-end; font-size: 20px; }
+.gambling__pot b { font-size: 30px; color: var(--gold-dark); }
+.gambling__hands { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.gambling__hand { color: var(--night-text); background: var(--night); padding: 20px; border: 1px solid var(--gold); min-width: 0; overflow-wrap: anywhere; }
+.gambling__hand p { margin-top: 6px; }
+.gambling__hand strong { font-size: 22px; }
+.gambling__dice { display: flex; gap: 10px; padding: 22px 0; }
+.gambling__die { position: relative; display: inline-grid; place-items: center; width: 60px; height: 66px; flex-shrink: 0; border: 2px solid #ba9c65; border-radius: 8px; background: #ede0bf; color: #21190f; font-family: inherit; font-size: 36px; line-height: 1; }
+button.gambling__die { cursor: pointer; }
+button.gambling__die:disabled { cursor: default; background: #d4c4a0; color: #302719; }
+.gambling__die--picked, button.gambling__die--picked:disabled { background: #e4b75f; color: #21190f; border-color: #fff1c2; box-shadow: 0 0 0 3px #c29d53; transform: translateY(-5px); }
+.gambling__die small { position: absolute; bottom: -21px; font-size: 20px; color: #e8dcc4; }
+.gambling__decision { border-left: 3px solid var(--gold); padding: 10px 16px; display: flex; justify-content: space-between; gap: 20px; font-size: 22px; }
+.gambling__decision p { flex: 1; }
+.gambling__decision b { white-space: nowrap; color: var(--gold-dark); }
+.gambling__rules { display: flex; flex-direction: column; gap: 18px; }
+.gambling__ranks { display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; row-gap: 8px; margin: 0; padding-left: 28px; }
+.gambling__footer { border-top: 1px solid var(--gold); padding: 16px 24px; flex-shrink: 0; }
+.gambling__footer p { font-size: 20px; margin-bottom: 12px; }
+.gambling__footer > div { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; }
+.gambling__refusal { color: var(--problem); }
+.gambling-history { display: flex; flex-direction: column; gap: 16px; list-style: none; padding: 0; }
+.gambling-history li { padding-bottom: 14px; border-bottom: 1px solid currentColor; overflow-wrap: anywhere; }
+.gambling-history p { margin: 4px 0; }
+@media (max-aspect-ratio: 4/3) { .gambling__panel.rp-panel { width: 100%; } .gambling__content { padding-inline: 16px; } }
+
+.gambling .rp-button, .gambling .rp-chip, .gambling .rp-field { font-size: 20px; }

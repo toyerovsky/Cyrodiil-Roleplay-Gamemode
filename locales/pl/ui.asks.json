@@ -18,5 +18,9 @@
   "ui.asks.title.faction": "Zaproszenie do frakcji",
   "ui.asks.incoming.faction": "{name} zaprasza cię do swojej frakcji.",
   "ui.asks.outgoing.faction": "Czekasz na odpowiedź na zaproszenie: {name}.",
-  "ui.asks.accept.faction": "Dołącz"
+  "ui.asks.accept.faction": "Dołącz",
+  "ui.asks.title.gambling": "Gra o złoto",
+  "ui.asks.incoming.gambling": "{name} zaprasza do gry.",
+  "ui.asks.outgoing.gambling": "Zapraszasz {name} do gry.",
+  "ui.asks.accept.gambling": "Zagraj"
 }

@@ -7,6 +7,7 @@ const ANSWER_KEYS = ["y", "n"];
 // sees them, wants to introduce themselves. #faction: an Imperial, a stranger too, invites the player to their faction. Y
 // and N answer as the game would.
 const SCENARIOS = {
+  gambling: [{ id: 6, kind: "gambling", name: "Lucia Gallus", detail: "Dice Poker, stake: 40 gold.", incoming: true, leftMs: 28000 }],
   "": [{ id: 1, kind: "party", name: "Lucia Gallus", incoming: true, leftMs: 27000 }],
   trade: [
     { id: 1, kind: "party", name: "Lucia Gallus", incoming: true, leftMs: 27000 },

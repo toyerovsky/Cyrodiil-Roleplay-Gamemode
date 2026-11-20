@@ -1,3 +1,5 @@
+using CyrodiilRP.Server.Localization;
+
 namespace CyrodiilRP.Server.Players;
 
 // In memory, the asks waiting for an answer, the oldest first.
@@ -17,6 +19,15 @@ internal sealed class AskBook
     // False when it was not open any more.
     public bool Close(PlayerAsk ask) => _open.RemoveAll(open => open.Ask == ask) > 0;
 
+    public void Describe(int id, long durationMs, Phrase detail)
+    {
+        var index = _open.FindIndex(open => open.Id == id);
+        if (index < 0) throw new InvalidOperationException("Cannot describe a closed invitation.");
+        _open[index] = _open[index] with { DurationMs = durationMs, Detail = detail };
+    }
+
+    public Phrase? Detail(int id) => _open.Single(open => open.Id == id).Detail;
+
     // Only the one asked answers, and only an ask still open: one that ran out as the key went down is no other's yes.
     public OpenAsk? FindAnswerable(OnlinePlayer player, int id) =>
         _open.FirstOrDefault(open => open.Id == id && open.Ask.Asked == player);
@@ -30,7 +41,7 @@ internal sealed class AskBook
             {
                 var incoming = open.Ask.Asked == reader;
                 var other = incoming ? open.Ask.Asker : open.Ask.Asked;
-                return new AskView(open.Id, open.Kind, name(reader, other), incoming, Math.Max(0, open.ExpiresAtMs - nowMs), totalMs);
+                return new AskView(open.Id, open.Kind, name(reader, other), incoming, Math.Max(0, open.ExpiresAtMs - nowMs), open.DurationMs ?? totalMs);
             })
             .ToList();
         return new AsksView(asks, asks.FirstOrDefault(ask => ask.Incoming)?.Id ?? 0);

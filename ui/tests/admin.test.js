@@ -678,3 +678,28 @@ describe("the staff's panel and a lore card", () => {
     expect(page.find(".admin-lore").text()).toContain("No lore card yet.");
   });
 });
+
+
+describe("the gambling log in the staff panel", () => {
+  it("filters, pages and cancels through the staff command", async () => {
+    const { game, page } = await mountPage(App, createBridge);
+    await game.emit("State", state({ tab: "gambling", tabs: ["gambling"], allowed: [...EVERYTHING, "agamble"] }));
+    expect(game.readSent("AdminAsk")).toEqual([["gambling", JSON.stringify({ before: null })]]);
+    const row = { id: 81, at: NOW, mode: "Poker", first: "Marcus", second: "Lucia", opponent: "Lucia", stake: 40, pot: 80, status: "Open", winner: null };
+    await game.emit("Part", "gambling", JSON.stringify({ games: [row], more: true }));
+    await page.find(".admin-gambling input").setValue("Lucia");
+    await page.find(".admin-gambling form").trigger("submit");
+    expect(game.readSent("AdminAsk").at(-1)).toEqual(["gambling", JSON.stringify({ player: "Lucia", before: null })]);
+    await page.findAll(".admin-gambling button").find(button => button.text() === "Older games").trigger("click");
+    expect(game.readSent("AdminAsk").at(-1)).toEqual(["gambling", JSON.stringify({ player: "Lucia", before: 81 })]);
+    await page.findAll(".admin-gambling button").find(button => button.text() === "Cancel game #81").trigger("click");
+    expect(game.readSent("AdminRun")).toEqual([["/agamble cancel 81"]]);
+  });
+
+  it("keeps cancellation disabled off duty", async () => {
+    const { game, page } = await mountPage(App, createBridge);
+    await game.emit("State", state({ tab: "gambling", tabs: ["gambling"], acting: false, onDuty: false, allowed: ["agamble"] }));
+    await game.emit("Part", "gambling", JSON.stringify({ games: [{ id: 81, at: NOW, mode: "Favor", first: "Marcus", second: "Lucia", stake: 40, pot: 80, status: "Open" }], more: false }));
+    expect(page.findAll(".admin-gambling button").find(button => button.text() === "Cancel game #81").element.disabled).toBe(true);
+  });
+});

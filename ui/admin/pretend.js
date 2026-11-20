@@ -1,3 +1,4 @@
+import { HISTORY } from "../gambling/pretend.js";
 import admin from "../../locales/en/admin.json";
 import factionTexts from "../../locales/en/faction.json";
 import noticeTexts from "../../locales/en/notices.json";
@@ -20,7 +21,7 @@ const SPAWN_HERE = { x: 26002, y: -90418, z: 1198 };
 const ALL_COMMANDS = [
   "duty", "aheal", "afeed", "ahp", "arevive", "agoto", "abring", "aback", "atp", "afreeze", "aunfreeze", "amute", "aunmute", "awarn", "akick",
   "aban", "aunban", "agold", "aitem", "aroles", "atime", "aweather", "aspawn", "amsg", "alore", "afaction",
-  "anotice", "aspec", "acap", "astat",
+  "anotice", "aspec", "acap", "astat", "agamble",
 ];
 const ADMIN_COMMANDS = ["agold", "aitem", "aroles", "atime", "aweather", "aban", "aunban", "aspawn", "afaction", "aspec", "acap", "astat"];
 
@@ -196,15 +197,15 @@ export function pretendGame(readym) {
   const guilds = pretendFactions(now);
 
   const state = (focus = null) => ({
-    tab: ["sanctions", "audit", "world", "items", "dice", "factions"].includes(scenario) ? scenario : scenario === "nospawn" ? "world" : "players",
+    tab: ["sanctions", "audit", "world", "items", "dice", "gambling", "factions"].includes(scenario) ? scenario : scenario === "nospawn" ? "world" : "players",
     focus,
     self: SELF,
     area: "L_Tamriel",
     acting: onDuty,
     onDuty,
     tabs: moderator
-      ? ["players", "sanctions", "audit", "world", "dice", "factions"]
-      : ["players", "items", "sanctions", "audit", "world", "dice", "factions"],
+      ? ["players", "sanctions", "audit", "world", "dice", "gambling", "factions"]
+      : ["players", "items", "sanctions", "audit", "world", "dice", "gambling", "factions"],
     allowed: moderator ? MODERATOR_COMMANDS : ALL_COMMANDS,
     players: PLAYERS,
     places: PLACES,
@@ -222,6 +223,7 @@ export function pretendGame(readym) {
     "admin.teleport": "to=weye",
   };
   // Newest first: a d20 now and then, two d6, and a lore card's trait rolled with five d20.
+  const games = Array.from({ length: 55 }, (_, index) => ({ ...HISTORY[index % HISTORY.length], id: 100 - index }));
   const rolls = Array.from({ length: ROLL_COUNT }, (_, index) => {
     const dice =
       index % 5 === 2
@@ -329,6 +331,11 @@ export function pretendGame(readym) {
         );
         emitLater("Part", kind, JSON.stringify(found.sort((a, b) => a.name.localeCompare(b.name))));
       }
+      if (kind === "gambling") {
+        const { player, before } = JSON.parse(argument);
+        const matching = games.filter((game) => (!before || game.id < before) && `${game.first} ${game.second}`.toLowerCase().includes((player ?? "").toLowerCase()));
+        emitLater("Part", kind, JSON.stringify({ games: matching.slice(0, 50), more: matching.length > 50 }));
+      }
       if (kind === "rolls") {
         const { player, before } = JSON.parse(argument);
         const wanted = (player ?? "").toLowerCase();
@@ -347,6 +354,7 @@ export function pretendGame(readym) {
     if (name === "AdminRun") {
       const [line] = args;
       const [command, , ...rest] = line.slice(1).split(" ");
+      if (command === "agamble") { const game = games.find((game) => game.id === Number(line.split(" ")[2])); if (game) game.status = "Cancelled"; }
       if (command === "duty") onDuty = !onDuty;
       if (line === "/aspawn here") spawn = SPAWN_HERE;
       if (command === "alore") lore = lore.filter((field) => field.id !== line.split(" ")[3]);

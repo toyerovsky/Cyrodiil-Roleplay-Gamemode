@@ -1,4 +1,5 @@
 using CyrodiilRP.Common;
+using CyrodiilRP.Common.Gambling;
 using CyrodiilRP.Client.Traders;
 using CyrodiilRP.Common.Chat;
 using OblivionMP.SDK;
@@ -248,4 +249,19 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnBoardAnswer(string text, bool done) => BoardAnswered?.Invoke(text, done);
 
     partial void OnBoardClosed() => BoardClosed?.Invoke();
+
+    public event Action? GamblingInvitationShown;
+    public event Action<string>? GamblingChanged;
+    public event Action<string>? GamblingRefused;
+    partial void OnGamblingState(int kind, string json)
+    {
+        Action receive = (GamblingMessageKind)kind switch
+        {
+            GamblingMessageKind.State => () => GamblingChanged?.Invoke(json),
+            GamblingMessageKind.Refused => () => GamblingRefused?.Invoke(json),
+            GamblingMessageKind.Invitation => () => GamblingInvitationShown?.Invoke(),
+        };
+        receive();
+    }
+
 }

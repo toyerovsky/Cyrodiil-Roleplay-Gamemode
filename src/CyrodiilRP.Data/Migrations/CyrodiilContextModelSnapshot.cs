@@ -510,6 +510,184 @@ namespace CyrodiilRP.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.GamblingGame", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Cut")
+                        .HasColumnType("integer")
+                        .HasColumnName("cut");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ended_at");
+
+                    b.Property<long>("FirstCharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("first_character_id");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(81)
+                        .HasColumnType("character varying(81)")
+                        .HasColumnName("first_name");
+
+                    b.Property<int>("FirstRaises")
+                        .HasColumnType("integer")
+                        .HasColumnName("first_raises");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("mode");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<int>("Pot")
+                        .HasColumnType("integer")
+                        .HasColumnName("pot");
+
+                    b.Property<string>("Rounds")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("rounds");
+
+                    b.Property<long>("SecondCharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("second_character_id");
+
+                    b.Property<string>("SecondName")
+                        .IsRequired()
+                        .HasMaxLength(81)
+                        .HasColumnType("character varying(81)")
+                        .HasColumnName("second_name");
+
+                    b.Property<int>("SecondRaises")
+                        .HasColumnType("integer")
+                        .HasColumnName("second_raises");
+
+                    b.Property<int>("Stake")
+                        .HasColumnType("integer")
+                        .HasColumnName("stake");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<long>("TableId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("table_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<long?>("WinnerCharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("winner_character_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_gambling_games");
+
+                    b.HasIndex("OperationId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_gambling_games_operation_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_gambling_games_status");
+
+                    b.HasIndex("TableId")
+                        .HasDatabaseName("ix_gambling_games_table_id");
+
+                    b.HasIndex("FirstCharacterId", "Id")
+                        .HasDatabaseName("ix_gambling_games_first_character_id_id");
+
+                    b.HasIndex("SecondCharacterId", "Id")
+                        .HasDatabaseName("ix_gambling_games_second_character_id_id");
+
+                    b.ToTable("gambling_games", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_gambling_games_gold", "stake > 0 AND first_raises >= 0 AND second_raises >= 0 AND pot::bigint = 2::bigint * stake + first_raises + second_raises AND cut >= 0 AND cut <= pot");
+
+                            t.HasCheckConstraint("ck_gambling_games_players", "first_character_id <> second_character_id");
+
+                            t.HasCheckConstraint("ck_gambling_games_status", "(status = 'Open' AND ended_at IS NULL AND winner_character_id IS NULL AND cut = 0) OR (status = 'Settled' AND ended_at IS NOT NULL AND winner_character_id IS NOT NULL) OR (status IN ('Refunded', 'Cancelled') AND ended_at IS NOT NULL AND winner_character_id IS NULL AND cut = 0)");
+
+                            t.HasCheckConstraint("ck_gambling_games_winner", "winner_character_id IS NULL OR winner_character_id IN (first_character_id, second_character_id)");
+                        });
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.GamblingTable", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Area")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("area");
+
+                    b.Property<string>("Cell")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("cell");
+
+                    b.Property<DateTimeOffset>("PlacedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("placed_at");
+
+                    b.Property<string>("PlacedByRef")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("placed_by_ref");
+
+                    b.Property<DateTimeOffset?>("RemovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("removed_at");
+
+                    b.Property<float>("X")
+                        .HasColumnType("real")
+                        .HasColumnName("x");
+
+                    b.Property<float>("Y")
+                        .HasColumnType("real")
+                        .HasColumnName("y");
+
+                    b.Property<float>("Yaw")
+                        .HasColumnType("real")
+                        .HasColumnName("yaw");
+
+                    b.Property<float>("Z")
+                        .HasColumnType("real")
+                        .HasColumnName("z");
+
+                    b.HasKey("Id")
+                        .HasName("pk_gambling_tables");
+
+                    b.ToTable("gambling_tables", (string)null);
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.GoldDelivery", b =>
                 {
                     b.Property<long>("Id")
@@ -821,14 +999,14 @@ namespace CyrodiilRP.Data.Migrations
                             Name = "admin",
                             GrantsAll = false,
                             Label = "Administrator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "anotice", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction", "aboard", "aspec", "acap", "astat" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "anotice", "agamble", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction", "aboard", "aspec", "acap", "astat", "atable" }
                         },
                         new
                         {
                             Name = "moderator",
                             GrantsAll = false,
                             Label = "Moderator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "anotice" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "anotice", "agamble" }
                         });
                 });
 
@@ -999,6 +1177,30 @@ namespace CyrodiilRP.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_faction_ranks_factions_faction_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.GamblingGame", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("FirstCharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_gambling_games_characters_first_character_id");
+
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("SecondCharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_gambling_games_characters_second_character_id");
+
+                    b.HasOne("CyrodiilRP.Data.GamblingTable", null)
+                        .WithMany()
+                        .HasForeignKey("TableId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_gambling_games_gambling_tables_table_id");
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.GoldDelivery", b =>

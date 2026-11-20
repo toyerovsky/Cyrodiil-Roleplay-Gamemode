@@ -15,4 +15,7 @@ internal sealed record MenuView(
     [property: JsonPropertyName("lore")] MenuLoreView Lore,
     FactionMenuView Faction,
     [property: JsonPropertyName("languages")] IReadOnlyList<string> Languages,
-    [property: JsonPropertyName("language")] string Language);
+    [property: JsonPropertyName("language")] string Language)
+{
+    public IReadOnlyList<Gambling.GamblingHistoryView> Gambling { get; init; } = [];
+}

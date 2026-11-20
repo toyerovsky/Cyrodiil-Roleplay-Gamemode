@@ -36,6 +36,7 @@ internal sealed partial class AdminPanel(
     InteractionMenu interactions,
     Fire fire,
     DiceLog rolls,
+    Gambling.GamblingLog gambling,
     LoreCardViews lore,
     LoreCards cards,
     Factions factions,
@@ -170,6 +171,11 @@ internal sealed partial class AdminPanel(
             case AdminParts.Rolls:
                 if (Parse(argument, AdminJson.Default.AdminRollFilter) is { } rollFilter)
                     fire.Run(RollsJob, () => SendRollsAsync(player, rollFilter));
+                break;
+
+            case AdminParts.Gambling:
+                if (Parse(argument, AdminJson.Default.AdminRollFilter) is { } gamblingFilter)
+                    fire.Run("admin.gambling", () => SendGamblingAsync(player, gamblingFilter));
                 break;
 
             case AdminParts.Lore:
@@ -308,4 +314,12 @@ internal sealed partial class AdminPanel(
             return null;
         }
     }
+
+    private async Task SendGamblingAsync(OnlinePlayer staff, AdminRollFilter filter)
+    {
+        var page = await gambling.PageAsync(filter.Player, filter.Before);
+        if (!staff.IsLive || !IsOpenFor(staff.Id, out _)) return;
+        rpc.SendAdminPart(staff.Id, AdminParts.Gambling, JsonSerializer.Serialize(page, Gambling.GamblingJson.Default.GamblingPageView));
+    }
+
 }

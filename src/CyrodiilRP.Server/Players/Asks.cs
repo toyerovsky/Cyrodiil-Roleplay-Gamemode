@@ -1,6 +1,7 @@
 using System.Text.Json;
 using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Lore;
+using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
 using ReadyM.Api.Idents;
 using ReadyM.SDK.Attributes;
@@ -10,7 +11,7 @@ namespace CyrodiilRP.Server.Players;
 // An invitation to a party or a trade on the screens of both players, until it is answered, withdrawn or runs out. The
 // one asked answers with Y or N wherever they stand, instead of finding the asker with the wheel.
 [Service]
-internal sealed partial class Asks(RpcHandlers rpc, OnlinePlayers online, ShownNames names, SystemClock clock)
+internal sealed partial class Asks(RpcHandlers rpc, OnlinePlayers online, ShownNames names, SystemClock clock, Localizer translations)
 {
     private static readonly long TotalMs = (long)AskPacing.Timeout.TotalMilliseconds;
 
@@ -19,6 +20,14 @@ internal sealed partial class Asks(RpcHandlers rpc, OnlinePlayers online, ShownN
     public void Open(PlayerAsk ask, string kind, AskAnswers answers)
     {
         _book.Open(ask, kind, clock.MonotonicMs + TotalMs, answers);
+        Send(ask.Asker);
+        Send(ask.Asked);
+    }
+
+    public void Open(PlayerAsk ask, string kind, AskAnswers answers, TimeSpan duration, Phrase detail)
+    {
+        var open = _book.Open(ask, kind, clock.MonotonicMs + (long)duration.TotalMilliseconds, answers);
+        _book.Describe(open.Id, (long)duration.TotalMilliseconds, detail);
         Send(ask.Asker);
         Send(ask.Asked);
     }
@@ -52,6 +61,10 @@ internal sealed partial class Asks(RpcHandlers rpc, OnlinePlayers online, ShownN
             return;
 
         var view = _book.BuildView(player, clock.MonotonicMs, TotalMs, names.Shown);
+        view = view with { Asks = view.Asks.Select(ask => ask with
+        {
+            Detail = _book.Detail(ask.Id) is { } detail ? translations.Get(player.Locale, detail) : null,
+        }).ToArray() };
         rpc.SendAsksState(player.Id, JsonSerializer.Serialize(view, AsksJson.Default.AsksView), view.Answerable);
     }
 }

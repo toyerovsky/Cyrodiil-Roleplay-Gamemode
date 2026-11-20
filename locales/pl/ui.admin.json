@@ -242,5 +242,6 @@
   "ui.admin.field.cap": "Granica, od 0 do {max}",
   "ui.admin.field.value": "Wartość, od 0 do {max}",
   "ui.admin.dialog.cap_range": "Podaj granicę od 0 do {max}.",
-  "ui.admin.dialog.value_range": "Podaj wartość od 0 do {max}, najwyżej do granicy."
+  "ui.admin.dialog.value_range": "Podaj wartość od 0 do {max}, najwyżej do granicy.",
+  "ui.admin.tab.gambling": "Gry o złoto"
 }

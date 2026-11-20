@@ -385,4 +385,20 @@ public static partial class RpContracts
 
     [ClientToServer]
     public static partial void BoardClose();
+
+    [ClientToServer]
+    public static partial void GamblingOpen(int opponent, bool rules);
+
+    [ClientToServer]
+    public static partial void GamblingClose();
+
+    [ClientToServer]
+    public static partial void GamblingInvite(int opponent, int stake, string mode);
+
+    [ClientToServer]
+    public static partial void GamblingAct(long game, int version, string action, int amount);
+
+    [ServerToClient]
+    public static partial void GamblingState(int kind, string json);
+
 }
