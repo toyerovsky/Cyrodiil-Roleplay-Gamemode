@@ -6,7 +6,6 @@ using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Notices;
-using CyrodiilRP.Server.Players;
 using Microsoft.Extensions.Logging;
 using OblivionMP.SDK.Common.Archetypes;
 using OblivionMP.SDK.Common.Archetypes.Mixins;
