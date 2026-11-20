@@ -13,6 +13,8 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 {
     public event Action<PlayerId, string>? MessageSubmitted;
 
+    public event Action<PlayerId, bool>? TypingReported;
+
     public event Action<PlayerId, string, string>? NameSubmitted;
 
     public event Action<PlayerId>? AppearanceFinished;
@@ -20,6 +22,8 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     public event Action<PlayerId>? SelfWheelAsked;
 
     public event Action<PlayerId>? InteractionWheelAsked;
+
+    public event Action<PlayerId, uint>? TalkedTo;
 
     public event Action<PlayerId, string>? WheelPicked;
 
@@ -100,6 +104,9 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnSubmitMessage(RpcContext context, string text) =>
         callbacks.Raise("rpc.submit_message", MessageSubmitted, context.Sender, text);
 
+    partial void OnReportTyping(RpcContext context, bool typing) =>
+        callbacks.Raise("rpc.report_typing", TypingReported, context.Sender, typing);
+
     partial void OnSubmitName(RpcContext context, string firstName, string lastName) =>
         callbacks.Raise("rpc.submit_name", NameSubmitted, context.Sender, firstName, lastName);
 
@@ -110,6 +117,8 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     partial void OnOpenInteractionWheel(RpcContext context) =>
         callbacks.Raise("rpc.open_interaction_wheel", InteractionWheelAsked, context.Sender);
+
+    partial void OnTalkTo(RpcContext context, uint npc) => callbacks.Raise("rpc.talk_to", TalkedTo, context.Sender, npc);
 
     partial void OnPickWheel(RpcContext context, string id) => callbacks.Raise("rpc.pick_wheel", WheelPicked, context.Sender, id);
 

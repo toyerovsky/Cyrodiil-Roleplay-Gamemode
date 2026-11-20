@@ -16,6 +16,11 @@
     "emote": 1500
   },
 
+  // Minutes a player stands still, does not turn and does not write before their name shows [AFK].
+  "away": {
+    "afterMinutes": 5
+  },
+
   // The most gold one trade or /agold moves.
   "economy": {
     "maxPayment": 100000

@@ -16,19 +16,24 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
 - **RP chat:** speech in range, `/me` (also over the character's head), `/do`, shout, whisper, rolls, local and
   global OOC, private messages. In-character lines name the speaker as the reader knows them (see the lore card).
 - **Names over heads:** drawn by the mode: the character's name to those who know it, the race to strangers (see the
-  lore card), `[Staff]` in another colour on duty.
+  lore card), `[Staff]` in another colour on duty, `[AFK]` in grey after a few still minutes or `/afk` (until the
+  player moves, turns or writes), and `...` after the name while they write in the chat.
 - **Interaction wheels:** G opens the actions of your own character, H the actions towards the player in front of
   you. A wheel of more than eight turns its pages with the wedges either side of twelve, Q and E or the mouse wheel.
 - **Emotes:** Emotes on the G wheel opens a wheel of every emote of the Emotes mod (`mods/Emotes`), Stop first: the
   game's own idles and any another mod registers through its `IEmotes`.
 - **Party:** an invitation from the H wheel, taken up with Y from the card at the top of the screen (N declines), a
   leader, kicking, leaving from the G wheel, the `/p` chat, a panel of the members on screen with their health and
-  distance.
+  distance. Members take no harm from each other.
 - **Factions:** lasting organisations of characters with ranks of their own, a chat (`/f`) and a tab in the F10
   menu. See `docs/features/factions.md`.
 - **Trader:** an NPC placed with the staff command `/anpc here trader <shop>`, without the game's services (the
-  game's trading and rooms do not apply to it). H over it opens a shop window with the game's icons: food, drinks,
-  clothes, potions, tools, weapons, armour, books. It only sells. It cannot be killed for good.
+  game's trading and rooms do not apply to it). Its window is a shop with the game's icons: food, drinks, clothes,
+  potions, tools, weapons, armour, books. It only sells. It takes no harm. The crosshair names it, as every person of
+  the mode, by what it does.
+- **Talking to the mode's people:** the game's own dialogue with a trader, a banker, a stablemaster, a mentor, the
+  registrar or a Jobs foreman offers the topic "Services", which opens that person's window. See
+  `docs/features/npc-dialogue.md`.
 - **Bank:** a banker NPC keeps a character's gold over deaths and restarts. See `docs/features/bank.md`.
 - **Stable:** a stablemaster NPC sells the game's five horses, one a character, called from the G wheel in the open world
   and ridden by its owner alone. See `docs/features/stable.md`.

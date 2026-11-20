@@ -4,17 +4,23 @@ A roleplay gamemode for OblivionMP: a mod with a server half (`src/CyrodiilRP.Se
 (`src/CyrodiilRP.Client`) on the SDK, PostgreSQL through EF Core (`src/CyrodiilRP.Data`) with its own
 migrator (`src/CyrodiilRP.Migrator`), Vue pages (`ui/`) and texts in `locales/`.
 
-The SDK comes with the server, not from nuget.org: the server half feeds players through the Hunger and Thirst mod
+The SDK comes with the repository, not from nuget.org: the server half feeds players through the Hunger and Thirst mod
 (`src/Roleplay.HungerAndThirst.*`, `ISustenance`), which needs the statuses of oblivion-mod's `rp-framework` branch, and
-that branch's SDK is released nowhere. A server package from *rp-framework CI* carries it as NuGet packages in `sdk/`.
-`pack.ps1` copies them into `.sdk/`, the source `nuget.config` names, and `Directory.Build.props` reads the version from
-them, so the mods compile against what that server loads and no oblivion-mod checkout is needed. After unpacking a new
-server, run `./pack.ps1 -PackOnly` once before building in an IDE. The server needs `Roleplay.HungerAndThirst` installed
-(a manifest dependency) and the `rp-framework` build of the game's OblivionMp mod.
+that branch's SDK is released nowhere. Its NuGet packages are in `.sdk/`, the source `nuget.config` names, and
+`Directory.Build.props` reads the version from them, so a clone builds and runs its tests with no server and no
+oblivion-mod checkout. They are kept in Git LFS: run `git lfs install` once before cloning, or `git lfs pull` in a clone
+made without it.
+
+A server package from *rp-framework CI* carries the SDK it was built with in `sdk/`, and `pack.ps1` refuses a server
+built with another one than `.sdk/` holds, so the mods are deployed to what they were compiled against. To move to a
+newer SDK, unpack its server, run `./pack.ps1 -TakeSdk -PackOnly` and commit `.sdk/` with the code that needs it. The
+server needs `Roleplay.HungerAndThirst` installed (a manifest dependency) and the `rp-framework` build of the game's
+OblivionMp mod.
 
 `src/CyrodiilRP.Common` goes to every player with the client, so it holds only what both halves read: the RPC contract
 (`RpContracts`), the chat's line and limits (`ChatLine`, `ChatLineKind`, `ChatLimits`), the mark of the mode's
-traders, bankers and stablemasters (`TraderOrigin`) and the staff's mark in a nickname (`Nameplate`). What a page shows (the `*View` records) and its JSON context (`*Json`) are the server's, in the
+traders, bankers and stablemasters (`TraderOrigin`), the ids of the mode's topic in the game's dialogue (`TalkTopic`),
+who stands in front of whom (`FrontCone`) and the staff's mark in a nickname (`Nameplate`). What a page shows (the `*View` records) and its JSON context (`*Json`) are the server's, in the
 folder of the service that builds them: the client hands the JSON to the page as it comes and never reads it.
 
 ## Setup
@@ -55,6 +61,7 @@ The server refuses a config without a connection string and a database at anothe
 | `owners` | ReadyM account ids (the admin panel's Players view) holding every permission |
 | `startingGold` | gold a new character is owed once, in the same write that makes the character, delivered after the starting kit |
 | `chat` | ranges of say, shout, whisper and emotes, in game units (about centimetres) |
+| `away` | `afterMinutes` (5): how long a player stands still, does not turn and does not write before their name shows `[AFK]` |
 | `economy` | `maxPayment`: the most gold one trade or `/agold` moves |
 | `factions` | `foundingFee`: the gold a founder pays from what they carry (500 by default, 0 founds for free) |
 | `stable` | the gold each horse costs at a stablemaster: `paint`, `bay`, `chestnut`, `white`, `black` (500, 1000, 2500, 4000 and 5000 by default, as the game's stables ask; 0 gives it away, below 0 stops the mod) |

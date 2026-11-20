@@ -1,5 +1,6 @@
 using System.Text.Json;
 using CyrodiilRP.Client.Pages;
+using CyrodiilRP.Client.Talk;
 using CyrodiilRP.Common.Chat;
 using OblivionMP.SDK;
 using ReadyM.Cef;
@@ -18,6 +19,8 @@ internal sealed partial class ChatOverlay(
     PageInput pageInput,
     RpcHandlers rpc,
     PageLocale locale,
+    PawnWatch pawn,
+    GameCursor cursor,
     IInput input,
     IUserInterface ui)
 {
@@ -31,6 +34,9 @@ internal sealed partial class ChatOverlay(
 
     // The start of a command the wheel put in, until it is sent or the chat closes.
     private string _draft = string.Empty;
+
+    // What the server was last told of the entry, for the mark over the player's name.
+    private bool _typing;
 
     public bool IsOpen => _open;
 
@@ -52,6 +58,14 @@ internal sealed partial class ChatOverlay(
         rpc.MessageDelivered -= Add;
         rpc.ChatPrefilled -= OpenWith;
         locale.Changed -= Page.ApplyLocale;
+    }
+
+    // The page also says when the game shows its cursor (GameCursor), so it is there once the character is in the
+    // world, before the first line.
+    private void Update()
+    {
+        if (Page.Opened is null && pawn.HasSettled(WebPages.OverlaySettleSeconds))
+            EnsurePage();
     }
 
     private void OpenWith(string text)
@@ -83,7 +97,10 @@ internal sealed partial class ChatOverlay(
 
         _open = open;
         if (!open)
+        {
             _draft = string.Empty;
+            ReportTyping(false);
+        }
 
         if (Page.Opened is { } page)
             SendOpen(page.Browser, open);
@@ -126,10 +143,28 @@ internal sealed partial class ChatOverlay(
         rpc.SendSubmitMessage(text);
     }
 
-    // The first thing the page does, so it is also how the game hears that one has loaded.
+    // The entry got its first character or lost its last one.
+    [ReceiveFromCef]
+    private void OnTyping(BrowserHandle browser, bool typing) => ReportTyping(typing && _open);
+
+    private void ReportTyping(bool typing)
+    {
+        if (_typing == typing)
+            return;
+
+        _typing = typing;
+        rpc.SendReportTyping(typing);
+    }
+
+    [ReceiveFromCef]
+    private void OnGameCursor(BrowserHandle browser, bool shown) => cursor.Report(shown);
+
+    // The first thing the page does, so it is also how the game hears that one has loaded. A page that has just
+    // loaded has reported no cursor yet, and reports one that is up on the next tick.
     [ReceiveFromCef]
     private void OnRequestHistory(BrowserHandle browser)
     {
+        cursor.Report(false);
         Page.MarkReady(browser);
         SendHistory(browser, ToJson(_lines));
         SendOpen(browser, _open);

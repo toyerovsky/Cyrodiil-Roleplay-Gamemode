@@ -61,18 +61,26 @@ Each fact below was checked in this repo.
   (`Nicknames`).
 - The server moves a character (`main.Position`) only within the area it stands in (`IEntities.TryGetScope`). An area is
   an interior (`L_PersistentDungeon-<cell>`) or a whole world space (`L_Tamriel`, and each city is its own,
-  `OblivionAreaIds`). There is no teleport to another area, no kill, no damage hook (so no party friendly fire either:
-  the victim's own game decides what a blow takes) and no camera in SDK 1.0.
+  `OblivionAreaIds`). There is no teleport to another area, no kill and no camera.
+- The server applies every change of health (`HealthChangedEvent`, since SDK 1.1): the game of whoever dealt it reports
+  it, and a `[EventHandler(Stage.Validate)]` that calls `context.Cancel()` leaves the health as it was. So the mode's
+  people take no harm (`TraderNpcs.CheckHarm`) and members of a party spare each other (`Parties.CheckFriendlyFire`).
+  `Attacker` is null for harm without a source. Not seen in the game yet.
 - The game's units become the server's centimetres at 100/70 cm a unit, with Y the other way round
   (`Admin/GameSpace.cs`).
 - `ResurrectLocalPlayer()` works on the local player only, so the server asks the player's own game (`Revive`). It is
   the platform's rebirth: a heal and a quick load.
 - An area's `Time` (`SetGameHour`) and `Weather` (`SetWeatherFormId`, `SetTransitionRatio`) are the server's to write,
-  but the area's master client also sends its own (`RequestTimeChange`), so a value set may not hold.
+  but the area's master client also reports its own (`TimeChangeEvent`, `WeatherChangeEvent`, since SDK 1.1) whenever
+  its game differs from the server's. In the tick a new value reaches it, it reports the old one first and takes the
+  new one after, and the server would apply that report over the value set. So what the staff set is held for a moment:
+  a Validate handler refuses a report of another weather or an earlier time (`StaffSettingRegistry`). Not seen in the
+  game yet.
 - A game does not take a clock going back, and the master client then sends its own time over the one set. An hour
   earlier than the clock needs `SetGameDaysPassed` a day on, as waiting past midnight does.
-- Nothing in the SDK stops a player walking: a freeze holds the input on a page (`FrozenOverlay`) and the server puts
-  the character back.
+- A freeze holds the input on a page (`FrozenOverlay`), the server puts the character back, and a status
+  (`IStatuses`, of the `rp-framework` SDK) gives it a Burden no character walks under. A status is applied by the
+  player's own game and ends with the connection, so it is laid again at each join and the other two stay.
 
 ## RPC
 
@@ -162,10 +170,12 @@ Each fact below was checked in this repo.
 - Its base decides what the game adds on its own: services (the game's barter, rooms, training), factions (greetings,
   crime allies), AI packages (where it walks off to) and lines of its own. The research's `npcs.tsv`
   (`tools/esm/export_npcs.py`) lists them all. The game has hardly any generic people: almost every base is named, hostile
-  or a quest's. Its name comes from the base, a name of our own needs an `.esp` record of the platform.
-- The server may write its `Hp`: putting it back to `HpBase` often keeps it standing.
-- The platform has no event for using an NPC (no activation on the client): the mode's H reaches it through
-  `InteractionMenu.AddTarget`, from the positions the server holds.
+  or a quest's. Its name comes from the base. `ICrosshair.Rename(baseFormId, name)` (client, `rp-framework` SDK)
+  changes what the crosshair shows for every person of a base, in that player's game alone: the mode names the base
+  after the person the character faces (`TraderCrosshair`, and `ForemanCrosshair` in Jobs for its foremen).
+- The platform has no event for using an NPC (no activation on the client): the mode reaches its people through a
+  topic of its own in the game's dialogue (`docs/features/npc-dialogue.md`, which lists what the platform's dialogue
+  can and cannot do, and what of it is not checked in the game yet).
 - There are no parties in the platform: `Parties` keeps the mode's own.
 
 ## The character creator

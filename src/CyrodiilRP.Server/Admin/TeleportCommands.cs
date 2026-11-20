@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Numerics;
+using CyrodiilRP.Common.Players;
 using CyrodiilRP.Data.Staff;
 using CyrodiilRP.Server.Commands;
 using CyrodiilRP.Server.Localization;
-using CyrodiilRP.Server.Players;
 using OblivionMP.SDK.Common.Archetypes;
 using OblivionMP.SDK.Common.Archetypes.Mixins;
 using ReadyM.SDK.Attributes;

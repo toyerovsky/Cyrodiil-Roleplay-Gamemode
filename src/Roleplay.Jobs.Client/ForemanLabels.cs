@@ -36,6 +36,9 @@ public sealed partial class ForemanLabels(IEntities entities, IMarkers markers, 
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private double _nextLook;
 
+    /// <summary>The role of the foremen stood with the origin, or null when it is no foreman's or not sent yet.</summary>
+    public string? Find(uint origin) => _labels.GetValueOrDefault(origin);
+
     private void Start() => rpc.Labelled += OnLabelled;
 
     private void Stop()

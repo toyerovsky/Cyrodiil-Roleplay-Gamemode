@@ -96,3 +96,17 @@ test("Tab keeps the keyboard in the chat", async ({ page }) => {
   await expect(entry).toBeFocused();
   expect(await readSent(page, "Blurred")).toEqual([]);
 });
+
+test("the chat tells the game when the game's cursor comes and goes", async ({ page }) => {
+  await page.goto("/chat/index.html");
+  await expect(page.getByRole("log", { name: t("log") })).toBeVisible();
+
+  // The game calls it every tick while it draws a cursor, and once with (-1, -1) as the cursor goes.
+  await page.evaluate(() => {
+    window.__readym_cursor(640, 360);
+    window.__readym_cursor(641, 360);
+    window.__readym_cursor(-1, -1);
+  });
+
+  expect(await readSent(page, "GameCursor")).toEqual([[true], [false]]);
+});

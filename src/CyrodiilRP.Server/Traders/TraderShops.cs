@@ -2,10 +2,10 @@ using System.Text.Json;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Economy;
 using CyrodiilRP.Server.Infrastructure;
-using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
+using CyrodiilRP.Server.Talk;
 using OblivionMP.SDK.Common.Archetypes;
 using OblivionMP.SDK.Common.Archetypes.Mixins;
 using OblivionMP.SDK.Serverside.Items;
@@ -23,7 +23,7 @@ namespace CyrodiilRP.Server.Traders;
 internal sealed partial class TraderShops(
     RpcHandlers rpc,
     OnlinePlayers online,
-    InteractionMenu interactions,
+    Conversations conversations,
     Proximity proximity,
     TraderNpcs npcs,
     Wallet wallet,
@@ -31,7 +31,7 @@ internal sealed partial class TraderShops(
     Inventories inventories,
     RpChat chat,
     Audit audit,
-    Timers timers) : IFrontTarget
+    Timers timers) : ITalkTarget
 {
     private const string BuyAction = "economy.trader_buy";
     private const string WatchJob = "traders.watch";
@@ -42,25 +42,21 @@ internal sealed partial class TraderShops(
 
     private void Start()
     {
-        interactions.AddTarget(this);
+        conversations.AddTarget(this);
         rpc.TraderBought += OnBought;
         rpc.TraderLeft += OnLeftWindow;
         online.Left += player => _open.Remove(player);
         timers.RunEvery(WatchJob, WatchEvery, Watch);
     }
 
-    public float? MeasureInFront(OnlinePlayer actor, float reach, float coneDegrees) =>
-        FindInFront(actor, reach, coneDegrees, out var distance) is null ? null : distance;
-
-    public void Use(OnlinePlayer actor, float reach, float coneDegrees)
+    public bool TryTalk(OnlinePlayer actor, uint npcRefId)
     {
-        if (FindInFront(actor, reach, coneDegrees, out _) is { } spot)
-            Open(actor, spot);
-    }
+        if (npcs.FindByNpc(npcRefId) is not { Kind: TraderSpotKind.Shop } spot)
+            return false;
 
-    // The key is the shop's only when a trader is the nearest of the mode's people in front, not a banker.
-    private TraderSpotRecord? FindInFront(OnlinePlayer actor, float reach, float coneDegrees, out float distance) =>
-        npcs.FindNearestInFront(actor, reach, coneDegrees, out distance) is { Kind: TraderSpotKind.Shop } spot ? spot : null;
+        Open(actor, spot);
+        return true;
+    }
 
     // A trader removed by staff takes its windows with it.
     public void CloseAt(TraderSpotRecord spot)
@@ -71,6 +67,12 @@ internal sealed partial class TraderShops(
 
     private void Open(OnlinePlayer player, TraderSpotRecord spot)
     {
+        if (CheckWindow(player, spot) is { } broken)
+        {
+            chat.Notify(player, broken);
+            return;
+        }
+
         if (WareCatalog.Shipped.FindShop(spot.Shop) is not { } shop)
         {
             chat.Notify(player, TraderText.NothingToSell);
@@ -87,7 +89,7 @@ internal sealed partial class TraderShops(
         if (!online.TryGet(id, out var player) || !_open.TryGetValue(player, out var open))
             return;
 
-        if (CheckWindow(player, open) is { } broken)
+        if (CheckWindow(player, open.Spot) is { } broken)
         {
             Close(player, broken);
             return;
@@ -138,22 +140,22 @@ internal sealed partial class TraderShops(
 
         foreach (var (player, open) in _open.ToList())
         {
-            if (CheckWindow(player, open) is { } broken)
+            if (CheckWindow(player, open.Spot) is { } broken)
                 Close(player, broken);
             else if (wallet.TryCount(player.Id, out var gold) && gold != open.SeenGold)
                 SendState(player, open);
         }
     }
 
-    private Phrase? CheckWindow(OnlinePlayer player, OpenTrader open)
+    private Phrase? CheckWindow(OnlinePlayer player, TraderSpotRecord spot)
     {
         if (!wallet.IsInWorld(player.Id))
             return TraderText.ClosedNotInWorld;
 
-        if (!npcs.TryFind(open.Spot, out var npc))
+        if (!npcs.TryFind(spot, out var npc))
             return TraderText.ClosedGone;
 
-        return proximity.MeasureDistance(player.Id, new AreaId(open.Spot.Area), npc.Position) is { } away && away <= TraderRules.WalkAway
+        return proximity.MeasureDistance(player.Id, new AreaId(spot.Area), npc.Position) is { } away && away <= TraderRules.WalkAway
             ? null
             : TraderText.ClosedFar(TraderRules.WalkAwayMetres);
     }

@@ -5,16 +5,19 @@ using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Localization;
 using OblivionMP.SDK.Common.Archetypes;
 using OblivionMP.SDK.Common.Archetypes.Mixins;
+using OblivionMP.SDK.Common.Events;
 using ReadyM.Relay.Common.Oblivion;
 using ReadyM.SDK.Archetypes.Core;
 using ReadyM.SDK.Attributes;
+using ReadyM.SDK.Events;
 using ReadyM.SDK.Server.Entities;
 
 namespace CyrodiilRP.Server.Admin;
 
-// The game of the area's master client keeps its clock going from the hour set.
+// The game of the area's master client keeps its clock going from the hour set, and its weather changing from the one
+// set. What it reports of the time before is refused for a moment (StaffSettingRegistry), so the staff's word holds.
 [Service]
-internal sealed partial class WorldCommands(CommandRegistry commands, IEntities entities, Audit audit)
+internal sealed partial class WorldCommands(CommandRegistry commands, IEntities entities, Audit audit, SystemClock clock)
 {
     private const int HoursInDay = 24;
     private const int MinutesInHour = 60;
@@ -27,10 +30,26 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
     // The weather at once, not on its way.
     private const float WholeTransition = 1f;
 
+    private readonly StaffSettingRegistry _settings = new(clock);
+
     private void Start()
     {
         commands.AddStaff(StaffPermissions.Time, AdminText.CmdTime, SetTime);
         commands.AddStaff(StaffPermissions.Weather, AdminText.CmdWeather, SetWeather);
+    }
+
+    [EventHandler(Stage.Validate)]
+    public void CheckWeather(in WeatherChangeEvent change, EventContext context)
+    {
+        if (_settings.RefusesWeather(change.Area.AreaId.ToString(), change.WeatherFormId.Value))
+            context.Cancel();
+    }
+
+    [EventHandler(Stage.Validate)]
+    public void CheckTime(in TimeChangeEvent change, EventContext context)
+    {
+        if (_settings.RefusesClock(change.Area.AreaId.ToString(), change.GameDaysPassed, change.GameHour))
+            context.Cancel();
     }
 
     private void SetTime(CommandCall call)
@@ -44,8 +63,10 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
         if (!TryArea(call, out var area))
             return;
 
-        area.SetGameDaysPassed(DaysPassedAt(area.GameDaysPassed, area.GameHour, hour));
+        var daysPassed = DaysPassedAt(area.GameDaysPassed, area.GameHour, hour);
+        area.SetGameDaysPassed(daysPassed);
         area.SetGameHour(hour);
+        _settings.HoldClock(area.AreaId.ToString(), daysPassed, hour);
         audit.Log(TimeAction, call.Sender.Ref, details: new AreaDetails(area.AreaId.ToString(), call.Words[0]));
         call.Reply(AdminText.TimeSet(area: area.AreaId.ToString(), time: call.Words[0]));
     }
@@ -63,6 +84,7 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
 
         area.SetWeatherFormId(new FormId(form));
         area.SetTransitionRatio(WholeTransition);
+        _settings.HoldWeather(area.AreaId.ToString(), form);
         audit.Log(WeatherAction, call.Sender.Ref, details: new AreaDetails(area.AreaId.ToString(), call.Words[0]));
         call.Reply(AdminText.WeatherSet(area: area.AreaId.ToString(), weather: call.Words[0]));
     }

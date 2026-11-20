@@ -1,10 +1,10 @@
 using System.Text.Json;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Infrastructure;
-using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
+using CyrodiilRP.Server.Talk;
 using CyrodiilRP.Server.Traders;
 using ReadyM.Api.Idents;
 using ReadyM.SDK.Attributes;
@@ -12,17 +12,17 @@ using Roleplay.Jobs.Server;
 
 namespace CyrodiilRP.Server.Jobs;
 
-// The Jobs mod's foremen on the interaction key, in a window like a trader's: the wages owed, what they sell and what
-// they buy. Jobs does every deal and words its own answers, in English; this opens the window, keeps it up to date as
-// the player's gold or goods change, and closes it when they walk away.
+// The Jobs mod's foremen behind the mode's topic in the game's dialogue, in a window like a trader's: the wages owed,
+// what they sell and what they buy. Jobs does every deal and words its own answers, in English; this opens the window,
+// keeps it up to date as the player's gold or goods change, and closes it when they walk away.
 [Service]
 internal sealed partial class ForemanWindows(
     IJobForemen foremen,
     RpcHandlers rpc,
     OnlinePlayers online,
-    InteractionMenu interactions,
+    Conversations conversations,
     RpChat chat,
-    Timers timers) : IFrontTarget
+    Timers timers) : ITalkTarget
 {
     private const string WatchJob = "foremen.watch";
 
@@ -35,26 +35,31 @@ internal sealed partial class ForemanWindows(
 
     private void Start()
     {
-        interactions.AddTarget(this);
+        conversations.AddTarget(this);
         rpc.ForemanDealt += OnDealt;
         rpc.ForemanLeft += OnLeftWindow;
         online.Left += player => _open.Remove(player);
         timers.RunEvery(WatchJob, WatchEvery, Watch);
     }
 
-    public float? MeasureInFront(OnlinePlayer actor, float reach, float coneDegrees) => foremen.MeasureInFront(actor.Id, reach, coneDegrees);
-
-    public void Use(OnlinePlayer actor, float reach, float coneDegrees)
+    public bool TryTalk(OnlinePlayer actor, uint npcRefId)
     {
-        if (foremen.FindInFront(actor.Id, reach, coneDegrees) is { } foremanId)
+        if (foremen.FindByNpc(npcRefId) is not { } foremanId)
+            return false;
+
+        if (CheckWindow(actor, foremanId) is { } broken)
+            chat.Notify(actor, broken);
+        else
             SendState(actor, foremanId);
+
+        return true;
     }
 
     private void OnDealt(PlayerId id, string offer, int count)
     {
         if (!online.TryGet(id, out var player) || !_open.TryGetValue(player, out var open))
             return;
-        if (CheckWindow(player, open) is { } broken)
+        if (CheckWindow(player, open.ForemanId) is { } broken)
         {
             Close(player, broken);
             return;
@@ -75,18 +80,18 @@ internal sealed partial class ForemanWindows(
     {
         foreach (var (player, open) in _open.ToList())
         {
-            if (CheckWindow(player, open) is { } broken)
+            if (CheckWindow(player, open.ForemanId) is { } broken)
                 Close(player, broken);
             else if (Serialize(foremen.WindowOf(player.Id, open.ForemanId)) is { } json && json != open.Shown)
                 Send(player, open.ForemanId, json);
         }
     }
 
-    private Phrase? CheckWindow(OnlinePlayer player, OpenForeman open)
+    private Phrase? CheckWindow(OnlinePlayer player, string foremanId)
     {
-        if (foremen.WindowOf(player.Id, open.ForemanId) is null)
+        if (foremen.WindowOf(player.Id, foremanId) is null)
             return JobsText.ClosedGone;
-        return foremen.DistanceTo(player.Id, open.ForemanId) is { } away && away <= TraderRules.WalkAway
+        return foremen.DistanceTo(player.Id, foremanId) is { } away && away <= TraderRules.WalkAway
             ? null
             : JobsText.ClosedFar(TraderRules.WalkAwayMetres);
     }

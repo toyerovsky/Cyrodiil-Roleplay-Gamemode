@@ -5,6 +5,7 @@ using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Players;
 using OblivionMP.SDK.Common.Archetypes;
 using OblivionMP.SDK.Common.Archetypes.Mixins;
+using OblivionMP.SDK.Common.Events;
 using OblivionMP.SDK.Serverside;
 using OblivionMP.SDK.Serverside.Ai;
 using OblivionMP.SDK.Serverside.World;
@@ -14,27 +15,27 @@ using ReadyM.Relay.Common.Oblivion.ECS.Values;
 using ReadyM.SDK.Archetypes.Core;
 using ReadyM.SDK.Attributes;
 using ReadyM.SDK.Entities;
+using ReadyM.SDK.Events;
 using ReadyM.SDK.Server.Entities;
 
 namespace CyrodiilRP.Server.Traders;
 
 // The cell saves its people, so a trader placed once is there after a restart. Every client in the cell shows it, and
 // the cell's master moves it. A banker and a stablemaster are stood and kept the same way, each under an origin of its
-// own.
+// own. None of them takes harm: the server is what applies a change of health, and it refuses theirs.
 [Service]
 internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, ServerRefIds refIds, TraderSpots spots, Proximity proximity, Timers timers)
 {
     private const int Level = 1;
     private const string KeepJob = "traders.keep";
-    private const string RefillJob = "traders.refill";
 
-    // The traders standing at the spots at the last check, for the refill between checks.
-    private readonly List<Npc> _standing = [];
+    private void Start() => timers.RunEvery(KeepJob, TraderRules.CheckEvery, Keep);
 
-    private void Start()
+    [EventHandler(Stage.Validate)]
+    public void CheckHarm(in HealthChangedEvent change, EventContext context)
     {
-        timers.RunEvery(KeepJob, TraderRules.CheckEvery, Keep);
-        timers.RunEvery(RefillJob, TraderRules.RefillEvery, Refill);
+        if (change.Amount < 0 && change.Victim.TryAs(out Npc npc) && TraderRules.IsOurs(npc.SpawnerRefId))
+            context.Cancel();
     }
 
     public bool TryFind(TraderSpotRecord spot, out Npc npc) =>
@@ -59,6 +60,18 @@ internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, Ser
         return nearest;
     }
 
+    // The spot of the person of ours standing under the ref id.
+    public TraderSpotRecord? FindByNpc(uint npcRefId)
+    {
+        foreach (var spot in spots.All)
+        {
+            if (spot.NpcRefId == npcRefId && TryFind(spot, out _))
+                return spot;
+        }
+
+        return null;
+    }
+
     public void Remove(TraderSpotRecord spot)
     {
         if (TryFind(spot, out var npc))
@@ -69,16 +82,11 @@ internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, Ser
     private void Keep()
     {
         var ours = ListOurs();
-        _standing.Clear();
         foreach (var spot in spots.All)
-        {
-            if (Keep(spot, ours) is { } npc)
-                _standing.Add(npc);
-        }
+            Keep(spot, ours);
     }
 
-    // The trader standing at the spot after the check, if any.
-    private Npc? Keep(TraderSpotRecord spot, List<Npc> ours)
+    private void Keep(TraderSpotRecord spot, List<Npc> ours)
     {
         var found = TryFindAmong(ours, spot.NpcRefId, out var npc);
         var stray = found && !IsHome(npc, spot);
@@ -86,17 +94,17 @@ internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, Ser
             Delete(ours, npc);
 
         if (!TryFindCell(spot, out var cell) || cell.MasterClient == PlayerId.Invalid)
-            return found && !stray ? npc : null;
+            return;
 
         if (!stray && (found || TryAdopt(spot, ours, out npc)))
         {
             if (!IsDead(npc))
-                return npc;
+                return;
 
             Delete(ours, npc);
         }
 
-        return Place(spot, cell);
+        Place(spot, cell);
     }
 
     private List<Npc> ListOurs()
@@ -176,21 +184,10 @@ internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, Ser
     private bool IsHeldByOtherSpot(uint refId, TraderSpotRecord spot) =>
         spots.All.Any(other => other != spot && other.NpcRefId == refId);
 
-    // A blow larger than the whole bar still kills, and Keep stands a new one. One gone since the check (its cell
-    // unloaded, the staff took it away) is passed over.
-    private void Refill()
-    {
-        foreach (var npc in _standing)
-        {
-            if (EntityHandle.Of(npc).IsAlive() && !IsDead(npc) && npc.Hp < npc.HpBase)
-                npc.Hp = npc.HpBase;
-        }
-    }
-
     // The health the game reports is 0 until the master first sends it, which is not death.
     private static bool IsDead(Npc npc) => npc.HpBase > 0 && npc.Hp <= 0;
 
-    private Npc Place(TraderSpotRecord spot, Cell cell)
+    private void Place(TraderSpotRecord spot, Cell cell)
     {
         var npc = entities.Create<Npc>(cell, cell.MasterClient);
         npc.RefId = refIds.Next();
@@ -211,6 +208,5 @@ internal sealed partial class TraderNpcs(IEntities entities, WorldRefs refs, Ser
             Radius = TraderRules.WanderRadius,
         });
         spots.SetNpc(spot, npc.RefId);
-        return npc;
     }
 }

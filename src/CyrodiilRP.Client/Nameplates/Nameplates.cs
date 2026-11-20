@@ -11,8 +11,8 @@ namespace CyrodiilRP.Client.Nameplates;
 
 // The names over the other players, in place of the platform's MarkerMod, which writes a name once, as its marker is
 // made. The server sends each player the names they see (KnownNames): a character's name once introduced, otherwise its
-// race. A player the server has not named yet shows nothing, so a name never shows before it should. Over a name, a
-// while, what that player last did (/me).
+// race, marked while away or writing in the chat (Nameplate). A player the server has not named yet shows nothing, so a
+// name never shows before it should. Over a name, a while, what that player last did (/me).
 [Service]
 internal sealed partial class Nameplates(IPlayers players, IMarkers markers, RpcHandlers rpc, ILogger logger)
 {
@@ -37,6 +37,7 @@ internal sealed partial class Nameplates(IPlayers players, IMarkers markers, Rpc
     // MarkerMod's blue for the players, the staff on duty warm, and the chat's colour of an action (--action).
     private static readonly MarkerColor PlayerColor = new(0.4f, 0.7f, 1f);
     private static readonly MarkerColor DutyColor = new(1f, 0.55f, 0.4f);
+    private static readonly MarkerColor AwayColor = new(0.6f, 0.62f, 0.66f);
     private static readonly MarkerColor ActionColor = new(0.78f, 0.64f, 0.88f);
 
     private static readonly MarkerStyle NameStyle = MarkerStyle.Default with
@@ -247,7 +248,8 @@ internal sealed partial class Nameplates(IPlayers players, IMarkers markers, Rpc
         markers.DestroyMarker(plate.Action);
     }
 
-    private static MarkerColor ColorOf(string nickname) => Nameplate.IsOnDuty(nickname) ? DutyColor : PlayerColor;
+    private static MarkerColor ColorOf(string nickname) =>
+        Nameplate.IsOnDuty(nickname) ? DutyColor : Nameplate.IsAway(nickname) ? AwayColor : PlayerColor;
 
     private static int ToBucket(float opacity) => (int)MathF.Round(opacity / OpacityStep);
 

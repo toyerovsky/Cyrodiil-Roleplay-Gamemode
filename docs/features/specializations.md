@@ -23,15 +23,16 @@ path or at the Imperial Registrar, and can change it later for gold, once a cool
   Before the first choice the character keeps the majors of the class they made.
 - **Potions:** a potion the player made fortifies only what the specialization masters, and Speed. One that fortifies
   anything else is not drunk.
-- **Mentors:** H over a mentor opens its window: the three specializations of its path with what each masters and
-  trains, the character's own, the gold carried, and Choose. The Imperial Registrar teaches all nine.
+- **Mentors:** the "Services" topic in the game's dialogue with a mentor opens its window: the three specializations
+  of its path with what each masters and trains, the character's own, the gold carried, and Choose. The Imperial
+  Registrar teaches all nine.
 - **The first choice** is free and taken at once. **A change** costs 1000 gold, waits the cooldown (`changeCooldownSeconds`, see 4) after the last
   choice, and asks first (Change it, or Keep mine). Skills and attributes above the new caps drop to them for good.
 - **Where it shows:** the character's slot on the welcome screen, the character tab of the player's menu (F10, with
   where to get one while there is none) and the staff panel's card of a player, each in the reader's language.
 - The window closes when the player walks more than 5 m from the mentor, leaves the world, or the mentor is taken
   away. A mentor is labelled over the head ("Warrior Mentor", "Mage Mentor", "Support Mentor", "Imperial
-  Registrar") and, as a trader, cannot be killed for good.
+  Registrar"), named so on the crosshair too and, as a trader, takes no harm.
 
 ## 3. Ways in
 
@@ -40,7 +41,7 @@ path or at the Imperial Registrar, and can change it later for gold, once a cool
 | `/anpc here mentor warrior` (`mage`, `support`) | Staff: stands a mentor of that path where the staff member stands | `Traders/TraderCommands.cs` |
 | `/anpc here registrar` | Staff: stands the Imperial Registrar, meant for the Imperial Palace | `Traders/TraderCommands.cs` |
 | `/anpc remove`, `list` | Staff: takes the one in front away, lists them among the traders | `Traders/TraderCommands.cs` |
-| H over a mentor or the registrar | Opens the window | `Specializations/Mentors.cs` |
+| The game's dialogue with a mentor or the registrar, topic "Services" | Opens the window | `Specializations/Mentors.cs`, `docs/features/npc-dialogue.md` |
 | `/aspec <player> <specialization\|none>` | Staff: sets a character's specialization for free, without a cooldown, keeping the time of the last choice, or takes it away | `Specializations/SpecializationCommands.cs` |
 | `/acap <player> <stat> <0-100\|clear>` | Staff: a cap on one attribute or skill in place of the specialization's, kept over restarts, or taken off | `Specializations/SpecializationCommands.cs` |
 | `/astat <player> <stat> <0-100>` | Staff: sets an attribute's or a skill's value, at most its cap, for a character in the world | `Specializations/SpecializationCommands.cs` |
@@ -60,7 +61,7 @@ There is no player command.
   player's game holds where it raises a stat. `CharacterSpecializations` sets them as the character loads, after each
   choice, and again in the player's language when it changes.
 - **The NPCs** are trader spots under shops of their own (`mentor.warrior`, `mentor.mage`, `mentor.support`,
-  `registrar`), stood, kept, adopted and healed by `TraderNpcs`, each kind under an origin of its own
+  `registrar`), stood, kept, adopted and kept from harm by `TraderNpcs`, each kind under an origin of its own
   (`TraderOrigin.WarriorMentorSpawnerRefId` to `RegistrarSpawnerRefId`) by which every client labels it.
 - **Database:** `character_specializations` (key `character_id`, the specialization by name, the price of the last
   choice, when it was made, how many changes). `SpecializationBook` reads it and writes a choice over the one before.

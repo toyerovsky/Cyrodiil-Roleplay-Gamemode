@@ -7,8 +7,9 @@ and is the only one who rides it.
 
 ## 2. Rules (as the player sees them)
 
-- H over a stablemaster opens the stable's window: the five horses (Paint, Bay, Chestnut, White, Black) with their
-  prices, the character's horse if any, the gold carried, and Buy. The price is taken from the gold carried.
+- The "Services" topic in the game's dialogue with a stablemaster opens the stable's window: the five horses (Paint,
+  Bay, Chestnut, White, Black) with their prices, the character's horse if any, the gold carried, and Buy. The price is
+  taken from the gold carried.
 - One horse a character. Buying another replaces it, and nothing is paid back: the window says so above the list while
   the character owns one, and asks before such a purchase (Replace it, or Keep my horse). The horse owned is not sold
   again.
@@ -22,7 +23,7 @@ and is the only one who rides it.
 - Only its owner rides it. Anyone else's mount is refused, with a notice in the corner.
 - The horse leaves the world when its owner leaves the game. A horse the server brought back after a restart goes as
   soon as it is seen.
-- A stablemaster is labelled "Stablemaster" over the head and, as a trader, cannot be killed for good.
+- A stablemaster is labelled "Stablemaster" over the head and on the crosshair and, as a trader, takes no harm.
 
 ## 3. Ways in
 
@@ -30,7 +31,7 @@ and is the only one who rides it.
 |---|---|---|
 | `/anpc here stable` | Staff: stands a stablemaster where the staff member stands | `Traders/TraderCommands.cs` |
 | `/anpc remove`, `list` | Staff: takes the stablemaster in front away, lists stablemasters among the traders | `Traders/TraderCommands.cs` |
-| H over a stablemaster | Opens the stable's window | `Stable/Stables.cs` |
+| The game's dialogue with a stablemaster, topic "Services" | Opens the stable's window | `Stable/Stables.cs`, `docs/features/npc-dialogue.md` |
 | The window | Buy, Replace it or Keep my horse, Esc or Leave | `ui/stable`, `Stable/StableOverlay.cs` (client) |
 | G wheel | "Call your horse" (`self.horse`, Order 30, icon `horse`) | `Stable/Horses.cs` |
 
@@ -39,7 +40,7 @@ There is no player command. The staff's panel lists a stablemaster on its World 
 ## 4. How it works
 
 - **The NPC** is a trader spot whose shop is `stable` (`TraderRules.StableShop`, `TraderSpotKind.Stablemaster`): the same
-  row in `trader_spots`, stood, kept, adopted and healed by `TraderNpcs`, under an origin of its own
+  row in `trader_spots`, stood, kept, adopted and kept from harm by `TraderNpcs`, under an origin of its own
   (`TraderOrigin.StablemasterSpawnerRefId`) by which every client labels it (`TraderMarkers`), in the clothes of Petrine
   of Bruma's stables. No shop of `stocks.json` may be named `stable`: loading throws.
 - **The horses** are the game's own of each coat, named constants in `StableRules` (`HorsePaint` 0001F11E, `HorseBay`

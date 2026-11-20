@@ -14,7 +14,7 @@
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     </PropertyGroup>
 
-    <!-- The SDK is the server's own: pack.ps1 copies the packages from the sdk/ folder of the server it builds for into .sdk/ (nuget.config's source), so the mod always compiles against what that server loads. The version is theirs. -->
+    <!-- The SDK is the packages of .sdk/ (nuget.config's source), kept in Git LFS. The version is theirs. pack.ps1 refuses a server built with another one. -->
     <PropertyGroup>
         <OblivionSdkFeed>$(MSBuildThisFileDirectory).sdk</OblivionSdkFeed>
         <OblivionSdkPackage>$([System.IO.Directory]::GetFiles('$(OblivionSdkFeed)', 'ReadyM.SDK.Oblivion.Common.*.nupkg'))</OblivionSdkPackage>
@@ -26,7 +26,13 @@
             <OblivionSdkReference Include="@(PackageReference)" Condition="$([System.String]::Copy('%(Identity)').StartsWith('ReadyM.SDK.Oblivion'))" />
         </ItemGroup>
         <Error Condition="'@(OblivionSdkReference)' != ''"
-               Text="No SDK in .sdk/: run ./pack.ps1 -PackOnly, which takes it from the server (see DEVELOPMENT.md)." />
+               Text="No SDK in .sdk/: its packages come with the repository through Git LFS, run git lfs pull (see DEVELOPMENT.md)." />
+    </Target>
+
+    <!-- A clone made without Git LFS has a few lines of text in place of each package, which NuGet reports as a broken archive. -->
+    <Target Name="CheckOblivionSdkFetched" BeforeTargets="CollectPackageReferences;Restore;Build" Condition="'$(OblivionSdkPackage)' != ''">
+        <Error Condition="$([System.IO.File]::ReadAllText('$(OblivionSdkPackage)').StartsWith('version https://git-lfs'))"
+               Text="The SDK packages in .sdk/ are Git LFS pointers: run git lfs install, then git lfs pull (see DEVELOPMENT.md)." />
     </Target>
 
 </Project>

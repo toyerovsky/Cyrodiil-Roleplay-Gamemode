@@ -10,6 +10,10 @@ public static partial class RpContracts
     [ClientToServer]
     public static partial void SubmitMessage(string text);
 
+    // Whether the chat's entry holds text, said when that changes, for the mark over the player's name.
+    [ClientToServer]
+    public static partial void ReportTyping(bool typing);
+
     [ServerToClient]
     public static partial void DeliverMessage(ChatLine line);
 
@@ -45,9 +49,14 @@ public static partial class RpContracts
     [ClientToServer]
     public static partial void OpenSelfWheel();
 
-    // The server picks whom: the nearest player or trader in front.
+    // The server picks whom: the nearest player or notice board in front.
     [ClientToServer]
     public static partial void OpenInteractionWheel();
+
+    // The character spoke the mode's topic (TalkTopic) to one of the mode's people, named by the ref id the server gave
+    // them, and the game's dialogue has closed. The server opens that person's window.
+    [ClientToServer]
+    public static partial void TalkTo(uint npc);
 
     // A WheelView as JSON, for the page.
     [ServerToClient]

@@ -98,6 +98,25 @@ describe("the chat", () => {
     expect(isTyped("k")).toBe(true);
   });
 
+  it("tells the game when the entry gets text and when it is empty again, and nothing between", async () => {
+    await game.emit("Open", true);
+    await entry().setValue("H");
+    await entry().setValue("Hello");
+    await entry().setValue("   ");
+    await entry().setValue("Back");
+    await press("Enter");
+
+    expect(game.readSent("Typing")).toEqual([[true], [false], [true], [false]]);
+  });
+
+  it("stops typing as the chat closes with text in it", async () => {
+    await game.emit("Open", true);
+    await entry().setValue("half a thought");
+    await game.emit("Open", false);
+
+    expect(game.readSent("Typing")).toEqual([[true], [false]]);
+  });
+
   it("asks the game to close on Escape", async () => {
     await game.emit("Open", true);
     await press("Escape");
@@ -138,5 +157,14 @@ describe("the chat", () => {
   it("follows the locale the game names", async () => {
     await game.emit("Locale", "pl");
     expect(document.documentElement.lang).toBe("pl");
+  });
+
+  it("tells the game when the game's cursor comes and goes, after it asked for the history", () => {
+    window.__readym_cursor(640, 360);
+    window.__readym_cursor(640, 361);
+    window.__readym_cursor(-1, -1);
+
+    expect(game.readSent("GameCursor")).toEqual([[true], [false]]);
+    expect(game.sent[0]).toEqual(["RequestHistory"]);
   });
 });

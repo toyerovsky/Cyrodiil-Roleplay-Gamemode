@@ -10,5 +10,7 @@ export function createBridge(readym) {
     submit: (text) => readym.sendSubmit(text),
     close: () => readym.sendClose(),
     reportBlur: () => readym.sendBlurred(),
+    reportTyping: (typing) => readym.sendTyping(typing),
+    reportGameCursor: (shown) => readym.sendGameCursor(shown),
   };
 }

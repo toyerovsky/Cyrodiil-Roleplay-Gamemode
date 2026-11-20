@@ -6,10 +6,10 @@ using CyrodiilRP.Server.Characters;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Economy;
 using CyrodiilRP.Server.Infrastructure;
-using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
+using CyrodiilRP.Server.Talk;
 using CyrodiilRP.Server.Traders;
 using Microsoft.Extensions.Logging;
 using ReadyM.Api.Idents;
@@ -24,7 +24,7 @@ namespace CyrodiilRP.Server.Stable;
 internal sealed partial class Stables(
     RpcHandlers rpc,
     OnlinePlayers online,
-    InteractionMenu interactions,
+    Conversations conversations,
     Proximity proximity,
     TraderNpcs npcs,
     Horses horses,
@@ -36,7 +36,7 @@ internal sealed partial class Stables(
     Timers timers,
     Fire fire,
     SystemClock clock,
-    ILogger logger) : IFrontTarget
+    ILogger logger) : ITalkTarget
 {
     private const string OpenJob = "stable.open";
     private const string BuyAction = "economy.horse_buy";
@@ -49,18 +49,18 @@ internal sealed partial class Stables(
     // The players whose purchase is still being written: a second one would take the gold again.
     private readonly HashSet<OnlinePlayer> _buying = [];
 
-    public float? MeasureInFront(OnlinePlayer actor, float reach, float coneDegrees) =>
-        FindInFront(actor, reach, coneDegrees, out var distance) is null ? null : distance;
-
-    public void Use(OnlinePlayer actor, float reach, float coneDegrees)
+    public bool TryTalk(OnlinePlayer actor, uint npcRefId)
     {
-        if (FindInFront(actor, reach, coneDegrees, out _) is { } spot && actor.Character is { } character)
-            Open(actor, character.Id, spot);
+        if (npcs.FindByNpc(npcRefId) is not { Kind: TraderSpotKind.Stablemaster } spot || actor.Character is not { } character)
+            return false;
+
+        Open(actor, character.Id, spot);
+        return true;
     }
 
     private void Start()
     {
-        interactions.AddTarget(this);
+        conversations.AddTarget(this);
         rpc.StableBought += OnBought;
         rpc.StableLeft += OnLeftWindow;
         online.Left += player =>
@@ -70,10 +70,6 @@ internal sealed partial class Stables(
         };
         timers.RunEvery(WatchJob, WatchEvery, Watch);
     }
-
-    // The key is the stable's only when a stablemaster is the nearest of the mode's people in front.
-    private TraderSpotRecord? FindInFront(OnlinePlayer actor, float reach, float coneDegrees, out float distance) =>
-        npcs.FindNearestInFront(actor, reach, coneDegrees, out distance) is { Kind: TraderSpotKind.Stablemaster } spot ? spot : null;
 
     // The horse owned is read again, so the window never sells on a guess.
     private void Open(OnlinePlayer player, long characterId, TraderSpotRecord spot) => fire.Run(OpenJob, async () =>
