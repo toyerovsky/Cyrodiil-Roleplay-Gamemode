@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, ref, useTemplateRef } from "vue";
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { CHAT_HISTORY_LINES, CHAT_MAX_LENGTH } from "../shared/limits.js";
 import { usePageTexts } from "../shared/locale.js";
 import { isComposing, isHeldPress } from "../shared/press.js";
@@ -23,6 +23,10 @@ const idle = ref(false);
 const draft = ref("");
 const log = useTemplateRef("log");
 const entry = useTemplateRef("entry");
+
+// The game marks the player's name while the open entry holds text, and is told only when that changes.
+const typing = computed(() => open.value && draft.value.trim().length > 0);
+watch(typing, (value) => props.bridge.reportTyping(value));
 
 const sent = [];
 let recalled = -1;

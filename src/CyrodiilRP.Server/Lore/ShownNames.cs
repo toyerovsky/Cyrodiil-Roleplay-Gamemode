@@ -10,7 +10,8 @@ using ReadyM.SDK.Attributes;
 namespace CyrodiilRP.Server.Lore;
 
 // A character's name as another player sees it: the name once introduced or when the owner made it public, otherwise the
-// race. The names over the heads follow it: each player gets the names they see, whenever one of them changes.
+// race. The names over the heads follow it, with the marks of duty, away and typing: each player gets the names they
+// see, whenever one of them changes.
 [Service]
 internal sealed partial class ShownNames(
     OnlinePlayers online,
@@ -65,7 +66,7 @@ internal sealed partial class ShownNames(
         var subjects = online.All.Where(player => player.IsLoaded && player.Character is not null).ToList();
         foreach (var subject in subjects)
         {
-            var look = $"{(subject.DutySince is null ? string.Empty : Nameplate.DutyMark)}{subject.Name}|{FindLabel(subject)}";
+            var look = $"{Marked(subject, subject.Name)}|{FindLabel(subject)}";
             var state = _states.GetValueOrDefault(subject.Id);
             if (state?.Look == look)
                 continue;
@@ -88,7 +89,7 @@ internal sealed partial class ShownNames(
             .Where(subject => subject != reader)
             .ToDictionary(
                 subject => subject.Number.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                subject => (subject.DutySince is null ? string.Empty : Nameplate.DutyMark) + Shown(reader, subject));
+                subject => Marked(subject, Shown(reader, subject)));
         var state = _states.GetValueOrDefault(reader.Id);
         if (state?.Sent is { } sent && sent.Count == names.Count && !sent.Except(names).Any())
             return;
@@ -97,6 +98,9 @@ internal sealed partial class ShownNames(
         rpc.SendKnownNames(reader.Id, JsonSerializer.Serialize(names, LoreJson.Page.DictionaryStringString));
     }
 
-    // Look: a subject's name, mark and race as last seen. Sent: the names a reader was last sent.
+    private static string Marked(OnlinePlayer subject, string name) =>
+        Nameplate.Compose(subject.DutySince is not null, subject.IsAway, subject.IsTyping, name);
+
+    // Look: a subject's name, marks and race as last seen. Sent: the names a reader was last sent.
     private sealed record ShownState(string? Look, IReadOnlyDictionary<string, string>? Sent);
 }

@@ -20,6 +20,7 @@
   "chat.reply_nobody": "Nikt jeszcze nie wysłał ci prywatnej wiadomości.",
   "chat.reply_gone": "Gracza, który napisał do ciebie ostatni, nie ma już w grze.",
   "chat.own_number": "Twój numer to {number}.",
+  "chat.away_now": "Przy twoim imieniu widać [AFK], dopóki się nie ruszysz, nie obrócisz albo nie zaczniesz pisać.",
   "chat.players": {
     "one": "{count} gracz online: {list}",
     "few": "{count} gracze online: {list}",
@@ -45,6 +46,7 @@
   "chat.cmd.pm": "/pm <numer albo imię> <tekst> - prywatna wiadomość",
   "chat.cmd.reply": "/re <tekst> - odpowiedź na ostatnią prywatną wiadomość",
   "chat.cmd.id": "/id - twój własny numer gracza",
+  "chat.cmd.afk": "/afk - [AFK] przy twoim imieniu, dopóki się nie ruszysz albo nie zaczniesz pisać",
   "chat.cmd.players": "/players - kto jest online, z numerami",
   "chat.cmd.help": "/help - komendy, których możesz użyć",
   "chat.greet": "* {name} pozdrawia postać {target}.",

@@ -32,6 +32,9 @@ internal sealed partial class ChatOverlay(
     // The start of a command the wheel put in, until it is sent or the chat closes.
     private string _draft = string.Empty;
 
+    // What the server was last told of the entry, for the mark over the player's name.
+    private bool _typing;
+
     public bool IsOpen => _open;
 
     private OverlayPage Page => _page ??= new OverlayPage(pages, locale, PageName, WebPages.ChatLayer, SendLocale);
@@ -83,7 +86,10 @@ internal sealed partial class ChatOverlay(
 
         _open = open;
         if (!open)
+        {
             _draft = string.Empty;
+            ReportTyping(false);
+        }
 
         if (Page.Opened is { } page)
             SendOpen(page.Browser, open);
@@ -124,6 +130,19 @@ internal sealed partial class ChatOverlay(
     {
         _draft = string.Empty;
         rpc.SendSubmitMessage(text);
+    }
+
+    // The entry got its first character or lost its last one.
+    [ReceiveFromCef]
+    private void OnTyping(BrowserHandle browser, bool typing) => ReportTyping(typing && _open);
+
+    private void ReportTyping(bool typing)
+    {
+        if (_typing == typing)
+            return;
+
+        _typing = typing;
+        rpc.SendReportTyping(typing);
     }
 
     // The first thing the page does, so it is also how the game hears that one has loaded.

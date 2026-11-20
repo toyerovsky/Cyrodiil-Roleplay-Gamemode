@@ -16,7 +16,8 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
 - **RP chat:** speech in range, `/me` (also over the character's head), `/do`, shout, whisper, rolls, local and
   global OOC, private messages. In-character lines name the speaker as the reader knows them (see the lore card).
 - **Names over heads:** drawn by the mode: the character's name to those who know it, the race to strangers (see the
-  lore card), `[Staff]` in another colour on duty.
+  lore card), `[Staff]` in another colour on duty, `[AFK]` in grey after a few still minutes or `/afk` (until the
+  player moves, turns or writes), and `...` after the name while they write in the chat.
 - **Interaction wheels:** G opens the actions of your own character, H the actions towards the player in front of
   you. A wheel of more than eight turns its pages with the wedges either side of twelve, Q and E or the mouse wheel.
 - **Emotes:** Emotes on the G wheel opens a wheel of every emote of the Emotes mod (`mods/Emotes`), Stop first: the

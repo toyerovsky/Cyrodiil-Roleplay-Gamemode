@@ -57,6 +57,11 @@ internal sealed class OnlinePlayer(PlayerId id, Guid readyMId, DateTimeOffset co
     // When the lore card's page last asked, for its own limit.
     public Queue<long> RecentLoreAsks { get; } = new();
 
+    // Away from the keyboard (AwayWatch), and writing in the chat, both shown by the name over the head.
+    public bool IsAway { get; set; }
+
+    public bool IsTyping { get; set; }
+
     // The account that sent this player the last private message, which /re answers.
     public Guid? LastPrivateFrom { get; set; }
 
