@@ -37,6 +37,11 @@
         <EmbeddedResource Include="Admin\weathers.json" LogicalName="weathers.json" />
     </ItemGroup>
 
+    <!-- What every item of the game is to the crafting: a trade's product, a material, a relic or exempt. -->
+    <ItemGroup>
+        <EmbeddedResource Include="Crafting\classification.json" LogicalName="classification.json" />
+    </ItemGroup>
+
     <!-- MESOL's lore list: races, places, factions and the rest a lore card picks from. -->
     <ItemGroup>
         <EmbeddedResource Include="Lore\mesol-lore.json" LogicalName="mesol-lore.json" />
