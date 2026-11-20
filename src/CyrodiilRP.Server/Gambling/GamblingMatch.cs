@@ -159,10 +159,13 @@ internal sealed class GamblingMatch(GamblingMode mode, int stake, int roundsToWi
         act();
     }
 
+    // A match already decided stays as it is: its last throw is still shown while a player may walk off.
     public void Forfeit(bool firstGone, bool secondGone)
     {
         if (!firstGone && !secondGone)
             throw new ArgumentException("A forfeit needs a departing player.");
+        if (Phase == GamblingPhase.Finished)
+            return;
 
         Winner = firstGone && secondGone ? NoWinner : firstGone ? Second : First;
         Phase = GamblingPhase.Finished;

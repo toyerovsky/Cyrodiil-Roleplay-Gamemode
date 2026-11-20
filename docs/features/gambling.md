@@ -78,8 +78,11 @@ match is a draw. No raise, no reroll.
 - A player who leaves the table's reach, leaves the world or the server during a match loses it: the pot goes to the
   other. If both are gone, both get their stakes and raises back.
 - Gold for a player who is not in the world is owed through `GoldDeliveries` and given on their next visit.
-- A muted or frozen player cannot start or accept a game. A staff member can cancel a game (`/agamble cancel`), which
-  gives everyone back what they put in.
+- A match decided by its last throw stays decided: leaving while the dice still roll changes nothing.
+- A muted or frozen player cannot start or accept a game. A player muted during a match plays it on. A freeze during a
+  match ends it as a cancelled one, with everyone's gold back, since a frozen player cannot reach the window.
+- After an invitation the same player waits 10 s before the next one.
+- A staff member can cancel a game (`/agamble cancel`), which gives everyone back what they put in.
 
 ## 3. Ways in
 
@@ -130,7 +133,7 @@ the picks follow after those decisions. A confirmed pick is kept when the other 
 unconfirmed pick keeps all dice. A round's result stays visible for four seconds before its next roll. Esc hides only the
 window; G Gaming table reopens the live match.
 
-Audit: `gamble.start`, `gamble.raise`, `gamble.fold`, `gamble.settle`, `gamble.refund`, `gamble.cancel`, `table.place`,
+Audit: `gamble.start`, `gamble.raise`, `gamble.call`, `gamble.fold`, `gamble.settle`, `gamble.refund`, `gamble.cancel`, `table.place`,
 `table.remove`. No NPC or prop is created in stage 1.
 
 The SDK inventory save and PostgreSQL are separate systems. Their writes cannot be committed as one transaction: a hard
@@ -164,44 +167,11 @@ A value that makes no rule stops the mod at start with the reason in the log.
 
 ## 7. Tested / not tested
 
-Verification on 19 November 2026:
-
-- **Passed:** 53 xUnit cases from `tests/CyrodiilRP.Tests/Gambling/`, compiled and run against the real source files in
-  a temporary project independent of the missing SDK. The exhaustive hand test enumerates all 7776 ordered five-d6
-  sets and their rank counts, checks order independence, the spec examples, ties and group tie-breaks. Match tests
-  cover both games, both raises, simultaneous selection, timeout defaults, folds, replays and leaving. Escrow tests cover a failed second stake, immediate compensation, and cut rounding. Config tests
-  reject invalid rules and pot overflow.
-- **Passed:** `dotnet build src/CyrodiilRP.Data --no-restore -m:1 /nr:false /p:UseSharedCompilation=false`, including the
-  gambling persistence model; `dotnet ef migrations has-pending-model-changes --project src/CyrodiilRP.Data --no-build`
-  reports no pending changes. EF generated migration `20261119221231_Gambling` without a database connection.
-- **Passed:** eight direct DOM flow checks of the compiled page over jsdom: ready, Poker first, fractional-stake
-  rejection, duplicate-invite prevention, mouse and CEF key selection, server refusal, Esc and Polish rules. This is
-  an additional unit-level check, not a browser layout test.
-- **Passed:** 19 CEF bridge contracts and four EN/PL key/placeholder contracts checked directly with Node.
-- **Passed:** Vue compiler parsing, script compilation and template compilation of the eight changed/new components
-  (`gambling/App.vue`, `Rules.vue`, `History.vue`, `admin/GamblingTab.vue`, `admin/App.vue`, `menu/App.vue`,
-  `menu/DiceTab.vue`, `asks/App.vue`). This is a static check, not a browser test.
-- **Blocked:** full `dotnet build` and the repository's xUnit suite. `.sdk/` contains only `.gitkeep`; existing restored
-  public SDK assets lack the `ClientToServer` / `ServerToClient` attributes this branch uses. No SDK packages or server
-  folders were changed to work around it.
-- **Skipped:** PostgreSQL tests (`tests/CyrodiilRP.Tests/Database/GamblingBookTests.cs`). Docker denies access to
-  `npipe:////./pipe/dockerDesktopLinuxEngine` and `127.0.0.1:5433` is unreachable. Tests are written for real transactions,
-  exact refunds, idempotent creation/settlement, restart recovery, claims, constraints, filtering retired tables, and name visibility in offline history.
-- **Passed, outside the sandbox:** the whole Vitest suite (515 tests, 33 files) and `npm run build` with
-  `check-dist`. A decision sent after the deadline was caught here: `act` now checks the clock itself, not the
-  ticker's last value.
-- **Passed, outside the sandbox:** Playwright at `E2E_SIZES=all` for `gambling.spec.js`, `admin.spec.js` and
-  `menu.spec.js` (112 runs). Screenshots opened and judged by eye at all four sizes: the picker, raise, reroll, result,
-  Favor, rules (top and bottom), the invitation card, F10 history and the staff's tab. Nothing cut off, no horizontal
-  scroll, the dice and their key numbers readable at 1366x768.
+- **Tests:** `tests/CyrodiilRP.Tests/Gambling/` (the hands over all 7776 sets of five d6, both games' matches, escrow,
+  the throws and their timing, the settings), `Database/GamblingBookTests.cs` on PostgreSQL, `ui/tests/gambling*.test.js`
+  and `ui/e2e/gambling.spec.js` at the four sizes.
 - **Not tested in game:** two real inventories and players, reach/world/disconnect forfeits, Y/N focus handoff, small
-  board layering, game saves, delivery after reconnect and a live server restart. Nothing was deployed.
-- **Blocked:** `./pack.ps1 -Test -PackOnly` stops at "No SDK in .../sdk", since the only server here is the public
-  1.0.1. The public SDK 1.1.0 from nuget.org does not build master either: 27 errors in code that is already there
-  (`Props`, `Statuses`, `Foliage`, `IAnimations`), all rp-framework API. The gambling projects never got to compile.
-
-Stage 1 still needs the full build, the PostgreSQL tests and the server smoke tests (`./pack.ps1 -Test -PackOnly`),
-which wait for a server package from rp-framework CI with its `sdk/`, before it can be called verified.
+  board layering, game saves, delivery after reconnect and a live server restart.
 
 ## 8. Known gaps and next steps
 
@@ -298,53 +268,7 @@ the shared renderer remain under `dice/assets`, rather than being counted in the
 - `ui/dice/models/board-negative.glb` appeared externally during the task and was verified as a packaging input;
   it was not authored or edited by this implementation.
 
-### Verification and remaining checks
-
-Verified in the sandbox:
-
-- **62/62 xUnit cases passed**, including the existing 53 gambling cases and nine new cases for event serialization,
-  shared payloads, crypto seed range, seat order, delayed second RNG, animation gates and decision deadlines, a late
-  tick, partial event indices, selection coalescing, confirmation and partial scoring. The temporary project under
-  `artifacts/gambling-v2-tests/` compiles the real pure server sources and JSON source-generation context without the
-  missing platform SDK. It does not compile or exercise `GamblingGames`, networking, persistence or game entities.
-- **Direct Node physics assertions passed:** repeatable partial trajectories, server face values, exact kept poses
-  and static obstacle influence. Six full simulations (one d6, five d6 and mixed dice, two seeds each) matched the
-  pre-v2 source exactly. These are additional checks, not a Vitest run.
-- **18 direct Vue DOM/bridge assertions passed** for both viewer seats: own board first, live selection, stale
-  acknowledgements, confirmation, recognition names in rolling/call/results and Esc. The renderer was replaced by a
-  stand-in, so these checks say nothing about appearance.
-- **Preview flow assertions passed:** invite, sequential initial throws, pass/call, fake opponent's live picks,
-  subset reroll, round result, second round and match result, plus the seat-1 view, Favor and hide/reopen during a throw.
-- Vue parsing and separate script/template compilation passed for `App.vue` and `TableBoard.vue`. Changed JS files
-  passed Node syntax checks. The model plugin generated 18 scripts and both board payloads matched their GLB bytes.
-  The missing-model fallback also emitted the original board successfully without changing any asset. EN/PL keys
-  and placeholders match.
-
-Verified outside the sandbox (RMPC, 20 November 2026):
-
-- **Vitest 530/530** (35 files, the three gambling suites included) and `npm run build` with `check-dist`. The window's
-  medallion was cut to 128 px to keep the pages under their 1152 KB budget.
-- **Playwright at `E2E_SIZES=all`, 140/140** for `gambling.spec.js`, `dice.spec.js`, `admin.spec.js` and `menu.spec.js`.
-  The failures on the first run were in the spec, not the app: a click landing in the same millisecond the button
-  mounted on the paused clock (now one frame later, as a player would), two WebGL boards needing more than the default
-  5 s to load in headless runs (`PAGE_MS`, as `dice.spec.js` does), and screenshots taken before a late-loading board
-  drew its first frame.
-- **Layout after the screenshots:** the boards were drawn about 130 px tall at 1366x768. The match panel now takes the
-  full height, the two boards split it, `createBoard({ fit: "board" })` fits the camera to the board's outline (95
-  percent of the canvas, same tilt; `/roll` and the small board keep the old fit), the decision line moved to the top of
-  the actions column and the die toggles beside the player's name. Drawn board height: 275 px at 1366x768, 373 px at
-  1280x1024, 388 px at 1920x1080, 381 px at 2560x1080. Picked dice lift and get a gold ring on the board, in the Reroll
-  phase only. Screenshots opened and judged by eye at all four sizes.
-
-Not run: Docker/PostgreSQL tests and the full SDK-dependent .NET build and server tests, for the same reason as stage 1.
-Nothing was pushed or deployed.
-
-The updated `e2e/gambling.spec.js` drives a complete match with fixed seeds and a controlled clock. Its screenshots
-cover both boards after the initial throws, an opponent's live pick, a partial reroll in flight, round and match
-results, seat 1's negative board above seat 0, and reopening a live throw at rest without replay. Existing rules, call/fold/hide, Favor, invitations, F10 history and
-staff checks remain. Run it with `E2E_SIZES=all`: **1366x768, 1920x1080, 1280x1024 and 2560x1080**, then open and judge
-all screenshots for size, wrapping, scrolling, focus and whether the boards and controls fit. The shared scene/model
-changes also warrant the existing dice-page tests.
+### Still to check in the game
 
 Still requiring the game: two actual CEF clients and network delay, mouse raycasts on OB:MP, recognition changes,
 Esc/G focus handoff during a throw, the players' saved dice sets, sound, forfeits/cancellation during animation and

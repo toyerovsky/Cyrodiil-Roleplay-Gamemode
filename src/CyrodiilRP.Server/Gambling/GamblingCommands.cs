@@ -42,7 +42,7 @@ internal sealed partial class GamblingCommands(CommandRegistry commands, Gamblin
         interactions.Add(new InteractionOption
         {
             Id = "player.gambling", Label = GamblingText.PlayDice, Icon = WheelIcons.Dice, Order = 26, Speaks = true, Reach = 2 * config.Gambling.TableReach,
-            State = (actor, target) => OptionState.OpenUnless(games.CheckInvite(actor, target)),
+            State = (actor, target) => tables.Shared(actor, target) is null ? OptionState.Hidden : OptionState.OpenUnless(games.CheckInvite(actor, target)),
             Run = (actor, target) => games.Open(actor, target, false),
         });
     }

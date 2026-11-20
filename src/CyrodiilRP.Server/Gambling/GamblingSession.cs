@@ -18,6 +18,7 @@ internal sealed class GamblingSession(GamblingTableRecord table, PlayerAsk invit
     public long Id { get; set; }
     public int Version { get; set; }
     public long ExpiresAt { get; set; } = expiresAt;
+    public long SavingSince { get; set; }
     public DateTimeOffset StartedAt { get; set; }
     public bool FirstGone { get; private set; }
     public bool SecondGone { get; private set; }

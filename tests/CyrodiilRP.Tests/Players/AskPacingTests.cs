@@ -39,6 +39,18 @@ public sealed class AskPacingTests
     }
 
     [Fact]
+    public void A_cooldown_started_alone_makes_the_asker_wait_and_holds_no_timeout()
+    {
+        var ask = new PlayerAsk(_marius, _lucia);
+
+        _pacing.StartCooldown(ask.Asker);
+
+        Assert.Equal(AskPacing.RoundUpSeconds(AskPacing.Cooldown), _pacing.CountWaitSeconds(_marius));
+        Assert.Equal(0, _pacing.CountWaitSeconds(_lucia));
+        Assert.Null(ask.Timeout);
+    }
+
+    [Fact]
     public void One_who_left_is_forgotten_and_may_ask_at_once_on_coming_back()
     {
         _pacing.Start(new PlayerAsk(_marius, _lucia), _ => { });

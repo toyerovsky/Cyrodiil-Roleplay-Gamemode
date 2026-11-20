@@ -23,9 +23,12 @@ internal sealed class AskPacing(string name, Timers timers, IClock clock)
     // The cooldown starts, and expire runs once the ask has gone unanswered for Timeout.
     public void Start(PlayerAsk ask, Action<PlayerAsk> expire)
     {
-        _askedAtMs[ask.Asker] = clock.MonotonicMs;
+        StartCooldown(ask.Asker);
         ask.Timeout = timers.RunAfter(name, Timeout, () => expire(ask));
     }
+
+    // The cooldown alone, for an ask that runs out by a clock of its own.
+    public void StartCooldown(OnlinePlayer asker) => _askedAtMs[asker] = clock.MonotonicMs;
 
     public void Forget(OnlinePlayer player) => _askedAtMs.Remove(player);
 

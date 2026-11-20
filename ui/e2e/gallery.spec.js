@@ -22,19 +22,19 @@ test("the gallery lists every page and its scenarios and shows the design system
   const large = page.getByRole("tablist", { name: "Large tabs" });
   await large.getByRole("tab", { name: "Help" }).click();
   await expect(large.getByRole("tab", { selected: true })).toHaveText("Help");
-  await expect(page.getByRole("tablist", { name: "Small tabs" }).getByRole("tab")).toHaveCount(7);
+  await expect(page.getByRole("tablist", { name: "Small tabs" }).getByRole("tab")).toHaveCount(8);
   await screenshot(page, testInfo, "gallery");
 });
 
 // A page that has talked to the game is mounted and has run its start. The dice board brings three.js, which a busy
-// preview server takes a while to serve.
+// preview server takes a while to serve, and the gaming table plans two boards' throws before it draws.
 const STARTED_MS = 15_000;
 for (const { name, scenarios } of PAGES) {
   for (const scenario of scenarios) {
     test(`the preview of ${name}${scenario ? ` #${scenario}` : ""} renders without the game`, async ({ page }) => {
       await page.goto(`/${name}/index.html${scenario ? `#${scenario}` : ""}`);
       await expect.poll(() => page.evaluate(() => window.__readym?.sent.length ?? 0), { timeout: STARTED_MS }).toBeGreaterThan(0);
-      await expect(page.locator("#root")).not.toBeEmpty();
+      await expect(page.locator("#root")).not.toBeEmpty({ timeout: STARTED_MS });
     });
   }
 }

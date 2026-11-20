@@ -26,7 +26,9 @@ internal sealed partial class GamblingGames(
 {
     private static readonly TimeSpan WatchEvery = TimeSpan.FromMilliseconds(GamblingPicks.RelayMs);
     private static readonly TimeSpan RetryAfter = TimeSpan.FromSeconds(5);
+    private const string InviteJob = "gambling.invite";
     private readonly GamblingSessionRegistry _registry = new();
+    private readonly AskPacing _pacing = new(InviteJob, timers, clock);
     private readonly HashSet<OnlinePlayer> _open = [];
     private bool _ready;
     public IReadOnlyList<GamblingSession> Running => _registry.Sessions;
@@ -42,7 +44,11 @@ internal sealed partial class GamblingGames(
         rpc.GamblingHidden += id => { if (online.TryGet(id, out var player)) _open.Remove(player); };
         rpc.GamblingInvited += OnInvite;
         rpc.GamblingActed += OnAct;
-        online.Left += player => _open.Remove(player);
+        online.Left += player =>
+        {
+            _open.Remove(player);
+            _pacing.Forget(player);
+        };
     }
 
     private async Task LoadAsync()
@@ -68,12 +74,20 @@ internal sealed partial class GamblingGames(
         }
     }
 
-    public Phrase? CheckPlayer(OnlinePlayer player)
+    // What a decision in a running match needs. A mute or a freeze stops only a new game: see CheckPlayer.
+    private Phrase? CheckPresence(OnlinePlayer player)
     {
         if (!_ready)
             return GamblingText.Loading;
         if (!player.IsLive || !player.IsLoaded || !player.IsPlaying || player.Character is null || !wallet.IsInWorld(player.Id))
             return GamblingText.InWorld;
+        return null;
+    }
+
+    public Phrase? CheckPlayer(OnlinePlayer player)
+    {
+        if (CheckPresence(player) is { } away)
+            return away;
         if (freezes.IsFrozen(player))
             return GamblingText.Frozen;
         return commands.FindSpeechRefusal(player);
@@ -83,6 +97,8 @@ internal sealed partial class GamblingGames(
     {
         if (CheckPlayer(actor) is { } refused)
             return refused;
+        if (_pacing.CountWaitSeconds(actor) is > 0 and var wait)
+            return GamblingText.Cooldown(wait);
         if (actor == target)
             return CommandsText.NotYourself;
         if (CheckPlayer(target) is not null)
@@ -116,6 +132,7 @@ internal sealed partial class GamblingGames(
         var session = new GamblingSession(tables.Shared(actor, target)!, invite,
             new GamblingMatch(mode, stake, Settings.PokerRoundsToWin, Settings.MaxReplays), clock.MonotonicMs + Settings.InviteSeconds * 1000L);
         _registry.Add(session);
+        _pacing.StartCooldown(actor);
         asks.Open(invite, AskKinds.Gambling, new AskAnswers(_ => Accept(session), _ => Withdraw(session)),
             TimeSpan.FromSeconds(Settings.InviteSeconds), GamblingText.Invitation(GamblingWords.Mode(mode), stake));
         foreach (var player in new[] { actor, target })
@@ -243,7 +260,7 @@ internal sealed partial class GamblingGames(
             Refuse(player, GamblingText.Decision);
             return;
         }
-        if (CheckPlayer(player) is { } refusal)
+        if (CheckPresence(player) is { } refusal)
         {
             Refuse(player, refusal);
             return;
@@ -285,7 +302,7 @@ internal sealed partial class GamblingGames(
                     return;
                 }
                 match.Call(side);
-                AuditGame("gamble.raise", session, player.Ref);
+                AuditGame("gamble.call", session, player.Ref);
                 break;
             case GamblingAction.Fold:
                 match.Fold(side);
@@ -397,6 +414,7 @@ internal sealed partial class GamblingGames(
     private void Save(GamblingSession session)
     {
         session.Stage = GamblingStage.Saving;
+        session.SavingSince = clock.MonotonicMs;
         var row = Snapshot(session);
         SendOpen(session);
         PersistSave(session, row);
@@ -409,6 +427,7 @@ internal sealed partial class GamblingGames(
             var saved = await persistence.Writer.EnqueueAsync("gambling.save", (db, ct) => GamblingBook.SaveAsync(db, row, ct));
             if (!saved) throw new InvalidOperationException($"Open gambling game #{row.Id} disappeared during a decision.");
             session.Stage = GamblingStage.Playing;
+            session.ExpiresAt = GamblingTiming.Resume(session.ExpiresAt, session.SavingSince, clock.MonotonicMs);
             MarkGone(session);
             if (session.CancellationRequested || session.FirstGone || session.SecondGone)
                 Drive(session);
@@ -494,6 +513,7 @@ internal sealed partial class GamblingGames(
         foreach (var session in _registry.Sessions.ToArray())
         {
             MarkGone(session);
+            CancelForFrozen(session);
             Action act = session.Stage switch
             {
                 GamblingStage.Invited => () =>
@@ -538,6 +558,18 @@ internal sealed partial class GamblingGames(
             };
             act();
         }
+    }
+
+    // A frozen player cannot reach the window, so their match would run out on its clock against them: it ends as a
+    // cancelled one, with everyone's gold back. Starting, saving and playing all end through CancellationRequested.
+    private void CancelForFrozen(GamblingSession session)
+    {
+        if (session.CancellationRequested || session.Stage is GamblingStage.Invited or GamblingStage.Finishing or GamblingStage.Closed
+            || !freezes.IsFrozen(session.Invite.Asker) && !freezes.IsFrozen(session.Invite.Asked))
+            return;
+
+        session.CancellationRequested = true;
+        if (session.Stage == GamblingStage.Playing) Drive(session);
     }
 
     private void MarkGone(GamblingSession session) => session.MarkGone(!tables.IsAt(session.Invite.Asker, session.Table), !tables.IsAt(session.Invite.Asked, session.Table));

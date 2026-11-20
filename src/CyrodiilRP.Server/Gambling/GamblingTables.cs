@@ -29,8 +29,10 @@ internal sealed partial class GamblingTables(Persistence persistence, Proximity 
     public GamblingTableRecord? Find(OnlinePlayer player) => All.Where(table => IsAt(player, table))
         .OrderBy(table => proximity.MeasureDistance(player.Id, table.AreaId, table.Position)).ThenBy(table => table.Id).FirstOrDefault();
 
+    // The nearest to the first player, as Find gives them: the table their window shows is the table of the game.
     public GamblingTableRecord? Shared(OnlinePlayer first, OnlinePlayer second) =>
-        All.Where(table => IsAt(first, table) && IsAt(second, table)).OrderBy(table => table.Id).FirstOrDefault();
+        All.Where(table => IsAt(first, table) && IsAt(second, table))
+            .OrderBy(table => proximity.MeasureDistance(first.Id, table.AreaId, table.Position)).ThenBy(table => table.Id).FirstOrDefault();
 
     public async Task<GamblingTableRecord> PlaceAsync(string area, string cell, Vector3 position, float yaw, string actor)
     {

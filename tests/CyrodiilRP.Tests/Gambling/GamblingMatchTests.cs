@@ -136,6 +136,21 @@ public sealed class GamblingMatchTests
         Assert.Equal(GamblingPhase.Finished, match.Phase);
     }
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void Leaving_a_match_already_decided_does_not_change_who_won(bool firstGone, bool secondGone)
+    {
+        var match = new GamblingMatch(GamblingMode.Favor, Stake, RoundsToWin, Replays);
+        match.Roll(_ => [2, 4], _ => [6, 1]);
+
+        match.Forfeit(firstGone, secondGone);
+
+        Assert.Equal(GamblingMatch.Second, match.Winner);
+        Assert.Equal(GamblingPhase.Finished, match.Phase);
+    }
+
     [Fact]
     public void Invalid_and_repeated_actions_do_not_change_the_pot()
     {

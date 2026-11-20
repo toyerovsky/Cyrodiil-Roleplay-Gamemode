@@ -30,6 +30,9 @@ const deadline = ref(0);
 const receivedAt = ref(0);
 const heading = useTemplateRef("heading");
 let ticker;
+// Whether the focus was last moved with Tab, not with the mouse.
+let tabbed = false;
+const onPointer = () => { tabbed = false; };
 const match = computed(() => view.value?.match);
 const seconds = computed(() => Math.max(0, Math.ceil((deadline.value - now.value) / 1000)));
 const validOpponent = computed(() => view.value?.opponents.some((person) => person.number === opponent.value && !person.refusal));
@@ -131,7 +134,10 @@ function onKey(event) {
   // CEF sends keyCode without code, including the number row and Space.
   const number = /^[1-5]$/.test(event.key) ? Number(event.key) : event.keyCode >= 49 && event.keyCode <= 53 ? event.keyCode - 48 : 0;
   if (choosing.value && number) { event.preventDefault(); pick(number - 1); }
-  if (choosing.value && (event.key === " " || event.key === "Enter" || event.keyCode === 32 || event.keyCode === 13)) {
+  if (event.key === "Tab" || event.keyCode === 9) tabbed = true;
+  // A button reached with Tab takes Space and Enter itself. One only clicked leaves them to the confirmation.
+  const onButton = tabbed && event.target?.tagName === "BUTTON";
+  if (choosing.value && !onButton && (event.key === " " || event.key === "Enter" || event.keyCode === 32 || event.keyCode === 13)) {
     event.preventDefault();
     act("Pick", mask.value);
   }
@@ -142,10 +148,11 @@ onMounted(() => {
   props.bridge.onRefused((text) => { refusal.value = text; waiting.value = false; invited.value = false; });
   props.bridge.onClosed(() => { view.value = null; waiting.value = false; invited.value = false; });
   window.addEventListener("keydown", onKey);
+  window.addEventListener("pointerdown", onPointer, true);
   ticker = setInterval(() => { now.value = Date.now(); }, 250);
   props.bridge.signalReady();
 });
-onUnmounted(() => { sound.ctx?.close(); clearInterval(ticker); window.removeEventListener("keydown", onKey); });
+onUnmounted(() => { sound.ctx?.close(); clearInterval(ticker); window.removeEventListener("keydown", onKey); window.removeEventListener("pointerdown", onPointer, true); });
 </script>
 
 <template>
