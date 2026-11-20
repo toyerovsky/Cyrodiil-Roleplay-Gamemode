@@ -14,7 +14,7 @@ const MOST_BYTES = 1152 * KB;
 // The dice board apart (vite.config.js puts its files under dice/): three.js, the board, four dice and twelve sets of
 // their pictures, about 5.5 MB.
 const DICE = "dice";
-const DICE_MOST_BYTES = 6144 * KB;
+const DICE_MOST_BYTES = 7168 * KB;
 
 function listFiles(dir) {
   return readdirSync(dir).flatMap((name) => {
@@ -25,6 +25,8 @@ function listFiles(dir) {
 
 const all = listFiles(DIST);
 const problems = PAGES.filter(({ name }) => !existsSync(join(DIST, name, "index.html"))).map(({ name }) => `${name}/index.html is missing`);
+for (const board of ["board", "board-negative"])
+  if (!existsSync(join(DIST, `dice/models/${board}.js`))) problems.push(`dice/models/${board}.js is missing`);
 for (const path of all) {
   if (extname(path) === ".woff") problems.push(`${relative(DIST, path)} is a woff copy of a woff2 font`);
   if (![".js", ".html"].includes(extname(path))) continue;

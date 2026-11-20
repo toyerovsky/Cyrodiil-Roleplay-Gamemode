@@ -107,7 +107,7 @@ export function restHeight(points, q) {
  * One throw of several dice from the near rim toward the far half of the board, all at once from one hand.
  * Returns { tracks: [frames per die, [{p, q}] at 60 per second], impacts: [{t, strength, wall}], seconds, settled }.
  */
-export function simulateThrow(bodies, board, random) {
+export function simulateThrow(bodies, board, random, fixed = []) {
   const a = board.bowl_a * 0.968;
   const b = board.bowl_b * 0.968;
   const n = bodies.length;
@@ -132,10 +132,14 @@ export function simulateThrow(bodies, board, random) {
     const q = new Quaternion().setFromAxisAngle(
       new Vector3(random() - 0.5, random() - 0.5, random() - 0.5).normalize(), random() * Math.PI * 2);
     const invI = 1 / (0.4 * (body.radius * 0.86) ** 2);
-    return { body, x, v, w, q, invI, calm: 0, touching: false, xPrev: new Vector3(), qPrev: new Quaternion() };
+    return { body, x, v, w, q, invI, invMass: 1, calm: 0, touching: false, xPrev: new Vector3(), qPrev: new Quaternion() };
   });
 
-  const tracks = dice.map((d) => [{ p: d.x.clone(), q: d.q.clone() }]);
+  for (const die of fixed) dice.push({
+    body: bodyOf(die.model), x: die.p.clone(), q: die.q.clone(), v: new Vector3(), w: new Vector3(),
+    invI: 0, invMass: 0, calm: 1, touching: true, xPrev: die.p.clone(), qPrev: die.q.clone(),
+  });
+  const tracks = dice.slice(0, n).map((d) => [{ p: d.x.clone(), q: d.q.clone() }]);
   const impacts = [];
   const r = new Vector3();
   const pw = new Vector3();
@@ -190,6 +194,7 @@ export function simulateThrow(bodies, board, random) {
     for (const d of dice) {
       d.xPrev.copy(d.x);
       d.qPrev.copy(d.q);
+      if (!d.invMass) { contacts.push([]); continue; }
       d.v.y -= GRAVITY * DT;
       const list = [];
       for (const p of d.body.points) {
@@ -205,10 +210,11 @@ export function simulateThrow(bodies, board, random) {
     }
     // dice against dice, as spheres halfway between their inner and outer size
     const pairs = [];
-    for (let i = 0; i < n; i++) {
-      for (let j = i + 1; j < n; j++) {
+    for (let i = 0; i < dice.length; i++) {
+      for (let j = i + 1; j < dice.length; j++) {
         const A = dice[i];
         const B = dice[j];
+        if (!A.invMass && !B.invMass) continue;
         const rr = A.body.sphere + B.body.sphere;
         const dist = A.x.distanceTo(B.x);
         if (dist < rr && dist > 1e-6) pairs.push({ A, B, n: B.x.clone().sub(A.x).multiplyScalar(1 / dist), jn: 0 });
@@ -226,21 +232,21 @@ export function simulateThrow(bodies, board, random) {
         const rel = vb.sub(va);
         const vn = rel.dot(c.n);
         const bounce = iter === 0 && vn < -1.2 ? -RESTITUTION_DICE * vn : 0;
-        let jn = (-vn + bounce) / 2;
+        let jn = (-vn + bounce) / (A.invMass + B.invMass);
         const old = c.jn;
         c.jn = Math.max(0, old + jn);
         jn = c.jn - old;
         if (iter === 0 && -vn > 3) hit(-vn / 18, true);
-        A.v.addScaledVector(c.n, -jn);
-        B.v.addScaledVector(c.n, jn);
+        A.v.addScaledVector(c.n, -jn * A.invMass);
+        B.v.addScaledVector(c.n, jn * B.invMass);
         // a little friction between the dice: they hand each other some spin
         const vt = rel.addScaledVector(c.n, -vn);
         const st = vt.length();
         if (st > 1e-6) {
-          const jt = Math.min(FRICTION_DICE * c.jn, st / 4);
+          const jt = Math.min(FRICTION_DICE * c.jn, st / (2 * (A.invMass + B.invMass)));
           const tn = vt.multiplyScalar(1 / st);
-          A.v.addScaledVector(tn, jt);
-          B.v.addScaledVector(tn, -jt);
+          A.v.addScaledVector(tn, jt * A.invMass);
+          B.v.addScaledVector(tn, -jt * B.invMass);
           A.w.addScaledVector(nn.copy(ra).cross(tn), jt * A.invI);
           B.w.addScaledVector(nn.copy(rb).cross(tn), -jt * B.invI);
         }
@@ -284,14 +290,15 @@ export function simulateThrow(bodies, board, random) {
     for (const c of pairs) {
       const over = c.A.body.sphere + c.B.body.sphere - c.A.x.distanceTo(c.B.x);
       if (over > 0) {
-        c.A.x.addScaledVector(c.n, -over * 0.4);
-        c.B.x.addScaledVector(c.n, over * 0.4);
+        const correction = over * 0.8 / (c.A.invMass + c.B.invMass);
+        c.A.x.addScaledVector(c.n, -correction * c.A.invMass);
+        c.B.x.addScaledVector(c.n, correction * c.B.invMass);
       }
     }
 
     t += DT;
     if (t >= nextFrame) {
-      dice.forEach((d, i) => tracks[i].push({ p: d.x.clone(), q: d.q.clone() }));
+      dice.slice(0, n).forEach((d, i) => tracks[i].push({ p: d.x.clone(), q: d.q.clone() }));
       nextFrame += FRAME;
     }
 
@@ -480,4 +487,35 @@ export function finishThrow(plan, values, models) {
   const landed = tracks.map((tr, i) => topFace(models[i], tr[tr.length - 1].q).face.value);
   const frames = Math.max(...tracks.map((tr) => tr.length));
   return { tracks, impacts: plan.sim.impacts, seconds: frames / 60, landed };
+}
+
+// Shared tables use a fixed search count, independent of either computer's speed.
+export function planPartialThrow(models, board, seed, indices, poses) {
+  if (!indices.length || new Set(indices).size !== indices.length || indices.some((i) => i < 0 || i >= models.length))
+    throw new Error("A partial throw needs distinct die indices on this board.");
+  const moving = indices.map((i) => models[i]);
+  const bodies = moving.map(bodyOf);
+  const fixed = models.flatMap((model, i) => indices.includes(i) ? [] : [{ model, p: poses[i].p, q: poses[i].q }]);
+  const random = rng(seed);
+  let best;
+  let bestFaults = Infinity;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const sim = simulateThrow(bodies, board, random, fixed);
+    let faults = landingFaults(sim, moving, bodies, board);
+    sim.tracks.forEach((track, i) => {
+      if (fixed.some((die) => die.p.distanceTo(track.at(-1).p) < bodies[i].sphere + bodyOf(die.model).sphere)) faults += 4;
+    });
+    if (faults < bestFaults) { best = sim; bestFaults = faults; }
+  }
+  const landed = best.tracks.map((frames, i) => settle(frames, moving[i], bodies[i].points));
+  return { sim: best, landed, random, starts: best.tracks.map((track) => track[0]), indices };
+}
+
+export function finishPartialThrow(plan, values, models, poses) {
+  const moving = finishThrow(plan, values, plan.indices.map((i) => models[i]));
+  const tracks = models.map((_, i) => {
+    const index = plan.indices.indexOf(i);
+    return index < 0 ? [{ p: poses[i].p.clone(), q: poses[i].q.clone() }] : moving.tracks[index];
+  });
+  return { ...moving, tracks };
 }

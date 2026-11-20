@@ -7,6 +7,7 @@ import { ACTIONS, buildLine } from "./actions.js";
 import ActionDialog from "./ActionDialog.vue";
 import AuditTab from "./AuditTab.vue";
 import DiceTab from "./DiceTab.vue";
+import GamblingTab from "./GamblingTab.vue";
 import FactionsTab from "./FactionsTab.vue";
 import { RECENT_KEPT } from "./items.js";
 import ItemsTab from "./ItemsTab.vue";
@@ -31,6 +32,8 @@ const sanctions = ref(null);
 const notices = ref(null);
 const audit = ref(null);
 const rolls = ref(null);
+const games = ref(null);
+let gameFilter = {};
 // Every faction, the one picked by its id, and that one in full.
 const factions = ref(null);
 const factionId = ref(null);
@@ -122,6 +125,11 @@ function searchAudit(filter, before = null) {
   props.bridge.ask(PARTS.audit, JSON.stringify({ ...auditFilter, before }));
 }
 
+function searchGames(filter, before = null) {
+  if (!before) gameFilter = filter;
+  props.bridge.ask(PARTS.gambling, JSON.stringify({ ...gameFilter, before }));
+}
+
 function searchRolls(filter, before = null) {
   if (!before) rollFilter = filter;
   props.bridge.ask(PARTS.rolls, JSON.stringify({ ...rollFilter, before }));
@@ -133,6 +141,7 @@ function load(id) {
   if (id === "world") props.bridge.ask(PARTS.notices, "");
   if (id === "audit") searchAudit(auditFilter);
   if (id === "dice") searchRolls(rollFilter);
+  if (id === "gambling") searchGames(gameFilter);
   if (id === "factions") readFactions();
 }
 
@@ -167,6 +176,7 @@ function onPart(kind, data) {
   else if (kind === PARTS.items) found.value = data;
   else if (kind === PARTS.audit) audit.value = data.appended && audit.value ? { ...data, entries: [...audit.value.entries, ...data.entries] } : data;
   else if (kind === PARTS.rolls) rolls.value = data.appended && rolls.value ? { ...data, rolls: [...rolls.value.rolls, ...data.rolls] } : data;
+  else if (kind === PARTS.gambling) games.value = data;
   else if (kind === PARTS.factions) factions.value = data;
   else if (kind === PARTS.faction) onFaction(data);
 }
@@ -188,6 +198,7 @@ function onAnswer(text, done) {
   if (tab.value === "world") props.bridge.ask(PARTS.notices, "");
   if (tab.value === "audit") searchAudit(auditFilter);
   if (tab.value === "factions") readFactions();
+  if (tab.value === "gambling") searchGames(gameFilter);
 }
 
 function reset() {
@@ -200,6 +211,8 @@ function reset() {
   notices.value = null;
   audit.value = null;
   rolls.value = null;
+  games.value = null;
+  gameFilter = {};
   factions.value = null;
   factionId.value = null;
   faction.value = null;
@@ -286,6 +299,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
           />
           <SanctionsTab v-else-if="tab === 'sanctions'" :sanctions="sanctions" :t="t" :locale="locale" :may="may" :can="can" @act="act" />
           <AuditTab v-else-if="tab === 'audit'" :audit="audit" :t="t" :locale="locale" @search="searchAudit" />
+          <GamblingTab v-else-if="tab === 'gambling'" :page="games" :locale="locale" :can-cancel="can('gamblingCancel') && !waiting" @search="searchGames" @cancel="id => act('gamblingCancel', { id })" />
           <DiceTab v-else-if="tab === 'dice'" :rolls="rolls" :t="t" :locale="locale" @search="searchRolls" />
           <FactionsTab
             v-else-if="tab === 'factions'"

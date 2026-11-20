@@ -18,5 +18,9 @@
   "ui.asks.title.faction": "Faction invitation",
   "ui.asks.incoming.faction": "{name} invites you to their faction.",
   "ui.asks.outgoing.faction": "Waiting for {name} to answer your invitation.",
-  "ui.asks.accept.faction": "Join"
+  "ui.asks.accept.faction": "Join",
+  "ui.asks.title.gambling": "Dice for gold",
+  "ui.asks.incoming.gambling": "{name} invites you to play.",
+  "ui.asks.outgoing.gambling": "You invited {name} to play.",
+  "ui.asks.accept.gambling": "Play"
 }

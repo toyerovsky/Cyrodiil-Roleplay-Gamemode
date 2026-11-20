@@ -45,6 +45,8 @@ export default defineConfig({
       input: Object.fromEntries(PAGES.map(({ name }) => [name, fileURLToPath(new URL(`${name}/index.html`, import.meta.url))])),
       // The dice board's own files (three.js, the dice's pictures) under dice/, so the size check counts them apart.
       output: {
+        manualChunks: (id) => /node_modules[\\/]three[\\/]|[\\/]dice[\\/](board|models)[\\/]/.test(id) ? "dice-board" : undefined,
+        chunkFileNames: (chunk) => chunk.name === "dice-board" ? "dice/assets/[name]-[hash].js" : "assets/[name]-[hash].js",
         entryFileNames: (chunk) => (chunk.name === DICE_PAGE ? `${DICE_PAGE}/assets/[name]-[hash].js` : "assets/[name]-[hash].js"),
         assetFileNames: (asset) =>
           asset.originalFileNames?.some((name) => name.startsWith(`${DICE_PAGE}/`)) ? `${DICE_PAGE}/assets/[name]-[hash][extname]` : "assets/[name]-[hash][extname]",

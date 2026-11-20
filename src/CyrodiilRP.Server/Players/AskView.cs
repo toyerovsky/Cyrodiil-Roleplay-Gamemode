@@ -10,4 +10,8 @@ internal sealed record AskView(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("incoming")] bool Incoming,
     [property: JsonPropertyName("leftMs")] long LeftMs,
-    [property: JsonPropertyName("totalMs")] long TotalMs);
+    [property: JsonPropertyName("totalMs")] long TotalMs)
+{
+    [JsonPropertyName("detail")]
+    public string? Detail { get; init; }
+}

@@ -17,6 +17,8 @@ internal sealed partial class WebPages(CefHost cef, PawnWatch pawn, ILogger logg
 
     public const int LoreLayer = 4;
 
+    public const int GamblingLayer = LoreLayer;
+
     // Over the lore card, whose trait rolls land on the small board.
     public const int DiceLayer = 5;
 

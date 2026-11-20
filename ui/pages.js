@@ -1,11 +1,12 @@
 // The pages, their preview scenarios (the hash) and the C# class each talks to.
 export const PAGES = [
+  { name: "gambling", title: "Gaming table", scenarios: ["", "rules", "raise", "call", "reroll", "waiting", "favor", "result", "seat1", "empty"], game: "Gambling/GamblingOverlay.cs" },
   { name: "chat", title: "Chat", scenarios: ["", "open", "long", "draft"], game: "Chat/ChatOverlay.cs" },
   { name: "creator", title: "New character", scenarios: ["", "waiting"], game: "Creator/NameFormOverlay.cs" },
   { name: "radial", title: "Wheel", scenarios: ["", "interaction", "staff"], game: "Interactions/RadialOverlay.cs" },
   { name: "exchange", title: "Trade", scenarios: ["", "offered", "bare"], game: "Exchange/ExchangeOverlay.cs" },
   { name: "party", title: "Party", scenarios: ["", "member"], game: "Party/PartyOverlay.cs" },
-  { name: "asks", title: "Invitations", scenarios: ["", "trade", "outgoing", "introduce", "faction"], game: "Asks/AsksOverlay.cs" },
+  { name: "asks", title: "Invitations", scenarios: ["", "trade", "outgoing", "introduce", "faction", "gambling"], game: "Asks/AsksOverlay.cs" },
   { name: "trader", title: "Shop", scenarios: ["", "poor"], game: "Traders/TraderOverlay.cs" },
   { name: "foreman", title: "Foreman", scenarios: ["", "quarry", "docks"], game: "Jobs/ForemanOverlay.cs" },
   { name: "bank", title: "Bank", scenarios: ["", "empty", "rich"], game: "Bank/BankOverlay.cs" },
@@ -13,7 +14,7 @@ export const PAGES = [
   { name: "mentor", title: "Mentor", scenarios: ["", "chosen", "wait", "registrar"], game: "Specializations/MentorOverlay.cs" },
   { name: "notices", title: "Notice board", scenarios: ["", "empty", "full", "limit", "wait"], game: "Notices/BoardOverlay.cs" },
   { name: "menu", title: "Player menu", scenarios: ["", "help", "account", "dice", "lore", "faction", "factionmember", "factionless"], game: "PlayerMenu/PlayerMenuOverlay.cs" },
-  { name: "admin", title: "Staff panel", scenarios: ["", "card", "items", "offduty", "sanctions", "audit", "world", "nospawn", "dice", "factions"], game: "Admin/AdminOverlay.cs" },
+  { name: "admin", title: "Staff panel", scenarios: ["", "card", "items", "offduty", "sanctions", "audit", "world", "nospawn", "dice", "gambling", "factions"], game: "Admin/AdminOverlay.cs" },
   { name: "frozen", title: "Frozen", scenarios: ["", "long"], game: "Admin/FrozenOverlay.cs" },
   { name: "welcome", title: "Welcome", scenarios: ["", "first", "empty"], game: "Welcome/WelcomeOverlay.cs" },
   { name: "dice", title: "Dice board", scenarios: ["", "empty", "refuse", "crit", "present"], game: "Dice/DiceOverlay.cs" },

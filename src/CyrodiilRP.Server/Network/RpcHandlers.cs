@@ -205,4 +205,16 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnBoardTakeDown(RpcContext context, long notice) => callbacks.Raise("rpc.board_take_down", BoardTakenDown, context.Sender, notice);
 
     partial void OnBoardClose(RpcContext context) => callbacks.Raise("rpc.board_close", BoardLeft, context.Sender);
+
+    public event Action<PlayerId, int, bool>? GamblingOpened;
+    public event Action<PlayerId>? GamblingHidden;
+    public event Action<PlayerId, Gambling.GamblingInvitation>? GamblingInvited;
+    public event Action<PlayerId, Gambling.GamblingDecision>? GamblingActed;
+
+    partial void OnGamblingOpen(RpcContext context, int opponent, bool rules) => callbacks.Raise("rpc.gambling_open", GamblingOpened, context.Sender, opponent, rules);
+    partial void OnGamblingClose(RpcContext context) => callbacks.Raise("rpc.gambling_close", GamblingHidden, context.Sender);
+    partial void OnGamblingInvite(RpcContext context, int opponent, int stake, string mode) => callbacks.Raise("rpc.gambling_invite", GamblingInvited, context.Sender, new Gambling.GamblingInvitation(opponent, stake, mode));
+    partial void OnGamblingAct(RpcContext context, long game, int version, string action, int amount) =>
+        callbacks.Raise("rpc.gambling_act", GamblingActed, context.Sender, new Gambling.GamblingDecision(game, version, action, amount));
+
 }

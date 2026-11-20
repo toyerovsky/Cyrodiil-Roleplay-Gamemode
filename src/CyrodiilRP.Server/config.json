@@ -68,5 +68,16 @@
     "cooldownMinutes": 5,
     "expiryDays": 7,
     "asset": "/Game/Forms/worldobjects/activator/sign02.sign02"
+  },
+  "gambling": {
+    "minStake": 1,
+    "maxStake": 500,
+    "cutPercent": 0,
+    "tableReach": 300,
+    "gamesPerTable": 2,
+    "inviteSeconds": 30,
+    "decisionSeconds": 45,
+    "pokerRoundsToWin": 2,
+    "maxReplays": 3
   }
 }

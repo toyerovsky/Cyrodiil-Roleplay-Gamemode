@@ -23,6 +23,7 @@ internal sealed partial class PlayerMenus(
     CharacterConditions conditions,
     Wallet wallet,
     Rolls dice,
+    Gambling.GamblingLog gambling,
     LoreCards cards,
     LoreCardViews lore,
     Introductions introductions,
@@ -87,7 +88,7 @@ internal sealed partial class PlayerMenus(
             BuildLore(player),
             BuildFaction(player),
             translations.Locales,
-            player.Locale);
+            player.Locale) { Gambling = gambling.Recent(player) };
         return JsonSerializer.Serialize(view, MenuJson.Default.MenuView);
     }
 

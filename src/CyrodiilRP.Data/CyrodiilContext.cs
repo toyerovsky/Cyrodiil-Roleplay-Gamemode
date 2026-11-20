@@ -44,6 +44,10 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<Notice> Notices => Set<Notice>();
 
+    public DbSet<GamblingTable> GamblingTables => Set<GamblingTable>();
+
+    public DbSet<GamblingGame> GamblingGames => Set<GamblingGame>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -246,6 +250,37 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.HasIndex(x => x.CharacterId);
             entity.HasOne<NoticeBoard>().WithMany().HasForeignKey(x => x.BoardId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<GamblingTable>(entity =>
+        {
+            entity.ToTable("gambling_tables");
+            entity.Property(x => x.Area).HasMaxLength(ColumnLengths.WorldId);
+            entity.Property(x => x.Cell).HasMaxLength(ColumnLengths.WorldId);
+            entity.Property(x => x.PlacedByRef).HasMaxLength(ColumnLengths.Reference);
+        });
+
+        modelBuilder.Entity<GamblingGame>(entity =>
+        {
+            entity.ToTable("gambling_games", table =>
+            {
+                table.HasCheckConstraint("ck_gambling_games_players", "first_character_id <> second_character_id");
+                table.HasCheckConstraint("ck_gambling_games_gold", "stake > 0 AND first_raises >= 0 AND second_raises >= 0 AND pot::bigint = 2::bigint * stake + first_raises + second_raises AND cut >= 0 AND cut <= pot");
+                table.HasCheckConstraint("ck_gambling_games_winner", "winner_character_id IS NULL OR winner_character_id IN (first_character_id, second_character_id)");
+                table.HasCheckConstraint("ck_gambling_games_status", "(status = 'Open' AND ended_at IS NULL AND winner_character_id IS NULL AND cut = 0) OR (status = 'Settled' AND ended_at IS NOT NULL AND winner_character_id IS NOT NULL) OR (status IN ('Refunded', 'Cancelled') AND ended_at IS NOT NULL AND winner_character_id IS NULL AND cut = 0)");
+            });
+            entity.Property(x => x.Mode).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.Property(x => x.FirstName).HasMaxLength(ColumnLengths.NameKey);
+            entity.Property(x => x.SecondName).HasMaxLength(ColumnLengths.NameKey);
+            entity.Property(x => x.Rounds).HasColumnType("jsonb");
+            entity.HasIndex(x => new { x.FirstCharacterId, x.Id });
+            entity.HasIndex(x => new { x.SecondCharacterId, x.Id });
+            entity.HasIndex(x => x.Status);
+            entity.HasIndex(x => x.OperationId).IsUnique();
+            entity.HasOne<GamblingTable>().WithMany().HasForeignKey(x => x.TableId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.FirstCharacterId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.SecondCharacterId).OnDelete(DeleteBehavior.Restrict);
         });
 
         SnakeCase.Apply(modelBuilder);

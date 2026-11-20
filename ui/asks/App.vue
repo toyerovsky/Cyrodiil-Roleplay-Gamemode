@@ -68,6 +68,7 @@ onUnmounted(stopTicking);
       <div class="ask__body">
         <p class="ask__title">{{ t[`title.${ask.kind}`] }}</p>
         <p class="ask__text">{{ fill(t[`${ask.incoming ? "incoming" : "outgoing"}.${ask.kind}`], { name: ask.name }) }}</p>
+        <p v-if="ask.detail" class="ask__text">{{ ask.detail }}</p>
         <div v-if="ask.id === answerable" class="ask__keys">
           <span class="ask__key"><kbd class="ask__keycap">{{ ACCEPT_KEY }}</kbd>{{ t[`accept.${ask.kind}`] }}</span>
           <span class="ask__key"><kbd class="ask__keycap">{{ DECLINE_KEY }}</kbd>{{ t.decline }}</span>

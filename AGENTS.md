@@ -56,6 +56,8 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   board (Home, `/board`, the G wheel, the F10 menu) throws them with the mouse or the keys and lands each die on the
   server's number, in one of 12 dice sets kept on the character (`/dice`). The H wheel adds an opposed d20 roll. Every
   roll is logged.
+- **Gambling:** Dice Poker and Zenithar's Favor between two players at a marked inn table, with server escrow,
+  invitations, raises and rerolls, history in F10 and cancellation by staff. See `docs/features/gambling.md`.
 - **Lore card:** a character's card (End, `/mylore`, the G wheel, the F10 menu), its fields picked from a lore list or
   written by the player, each Public or Private. Traits are typed once or rolled with 5d20. Shift+End, `/lore` and the
   H wheel read another player's card. Strangers see a character's race instead of the name, over the head, in

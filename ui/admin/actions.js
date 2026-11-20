@@ -3,6 +3,7 @@ import { fill } from "../shared/locale.js";
 // The panel's buttons: the staff command each runs (the server runs only those of AdminActions.cs, tied by a test), the
 // line it sends, and what the staff member fills in first. The rest of the line comes from where the button stands.
 export const ACTIONS = {
+  gamblingCancel: { command: "agamble", line: "/agamble cancel {id}" },
   duty: { command: "duty", line: "/duty" },
   goto: { command: "agoto", line: "/agoto {number}" },
   bring: { command: "abring", line: "/abring {number}" },

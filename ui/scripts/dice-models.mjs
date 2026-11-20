@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 // The dice board's models as scripts calling DICE_MODEL(name, payload) (dice/board/models.js): the board itself, one die
@@ -44,6 +44,9 @@ function readSet(set) {
 
 function buildScripts() {
   const scripts = new Map([["board", script("board", readBase64("board.glb"))]]);
+  // Delete this fallback once the wooden negative is shipped with the source models.
+  const negative = existsSync(MODELS + "board-negative.glb") ? "board-negative.glb" : "board.glb";
+  scripts.set("board-negative", script("board-negative", readBase64(negative)));
   for (const kind of KINDS) scripts.set(`die-${kind}`, script(`die-${kind}`, readBase64(`dice/${TEMPLATE_SET}-${kind}.glb`)));
   for (const set of SETS) scripts.set(set, script(set, readSet(set)));
   return scripts;

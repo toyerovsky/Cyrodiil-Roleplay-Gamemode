@@ -284,3 +284,17 @@ describe("the player's menu", () => {
     expect(page.find('[data-vis="public"]').attributes("aria-pressed")).toBe("true");
   });
 });
+
+
+describe("gambling history in the Dice tab", () => {
+  it("shows the game, opponent, stake and result of the last games", async () => {
+    const { game, page } = await mountPage(App, createBridge);
+    const gambling = [{ id: 81, at: CREATED, mode: "Poker", opponent: "Lucia", stake: 40, pot: 100, status: "Settled", winner: "Marcus" }];
+    await game.emit("State", state({ tab: "dice", gambling }));
+    expect(page.find(".gambling-history").text()).toContain("Dice Poker");
+    expect(page.find(".gambling-history").text()).toContain("Lucia");
+    expect(page.find(".gambling-history").text()).toContain("40 gold");
+    expect(page.find(".gambling-history").text()).toContain("Winner: Marcus");
+    expect(game.readSent("MenuDice")).toEqual([]);
+  });
+});

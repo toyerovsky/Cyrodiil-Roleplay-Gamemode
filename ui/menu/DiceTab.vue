@@ -4,11 +4,13 @@ import { iconOf } from "../dice/icons.js";
 import { formatAsked, formatDice } from "../dice/notation.js";
 import { RpButton, RpChip } from "../rp/index.js";
 import { fill, pickTexts } from "../shared/locale.js";
+import History from "../gambling/History.vue";
 import { formatMoment } from "../shared/format.js";
 
 // The dice's own words (the sets' names, d20 or k20) are the dice board's.
 const props = defineProps({
   dice: { type: Object, required: true },
+  games: { type: Array, default: () => [] },
   t: { type: Object, required: true },
   locale: { type: String, required: true },
 });
@@ -60,4 +62,5 @@ const recent = computed(() =>
       </li>
     </ol>
   </section>
+  <History :games="games" :locale="locale" />
 </template>

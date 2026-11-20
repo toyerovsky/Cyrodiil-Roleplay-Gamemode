@@ -10,4 +10,5 @@ internal static class AskKinds
     public const string Introduction = "introduce";
 
     public const string Faction = "faction";
+    public const string Gambling = "gambling";
 }

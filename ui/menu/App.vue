@@ -155,7 +155,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
               @pick="pickLanguage"
             />
             <HelpTab v-else-if="tab === 'help'" :help="menu.help" :t="t" />
-            <DiceTab v-else-if="tab === 'dice'" :dice="menu.dice" :t="t" :locale="locale" @open="bridge.openDice" @pick="pickDiceSet" />
+            <DiceTab v-else-if="tab === 'dice'" :dice="menu.dice" :games="menu.gambling ?? []" :t="t" :locale="locale" @open="bridge.openDice" @pick="pickDiceSet" />
             <LoreTab v-else-if="tab === 'lore'" :lore="menu.lore" :t="t" :locale="locale" @open="bridge.openLore" @name="pickNameVisibility" />
             <FactionTab
               v-else-if="tab === 'faction'"

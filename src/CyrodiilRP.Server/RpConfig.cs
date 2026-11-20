@@ -28,4 +28,6 @@ internal sealed partial class RpConfig
     public SpecializationSettings Specializations { get; set; } = new();
 
     public NoticeBoardSettings NoticeBoards { get; set; } = new();
+
+    public GamblingSettings Gambling { get; set; } = new();
 }
