@@ -73,6 +73,25 @@ describe("gambling through the real page bridge", () => {
     expect(game.readSent("GamblingAct")).toEqual([[81, 4, "Pick", 0]]);
   });
 
+  it("leaves Space to a button reached with Tab while the rules were open", async () => {
+    await game.emit("State", table(match()));
+    const rules = page.find(".gambling__footer button");
+    const press = async (value) => {
+      const event = new KeyboardEvent("keydown", { key: value, bubbles: true, cancelable: true });
+      rules.element.dispatchEvent(event);
+      await flushPromises();
+      return event;
+    };
+    rules.element.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    await rules.trigger("click");
+    await press("Tab");
+    // Enter on a focused button clicks it with no pointer, back to the table.
+    await rules.trigger("click");
+
+    expect((await press(" ")).defaultPrevented).toBe(false);
+    expect(game.readSent("GamblingAct")).toEqual([]);
+  });
+
   it("keeps all dice when confirming none and never sends dice values", async () => {
     await game.emit("State", table(match()));
     await key("Enter");

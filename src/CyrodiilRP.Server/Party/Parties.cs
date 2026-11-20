@@ -112,7 +112,6 @@ internal sealed partial class Parties(
         timers.RunEvery(WatchJob, WatchEvery, Watch);
     }
 
-    // The one asked answers from the wheel over the one who asked, so they are offered the join, not an invitation back.
     // The server applies every change of health, so a harm refused here is not taken. Healing passes.
     [EventHandler(Stage.Validate)]
     public void CheckFriendlyFire(in HealthChangedEvent change, EventContext context)
@@ -125,6 +124,7 @@ internal sealed partial class Parties(
             context.Cancel();
     }
 
+    // The one asked answers from the wheel over the one who asked, so they are offered the join, not an invitation back.
     private bool Answers(OnlinePlayer actor, OnlinePlayer target) => _book.IsInvitedBy(actor, target) || _book.AreTogether(actor, target);
 
     private bool LeadsOver(OnlinePlayer actor, OnlinePlayer target) => _book.Leads(actor) && _book.AreTogether(actor, target);

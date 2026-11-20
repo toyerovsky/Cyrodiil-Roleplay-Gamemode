@@ -51,6 +51,10 @@ public sealed class RunningServer : IAsyncDisposable
         if (!Directory.Exists(mod))
             throw new InvalidOperationException($"No packed mod in {mod}: run ./pack.ps1 -PackOnly first.");
 
+        // pack.ps1 packs for either system's server, but these tests run it here.
+        if (!File.Exists(Path.Combine(Repository.Server, Executable)))
+            throw new InvalidOperationException($"The server in {Repository.Server} has no {Executable}: the smoke tests need a server built for this system.");
+
         var server = TakeSlot();
         try
         {

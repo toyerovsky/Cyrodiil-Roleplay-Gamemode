@@ -68,6 +68,11 @@ public sealed class CraftCatalogTests
     [InlineData("StaffofFireDamageGreater", nameof(Trade.Enchanter), 80)]
     [InlineData("ScrollStandardShield5Master", nameof(Trade.Scribe), TradeRules.MaxLevel)]
     [InlineData("Book1CheapGuideAnvil", nameof(Trade.Scribe), 0)]
+    [InlineData("SE30MadnessArrow00", nameof(Trade.Woodworker), 5)]
+    [InlineData("SE30MadnessArrow0", nameof(Trade.Woodworker), 15)]
+    [InlineData("SEGrummiteShield", nameof(Trade.Armourer), 20)]
+    [InlineData("SEDarkSeducerBowFrail", nameof(Trade.Woodworker), 62)]
+    [InlineData("SEStaffGrummiteFireDamage", nameof(Trade.Enchanter), 30)]
     public void A_product_belongs_to_a_trade_from_a_level(string id, string trade, int level)
     {
         var product = Find(id).Product;
@@ -82,6 +87,9 @@ public sealed class CraftCatalogTests
     [InlineData("Gem0SilverNugget", nameof(ItemClass.Material))]
     [InlineData("WeapIronDaggerRusty", nameof(ItemClass.Material))]
     [InlineData("Nightshade", nameof(ItemClass.Material))]
+    [InlineData("SE04Felldew", nameof(ItemClass.Material))]
+    [InlineData("SE07Greenmote", nameof(ItemClass.Material))]
+    [InlineData("SE07RendilsUnrefinedGreenmote", nameof(ItemClass.Relic))]
     [InlineData("MS18Chillrend01", nameof(ItemClass.Relic))]
     [InlineData("AmuletofKings", nameof(ItemClass.Relic))]
     [InlineData("ArenaIronBow", nameof(ItemClass.Relic))]
@@ -91,6 +99,19 @@ public sealed class CraftCatalogTests
     public void What_no_trade_makes_is_a_material_a_relic_or_exempt(string id, string itemClass)
     {
         Assert.Equal(new ItemClassification(Enum.Parse<ItemClass>(itemClass), null), Find(id));
+    }
+
+    // The Isles number their armour 1 to 6 from Impure to Perfect, and their weapons A to C and 1 to 5.
+    [Theory]
+    [InlineData("SEAmberBoots1", "SEAmberSwordA")]
+    [InlineData("SEAmberCuirass2", "SEAmberSwordC")]
+    [InlineData("SEMadnessHelmet3", "SEMadnessSword1")]
+    [InlineData("SEMadnessShield4", "SEMadnessSword2")]
+    [InlineData("SEAmberMagicBoots5", "SEAmberSword4")]
+    [InlineData("SEMadnessGreaves6", "SEMadnessSword5")]
+    public void An_isles_armour_piece_takes_the_level_of_the_weapon_of_its_grade(string armour, string weapon)
+    {
+        Assert.Equal(Find(weapon).Product!.Level, Find(armour).Product!.Level);
     }
 
     [Fact]
@@ -192,22 +213,25 @@ public sealed class CraftCatalogTests
         Assert.Contains("WeapSteelDagger", thrown.Message, StringComparison.Ordinal);
     }
 
+    // Each with only the tables it names, so the file's other checks pass and the throw is the rule's own.
     [Theory]
-    [InlineData("""{ "class": "Relic" }""")]
-    [InlineData("""{ "type": "WEAP", "class": "Product", "level": 5 }""")]
-    [InlineData("""{ "type": "WEAP", "class": "Product", "trade": "Blacksmith" }""")]
-    [InlineData("""{ "type": "WEAP", "id": "^Weap(?<key>Iron|Steel)", "class": "Product", "trade": "Blacksmith", "level": 5, "table": "metal" }""")]
-    [InlineData("""{ "type": "WEAP", "id": "^Weap(Iron|Steel)", "class": "Product", "trade": "Blacksmith", "table": "metal" }""")]
-    [InlineData("""{ "type": "WEAP", "class": "Product", "trade": "Blacksmith", "table": "metal" }""")]
-    [InlineData("""{ "type": "WEAP", "id": "^Weap(?<key>Iron|Steel)", "class": "Product", "trade": "Blacksmith", "table": "wood" }""")]
-    [InlineData("""{ "type": "WEAP", "class": "Product", "trade": "Blacksmith", "level": -1 }""")]
-    [InlineData("""{ "type": "WEAP", "class": "Product", "trade": "Blacksmith", "level": 101 }""")]
-    [InlineData("""{ "type": "WEAP", "class": "Material", "trade": "Blacksmith" }""")]
-    [InlineData("""{ "type": "WEAP", "class": "Relic", "level": 5 }""")]
-    [InlineData("""{ "type": "WEAP", "class": "Exempt", "pattern": true }""")]
-    public void A_rule_that_does_not_hold_together_is_a_mistake_in_the_file(string rule)
+    [InlineData(NoTables, """{ "class": "Relic" }""")]
+    [InlineData(NoTables, """{ "type": "WEAP", "class": "Product", "level": 5 }""")]
+    [InlineData(NoTables, """{ "type": "WEAP", "class": "Product", "trade": "Blacksmith" }""")]
+    [InlineData(MetalTable, """{ "type": "WEAP", "id": "^Weap(?<key>Iron|Steel)", "class": "Product", "trade": "Blacksmith", "level": 5, "table": "metal" }""")]
+    [InlineData(MetalTable, """{ "type": "WEAP", "id": "^Weap(Iron|Steel)", "class": "Product", "trade": "Blacksmith", "table": "metal" }""")]
+    [InlineData(MetalTable, """{ "type": "WEAP", "class": "Product", "trade": "Blacksmith", "table": "metal" }""")]
+    [InlineData(NoTables, """{ "type": "WEAP", "id": "^Weap(?<key>Iron|Steel)", "class": "Product", "trade": "Blacksmith", "table": "wood" }""")]
+    [InlineData(NoTables, """{ "type": "WEAP", "class": "Product", "trade": "Blacksmith", "level": -1 }""")]
+    [InlineData(NoTables, """{ "type": "WEAP", "class": "Product", "trade": "Blacksmith", "level": 101 }""")]
+    [InlineData(NoTables, """{ "type": "WEAP", "class": "Material", "trade": "Blacksmith" }""")]
+    [InlineData(NoTables, """{ "type": "WEAP", "class": "Relic", "level": 5 }""")]
+    [InlineData(NoTables, """{ "type": "WEAP", "class": "Exempt", "pattern": true }""")]
+    public void A_rule_that_does_not_hold_together_is_a_mistake_in_the_file(string tables, string rule)
     {
-        Assert.Throws<InvalidOperationException>(() => Load(MetalTable, $$"""{{rule}}, { "type": "MISC", "class": "Exempt" }"""));
+        var thrown = Assert.Throws<InvalidOperationException>(() => Load(tables, $$"""{{rule}}, { "type": "MISC", "class": "Exempt" }"""));
+
+        Assert.StartsWith("rule 1 ", thrown.Message, StringComparison.Ordinal);
     }
 
     [Fact]

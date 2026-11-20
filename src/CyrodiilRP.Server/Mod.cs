@@ -16,6 +16,7 @@ internal sealed partial class Mod(Persistence persistence, StaffRoles roles, Fac
         config.Away.RequireValid();
         config.NoticeBoards.Check();
         config.Gambling.Check();
+        config.Lore.RequireValid();
         var migration = persistence.RequireSchema();
         roles.Load();
         factions.Load();

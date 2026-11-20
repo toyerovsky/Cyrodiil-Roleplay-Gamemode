@@ -100,6 +100,7 @@ function Use-ServerSdk([string] $server)
     $serverSdk = Join-Path $server 'sdk'
     $theirs = Find-SdkVersion $serverSdk
     if (-not $theirs) { throw "No SDK in ${serverSdk}: take a server package from rp-framework CI, which carries one." }
+    if (@($theirs).Count -gt 1) { throw "$serverSdk holds the packages of more than one SDK ($($theirs -join ', ')): unpack the server again." }
 
     $ours = Find-SdkVersion $sdkFeed
     if (@($ours).Count -gt 1) { throw ".sdk/ holds the packages of more than one SDK ($($ours -join ', ')): delete the ones git does not track, with git clean -f .sdk." }
@@ -136,7 +137,10 @@ function Find-NewestServer
         if ($at -ge 0)
         {
             $built = (Get-Item (Find-ServerBinary $folder.FullName)).LastWriteTimeUtc
-            [pscustomobject] @{ Path = $folder.FullName; Version = [version] $parts[$at].TrimStart('v'); Release = $at -eq $parts.Length - 1; Built = $built }
+            # [version] gives a missing part -1, which would sort "1.1" below "1.1.0".
+            $named = [version] $parts[$at].TrimStart('v')
+            $version = [version]::new($named.Major, $named.Minor, [Math]::Max($named.Build, 0), [Math]::Max($named.Revision, 0))
+            [pscustomobject] @{ Path = $folder.FullName; Version = $version; Release = $at -eq $parts.Length - 1; Built = $built }
         }
     }
     $newest = $servers | Sort-Object Version, Release, Built | Select-Object -Last 1

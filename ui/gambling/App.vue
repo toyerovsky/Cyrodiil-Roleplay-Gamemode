@@ -129,12 +129,13 @@ function onKey(event) {
   if (!view.value || isComposing(event)) return;
   sound.wake();
   if (isHeldPress(event)) { event.preventDefault(); return; }
+  // Also in the rules and in a field, which leave the keys below to themselves.
+  if (event.key === "Tab" || event.keyCode === 9) tabbed = true;
   if ((event.key === "Escape" || event.keyCode === 27)) { event.preventDefault(); props.bridge.close(); return; }
   if (rules.value || /^(INPUT|TEXTAREA|SELECT)$/.test(event.target?.tagName)) return;
   // CEF sends keyCode without code, including the number row and Space.
   const number = /^[1-5]$/.test(event.key) ? Number(event.key) : event.keyCode >= 49 && event.keyCode <= 53 ? event.keyCode - 48 : 0;
   if (choosing.value && number) { event.preventDefault(); pick(number - 1); }
-  if (event.key === "Tab" || event.keyCode === 9) tabbed = true;
   // A button reached with Tab takes Space and Enter itself. One only clicked leaves them to the confirmation.
   const onButton = tabbed && event.target?.tagName === "BUTTON";
   if (choosing.value && !onButton && (event.key === " " || event.key === "Enter" || event.keyCode === 32 || event.keyCode === 13)) {

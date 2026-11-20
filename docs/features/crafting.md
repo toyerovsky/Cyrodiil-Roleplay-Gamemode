@@ -39,7 +39,7 @@ None yet.
   `Find(form)`. A form the game's files lack, as a custom item's, has no class.
 - Loading throws on an item no rule classes, a rule that classes nothing, a table no rule names, a key a table
   lacks and a rule that does not hold together. `Crafting/CraftCatalogTests` loads the shipped file, so a mistake in
-  it fails the build, as does a new export of the items that brings forms no rule knows.
+  it fails the tests, as does a new export of the items that brings forms no rule knows.
 
 ## 5. Changing the classification
 
