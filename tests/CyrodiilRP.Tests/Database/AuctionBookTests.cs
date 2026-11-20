@@ -176,6 +176,53 @@ public sealed class AuctionBookTests(PostgresFixture pg) : IClassFixture<Postgre
     }
 
     [Fact]
+    public async Task The_leader_who_buys_now_gets_their_bid_back_as_a_refund_not_as_an_outbid()
+    {
+        var lot = await PostedAsync(Start, Buyout);
+        var leader = await Seeds.CreateCharacterAsync(pg.Factory);
+        await BidAsync(lot.Id, leader.Id, Start);
+
+        var bought = await pg.RunAsync(db => AuctionBook.BuyAsync(db, lot.Id, leader.Id, Buyout, Cut, Seeds.Now, default));
+
+        Assert.Equal(AuctionBuyOutcome.Bought, bought.Outcome);
+        var parcels = await ParcelsAsync(leader.Id);
+        Assert.Equal(Start, Assert.Single(parcels, p => p.Reason == AuctionParcelReason.Refund).Gold);
+        Assert.DoesNotContain(parcels, p => p.Reason == AuctionParcelReason.Outbid);
+        Assert.Single(parcels, p => p.Reason == AuctionParcelReason.Bought);
+    }
+
+    [Fact]
+    public async Task A_lot_past_its_end_is_neither_taken_back_nor_taken_down_before_it_is_closed()
+    {
+        var unsold = await PostedAsync(Start, null, Seeds.Now);
+        var won = await PostedAsync(Start, null, Seeds.Now + Runs);
+        var bidder = await Seeds.CreateCharacterAsync(pg.Factory);
+        await BidAsync(won.Id, bidder.Id, Start);
+        var afterEnd = Seeds.Now + Runs;
+
+        Assert.Equal(AuctionWithdrawOutcome.Gone, await pg.RunAsync(db => AuctionBook.WithdrawAsync(db, unsold.Id, unsold.SellerCharacterId, Seeds.Now, default)));
+        Assert.Null(await pg.RunAsync(db => AuctionBook.RemoveAsync(db, won.Id, afterEnd, default)));
+        Assert.Empty(await ParcelsAsync(bidder.Id));
+    }
+
+    [Fact]
+    public async Task An_item_the_house_did_not_put_up_waits_for_its_seller_as_a_lot_taken_back()
+    {
+        var seller = await Seeds.CreateCharacterAsync(pg.Factory);
+        var unposted = NewLot(seller.Id, Start, Buyout, Seeds.Now + Runs);
+
+        await pg.RunAsync(db => AuctionBook.ReturnUnpostedAsync(db, unposted, Seeds.Now, default));
+
+        var parcel = Assert.Single(await ParcelsAsync(seller.Id));
+        Assert.Equal(AuctionParcelReason.Withdrawn, parcel.Reason);
+        var lot = await pg.RunAsync(db => db.AuctionLots.AsNoTracking().SingleAsync(l => l.Id == parcel.LotId));
+        Assert.Equal(AuctionLotStatus.Withdrawn, lot.Status);
+        Assert.Equal(unposted.Form, lot.Form);
+        Assert.Equal(unposted.Count, lot.Count);
+        Assert.Equal(0, unposted.Id);
+    }
+
+    [Fact]
     public async Task A_parcel_is_handed_over_once_and_waits_again_when_it_could_not_be()
     {
         var lot = await PostedAsync(Start, null);

@@ -3,6 +3,8 @@
   "auction.pieces": "{item} ({count})",
   "auction.unreadable": "The auctioneer cannot find the ledger right now. Try again in a moment.",
   "auction.failed": "The auction house could not write that down. Nothing changed hands.",
+  "auction.kept": "What you gave could not go back into your hands just now. It is kept for you: gold comes back by itself once you are in the world, an item waits in Collect.",
+  "auction.collected": "That was collected already.",
   "auction.lost": "The auction house could not write that down, and what you gave could not be handed back. Tell the staff.",
   "auction.busy": "The auctioneer is still writing down your last request. Wait a moment.",
   "auction.closed_far": "You walked more than {metres} m away from the auctioneer.",

@@ -1,3 +1,4 @@
+using CyrodiilRP.Data;
 using CyrodiilRP.Data.Characters;
 using CyrodiilRP.Data.Economy;
 
@@ -17,6 +18,16 @@ public sealed class GoldDeliveryBookTests(PostgresFixture pg) : IClassFixture<Po
         Assert.True(await pg.RunAsync(db => GoldDeliveryBook.ClaimAsync(db, owed.Delivery.Id, Now, default)));
         Assert.False(await pg.RunAsync(db => GoldDeliveryBook.ClaimAsync(db, owed.Delivery.Id, Now, default)));
         Assert.Empty(await pg.RunAsync(db => GoldDeliveryBook.LoadPendingAsync(db, owed.CharacterId, default)));
+    }
+
+    [Fact]
+    public async Task Gold_owed_by_the_auction_house_waits_for_its_character()
+    {
+        var character = await Seeds.CreateCharacterAsync(pg.Factory);
+
+        await pg.RunAsync(db => GoldDeliveryBook.OweAsync(db, character.Id, StartingGold, GoldDeliveryReason.Auction, Now, default));
+
+        Assert.Equal(StartingGold, Assert.Single(await pg.RunAsync(db => GoldDeliveryBook.LoadPendingAsync(db, character.Id, default))).Amount);
     }
 
     [Fact]

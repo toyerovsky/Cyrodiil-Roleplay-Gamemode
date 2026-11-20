@@ -3,6 +3,8 @@
   "auction.pieces": "{item} ({count} szt.)",
   "auction.unreadable": "Licytator nie może teraz znaleźć księgi. Spróbuj ponownie za chwilę.",
   "auction.failed": "Dom aukcyjny nie zdołał tego zapisać. Nic nie zmienia właściciela.",
+  "auction.kept": "To, co dajesz, nie mogło od razu wrócić do twoich rąk. Czeka na ciebie: złoto wróci samo, gdy będziesz w świecie, a przedmiot czeka w zakładce Odbiór.",
+  "auction.collected": "To zostało już odebrane.",
   "auction.lost": "Dom aukcyjny nie zdołał tego zapisać i nie da się oddać tego, co dajesz. Zgłoś to obsłudze.",
   "auction.busy": "Licytator wciąż zapisuje twoją poprzednią prośbę. Zaczekaj chwilę.",
   "auction.closed_far": "Oddalasz się od licytatora o ponad {metres} m.",

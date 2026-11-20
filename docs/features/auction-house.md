@@ -62,8 +62,11 @@ collects it at any auctioneer. Sellers stay unnamed to the players.
   end moved by a late bid) is `AuctionRules`.
 - **Nothing in two places** (`AuctionHouse`): the item and the fee leave the character before the lot is written, and
   a bid or a purchase leaves the purse before it is written. Whatever the house refuses or could not write is handed
-  back. A parcel is claimed in the database before it is handed over, and released when it could not be, as gold
-  deliveries are. If the server stops between the two halves, the item or gold is lost, never doubled.
+  back. What the character cannot take back at that moment (they left, or a load holds them) is kept for them: the
+  gold as a delivery that comes once they are in the world (`GoldDeliveries`), the item of a lot not written as a lot
+  taken back that waits in Collect. A parcel is claimed in the database before it is handed over, and released when
+  it could not be, as gold deliveries are. If the server stops between the two halves, the item or gold is lost, never
+  doubled.
 - **Lots that run out** are closed every 10 seconds, also those that ended while the server was down.
 - **The window** gets `AuctionOpened` as it opens and `AuctionState` (an `AuctionView`) as anyone changes the lots or
   what the character carries changes. The client lets an update in flight as the player closes the window open

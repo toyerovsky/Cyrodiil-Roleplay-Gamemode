@@ -75,7 +75,7 @@ public static class AuctionBook
         var outbid = lot.TopBidderCharacterId;
         var outbidGold = lot.TopBid ?? 0;
         if (outbid is { } previous)
-            Owe(db, previous, lot, AuctionParcelReason.Outbid, outbidGold, now);
+            Owe(db, previous, lot, previous == buyerId ? AuctionParcelReason.Refund : AuctionParcelReason.Outbid, outbidGold, now);
 
         Sell(db, lot, buyerId, price, cutPercent, AuctionParcelReason.Bought, now);
         await db.SaveChangesAsync(ct);
@@ -84,7 +84,7 @@ public static class AuctionBook
 
     public static async Task<AuctionWithdrawOutcome> WithdrawAsync(CyrodiilContext db, long lotId, long sellerId, DateTimeOffset now, CancellationToken ct)
     {
-        var lot = await db.AuctionLots.FirstOrDefaultAsync(l => l.Id == lotId && l.Status == AuctionLotStatus.Open, ct);
+        var lot = await FindOpenAsync(db, lotId, now, ct);
         var outcome = lot is null ? AuctionWithdrawOutcome.Gone
             : lot.SellerCharacterId != sellerId ? AuctionWithdrawOutcome.NotYours
             : lot.Bids > 0 ? AuctionWithdrawOutcome.HasBids
@@ -98,10 +98,11 @@ public static class AuctionBook
         return outcome;
     }
 
-    // The staff's: the item back to its seller and the top bid to its bidder. The lot as it was, null when it was not open.
+    // The staff's: the item back to its seller and the top bid to its bidder. The lot as it was, null when it was not open
+    // or has ended, which the settling owes its winner.
     public static async Task<AuctionLot?> RemoveAsync(CyrodiilContext db, long lotId, DateTimeOffset now, CancellationToken ct)
     {
-        var lot = await db.AuctionLots.FirstOrDefaultAsync(l => l.Id == lotId && l.Status == AuctionLotStatus.Open, ct);
+        var lot = await FindOpenAsync(db, lotId, now, ct);
         if (lot is null)
             return null;
 
@@ -112,6 +113,35 @@ public static class AuctionBook
 
         await db.SaveChangesAsync(ct);
         return lot;
+    }
+
+    // An item the house took for a lot it did not write, kept for its seller as a lot taken back, to collect at any
+    // auctioneer. The lot is a copy, as the one given may belong to the write that failed.
+    public static async Task ReturnUnpostedAsync(CyrodiilContext db, AuctionLot unposted, DateTimeOffset now, CancellationToken ct)
+    {
+        var lot = new AuctionLot
+        {
+            SellerCharacterId = unposted.SellerCharacterId,
+            SellerName = ColumnLengths.Cut(unposted.SellerName, ColumnLengths.NameKey),
+            Form = unposted.Form,
+            ItemName = ColumnLengths.Cut(unposted.ItemName, ColumnLengths.ItemName),
+            ItemType = unposted.ItemType,
+            Count = unposted.Count,
+            Health = unposted.Health,
+            Charge = unposted.Charge,
+            StartPrice = unposted.StartPrice,
+            BuyoutPrice = unposted.BuyoutPrice,
+            Fee = unposted.Fee,
+            CreatedAt = unposted.CreatedAt,
+            EndsAt = unposted.EndsAt,
+        };
+        Close(lot, AuctionLotStatus.Withdrawn, now);
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        db.AuctionLots.Add(lot);
+        await db.SaveChangesAsync(ct);
+        Owe(db, lot.SellerCharacterId, lot, AuctionParcelReason.Withdrawn, 0, now);
+        await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
     }
 
     // Every open lot whose time ran out: sold to its top bid, or back to its seller. The lots it closed.

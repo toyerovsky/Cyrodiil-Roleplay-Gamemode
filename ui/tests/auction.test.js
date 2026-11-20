@@ -98,6 +98,7 @@ describe("the auction house's window", () => {
     await game.emit("State", state({ gold: 10 }));
     await click('[data-action="buy"]');
     expect(page.find('[role="alert"]').text()).toBe("You carry only 10 gold.");
+    expect(page.find('[aria-invalid="true"]').exists()).toBe(false);
     expect(game.readSent("AuctionBuy")).toEqual([[7, 60]]);
   });
 

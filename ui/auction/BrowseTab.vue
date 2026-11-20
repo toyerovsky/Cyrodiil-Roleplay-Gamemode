@@ -21,6 +21,8 @@ const category = ref(props.view.browse.category);
 const selectedId = ref(null);
 const amount = ref("");
 const problem = ref(null);
+// Buy now's own refusal, shown under its button, so it never marks the bid field.
+const buyProblem = ref(null);
 const searchField = useTemplateRef("searchField");
 const amountField = useTemplateRef("amountField");
 
@@ -40,6 +42,7 @@ watch(() => props.view.browse.category, (shown) => { category.value = shown; });
 watch(() => `${selected.value?.id}:${selected.value?.minimumBid}`, () => {
   amount.value = selected.value?.minimumBid ? String(selected.value.minimumBid) : "";
   problem.value = null;
+  buyProblem.value = null;
 });
 
 function find(page) {
@@ -66,6 +69,7 @@ function checkBid(wanted, lot) {
 function bid() {
   const lot = selected.value;
   const wanted = readSum(amount.value);
+  buyProblem.value = null;
   problem.value = checkBid(wanted, lot);
   if (problem.value) {
     amountField.value.focus();
@@ -77,8 +81,9 @@ function bid() {
 
 function buy() {
   const lot = selected.value;
-  problem.value = lot.buyoutPrice > props.view.gold ? fill(props.t.too_poor, { count: props.showNumber(props.view.gold) }) : null;
-  if (!problem.value) emit("buy", lot.id, lot.buyoutPrice);
+  problem.value = null;
+  buyProblem.value = lot.buyoutPrice > props.view.gold ? fill(props.t.too_poor, { count: props.showNumber(props.view.gold) }) : null;
+  if (!buyProblem.value) emit("buy", lot.id, lot.buyoutPrice);
 }
 
 defineExpose({ focus: () => searchField.value.focus() });
@@ -162,7 +167,7 @@ defineExpose({ focus: () => searchField.value.focus() });
         <RpButton v-if="canBuy" :variant="canBid ? 'default' : 'primary'" :disabled="busy" :aria-busy="busy" data-action="buy" @click="buy">
           {{ fill(t.buy, { count: showNumber(selected.buyoutPrice) }) }}
         </RpButton>
-        <p v-if="problem && !canBid" class="auction__problem" role="alert">{{ problem }}</p>
+        <p v-if="buyProblem" class="auction__problem" role="alert">{{ buyProblem }}</p>
       </section>
       <p v-else class="auction-detail auction-detail--empty">{{ t.pick_lot }}</p>
     </div>

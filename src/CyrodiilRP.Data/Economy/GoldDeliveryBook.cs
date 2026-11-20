@@ -11,6 +11,12 @@ public static class GoldDeliveryBook
             .Select(d => new PendingGold(d.Id, d.Amount))
             .ToListAsync(ct);
 
+    public static async Task OweAsync(CyrodiilContext db, long characterId, int amount, GoldDeliveryReason reason, DateTimeOffset now, CancellationToken ct)
+    {
+        db.GoldDeliveries.Add(new GoldDelivery { CharacterId = characterId, Amount = amount, Reason = reason, CreatedAt = now });
+        await db.SaveChangesAsync(ct);
+    }
+
     // False when it was claimed already, so the same row is never handed over twice.
     public static async Task<bool> ClaimAsync(CyrodiilContext db, long deliveryId, DateTimeOffset now, CancellationToken ct) =>
         await db.GoldDeliveries

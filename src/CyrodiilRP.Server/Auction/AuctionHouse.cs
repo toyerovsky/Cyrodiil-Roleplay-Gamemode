@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using CyrodiilRP.Data;
 using CyrodiilRP.Data.Auction;
+using CyrodiilRP.Data.Economy;
 using CyrodiilRP.Server.Characters;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Economy;
@@ -31,6 +32,7 @@ internal sealed partial class AuctionHouse(
     ExchangeInventory carried,
     AuctionInventory goods,
     Wallet wallet,
+    GoldDeliveries deliveries,
     Persistence persistence,
     RpConfig config,
     RpChat chat,
@@ -47,6 +49,7 @@ internal sealed partial class AuctionHouse(
     private const string WithdrawAction = "auction.withdraw";
     private const string CollectAction = "auction.collect";
     private const string SettleAction = "auction.settle";
+    private const string KeepAction = "auction.keep";
     private const string WatchJob = "auction.watch";
     private const string SettleJob = "auction.settle_due";
     private const int MostSearchLength = 64;
@@ -180,25 +183,12 @@ internal sealed partial class AuctionHouse(
         }
 
         var fee = AuctionChecks.FindFee(request, Settings);
-        if (!goods.TryTake(player.Id, item!.Stack, request.Count))
-        {
-            Answer(player, AuctionText.NoItem, false);
-            return;
-        }
-
-        if (fee > 0 && !wallet.TryTake(player.Id, fee))
-        {
-            HandBack(player, item.Stack, request.Count, 0);
-            Answer(player, AuctionText.FeePoor(fee, held.Gold), false);
-            return;
-        }
-
         var now = clock.UtcNow;
         var lot = new AuctionLot
         {
             SellerCharacterId = open.CharacterId,
             SellerName = player.Name,
-            Form = item.Stack.Form,
+            Form = item!.Stack.Form,
             ItemName = item.Item.Name,
             ItemType = item.Item.Type,
             Count = request.Count,
@@ -211,6 +201,18 @@ internal sealed partial class AuctionHouse(
             CreatedAt = now,
             EndsAt = now + TimeSpan.FromHours(request.Hours),
         };
+        if (!goods.TryTake(player.Id, item.Stack, request.Count))
+        {
+            Answer(player, AuctionText.NoItem, false);
+            return;
+        }
+
+        if (fee > 0 && !wallet.TryTake(player.Id, fee))
+        {
+            Answer(player, HandBack(player, open.CharacterId, lot, 0) ? AuctionText.FeePoor(fee, held.Gold) : AuctionText.Kept, false);
+            return;
+        }
+
         var described = AuctionViews.Describe(item.Item.Name, request.Count);
         _busy.Add(player);
         fire.Run(PostAction, async () =>
@@ -224,14 +226,14 @@ internal sealed partial class AuctionHouse(
             {
                 logger.LogError(exception, "[CyrodiilRP] {Player} could not put up {Count} of {Form:X8}.", player.Ref, request.Count, item.Stack.Form);
                 _busy.Remove(player);
-                Finish(player, HandBack(player, item.Stack, request.Count, fee) ? AuctionText.Failed : AuctionText.Lost, false);
+                Finish(player, HandBack(player, open.CharacterId, lot, fee) ? AuctionText.Failed : AuctionText.Kept, false);
                 return;
             }
 
             _busy.Remove(player);
             if (lotId is not { } posted)
             {
-                Finish(player, HandBack(player, item.Stack, request.Count, fee) ? AuctionText.TooMany(Settings.MaxLots) : AuctionText.Lost, false);
+                Finish(player, HandBack(player, open.CharacterId, lot, fee) ? AuctionText.TooMany(Settings.MaxLots) : AuctionText.Kept, false);
                 return;
             }
 
@@ -263,7 +265,7 @@ internal sealed partial class AuctionHouse(
             {
                 logger.LogError(exception, "[CyrodiilRP] {Player} could not bid {Amount} gold on lot {Lot}.", player.Ref, amount, lotId);
                 _busy.Remove(player);
-                Finish(player, HandBack(player, null, 0, amount) ? AuctionText.Failed : AuctionText.Lost, false);
+                Finish(player, HandBack(player, open.CharacterId, null, amount) ? AuctionText.Failed : AuctionText.Kept, false);
                 return;
             }
 
@@ -280,7 +282,7 @@ internal sealed partial class AuctionHouse(
                     AuctionBidOutcome.AtBuyout => AuctionText.AtBuyout(result.Lot!.BuyoutPrice!.Value),
                     AuctionBidOutcome.Accepted => throw new InvalidOperationException("An accepted bid is not refused."),
                 };
-                Finish(player, HandBack(player, null, 0, amount) ? refusal : AuctionText.Lost, false);
+                Finish(player, HandBack(player, open.CharacterId, null, amount) ? refusal : AuctionText.Kept, false);
                 Read(player);
                 return;
             }
@@ -317,7 +319,7 @@ internal sealed partial class AuctionHouse(
             {
                 logger.LogError(exception, "[CyrodiilRP] {Player} could not buy lot {Lot} for {Price} gold.", player.Ref, lotId, price);
                 _busy.Remove(player);
-                Finish(player, HandBack(player, null, 0, price) ? AuctionText.Failed : AuctionText.Lost, false);
+                Finish(player, HandBack(player, open.CharacterId, null, price) ? AuctionText.Failed : AuctionText.Kept, false);
                 return;
             }
 
@@ -332,7 +334,7 @@ internal sealed partial class AuctionHouse(
                     AuctionBuyOutcome.PriceChanged => AuctionText.PriceChanged,
                     AuctionBuyOutcome.Bought => throw new InvalidOperationException("A purchase is not refused."),
                 };
-                Finish(player, HandBack(player, null, 0, price) ? refusal : AuctionText.Lost, false);
+                Finish(player, HandBack(player, open.CharacterId, null, price) ? refusal : AuctionText.Kept, false);
                 Read(player);
                 return;
             }
@@ -342,7 +344,7 @@ internal sealed partial class AuctionHouse(
             audit.Log(BuyAction, player.Ref, CharacterRecord.FormatRef(lot.SellerCharacterId), new SaleDetails(lot.Id, price, lot.Cut));
             Finish(player, AuctionText.Bought(described, price), true);
             Notify(lot.SellerCharacterId, AuctionText.NoticeSold(described, price));
-            if (result.OutbidCharacterId is { } outbid)
+            if (result.OutbidCharacterId is { } outbid && outbid != open.CharacterId)
                 Notify(outbid, AuctionText.NoticeOutbid(described, result.OutbidGold));
 
             RefreshAll();
@@ -446,7 +448,7 @@ internal sealed partial class AuctionHouse(
                 _busy.Remove(player);
             }
 
-            Finish(player, last ?? AuctionText.NothingWaits, done);
+            Finish(player, last ?? (parcelId == 0 ? AuctionText.NothingWaits : AuctionText.Collected), done);
             Read(player);
         });
     }
@@ -484,14 +486,17 @@ internal sealed partial class AuctionHouse(
             foreach (var lot in closed)
             {
                 var described = AuctionViews.Describe(lot.ItemName, lot.Count);
-                audit.Log(SettleAction, Audit.ServerRef, CharacterRecord.FormatRef(lot.SellerCharacterId), new SaleDetails(lot.Id, lot.Price ?? 0, lot.Cut));
                 if (lot.Status == AuctionLotStatus.Sold)
                 {
+                    audit.Log(SettleAction, Audit.ServerRef, CharacterRecord.FormatRef(lot.SellerCharacterId), new SaleDetails(lot.Id, lot.Price!.Value, lot.Cut));
                     Notify(lot.SellerCharacterId, AuctionText.NoticeSold(described, lot.Price!.Value));
                     Notify(lot.BuyerCharacterId!.Value, AuctionText.NoticeWon(described, lot.Price.Value));
                 }
                 else
+                {
+                    audit.Log(SettleAction, Audit.ServerRef, CharacterRecord.FormatRef(lot.SellerCharacterId), new LotDetails(lot.Id));
                     Notify(lot.SellerCharacterId, AuctionText.NoticeExpired(described));
+                }
             }
 
             if (closed.Count > 0)
@@ -511,18 +516,44 @@ internal sealed partial class AuctionHouse(
         return false;
     }
 
-    // What a request took, given back: the items when stack is set, and the gold. False when it could not be, which is
-    // logged.
-    private bool HandBack(OnlinePlayer player, ExchangeStack? stack, int count, int gold)
+    // What a request took, given back: the item of the lot it did not write when one is given, and the gold. True when
+    // all of it is in the character's hands again. What they cannot take now (they left, or a load holds them) is kept
+    // for them: the gold comes as they are next in the world, the item waits in Collect as a lot taken back.
+    private bool HandBack(OnlinePlayer player, long characterId, AuctionLot? unposted, int gold)
     {
-        var items = stack is not { } taken || (player.IsLive && goods.TryGive(player.Id, taken, count));
+        var items = unposted is null
+            || (player.IsLive && goods.TryGive(player.Id, AuctionViews.ToStack(unposted.Form, unposted.Health, unposted.Charge), unposted.Count));
         var coins = gold == 0 || (player.IsLive && wallet.TryGive(player.Id, gold));
-        if (!items || !coins)
-            logger.LogError("[CyrodiilRP] {Player} gave the auction house {Count} of {Form:X8} and {Gold} gold for a request it did not write, and could not be given them back.",
-                player.Ref, count, stack?.Form ?? 0, gold);
+        if (items && coins)
+            return true;
 
-        return items && coins;
+        Keep(player, characterId, items ? null : unposted, coins ? 0 : gold);
+        return false;
     }
+
+    private void Keep(OnlinePlayer player, long characterId, AuctionLot? unposted, int gold) => fire.Run(KeepAction, async () =>
+    {
+        var now = clock.UtcNow;
+        try
+        {
+            if (unposted is not null)
+                await persistence.Writer.EnqueueAsync(KeepAction, (db, ct) => AuctionBook.ReturnUnpostedAsync(db, unposted, now, ct));
+            if (gold > 0)
+                await persistence.Writer.EnqueueAsync(KeepAction, (db, ct) => GoldDeliveryBook.OweAsync(db, characterId, gold, GoldDeliveryReason.Auction, now, ct));
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "[CyrodiilRP] {Player} gave the auction house {Count} of {Form:X8} and {Gold} gold for a request it did not write, and they could not be kept for them.",
+                player.Ref, unposted?.Count ?? 0, unposted?.Form ?? 0, gold);
+            if (player.IsLive)
+                chat.Notify(player, AuctionText.Lost);
+            return;
+        }
+
+        audit.Log(KeepAction, player.Ref, CharacterRecord.FormatRef(characterId), new KeptDetails(unposted?.Form, unposted?.Count, gold));
+        if (gold > 0 && player.IsLive)
+            deliveries.Deliver(player);
+    });
 
     // False once the window closed, was never opened, or still writes the last request, with the window told so.
     private bool TryFindReady(PlayerId id, [NotNullWhen(true)] out OnlinePlayer? player, [NotNullWhen(true)] out OpenAuction? open)
@@ -630,6 +661,8 @@ internal sealed partial class AuctionHouse(
     private sealed record SaleDetails(long Lot, int Price, int Cut);
 
     private sealed record LotDetails(long Lot);
+
+    private sealed record KeptDetails(long? Form, int? Count, int Gold);
 
     private sealed record CollectDetails(long Parcel, long Lot, AuctionParcelReason Reason, int Gold, int Count);
 }
