@@ -3,7 +3,11 @@ import { extname, join, relative, resolve, sep } from "node:path";
 import { PAGES } from "../pages.js";
 
 const DIST = resolve(import.meta.dirname, "../dist");
-const PREVIEW_ONLY = ["pretendGame", "__readym"];
+// The preview's own names. __readym as a whole word: a page may wrap the game's own __readym_cursor (shared/cursor.js).
+const PREVIEW_ONLY = [
+  { name: "pretendGame", pattern: /pretendGame/ },
+  { name: "__readym", pattern: /__readym(?!\w)/ },
+];
 const KB = 1024;
 // Every player downloads the pages with the mod: past this, something big came in unnoticed (a font's every subset).
 const MOST_BYTES = 1152 * KB;
@@ -25,7 +29,7 @@ for (const path of all) {
   if (extname(path) === ".woff") problems.push(`${relative(DIST, path)} is a woff copy of a woff2 font`);
   if (![".js", ".html"].includes(extname(path))) continue;
   const content = readFileSync(path, "utf8");
-  for (const marker of PREVIEW_ONLY) if (content.includes(marker)) problems.push(`${relative(DIST, path)} carries the browser preview (${marker})`);
+  for (const { name, pattern } of PREVIEW_ONLY) if (pattern.test(content)) problems.push(`${relative(DIST, path)} carries the browser preview (${name})`);
 }
 
 const isDice = (path) => relative(DIST, path).split(sep)[0] === DICE;

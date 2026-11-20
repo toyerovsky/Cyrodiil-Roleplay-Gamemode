@@ -35,11 +35,17 @@ public sealed partial class JobForemen(
 
     private DocksConfig Settings => config.Docks;
 
-    public float? MeasureInFront(PlayerId player, float reach, float coneDegrees)
-        => NearestInFront(player, reach, coneDegrees)?.Distance;
+    public uint NpcBase => JobItemResolver.ParseFormId(Settings.BaseNpc);
 
-    public string? FindInFront(PlayerId player, float reach, float coneDegrees)
-        => NearestInFront(player, reach, coneDegrees)?.Foreman.Id;
+    public string? FindByNpc(uint npcRefId)
+    {
+        foreach (var foreman in store.Foremen)
+        {
+            if (npcs.RoleIndexOf(foreman) >= 0 && npcs.TryFind(foreman, out var npc) && npc.RefId == npcRefId)
+                return foreman.Id;
+        }
+        return null;
+    }
 
     public ForemanWindow? WindowOf(PlayerId player, string foremanId)
     {
@@ -159,39 +165,4 @@ public sealed partial class JobForemen(
 
     private bool SameArea(MainCharacter main, Npc npc)
         => entities.TryGetScope(main, out Area area) && entities.TryGetScope(EntityHandle.Of(npc), out Area npcArea) && npcArea.AreaId == area.AreaId;
-
-    private sealed record Found(Foreman Foreman, float Distance);
-
-    // The nearest foreman standing in front of the player, in their area
-    private Found? NearestInFront(PlayerId player, float reach, float coneDegrees)
-    {
-        if (!entities.TryLookup(player, out MainCharacter main))
-            return null;
-
-        Found? nearest = null;
-        foreach (var foreman in store.Foremen)
-        {
-            if (npcs.RoleIndexOf(foreman) < 0 || !npcs.TryFind(foreman, out var npc) || !SameArea(main, npc))
-                continue;
-            var point = npc.Position;
-            if (!InCone(main.Position, main.Rotation, point, reach, coneDegrees))
-                continue;
-            var distance = Vector3.Distance(main.Position, point);
-            if (nearest is null || distance < nearest.Distance)
-                nearest = new Found(foreman, distance);
-        }
-        return nearest;
-    }
-
-    private static bool InCone(Vector3 origin, float yawDegrees, Vector3 point, float reach, float coneDegrees)
-    {
-        var offset = point - origin;
-        if (offset.Length() > reach)
-            return false;
-        var flat = new Vector2(offset.X, offset.Y);
-        if (flat.Length() < 1f)
-            return true;
-        var yaw = yawDegrees * MathF.PI / 180f;
-        return Vector2.Dot(Vector2.Normalize(flat), new Vector2(MathF.Cos(yaw), MathF.Sin(yaw))) >= MathF.Cos(coneDegrees / 2f * MathF.PI / 180f);
-    }
 }

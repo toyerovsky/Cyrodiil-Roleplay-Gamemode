@@ -9,12 +9,13 @@ Trello: "Add banker NPC with working player bank accounts" (https://trello.com/c
 
 ## 2. Rules (as the player sees them)
 
-- H over a banker opens the bank's window: the gold at the bank, the gold carried, an amount to type, Deposit and
-  Withdraw. Two chips fill the amount in: all that is carried, all that is at the bank.
+- The "Services" topic in the game's dialogue with a banker opens the bank's window: the gold at the bank, the gold
+  carried, an amount to type, Deposit and Withdraw. Two chips fill the amount in: all that is carried, all that is at
+  the bank.
 - One deposit or withdrawal moves 1 to 1,000,000 gold (`BankRules.MostAtOnce`). A larger sum takes more than one.
 - An account belongs to the character. It is made by the first deposit and has no fee, no interest and no limit.
 - The window closes when the player walks more than 5 m from the banker, leaves the world, or the banker is taken away.
-- A banker is labelled "Banker" over the head and, as a trader, cannot be killed for good.
+- A banker is labelled "Banker" over the head and on the crosshair and, as a trader, takes no harm.
 
 ## 3. Ways in
 
@@ -22,7 +23,7 @@ Trello: "Add banker NPC with working player bank accounts" (https://trello.com/c
 |---|---|---|
 | `/anpc here banker` | Staff: stands a banker where the staff member stands | `Traders/TraderCommands.cs` |
 | `/anpc remove`, `list` | Staff: takes the banker in front away, lists bankers among the traders | `Traders/TraderCommands.cs` |
-| H over a banker | Opens the bank's window | `Bank/Bankers.cs` |
+| The game's dialogue with a banker, topic "Services" | Opens the bank's window | `Bank/Bankers.cs`, `docs/features/npc-dialogue.md` |
 | The window | Deposit, withdraw, Esc or Leave | `ui/bank`, `Bank/BankOverlay.cs` (client) |
 
 There is no player command. The staff's panel lists a banker on its World tab as a trader of the shop `bank`.
@@ -30,11 +31,12 @@ There is no player command. The staff's panel lists a banker on its World tab as
 ## 4. How it works
 
 - **The NPC** is a trader spot whose shop is `bank` (`TraderRules.BankShop`, `TraderSpotKind.Banker`): the same row in
-  `trader_spots`, stood, kept, adopted and healed by `TraderNpcs`. It differs in its origin
+  `trader_spots`, stood, kept, adopted and kept from harm by `TraderNpcs`. It differs in its origin
   (`TraderOrigin.BankerSpawnerRefId`), by which every client labels it (`TraderMarkers`), and in its clothes. No shop of
   `stocks.json` may be named `bank`: loading throws.
-- **The key**: `TraderNpcs.FindNearestInFront` finds the nearest of the mode's people in front. `TraderShops` takes the
-  key when that is a trader, `Bankers` when it is a banker.
+- **The topic**: `Conversations` hands the person the player spoke to, by ref id, to each kind in turn.
+  `TraderNpcs.FindByNpc` finds that person's spot, `TraderShops` takes it when it is a trader, `Bankers` when it is a
+  banker.
 - **Database**: `bank_accounts` (key `character_id`, `balance` never below 0). `BankBook` reads the balance, deposits
   and withdraws. A withdrawal of more than the account holds changes nothing.
 - **No balance in memory**: `BankAccounts` reads through the reader and writes through the writer, one job at a time,

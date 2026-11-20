@@ -1,5 +1,6 @@
 using System.Text.Json;
 using CyrodiilRP.Client.Pages;
+using CyrodiilRP.Client.Talk;
 using CyrodiilRP.Common.Chat;
 using OblivionMP.SDK;
 using ReadyM.Cef;
@@ -18,6 +19,8 @@ internal sealed partial class ChatOverlay(
     PageInput pageInput,
     RpcHandlers rpc,
     PageLocale locale,
+    PawnWatch pawn,
+    GameCursor cursor,
     IInput input,
     IUserInterface ui)
 {
@@ -55,6 +58,14 @@ internal sealed partial class ChatOverlay(
         rpc.MessageDelivered -= Add;
         rpc.ChatPrefilled -= OpenWith;
         locale.Changed -= Page.ApplyLocale;
+    }
+
+    // The page also says when the game shows its cursor (GameCursor), so it is there once the character is in the
+    // world, before the first line.
+    private void Update()
+    {
+        if (Page.Opened is null && pawn.HasSettled(WebPages.OverlaySettleSeconds))
+            EnsurePage();
     }
 
     private void OpenWith(string text)
@@ -145,10 +156,15 @@ internal sealed partial class ChatOverlay(
         rpc.SendReportTyping(typing);
     }
 
-    // The first thing the page does, so it is also how the game hears that one has loaded.
+    [ReceiveFromCef]
+    private void OnGameCursor(BrowserHandle browser, bool shown) => cursor.Report(shown);
+
+    // The first thing the page does, so it is also how the game hears that one has loaded. A page that has just
+    // loaded has reported no cursor yet, and reports one that is up on the next tick.
     [ReceiveFromCef]
     private void OnRequestHistory(BrowserHandle browser)
     {
+        cursor.Report(false);
         Page.MarkReady(browser);
         SendHistory(browser, ToJson(_lines));
         SendOpen(browser, _open);

@@ -9,7 +9,9 @@ using CyrodiilRP.Server.Lore;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
 using OblivionMP.SDK.Common.Archetypes;
+using OblivionMP.SDK.Common.Events;
 using ReadyM.SDK.Attributes;
+using ReadyM.SDK.Events;
 using ReadyM.SDK.Server.Entities;
 
 namespace CyrodiilRP.Server.Party;
@@ -111,6 +113,18 @@ internal sealed partial class Parties(
     }
 
     // The one asked answers from the wheel over the one who asked, so they are offered the join, not an invitation back.
+    // The server applies every change of health, so a harm refused here is not taken. Healing passes.
+    [EventHandler(Stage.Validate)]
+    public void CheckFriendlyFire(in HealthChangedEvent change, EventContext context)
+    {
+        if (change.Amount >= 0 || change.Attacker is not { } attacker || !attacker.TryAs(out MainCharacter striker)
+            || !change.Victim.TryAs(out MainCharacter struck))
+            return;
+
+        if (online.TryGet(striker.PlayerId, out var from) && online.TryGet(struck.PlayerId, out var to) && _book.Spares(from, to))
+            context.Cancel();
+    }
+
     private bool Answers(OnlinePlayer actor, OnlinePlayer target) => _book.IsInvitedBy(actor, target) || _book.AreTogether(actor, target);
 
     private bool LeadsOver(OnlinePlayer actor, OnlinePlayer target) => _book.Leads(actor) && _book.AreTogether(actor, target);

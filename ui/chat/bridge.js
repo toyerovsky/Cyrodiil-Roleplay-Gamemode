@@ -11,5 +11,6 @@ export function createBridge(readym) {
     close: () => readym.sendClose(),
     reportBlur: () => readym.sendBlurred(),
     reportTyping: (typing) => readym.sendTyping(typing),
+    reportGameCursor: (shown) => readym.sendGameCursor(shown),
   };
 }

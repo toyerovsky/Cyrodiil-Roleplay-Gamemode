@@ -5,10 +5,10 @@ using CyrodiilRP.Server.Characters;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Economy;
 using CyrodiilRP.Server.Infrastructure;
-using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
+using CyrodiilRP.Server.Talk;
 using CyrodiilRP.Server.Traders;
 using Microsoft.Extensions.Logging;
 using ReadyM.Api.Idents;
@@ -23,7 +23,7 @@ namespace CyrodiilRP.Server.Bank;
 internal sealed partial class Bankers(
     RpcHandlers rpc,
     OnlinePlayers online,
-    InteractionMenu interactions,
+    Conversations conversations,
     Proximity proximity,
     TraderNpcs npcs,
     BankAccounts accounts,
@@ -32,7 +32,7 @@ internal sealed partial class Bankers(
     Audit audit,
     Timers timers,
     Fire fire,
-    ILogger logger) : IFrontTarget
+    ILogger logger) : ITalkTarget
 {
     private const string OpenJob = "bank.open";
     private const string DepositAction = "economy.bank_deposit";
@@ -43,28 +43,24 @@ internal sealed partial class Bankers(
 
     private readonly Dictionary<OnlinePlayer, OpenBank> _open = [];
 
-    public float? MeasureInFront(OnlinePlayer actor, float reach, float coneDegrees) =>
-        FindInFront(actor, reach, coneDegrees, out var distance) is null ? null : distance;
-
-    public void Use(OnlinePlayer actor, float reach, float coneDegrees)
+    public bool TryTalk(OnlinePlayer actor, uint npcRefId)
     {
-        if (FindInFront(actor, reach, coneDegrees, out _) is { } spot && actor.Character is { } character)
-            Open(actor, character.Id, spot);
+        if (npcs.FindByNpc(npcRefId) is not { Kind: TraderSpotKind.Banker } spot || actor.Character is not { } character)
+            return false;
+
+        Open(actor, character.Id, spot);
+        return true;
     }
 
     private void Start()
     {
-        interactions.AddTarget(this);
+        conversations.AddTarget(this);
         rpc.BankDeposited += OnDeposited;
         rpc.BankWithdrawn += OnWithdrawn;
         rpc.BankLeft += OnLeftWindow;
         online.Left += player => _open.Remove(player);
         timers.RunEvery(WatchJob, WatchEvery, Watch);
     }
-
-    // The key is the bank's only when a banker is the nearest of the mode's people in front, not a trader.
-    private TraderSpotRecord? FindInFront(OnlinePlayer actor, float reach, float coneDegrees, out float distance) =>
-        npcs.FindNearestInFront(actor, reach, coneDegrees, out distance) is { Kind: TraderSpotKind.Banker } spot ? spot : null;
 
     private void Open(OnlinePlayer player, long characterId, TraderSpotRecord spot) => fire.Run(OpenJob, async () =>
     {

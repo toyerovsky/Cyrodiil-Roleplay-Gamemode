@@ -23,6 +23,27 @@ public sealed class PartyBookTests
     }
 
     [Fact]
+    public void Members_of_one_party_spare_each_other_but_not_an_outsider_nor_themselves()
+    {
+        _book.Join(_book.Invite(_marius, _lucia));
+
+        Assert.True(_book.Spares(_marius, _lucia));
+        Assert.True(_book.Spares(_lucia, _marius));
+        Assert.False(_book.Spares(_marius, _rajirr));
+        Assert.False(_book.Spares(_rajirr, _lucia));
+        Assert.False(_book.Spares(_marius, _marius));
+        Assert.False(_book.Spares(_rajirr, _rajirr));
+    }
+
+    [Fact]
+    public void An_invitation_alone_spares_nobody()
+    {
+        _book.Invite(_marius, _lucia);
+
+        Assert.False(_book.Spares(_marius, _lucia));
+    }
+
+    [Fact]
     public void Only_the_leader_invites_and_only_one_who_is_in_no_party_or_asked_already()
     {
         _book.Join(_book.Invite(_marius, _lucia));

@@ -1,5 +1,5 @@
 using System.Numerics;
-using CyrodiilRP.Server.Players;
+using CyrodiilRP.Common.Players;
 
 namespace CyrodiilRP.Tests.Players;
 

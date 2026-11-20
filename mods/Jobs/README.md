@@ -32,15 +32,17 @@ Roleplay jobs for the ReadyM Roleplay server on OblivionMP, from the game's own 
     again 10 s after its crate was taken once the crates under it are there. Only a crate with nothing on it can be
     taken, so the nearest top crate is picked up. The pile is packed by the crate's size, which the first player with
     setup allowed measures in their game (`ILocalProps.TryMeasure`); until then it is a flat 3 by 3. Carry it to an outlet and put it down there: the crate is delivered, can no longer
-    be picked up, and is cleared away 10 s later. The **Dock Foreman** pays 1 gold a delivered crate when you ask (H),
+    be picked up, and is cleared away 10 s later. The **Dock Foreman** pays 1 gold a delivered crate when you ask (his window),
     and remembers what he owes you over restarts (`wages.json`, by ReadyM account).
   - **Lumber:** the **Lumber Camp Leader** sells the Lumber Axe for 50 gold, about 50 crates, and buys firewood at 1
     gold each; a tree gives more than one.
   - **Quarry:** the **Quarry Foreman** sells an Iron Warhammer for 150 gold and buys stone bricks at 1 gold each.
-  - Foremen are people Jobs stands and keeps itself (`ForemanNpcs`), labelled over their heads. H on one opens their
-    window, laid out like a trader's: the wages owed with a button to collect them, then For sale and Wanted, each with
-    a count. The window is the gamemode's (`ui/foreman`, `ForemanWindows`): it asks Jobs through `IJobForemen`, so Jobs
-    works without it but its foremen then have no window.
+  - Foremen are people Jobs stands and keeps itself (`ForemanNpcs`), labelled over their heads and named by role on the
+    crosshair of whoever faces one (`ForemanCrosshair`). They take no harm. Talking to one in the
+    game's dialogue and picking the gamemode's topic "Services" opens their window, laid out like a trader's: the wages
+    owed with a button to collect them, then For sale and Wanted, each with a count. The window and the topic are the
+    gamemode's (`ui/foreman`, `ForemanWindows`): it asks Jobs through `IJobForemen`, so Jobs works without it but its
+    foremen then have no window.
   - Setting up (`docks.allowSetup`): the placement mode's Jobs category (see below) places the foremen and the crate
     inlets and outlets. A deposit settles where a crate would come to rest. Kept in `docks.json`.
 - Placement mode, for setting up a server: Numpad Decimal turns it on and off. A preview stands 250 cm in front of
@@ -177,7 +179,7 @@ default: the lumber axe is bought). Custom items last one server session: a rest
 ## Not done yet
 
 - **The job ladder is untested in game**: the yellow outlines (a TriggerBox's shape shown in game, as the engine draws a
-  weapon's hit box), foremen standing and keeping their place, their labels, the H wheel on them, restocking and
+  weapon's hit box), foremen standing and keeping their place, their labels, the topic on them, restocking and
   delivering, wages, buying and selling. The lumber axe is a custom item, so one bought is lost on a restart, as all
   custom items still are; the warhammer is the game's own. The setup keys are for every player while
   `allowSetup` is on, not staff alone, since Jobs has no staff roles.

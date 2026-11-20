@@ -1,4 +1,3 @@
-using CyrodiilRP.Common.Traders;
 using OblivionMP.SDK;
 using OblivionMP.SDK.Archetypes.Mixins;
 using OblivionMP.SDK.Common.Archetypes;
@@ -11,7 +10,7 @@ namespace CyrodiilRP.Client.Traders;
 // The game names a trader, a banker, a stablemaster, a mentor or the registrar after the person it is made from, so the mode puts its own label
 // over each. A marker needs the person's pawn, which comes and goes with its cell, so they are looked over every second.
 [Service]
-internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers, RpcHandlers rpc)
+internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers, TraderLabelRegistry labels)
 {
     private const float LookEverySeconds = 1f;
 
@@ -25,9 +24,6 @@ internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers
         OutlineColor = new MarkerColor(0.08f, 0.05f, 0.03f),
     };
 
-    // The label of each kind by the origin the server stands it with, once the server has sent it.
-    private readonly Dictionary<uint, string> _labels = [];
-
     private readonly Dictionary<uint, Shown> _shown = [];
 
     private readonly HashSet<uint> _seen = [];
@@ -38,42 +34,18 @@ internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers
 
     private readonly record struct Shown(MarkerHandle Handle, IntPtr Pawn, uint Origin);
 
-    private void Start()
-    {
-        rpc.TraderLabelled += OnTraderLabelled;
-        rpc.BankerLabelled += OnBankerLabelled;
-        rpc.StablemasterLabelled += OnStablemasterLabelled;
-        rpc.MentorsLabelled += OnMentorsLabelled;
-    }
+    private void Start() => labels.Changed += SetLabel;
 
     private void Stop()
     {
-        rpc.TraderLabelled -= OnTraderLabelled;
-        rpc.BankerLabelled -= OnBankerLabelled;
-        rpc.StablemasterLabelled -= OnStablemasterLabelled;
-        rpc.MentorsLabelled -= OnMentorsLabelled;
+        labels.Changed -= SetLabel;
         foreach (var shown in _shown.Values)
             markers.DestroyMarker(shown.Handle);
         _shown.Clear();
     }
 
-    private void OnTraderLabelled(string label) => SetLabel(TraderOrigin.SpawnerRefId, label);
-
-    private void OnBankerLabelled(string label) => SetLabel(TraderOrigin.BankerSpawnerRefId, label);
-
-    private void OnStablemasterLabelled(string label) => SetLabel(TraderOrigin.StablemasterSpawnerRefId, label);
-
-    private void OnMentorsLabelled(MentorLabelSet labels)
-    {
-        SetLabel(TraderOrigin.WarriorMentorSpawnerRefId, labels.Warrior);
-        SetLabel(TraderOrigin.MageMentorSpawnerRefId, labels.Mage);
-        SetLabel(TraderOrigin.SupportMentorSpawnerRefId, labels.Support);
-        SetLabel(TraderOrigin.RegistrarSpawnerRefId, labels.Registrar);
-    }
-
     private void SetLabel(uint origin, string label)
     {
-        _labels[origin] = label;
         foreach (var shown in _shown.Values)
         {
             if (shown.Origin == origin)
@@ -83,7 +55,7 @@ internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers
 
     private void Update()
     {
-        if (_labels.Count == 0 || Time.Elapsed - _lastLook < LookEverySeconds)
+        if (labels.IsEmpty || Time.Elapsed - _lastLook < LookEverySeconds)
             return;
 
         _lastLook = Time.Elapsed;
@@ -91,7 +63,7 @@ internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers
         foreach (var npc in entities.Query<Npc>())
         {
             var origin = npc.SpawnerRefId;
-            if (!_labels.TryGetValue(origin, out var label))
+            if (labels.Find(origin) is not { } label)
                 continue;
 
             var refId = npc.RefId;

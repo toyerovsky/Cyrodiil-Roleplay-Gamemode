@@ -3,6 +3,7 @@ using System.Numerics;
 using Microsoft.Extensions.Logging;
 using OblivionMP.SDK.Common.Archetypes;
 using OblivionMP.SDK.Common.Archetypes.Mixins;
+using OblivionMP.SDK.Common.Events;
 using OblivionMP.SDK.Serverside;
 using OblivionMP.SDK.Serverside.Ai;
 using OblivionMP.SDK.Serverside.Spawners;
@@ -12,6 +13,7 @@ using ReadyM.Relay.Common.Oblivion.ECS.Values;
 using ReadyM.SDK.Archetypes.Core;
 using ReadyM.SDK.Attributes;
 using ReadyM.SDK.Entities;
+using ReadyM.SDK.Events;
 using ReadyM.SDK.Server.Entities;
 
 namespace Roleplay.Jobs.Server;
@@ -19,8 +21,8 @@ namespace Roleplay.Jobs.Server;
 /// <summary>
 /// Stands the foremen at their places and keeps them there, the way the gamemode keeps its traders: the cell saves its
 /// people, so a foreman made once is taken back after a restart (adopted by origin and place), one killed or gone is
-/// made again once its cell has a master, and their health is kept full. Each role has an origin of its own (the
-/// SpawnerRefId), which the clients label them by.
+/// made again once its cell has a master, and none takes harm: the server applies every change of health, and refuses
+/// theirs. Each role has an origin of its own (the SpawnerRefId), which the clients label them by.
 /// </summary>
 /// <remarks>Server thread only.</remarks>
 [Service]
@@ -30,7 +32,6 @@ public sealed partial class ForemanNpcs(IEntities entities, ServerRefIds refIds,
     private const uint FirstOrigin = 0xFFFFFF00;
     private const int Level = 1;
     private const double KeepEverySeconds = 2;
-    private const double RefillEverySeconds = 0.25;
     // A foreman of ours this near their place after a restart is theirs
     private const float AdoptRadius = 300f;
     private const float WanderRadius = 150f;
@@ -42,7 +43,6 @@ public sealed partial class ForemanNpcs(IEntities entities, ServerRefIds refIds,
     private readonly Dictionary<string, Npc> _standing = [];
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private double _nextKeep;
-    private double _nextRefill;
 
     private DocksConfig Settings => config.Docks;
 
@@ -62,11 +62,13 @@ public sealed partial class ForemanNpcs(IEntities entities, ServerRefIds refIds,
             _nextKeep = now + KeepEverySeconds;
             Keep();
         }
-        if (now >= _nextRefill)
-        {
-            _nextRefill = now + RefillEverySeconds;
-            Refill();
-        }
+    }
+
+    [EventHandler(Stage.Validate)]
+    public void CheckHarm(in HealthChangedEvent change, EventContext context)
+    {
+        if (change.Amount < 0 && change.Victim.TryAs(out Npc npc) && IsOurs(npc.SpawnerRefId))
+            context.Cancel();
     }
 
     /// <summary>A new foreman of the role at the spot, turned to yaw, in the player's world. Null when the player is in no world.</summary>
@@ -131,10 +133,9 @@ public sealed partial class ForemanNpcs(IEntities entities, ServerRefIds refIds,
     private List<Npc> ListOurs()
     {
         var ours = new List<Npc>();
-        var last = FirstOrigin + (uint)Settings.Foremen.Count;
         foreach (var npc in entities.Query<Npc>())
         {
-            if (npc.SpawnerRefId >= FirstOrigin && npc.SpawnerRefId < last)
+            if (IsOurs(npc.SpawnerRefId))
                 ours.Add(npc);
         }
         return ours;
@@ -233,15 +234,7 @@ public sealed partial class ForemanNpcs(IEntities entities, ServerRefIds refIds,
         return npc;
     }
 
-    // A blow larger than the whole bar still kills, and Keep stands a new one
-    private void Refill()
-    {
-        foreach (var npc in _standing.Values)
-        {
-            if (EntityHandle.Of(npc).IsAlive() && !IsDead(npc) && npc.Hp < npc.HpBase)
-                npc.Hp = npc.HpBase;
-        }
-    }
+    private bool IsOurs(uint spawnerRefId) => spawnerRefId >= FirstOrigin && spawnerRefId < FirstOrigin + (uint)Settings.Foremen.Count;
 
     // The health the game reports is 0 until the master first sends it, which is not death
     private static bool IsDead(Npc npc) => npc.HpBase > 0 && npc.Hp <= 0;

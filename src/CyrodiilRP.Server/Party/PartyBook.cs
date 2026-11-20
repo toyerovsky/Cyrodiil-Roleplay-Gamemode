@@ -17,6 +17,9 @@ internal sealed class PartyBook
 
     public bool AreTogether(OnlinePlayer a, OnlinePlayer b) => Find(a) is { } party && party.Contains(b);
 
+    // A member's blow takes nothing from another member. What a character does to themselves is their own.
+    public bool Spares(OnlinePlayer attacker, OnlinePlayer victim) => attacker != victim && AreTogether(attacker, victim);
+
     public bool Leads(OnlinePlayer player) => Find(player)?.Leader == player;
 
     public bool IsInvitedBy(OnlinePlayer invitee, OnlinePlayer inviter) =>

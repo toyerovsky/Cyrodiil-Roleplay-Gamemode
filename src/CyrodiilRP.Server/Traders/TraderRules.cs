@@ -57,9 +57,6 @@ internal static class TraderRules
 
     public static readonly TimeSpan CheckEvery = TimeSpan.FromSeconds(2);
 
-    // Health back to full this often, so only a blow larger than the whole bar kills a trader.
-    public static readonly TimeSpan RefillEvery = TimeSpan.FromMilliseconds(100);
-
     public static readonly TimeSpan LoadRetry = TimeSpan.FromSeconds(10);
 
     public static uint FindOrigin(TraderSpotKind kind) => kind switch

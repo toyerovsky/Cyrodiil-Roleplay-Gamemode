@@ -23,6 +23,8 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId>? InteractionWheelAsked;
 
+    public event Action<PlayerId, uint>? TalkedTo;
+
     public event Action<PlayerId, string>? WheelPicked;
 
     public event Action<PlayerId>? WheelClosed;
@@ -115,6 +117,8 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     partial void OnOpenInteractionWheel(RpcContext context) =>
         callbacks.Raise("rpc.open_interaction_wheel", InteractionWheelAsked, context.Sender);
+
+    partial void OnTalkTo(RpcContext context, uint npc) => callbacks.Raise("rpc.talk_to", TalkedTo, context.Sender, npc);
 
     partial void OnPickWheel(RpcContext context, string id) => callbacks.Raise("rpc.pick_wheel", WheelPicked, context.Sender, id);
 

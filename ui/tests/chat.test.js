@@ -158,4 +158,13 @@ describe("the chat", () => {
     await game.emit("Locale", "pl");
     expect(document.documentElement.lang).toBe("pl");
   });
+
+  it("tells the game when the game's cursor comes and goes, after it asked for the history", () => {
+    window.__readym_cursor(640, 360);
+    window.__readym_cursor(640, 361);
+    window.__readym_cursor(-1, -1);
+
+    expect(game.readSent("GameCursor")).toEqual([[true], [false]]);
+    expect(game.sent[0]).toEqual(["RequestHistory"]);
+  });
 });

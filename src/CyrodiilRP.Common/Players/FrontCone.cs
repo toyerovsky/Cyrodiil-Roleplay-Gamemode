@@ -1,9 +1,9 @@
 using System.Numerics;
 
-namespace CyrodiilRP.Server.Players;
+namespace CyrodiilRP.Common.Players;
 
 // The game's yaw is in degrees from +X towards +Y, positions in centimetres.
-internal static class FrontCone
+public static class FrontCone
 {
     private const float DegreesToRadians = MathF.PI / 180f;
 
