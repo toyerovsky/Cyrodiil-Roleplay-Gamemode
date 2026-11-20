@@ -13,6 +13,8 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 {
     public event Action<PlayerId, string>? MessageSubmitted;
 
+    public event Action<PlayerId, bool>? TypingReported;
+
     public event Action<PlayerId, string, string>? NameSubmitted;
 
     public event Action<PlayerId>? AppearanceFinished;
@@ -99,6 +101,9 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     partial void OnSubmitMessage(RpcContext context, string text) =>
         callbacks.Raise("rpc.submit_message", MessageSubmitted, context.Sender, text);
+
+    partial void OnReportTyping(RpcContext context, bool typing) =>
+        callbacks.Raise("rpc.report_typing", TypingReported, context.Sender, typing);
 
     partial void OnSubmitName(RpcContext context, string firstName, string lastName) =>
         callbacks.Raise("rpc.submit_name", NameSubmitted, context.Sender, firstName, lastName);

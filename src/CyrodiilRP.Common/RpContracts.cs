@@ -10,6 +10,10 @@ public static partial class RpContracts
     [ClientToServer]
     public static partial void SubmitMessage(string text);
 
+    // Whether the chat's entry holds text, said when that changes, for the mark over the player's name.
+    [ClientToServer]
+    public static partial void ReportTyping(bool typing);
+
     [ServerToClient]
     public static partial void DeliverMessage(ChatLine line);
 
