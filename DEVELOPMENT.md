@@ -9,7 +9,8 @@ The SDK comes with the repository, not from nuget.org: the server half feeds pla
 that branch's SDK is released nowhere. Its NuGet packages are in `.sdk/`, the source `nuget.config` names, and
 `Directory.Build.props` reads the version from them, so a clone builds and runs its tests with no server and no
 oblivion-mod checkout. They are kept in Git LFS: run `git lfs install` once before cloning, or `git lfs pull` in a clone
-made without it.
+made without it. A checkout from before the packages were tracked still holds the ones `pack.ps1` copied there: delete
+them with `git clean -f .sdk`.
 
 A server package from *rp-framework CI* carries the SDK it was built with in `sdk/`, and `pack.ps1` refuses a server
 built with another one than `.sdk/` holds, so the mods are deployed to what they were compiled against. To move to a

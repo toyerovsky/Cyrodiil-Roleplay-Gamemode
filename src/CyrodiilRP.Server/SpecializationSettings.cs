@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using OblivionMP.SDK.Common.Skills;
 
 namespace CyrodiilRP.Server;
@@ -26,7 +27,9 @@ internal sealed class SpecializationSettings
 
     public int UnchosenSkillCap { get; set; } = 50;
 
-    // Which potions follow a specialization: those the players made, every one, or none.
+    // Which potions follow a specialization: those the players made, every one, or none. By name in the config: the
+    // server reads an enum as a number unless its property names a converter.
+    [JsonConverter(typeof(JsonStringEnumConverter<PotionRule>))]
     public PotionRule Potions { get; set; } = PotionRule.PlayerMade;
 
     public TimeSpan ChangeCooldown => TimeSpan.FromSeconds(ChangeCooldownSeconds);

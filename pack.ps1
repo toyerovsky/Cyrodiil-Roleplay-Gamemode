@@ -102,6 +102,7 @@ function Use-ServerSdk([string] $server)
     if (-not $theirs) { throw "No SDK in ${serverSdk}: take a server package from rp-framework CI, which carries one." }
 
     $ours = Find-SdkVersion $sdkFeed
+    if (@($ours).Count -gt 1) { throw ".sdk/ holds the packages of more than one SDK ($($ours -join ', ')): delete the ones git does not track, with git clean -f .sdk." }
     if ($ours -ne $theirs)
     {
         if (-not $TakeSdk)

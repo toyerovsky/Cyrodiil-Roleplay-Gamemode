@@ -30,6 +30,8 @@ description: How to write and run the tests of Cyrodiil RP (C# xUnit with Postgr
 - `Server/`: the packed mod (`out/mods/CyrodiilRP`) on a copy of the real server and a database of its own. It
   fails on any `[ERR]` or `[FTL]` line, the first seconds after start included. The newest `oblivion-server-*` folder is
   used, or `OBLIVIONMP_SERVER`.
+- `Infrastructure/ShippedConfigTests` reads `src/CyrodiilRP.Server/config.json` as the server reads a mod's config:
+  the smoke tests write a config of their own, so they never see the shipped one.
 - `Database/MigratorTests` runs the built migrator as a process, `Localization/TextsGeneratorTests` the texts generator
   on locale files of the test's own (`Fakes/LocaleText`).
 - Time: `FakeClock` for timers (`Scheduler`), `Seeds.Now` for rows.

@@ -29,9 +29,11 @@
                Text="No SDK in .sdk/: its packages come with the repository through Git LFS, run git lfs pull (see DEVELOPMENT.md)." />
     </Target>
 
-    <!-- A clone made without Git LFS has a few lines of text in place of each package, which NuGet reports as a broken archive. -->
+    <!-- A checkout from before the packages were tracked still has the ones pack.ps1 copied there, which git ignored then. A clone made without Git LFS has a few lines of text in place of each package, which NuGet reports as a broken archive. -->
     <Target Name="CheckOblivionSdkFetched" BeforeTargets="CollectPackageReferences;Restore;Build" Condition="'$(OblivionSdkPackage)' != ''">
-        <Error Condition="$([System.IO.File]::ReadAllText('$(OblivionSdkPackage)').StartsWith('version https://git-lfs'))"
+        <Error Condition="$(OblivionSdkPackage.Contains(';'))"
+               Text=".sdk/ holds the packages of more than one SDK: delete the ones git does not track, with git clean -f .sdk (see DEVELOPMENT.md)." />
+        <Error Condition="!$(OblivionSdkPackage.Contains(';')) And $([System.IO.File]::ReadAllText('$(OblivionSdkPackage)').StartsWith('version https://git-lfs'))"
                Text="The SDK packages in .sdk/ are Git LFS pointers: run git lfs install, then git lfs pull (see DEVELOPMENT.md)." />
     </Target>
 

@@ -21,6 +21,10 @@ Each fact below was checked in this repo.
 - `[ModEntry]` on a `partial` class: `Init()` runs once. A throw there logs `[ERR] Failed to start the mod in <assembly>`
   and the server goes on without the mod. `Mod.Init` refuses a database at another migration this way.
 - `[ModConfig]` on a `partial` class with a public constructor: `server/config.json` beside the DLL, comments allowed.
+  An enum is read as a number: by name only when its property names a converter
+  (`[JsonConverter(typeof(JsonStringEnumConverter<PotionRule>))]` on `SpecializationSettings.Potions`). A config the
+  server cannot read stops more than the mod: after `[ERR] Failed to start the mod in <assembly>` the mod's services
+  cannot be built without it and the server itself ends (`Unable to resolve ... RpConfig`).
 
 ## Services
 
