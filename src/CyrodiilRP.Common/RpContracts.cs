@@ -176,6 +176,50 @@ public static partial class RpContracts
     [ClientToServer]
     public static partial void BankClose();
 
+    // The label over the mode's auctioneers, in the player's language.
+    [ServerToClient]
+    public static partial void AuctioneerLabel(string text);
+
+    // An AuctionView as JSON, as the window opens at an auctioneer.
+    [ServerToClient]
+    public static partial void AuctionOpened(string json);
+
+    // An AuctionView as JSON for a window already open. One in flight as the player closes the window opens nothing.
+    [ServerToClient]
+    public static partial void AuctionState(string json);
+
+    // What a request came to, in the player's language: done or refused.
+    [ServerToClient]
+    public static partial void AuctionAnswer(string text, bool done);
+
+    [ServerToClient]
+    public static partial void AuctionClosed();
+
+    // Category: an AuctionCategory by name. Page: from 0.
+    [ClientToServer]
+    public static partial void AuctionSearch(string text, string category, int page);
+
+    // Item: the stack's key in the window. A price of 0 is none.
+    [ClientToServer]
+    public static partial void AuctionPost(string item, int count, int startPrice, int buyoutPrice, int hours);
+
+    [ClientToServer]
+    public static partial void AuctionBid(long lot, int amount);
+
+    // Price: the one the window showed, so nobody pays a price they did not see.
+    [ClientToServer]
+    public static partial void AuctionBuy(long lot, int price);
+
+    [ClientToServer]
+    public static partial void AuctionWithdraw(long lot);
+
+    // Parcel: 0 for every one that waits.
+    [ClientToServer]
+    public static partial void AuctionCollect(long parcel);
+
+    [ClientToServer]
+    public static partial void AuctionClose();
+
     // The label over the mode's stablemasters, in the player's language.
     [ServerToClient]
     public static partial void StablemasterLabel(string text);

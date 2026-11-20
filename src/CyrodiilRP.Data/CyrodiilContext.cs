@@ -50,6 +50,10 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<GamblingGame> GamblingGames => Set<GamblingGame>();
 
+    public DbSet<AuctionLot> AuctionLots => Set<AuctionLot>();
+
+    public DbSet<AuctionParcel> AuctionParcels => Set<AuctionParcel>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -291,6 +295,37 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.HasOne<GamblingTable>().WithMany().HasForeignKey(x => x.TableId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Character>().WithMany().HasForeignKey(x => x.FirstCharacterId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Character>().WithMany().HasForeignKey(x => x.SecondCharacterId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AuctionLot>(entity =>
+        {
+            entity.ToTable("auction_lots", table =>
+            {
+                table.HasCheckConstraint("ck_auction_lots_item", "count > 0");
+                table.HasCheckConstraint("ck_auction_lots_prices", "(start_price IS NOT NULL OR buyout_price IS NOT NULL) AND (start_price IS NULL OR start_price > 0) AND (buyout_price IS NULL OR buyout_price > 0) AND (start_price IS NULL OR buyout_price IS NULL OR buyout_price > start_price) AND fee >= 0");
+                table.HasCheckConstraint("ck_auction_lots_bid", "bids >= 0 AND (top_bid IS NULL) = (top_bidder_character_id IS NULL) AND (top_bid IS NULL) = (bids = 0) AND (top_bid IS NULL OR (start_price IS NOT NULL AND top_bid >= start_price AND (buyout_price IS NULL OR top_bid < buyout_price))) AND (top_bidder_character_id IS NULL OR top_bidder_character_id <> seller_character_id)");
+                table.HasCheckConstraint("ck_auction_lots_status", "(status = 'Open' AND closed_at IS NULL AND buyer_character_id IS NULL AND price IS NULL AND cut = 0) OR (status = 'Sold' AND closed_at IS NOT NULL AND buyer_character_id IS NOT NULL AND buyer_character_id <> seller_character_id AND price > 0 AND cut >= 0 AND cut <= price) OR (status IN ('Expired', 'Withdrawn', 'Removed') AND closed_at IS NOT NULL AND buyer_character_id IS NULL AND price IS NULL AND cut = 0)");
+            });
+            entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.Property(x => x.SellerName).HasMaxLength(ColumnLengths.NameKey);
+            entity.Property(x => x.ItemName).HasMaxLength(ColumnLengths.ItemName);
+            entity.Property(x => x.ItemType).HasMaxLength(ColumnLengths.RecordType);
+            entity.HasIndex(x => new { x.Status, x.EndsAt });
+            entity.HasIndex(x => new { x.SellerCharacterId, x.Status });
+            entity.HasIndex(x => x.TopBidderCharacterId);
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.SellerCharacterId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.TopBidderCharacterId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.BuyerCharacterId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AuctionParcel>(entity =>
+        {
+            entity.ToTable("auction_parcels", table => table.HasCheckConstraint("ck_auction_parcels_gold",
+                "(reason IN ('Sale', 'Outbid', 'Refund') AND gold > 0) OR (reason IN ('Won', 'Bought', 'Unsold', 'Withdrawn', 'Removed') AND gold = 0)"));
+            entity.Property(x => x.Reason).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.HasIndex(x => x.CharacterId).HasFilter("collected_at IS NULL");
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<AuctionLot>().WithMany().HasForeignKey(x => x.LotId).OnDelete(DeleteBehavior.Restrict);
         });
 
         SnakeCase.Apply(modelBuilder);

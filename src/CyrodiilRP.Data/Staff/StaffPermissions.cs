@@ -40,6 +40,7 @@ public static class StaffPermissions
     public const string Notice = "anotice";
     public const string Table = "atable";
     public const string Gambling = "agamble";
+    public const string Auction = "aauction";
     public const string Specialization = "aspec";
     public const string Cap = "acap";
     public const string Stat = "astat";

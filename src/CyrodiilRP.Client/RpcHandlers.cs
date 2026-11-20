@@ -65,6 +65,16 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action? BankClosed;
 
+    public event Action<string>? AuctioneerLabelled;
+
+    public event Action<string>? AuctionOpened;
+
+    public event Action<string>? AuctionChanged;
+
+    public event Action<string, bool>? AuctionAnswered;
+
+    public event Action? AuctionClosed;
+
     public event Action<string>? StablemasterLabelled;
 
     public event Action<string>? StableChanged;
@@ -183,6 +193,16 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnBankAnswer(string text, bool done) => BankAnswered?.Invoke(text, done);
 
     partial void OnBankClosed() => BankClosed?.Invoke();
+
+    partial void OnAuctioneerLabel(string text) => AuctioneerLabelled?.Invoke(text);
+
+    partial void OnAuctionOpened(string json) => AuctionOpened?.Invoke(json);
+
+    partial void OnAuctionState(string json) => AuctionChanged?.Invoke(json);
+
+    partial void OnAuctionAnswer(string text, bool done) => AuctionAnswered?.Invoke(text, done);
+
+    partial void OnAuctionClosed() => AuctionClosed?.Invoke();
 
     partial void OnStablemasterLabel(string text) => StablemasterLabelled?.Invoke(text);
 

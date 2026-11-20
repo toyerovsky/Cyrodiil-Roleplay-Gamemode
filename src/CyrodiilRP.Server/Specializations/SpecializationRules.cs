@@ -55,7 +55,7 @@ internal static class SpecializationRules
         TraderSpotKind.MageMentor => OfPath(SpecializationPath.Mage),
         TraderSpotKind.SupportMentor => OfPath(SpecializationPath.Support),
         TraderSpotKind.Registrar => [.. Profiles.Select(profile => profile.Kind)],
-        TraderSpotKind.Shop or TraderSpotKind.Banker or TraderSpotKind.Stablemaster => [],
+        TraderSpotKind.Shop or TraderSpotKind.Banker or TraderSpotKind.Stablemaster or TraderSpotKind.Auctioneer => [],
     };
 
     public static bool IsTeacher(TraderSpotKind spot) => FindOffered(spot).Count > 0;
@@ -67,7 +67,7 @@ internal static class SpecializationRules
         TraderSpotKind.MageMentor => SpecializationPath.Mage,
         TraderSpotKind.SupportMentor => SpecializationPath.Support,
         TraderSpotKind.Registrar => null,
-        TraderSpotKind.Shop or TraderSpotKind.Banker or TraderSpotKind.Stablemaster =>
+        TraderSpotKind.Shop or TraderSpotKind.Banker or TraderSpotKind.Stablemaster or TraderSpotKind.Auctioneer =>
             throw new ArgumentOutOfRangeException(nameof(spot), spot, "This person teaches no specialization."),
     };
 

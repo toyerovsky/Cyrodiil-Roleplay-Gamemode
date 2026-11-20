@@ -53,7 +53,8 @@ public sealed class WareCatalogTests
     [Theory]
     [InlineData(TraderRules.BankShop)]
     [InlineData(TraderRules.StableShop)]
-    public void A_shop_under_the_name_of_a_bankers_or_a_stablemasters_spot_is_a_mistake_in_the_files(string name) =>
+    [InlineData(TraderRules.AuctionShop)]
+    public void A_shop_under_the_name_of_a_bankers_a_stablemasters_or_an_auctioneers_spot_is_a_mistake_in_the_files(string name) =>
         Assert.Throws<InvalidOperationException>(() => WareCatalog.Load(Wares, BuildStocks($$"""{ "{{name}}": { "tools": ["Lockpick"] } }""")));
 
     [Fact]

@@ -2,9 +2,10 @@
 
 ## 1. What it is
 
-A player reaches the people the mode stands (traders, bankers, stablemasters, mentors, the Imperial Registrar) and the
-Jobs mod's foremen the way the game reaches anyone: by talking to them. The game's dialogue offers one topic of the
-mode on them, "Services", and picking it opens that person's window. Before, the interaction key (H) opened it.
+A player reaches the people the mode stands (traders, bankers, stablemasters, mentors, the Imperial Registrar,
+auctioneers) and the Jobs mod's foremen the way the game reaches anyone: by talking to them. The game's dialogue offers
+one topic of the mode on them, "Services", and picking it opens that person's window. Before, the interaction key (H)
+opened it.
 
 ## 2. Rules (as the player sees them)
 
@@ -41,7 +42,7 @@ There is no command and no key.
   (`ui/shared/cursor.js`, `GameCursor` message). Once no menu of the game is up, the client sends `TalkTo(npc)`. A load
   in between drops it.
 - **The window** (`Conversations`, server): `TalkTo` goes to the kinds registered with `Conversations.AddTarget`
-  (`TraderShops`, `Bankers`, `Stables`, `Mentors`, `ForemanWindows`). The first whose person stands under the ref id
+  (`TraderShops`, `Bankers`, `Stables`, `Mentors`, `AuctionHouse`, `ForemanWindows`). The first whose person stands under the ref id
   opens its window, after its own check that the player is in the world and within 5 m (`CheckWindow`), with its own
   notice when not. A ref id that is nobody's is logged as a warning.
 - **Trust**: the server takes the client's word that the topic was spoken, as it took the press of H. A client that

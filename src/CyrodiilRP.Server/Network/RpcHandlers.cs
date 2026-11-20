@@ -53,6 +53,20 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId>? BankLeft;
 
+    public event Action<PlayerId, Auction.AuctionSearchRequest>? AuctionSearched;
+
+    public event Action<PlayerId, Auction.AuctionPostRequest>? AuctionPosted;
+
+    public event Action<PlayerId, long, int>? AuctionBidPlaced;
+
+    public event Action<PlayerId, long, int>? AuctionBought;
+
+    public event Action<PlayerId, long>? AuctionWithdrawn;
+
+    public event Action<PlayerId, long>? AuctionCollected;
+
+    public event Action<PlayerId>? AuctionLeft;
+
     public event Action<PlayerId, string>? StableBought;
 
     public event Action<PlayerId>? StableLeft;
@@ -149,6 +163,22 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnBankWithdraw(RpcContext context, int amount) => callbacks.Raise("rpc.bank_withdraw", BankWithdrawn, context.Sender, amount);
 
     partial void OnBankClose(RpcContext context) => callbacks.Raise("rpc.bank_close", BankLeft, context.Sender);
+
+    partial void OnAuctionSearch(RpcContext context, string text, string category, int page) =>
+        callbacks.Raise("rpc.auction_search", AuctionSearched, context.Sender, new Auction.AuctionSearchRequest(text, category, page));
+
+    partial void OnAuctionPost(RpcContext context, string item, int count, int startPrice, int buyoutPrice, int hours) =>
+        callbacks.Raise("rpc.auction_post", AuctionPosted, context.Sender, new Auction.AuctionPostRequest(item, count, startPrice, buyoutPrice, hours));
+
+    partial void OnAuctionBid(RpcContext context, long lot, int amount) => callbacks.Raise("rpc.auction_bid", AuctionBidPlaced, context.Sender, lot, amount);
+
+    partial void OnAuctionBuy(RpcContext context, long lot, int price) => callbacks.Raise("rpc.auction_buy", AuctionBought, context.Sender, lot, price);
+
+    partial void OnAuctionWithdraw(RpcContext context, long lot) => callbacks.Raise("rpc.auction_withdraw", AuctionWithdrawn, context.Sender, lot);
+
+    partial void OnAuctionCollect(RpcContext context, long parcel) => callbacks.Raise("rpc.auction_collect", AuctionCollected, context.Sender, parcel);
+
+    partial void OnAuctionClose(RpcContext context) => callbacks.Raise("rpc.auction_close", AuctionLeft, context.Sender);
 
     partial void OnStableBuy(RpcContext context, string horse) => callbacks.Raise("rpc.stable_buy", StableBought, context.Sender, horse);
 

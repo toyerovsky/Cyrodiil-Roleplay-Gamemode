@@ -103,6 +103,185 @@ namespace CyrodiilRP.Data.Migrations
                     b.ToTable("account_guides", (string)null);
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.AuctionLot", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Bids")
+                        .HasColumnType("integer")
+                        .HasColumnName("bids");
+
+                    b.Property<long?>("BuyerCharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("buyer_character_id");
+
+                    b.Property<int?>("BuyoutPrice")
+                        .HasColumnType("integer")
+                        .HasColumnName("buyout_price");
+
+                    b.Property<float>("Charge")
+                        .HasColumnType("real")
+                        .HasColumnName("charge");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer")
+                        .HasColumnName("count");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("Cut")
+                        .HasColumnType("integer")
+                        .HasColumnName("cut");
+
+                    b.Property<DateTimeOffset>("EndsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ends_at");
+
+                    b.Property<int>("Fee")
+                        .HasColumnType("integer")
+                        .HasColumnName("fee");
+
+                    b.Property<long>("Form")
+                        .HasColumnType("bigint")
+                        .HasColumnName("form");
+
+                    b.Property<float>("Health")
+                        .HasColumnType("real")
+                        .HasColumnName("health");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("item_name");
+
+                    b.Property<string>("ItemType")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("item_type");
+
+                    b.Property<int?>("Price")
+                        .HasColumnType("integer")
+                        .HasColumnName("price");
+
+                    b.Property<long>("SellerCharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("seller_character_id");
+
+                    b.Property<string>("SellerName")
+                        .IsRequired()
+                        .HasMaxLength(81)
+                        .HasColumnType("character varying(81)")
+                        .HasColumnName("seller_name");
+
+                    b.Property<int?>("StartPrice")
+                        .HasColumnType("integer")
+                        .HasColumnName("start_price");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<int?>("TopBid")
+                        .HasColumnType("integer")
+                        .HasColumnName("top_bid");
+
+                    b.Property<long?>("TopBidderCharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("top_bidder_character_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_auction_lots");
+
+                    b.HasIndex("BuyerCharacterId")
+                        .HasDatabaseName("ix_auction_lots_buyer_character_id");
+
+                    b.HasIndex("TopBidderCharacterId")
+                        .HasDatabaseName("ix_auction_lots_top_bidder_character_id");
+
+                    b.HasIndex("SellerCharacterId", "Status")
+                        .HasDatabaseName("ix_auction_lots_seller_character_id_status");
+
+                    b.HasIndex("Status", "EndsAt")
+                        .HasDatabaseName("ix_auction_lots_status_ends_at");
+
+                    b.ToTable("auction_lots", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_auction_lots_bid", "bids >= 0 AND (top_bid IS NULL) = (top_bidder_character_id IS NULL) AND (top_bid IS NULL) = (bids = 0) AND (top_bid IS NULL OR (start_price IS NOT NULL AND top_bid >= start_price AND (buyout_price IS NULL OR top_bid < buyout_price))) AND (top_bidder_character_id IS NULL OR top_bidder_character_id <> seller_character_id)");
+
+                            t.HasCheckConstraint("ck_auction_lots_item", "count > 0");
+
+                            t.HasCheckConstraint("ck_auction_lots_prices", "(start_price IS NOT NULL OR buyout_price IS NOT NULL) AND (start_price IS NULL OR start_price > 0) AND (buyout_price IS NULL OR buyout_price > 0) AND (start_price IS NULL OR buyout_price IS NULL OR buyout_price > start_price) AND fee >= 0");
+
+                            t.HasCheckConstraint("ck_auction_lots_status", "(status = 'Open' AND closed_at IS NULL AND buyer_character_id IS NULL AND price IS NULL AND cut = 0) OR (status = 'Sold' AND closed_at IS NOT NULL AND buyer_character_id IS NOT NULL AND buyer_character_id <> seller_character_id AND price > 0 AND cut >= 0 AND cut <= price) OR (status IN ('Expired', 'Withdrawn', 'Removed') AND closed_at IS NOT NULL AND buyer_character_id IS NULL AND price IS NULL AND cut = 0)");
+                        });
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.AuctionParcel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("character_id");
+
+                    b.Property<DateTimeOffset?>("CollectedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("collected_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("Gold")
+                        .HasColumnType("integer")
+                        .HasColumnName("gold");
+
+                    b.Property<long>("LotId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("lot_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("reason");
+
+                    b.HasKey("Id")
+                        .HasName("pk_auction_parcels");
+
+                    b.HasIndex("CharacterId")
+                        .HasDatabaseName("ix_auction_parcels_character_id")
+                        .HasFilter("collected_at IS NULL");
+
+                    b.HasIndex("LotId")
+                        .HasDatabaseName("ix_auction_parcels_lot_id");
+
+                    b.ToTable("auction_parcels", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_auction_parcels_gold", "(reason IN ('Sale', 'Outbid', 'Refund') AND gold > 0) OR (reason IN ('Won', 'Bought', 'Unsold', 'Withdrawn', 'Removed') AND gold = 0)");
+                        });
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.AuditEntry", b =>
                 {
                     b.Property<long>("Id")
@@ -1020,7 +1199,7 @@ namespace CyrodiilRP.Data.Migrations
                             Name = "admin",
                             GrantsAll = false,
                             Label = "Administrator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "anotice", "agamble", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction", "aboard", "aspec", "acap", "astat", "atable" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "anotice", "agamble", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction", "aboard", "aspec", "acap", "astat", "atable", "aauction" }
                         },
                         new
                         {
@@ -1102,6 +1281,45 @@ namespace CyrodiilRP.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_account_guides_accounts_account_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.AuctionLot", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("BuyerCharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_auction_lots_characters_buyer_character_id");
+
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("SellerCharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_auction_lots_characters_seller_character_id");
+
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("TopBidderCharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_auction_lots_characters_top_bidder_character_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.AuctionParcel", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_auction_parcels_characters_character_id");
+
+                    b.HasOne("CyrodiilRP.Data.AuctionLot", null)
+                        .WithMany()
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_auction_parcels_auction_lots_lot_id");
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.BankAccount", b =>

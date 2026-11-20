@@ -21,6 +21,7 @@ description: How Cyrodiil RP shows anything to a player. Use before writing play
 | Buying from a trader | the trader's window, `ui/trader`, the game's icons and names | `TraderShops`, the "Services" topic in the game's dialogue with the trader |
 | Gold put into the bank and taken out | the bank's window, `ui/bank`, an amount typed and checked as the server would | `Bankers`, the same topic with the banker |
 | Buying a horse | the stable's window, `ui/stable`, a question before one replaces the horse owned | `Stables`, the same topic with the stablemaster |
+| Lots between players, bid on or bought now, and collecting them | the auction house's window, `ui/auction`, four tabs, each request checked as the server would | `AuctionHouse`, the same topic with an auctioneer |
 | The notices of a board in the world, unsigned | the board's window, `ui/notices`, a notice typed and checked as the server would | `BoardWindows`, H in front of a board |
 | The player's own record, the commands, the keys | the player's menu, `ui/menu`, F10 or `/help` | `PlayerMenus` sends `MenuState` |
 | Throwing dice | the dice board, `ui/dice`, three.js, the server picks every number | `DiceBoards` sends `DiceState`, `Rolls` is the one place that rolls |

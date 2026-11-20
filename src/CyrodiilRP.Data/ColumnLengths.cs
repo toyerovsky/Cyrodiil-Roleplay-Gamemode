@@ -63,6 +63,12 @@ internal static class ColumnLengths
     // The server allows 300 by default, the column leaves the server owner room to allow more.
     public const int NoticeText = 1000;
 
+    // The catalogue's longest item name is 37.
+    public const int ItemName = 64;
+
+    // The game's record types are four letters ("WEAP").
+    public const int RecordType = 8;
+
     // Never between the two halves of a surrogate pair, which PostgreSQL refuses to store.
     public static string Cut(string value, int length)
     {

@@ -1,0 +1,341 @@
+.auction {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 24px;
+  background: radial-gradient(ellipse at center, var(--backdrop-shade) 0%, var(--backdrop-edge) 100%);
+}
+
+.auction__panel.rp-panel {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  width: min(1280px, 100%);
+  height: min(940px, 100%);
+  overflow: hidden;
+}
+
+.auction__purse {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 0 12px;
+  font-size: 17px;
+  color: var(--ink-soft);
+}
+
+.auction__purse strong {
+  font-size: 21px;
+  color: var(--ink);
+}
+
+.auction__coin {
+  width: 24px;
+  height: 24px;
+  color: var(--gold);
+}
+
+.auction__body {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 22px;
+  min-height: 0;
+}
+
+.auction__content {
+  display: grid;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.auction__heading {
+  margin: 0 0 8px;
+  font-weight: 600;
+  font-size: 20px;
+  font-family: var(--font-title);
+}
+
+.auction__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.auction__chips-label {
+  margin-right: 4px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.auction__list {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 0;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.auction__empty {
+  margin: 8px 4px;
+  font-size: 17px;
+  color: var(--ink-soft);
+}
+
+.auction__problem {
+  margin: 0;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--problem);
+}
+
+/* A lot, an item or a parcel. As a button it is picked, as a plain row it holds its own buttons. */
+.auction-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name mark"
+    "facts left";
+  align-items: center;
+  gap: 4px 14px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+  background: var(--ink-wash);
+  color: var(--ink);
+  font-size: 18px;
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-hover);
+}
+
+.auction-row:hover:not(.auction-row--still) {
+  background: rgba(156, 122, 60, 0.14);
+}
+
+.auction-row:focus-visible {
+  outline: 2px solid var(--gold-dark);
+  outline-offset: 2px;
+}
+
+.auction-row--on {
+  border-color: var(--gold-dark);
+  background: rgba(156, 122, 60, 0.28);
+  box-shadow: inset 4px 0 0 var(--gold-dark);
+}
+
+.auction-row--still {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "name left mark"
+    "facts left mark";
+  cursor: default;
+}
+
+.auction-row--still > .rp-button {
+  grid-area: mark;
+}
+
+.auction-row__name {
+  grid-area: name;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.auction-row__facts {
+  display: flex;
+  flex-wrap: wrap;
+  grid-area: facts;
+  gap: 2px 14px;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.auction-row__left {
+  grid-area: left;
+  justify-self: end;
+  font-size: 16px;
+  white-space: nowrap;
+  color: var(--ink-soft);
+}
+
+.auction-row__mark {
+  grid-area: mark;
+  justify-self: end;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--parchment-deep);
+  color: var(--gold-dark);
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.auction-row__mark--leading {
+  color: var(--confirmed);
+}
+
+.auction-detail {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 0;
+  margin: 0;
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+}
+
+.auction-detail--empty {
+  font-size: 17px;
+  color: var(--ink-soft);
+}
+
+.auction-detail__name {
+  margin: 0 0 4px;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.25;
+  font-family: var(--font-title);
+  overflow-wrap: anywhere;
+}
+
+.auction-detail__fact,
+.auction-detail__note {
+  margin: 0;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.auction-detail__note {
+  color: var(--ink);
+}
+
+.auction-detail__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin: 0;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.auction-detail__price {
+  margin: 0;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.auction-detail__bid {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.auction-browse {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+}
+
+.auction-browse__search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.auction-browse__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 18px;
+  min-height: 0;
+}
+
+.auction-browse__lots {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 8px;
+  min-height: 0;
+}
+
+.auction-browse__pages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.auction-sell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 18px;
+  min-height: 0;
+}
+
+.auction-sell__carried {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 8px;
+  min-height: 0;
+}
+
+.auction-sell__count {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.auction-mine {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  min-height: 0;
+}
+
+.auction-mine__part,
+.auction-collect {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+}
+
+.auction-collect__all {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.auction__status {
+  min-height: 46px;
+  margin: 12px 0 0;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.auction__status--done {
+  font-weight: 700;
+  color: var(--confirmed);
+}
+
+.auction__status--refused {
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.auction__footer {
+  display: flex;
+  justify-content: flex-end;
+}

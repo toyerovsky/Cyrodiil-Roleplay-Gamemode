@@ -23,4 +23,7 @@ internal enum TraderSpotKind
 
     // Teaches every specialization, in the Imperial Palace.
     Registrar,
+
+    // Runs the auction house, the same lots at every one (Auction/).
+    Auctioneer,
 }

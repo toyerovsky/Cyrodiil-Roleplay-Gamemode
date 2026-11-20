@@ -35,9 +35,11 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   potions, tools, weapons, armour, books. It only sells. It takes no harm. The crosshair names it, as every person of
   the mode, by what it does.
 - **Talking to the mode's people:** the game's own dialogue with a trader, a banker, a stablemaster, a mentor, the
-  registrar or a Jobs foreman offers the topic "Services", which opens that person's window. See
+  registrar, an auctioneer or a Jobs foreman offers the topic "Services", which opens that person's window. See
   `docs/features/npc-dialogue.md`.
 - **Bank:** a banker NPC keeps a character's gold over deaths and restarts. See `docs/features/bank.md`.
+- **Auction house:** an auctioneer NPC, the same lots at every one, where players put up what they carry for bids or
+  to buy now and collect what they bought, won or are owed. See `docs/features/auction-house.md`.
 - **Stable:** a stablemaster NPC sells the game's five horses, one a character, called from the G wheel in the open world
   and ridden by its owner alone. See `docs/features/stable.md`.
 - **Specializations:** nine, three in each of the warrior's, the mage's and the support's path, cap how far a

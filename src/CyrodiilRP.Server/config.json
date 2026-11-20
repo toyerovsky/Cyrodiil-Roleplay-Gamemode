@@ -79,5 +79,13 @@
     "decisionSeconds": 45,
     "pokerRoundsToWin": 2,
     "maxReplays": 3
+  },
+  "auction": {
+    "listingFeePercent": 2,
+    "cutPercent": 5,
+    "durationHours": [12, 24, 48],
+    "maxLots": 10,
+    "bidStepPercent": 5,
+    "extendMinutes": 5
   }
 }

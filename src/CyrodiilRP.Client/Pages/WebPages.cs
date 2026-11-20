@@ -44,6 +44,9 @@ internal sealed partial class WebPages(CefHost cef, PawnWatch pawn, ILogger logg
     // A mentor's window, beside the stable's: the two never open together.
     public const int MentorLayer = StableLayer;
 
+    // An auctioneer's window, beside the stable's: one person's window is open at a time.
+    public const int AuctionLayer = StableLayer;
+
     public const int ExchangeLayer = 11;
 
     public const int AdminLayer = 12;

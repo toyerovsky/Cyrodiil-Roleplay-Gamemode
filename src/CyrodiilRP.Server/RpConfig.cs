@@ -30,4 +30,6 @@ internal sealed partial class RpConfig
     public NoticeBoardSettings NoticeBoards { get; set; } = new();
 
     public GamblingSettings Gambling { get; set; } = new();
+
+    public AuctionSettings Auction { get; set; } = new();
 }
