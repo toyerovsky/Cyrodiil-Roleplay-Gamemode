@@ -3,6 +3,7 @@ using CyrodiilRP.Server.Admin;
 using CyrodiilRP.Server.Auction;
 using CyrodiilRP.Server.Exchange;
 using CyrodiilRP.Server.Localization;
+using ReadyM.Relay.Common.Oblivion;
 
 namespace CyrodiilRP.Tests.Auction;
 
@@ -16,7 +17,7 @@ public sealed class AuctionChecksTests
     private const float Default = -1f;
 
     private static readonly AuctionSettings Settings = new();
-    private static readonly ExchangeItem Dagger = new(new ExchangeStack(0x00019171, Default, Default), new GameItem("WeapIronDagger", 0x00019171, "Iron Dagger", "WEAP"), Carried);
+    private static readonly ExchangeItem Dagger = new(new ExchangeStack(new FormId(0x00019171), Default, Default), KnownItem.Of(new GameItem("WeapIronDagger", 0x00019171, "Iron Dagger", "WEAP")), Carried);
 
     [Fact]
     public void A_lot_with_a_price_the_seller_carries_and_pays_for_goes_up()

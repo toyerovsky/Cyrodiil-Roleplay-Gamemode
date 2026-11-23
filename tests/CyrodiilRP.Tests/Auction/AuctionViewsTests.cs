@@ -71,7 +71,7 @@ public sealed class AuctionViewsTests
     [Fact]
     public void The_window_goes_to_the_page_in_the_names_it_reads()
     {
-        var parcel = new PendingParcel(3, AuctionParcelReason.Sale, 57, 7, "Iron Dagger", 0x00019171, 1, Default, Default);
+        var parcel = new PendingParcel(3, AuctionParcelReason.Sale, 57, 7, "Iron Dagger", 0x00019171, null, 1, Default, Default);
         var lists = new AuctionWindow(new AuctionPage([Lot(start: 50, buyout: 80, topBid: null)], false), [], [], [parcel]);
         var view = AuctionViews.Build(lists, AuctionQuery.Everything, ExchangeHoldings.Empty, Stranger, new AuctionSettings(), 1000, Now);
 

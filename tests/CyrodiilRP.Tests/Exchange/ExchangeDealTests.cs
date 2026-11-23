@@ -2,6 +2,7 @@ using CyrodiilRP.Server.Admin;
 using CyrodiilRP.Server.Exchange;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Players;
+using ReadyM.Relay.Common.Oblivion;
 using ReadyM.Relay.Common.Oblivion.ECS.Values;
 
 namespace CyrodiilRP.Tests.Exchange;
@@ -15,8 +16,8 @@ public sealed class ExchangeDealTests
 
     private static readonly DateTimeOffset Now = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
     private static readonly long DelayMs = (long)ExchangeRules.ConfirmDelay.TotalMilliseconds;
-    private static readonly ExchangeItem Sword = new(new ExchangeStack(0x1000, AsMade, AsMade), new GameItem("WeapIronSword", 0x1000, "Iron Sword", "WEAP"), Carried);
-    private static readonly ExchangeItem Bread = new(new ExchangeStack(0x2000, AsMade, AsMade), new GameItem("Breadloaf", 0x2000, "Bread Loaf", "INGR"), Carried);
+    private static readonly ExchangeItem Sword = new(new ExchangeStack(new FormId(0x1000), AsMade, AsMade), KnownItem.Of(new GameItem("WeapIronSword", 0x1000, "Iron Sword", "WEAP")), Carried);
+    private static readonly ExchangeItem Bread = new(new ExchangeStack(new FormId(0x2000), AsMade, AsMade), KnownItem.Of(new GameItem("Breadloaf", 0x2000, "Bread Loaf", "INGR")), Carried);
 
     private readonly OnlinePlayer _asker = CreatePlayer();
     private readonly OnlinePlayer _asked = CreatePlayer();

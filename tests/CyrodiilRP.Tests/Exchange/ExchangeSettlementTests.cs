@@ -1,6 +1,7 @@
 using CyrodiilRP.Server.Exchange;
 using CyrodiilRP.Server.Players;
 using CyrodiilRP.Tests.Fakes;
+using ReadyM.Relay.Common.Oblivion;
 using ReadyM.Relay.Common.Oblivion.ECS.Values;
 
 namespace CyrodiilRP.Tests.Exchange;
@@ -9,8 +10,8 @@ public sealed class ExchangeSettlementTests
 {
     private const float AsMade = InventoryEntry.NoInstanceOverride;
 
-    private static readonly ExchangeStack Sword = new(0x1000, AsMade, AsMade);
-    private static readonly ExchangeStack Bread = new(0x2000, AsMade, AsMade);
+    private static readonly ExchangeStack Sword = new(new FormId(0x1000), AsMade, AsMade);
+    private static readonly ExchangeStack Bread = new(new FormId(0x2000), AsMade, AsMade);
 
     private readonly OnlinePlayer _marius = CreatePlayer();
     private readonly OnlinePlayer _lucia = CreatePlayer();

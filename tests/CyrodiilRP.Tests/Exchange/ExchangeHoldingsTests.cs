@@ -1,6 +1,7 @@
 using CyrodiilRP.Server.Admin;
 using CyrodiilRP.Server.Exchange;
 using CyrodiilRP.Tests.Fakes;
+using OblivionMP.SDK.Common.Items;
 using OblivionMP.SDK.Serverside.Items;
 using ReadyM.Relay.Common.Oblivion;
 using ReadyM.Relay.Common.Oblivion.ECS.Values;
@@ -29,6 +30,7 @@ public sealed class ExchangeHoldingsTests
         """);
 
     private readonly List<InventoryEntry> _items = [];
+    private readonly FakeCustomItems _custom = new();
 
     [Fact]
     public void A_worn_copy_is_left_out_and_the_carried_ones_of_the_item_stay()
@@ -44,7 +46,7 @@ public sealed class ExchangeHoldingsTests
     [Fact]
     public void Gold_is_the_offer_of_its_own_and_no_item()
     {
-        _items.Add(CreateEntry(ExchangeStack.Gold.Form, Gold));
+        _items.Add(CreateEntry(ExchangeStack.Gold.Item.FormId.Value, Gold));
 
         var held = Read();
 
@@ -82,7 +84,7 @@ public sealed class ExchangeHoldingsTests
     [InlineData(AsMade, AsMade, false)]
     public void A_stack_counts_as_used_once_its_durability_or_charge_went_down(float health, float charge, bool used)
     {
-        Assert.Equal(used, new ExchangeStack(Sword, health, charge).IsUsed);
+        Assert.Equal(used, new ExchangeStack(new FormId(Sword), health, charge).IsUsed);
     }
 
     [Fact]
@@ -116,7 +118,7 @@ public sealed class ExchangeHoldingsTests
 
         _items.Add(CreateEntry(Sword, 1));
         Assert.False(Read().Matches(seen));
-        Assert.False(ExchangeHoldings.Read(new FakeInventory(_items), Gold + 1, Catalog).Matches(Read()));
+        Assert.False(ExchangeHoldings.Read(new FakeInventory(_items), Gold + 1, Describe).Matches(Read()));
     }
 
     [Fact]
@@ -130,11 +132,43 @@ public sealed class ExchangeHoldingsTests
 
         Assert.True(moved);
         Assert.Equal(1, _items.Single().Count);
-        Assert.Equal(stack, Assert.Single(ExchangeHoldings.Read(new FakeInventory(taker), 0, Catalog).Items).Stack);
+        Assert.Equal(stack, Assert.Single(ExchangeHoldings.Read(new FakeInventory(taker), 0, Describe).Items).Stack);
+    }
+
+    [Fact]
+    public void A_custom_item_is_traded_by_its_name_and_two_of_them_stay_apart()
+    {
+        var firewood = _custom.Add("jobs.firewood", CustomItem.CopyOf(new FormId(Bread)).WithName("Firewood"));
+        var axe = _custom.Add("jobs.lumber-axe", CustomItem.CopyOf(new FormId(Sword)).WithName("Lumber Axe"));
+        _items.Add(new InventoryEntry(firewood, 4, 0));
+        _items.Add(new InventoryEntry(axe, 1, 0));
+        var held = Read();
+
+        Assert.Equal(["Firewood", "Lumber Axe"], held.Items.Select(item => item.Item.Name));
+        Assert.NotEqual(held.Items[0].Stack.Key, held.Items[1].Stack.Key);
+        Assert.Equal(firewood, held.Find(held.Items[0].Stack.Key)?.Stack.Item);
+    }
+
+    [Fact]
+    public void A_custom_item_reaches_the_other_side_as_itself()
+    {
+        var firewood = _custom.Add("jobs.firewood", CustomItem.CopyOf(new FormId(Bread)).WithName("Firewood"));
+        var axe = _custom.Add("jobs.lumber-axe", CustomItem.CopyOf(new FormId(Sword)).WithName("Lumber Axe"));
+        _items.Add(new InventoryEntry(firewood, 4, 0));
+        _items.Add(new InventoryEntry(axe, 1, 0));
+        var stack = Read().Items.Single(item => item.Item.Name == "Firewood").Stack;
+        var taker = new List<InventoryEntry>();
+
+        Assert.True(new Inventories().TryMove(new FakeInventory(_items), new FakeInventory(taker), stack.CreateData(3)));
+
+        Assert.Equal(firewood, Assert.Single(taker).FormId);
+        Assert.Equal([1, 1], _items.Select(entry => entry.Count));
     }
 
     private static InventoryEntry CreateEntry(uint form, int count, float health = AsMade, float charge = AsMade, byte worn = 0) =>
         new(new FormId(form), count, worn) { Health = health, Charge = charge };
 
-    private ExchangeHoldings Read() => ExchangeHoldings.Read(new FakeInventory(_items), Gold, Catalog);
+    private KnownItem? Describe(NetworkFormId item) => KnownItems.Describe(item, Catalog, _custom);
+
+    private ExchangeHoldings Read() => ExchangeHoldings.Read(new FakeInventory(_items), Gold, Describe);
 }

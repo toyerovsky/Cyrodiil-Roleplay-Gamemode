@@ -140,6 +140,11 @@ namespace CyrodiilRP.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("CustomItem")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("custom_item");
+
                     b.Property<int>("Cut")
                         .HasColumnType("integer")
                         .HasColumnName("cut");
@@ -222,6 +227,8 @@ namespace CyrodiilRP.Data.Migrations
                     b.ToTable("auction_lots", null, t =>
                         {
                             t.HasCheckConstraint("ck_auction_lots_bid", "bids >= 0 AND (top_bid IS NULL) = (top_bidder_character_id IS NULL) AND (top_bid IS NULL) = (bids = 0) AND (top_bid IS NULL OR (start_price IS NOT NULL AND top_bid >= start_price AND (buyout_price IS NULL OR top_bid < buyout_price))) AND (top_bidder_character_id IS NULL OR top_bidder_character_id <> seller_character_id)");
+
+                            t.HasCheckConstraint("ck_auction_lots_custom_item", "(custom_item IS NULL AND form <> 0) OR (custom_item IS NOT NULL AND form = 0)");
 
                             t.HasCheckConstraint("ck_auction_lots_item", "count > 0");
 

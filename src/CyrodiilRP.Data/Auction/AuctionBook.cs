@@ -124,6 +124,7 @@ public static class AuctionBook
             SellerCharacterId = unposted.SellerCharacterId,
             SellerName = ColumnLengths.Cut(unposted.SellerName, ColumnLengths.NameKey),
             Form = unposted.Form,
+            CustomItem = unposted.CustomItem,
             ItemName = ColumnLengths.Cut(unposted.ItemName, ColumnLengths.ItemName),
             ItemType = unposted.ItemType,
             Count = unposted.Count,
@@ -228,7 +229,7 @@ public static class AuctionBook
             .OrderBy(both => both.Parcel.Id)
             .Take(most)
             .Select(both => new PendingParcel(both.Parcel.Id, both.Parcel.Reason, both.Parcel.Gold, both.Lot.Id, both.Lot.ItemName,
-                both.Lot.Form, both.Lot.Count, both.Lot.Health, both.Lot.Charge));
+                both.Lot.Form, both.Lot.CustomItem, both.Lot.Count, both.Lot.Health, both.Lot.Charge));
 
     private static void Sell(CyrodiilContext db, AuctionLot lot, long buyerId, int price, int cutPercent, AuctionParcelReason reason, DateTimeOffset now)
     {

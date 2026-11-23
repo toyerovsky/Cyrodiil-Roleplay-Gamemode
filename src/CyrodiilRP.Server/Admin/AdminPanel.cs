@@ -199,7 +199,7 @@ internal sealed partial class AdminPanel(
 
             case AdminParts.Items:
                 if (Parse(argument, AdminJson.Default.AdminItemFilter) is { } items)
-                    rpc.SendAdminPart(player.Id, AdminParts.Items, JsonSerializer.Serialize(AdminViews.SearchItems(items), AdminJson.Default.ListAdminItemView));
+                    rpc.SendAdminPart(player.Id, AdminParts.Items, JsonSerializer.Serialize(views.SearchItems(items), AdminJson.Default.ListAdminItemView));
                 break;
         }
     }

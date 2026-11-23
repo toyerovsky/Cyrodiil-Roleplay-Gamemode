@@ -3,6 +3,7 @@ using System.Text.Json;
 using CyrodiilRP.Data;
 using CyrodiilRP.Data.Auction;
 using CyrodiilRP.Data.Economy;
+using CyrodiilRP.Server.Admin;
 using CyrodiilRP.Server.Characters;
 using CyrodiilRP.Server.Chat;
 using CyrodiilRP.Server.Economy;
@@ -31,6 +32,7 @@ internal sealed partial class AuctionHouse(
     TraderNpcs npcs,
     ExchangeInventory carried,
     AuctionInventory goods,
+    KnownItems known,
     Wallet wallet,
     GoldDeliveries deliveries,
     Persistence persistence,
@@ -174,7 +176,7 @@ internal sealed partial class AuctionHouse(
         if (!TryFindReady(id, out var player, out var open))
             return;
 
-        var held = carried.Read(player.Id);
+        var held = ReadGoods(player.Id);
         var item = held.Find(request.Item);
         if (AuctionChecks.CheckPost(request, item, held.Gold, open.Lists?.Selling.Count ?? 0, Settings, MaxPrice) is { } refused)
         {
@@ -188,7 +190,8 @@ internal sealed partial class AuctionHouse(
         {
             SellerCharacterId = open.CharacterId,
             SellerName = player.Name,
-            Form = item!.Stack.Form,
+            Form = item!.Stack.Item.FormId.Value,
+            CustomItem = KnownItems.CustomKeyOf(item.Item),
             ItemName = item.Item.Name,
             ItemType = item.Item.Type,
             Count = request.Count,
@@ -224,7 +227,7 @@ internal sealed partial class AuctionHouse(
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "[CyrodiilRP] {Player} could not put up {Count} of {Form:X8}.", player.Ref, request.Count, item.Stack.Form);
+                logger.LogError(exception, "[CyrodiilRP] {Player} could not put up {Count} of {Form:X8}.", player.Ref, request.Count, item.Stack.Item.FormId.Value);
                 _busy.Remove(player);
                 Finish(player, HandBack(player, open.CharacterId, lot, fee) ? AuctionText.Failed : AuctionText.Kept, false);
                 return;
@@ -456,7 +459,29 @@ internal sealed partial class AuctionHouse(
     // What the parcel holds into the character's hands. False when they cannot take it now.
     private bool Hand(OnlinePlayer player, PendingParcel parcel) => AuctionRules.CarriesGold(parcel.Reason)
         ? wallet.TryGive(player.Id, parcel.Gold)
-        : goods.TryGive(player.Id, AuctionViews.ToStack(parcel.Form, parcel.Health, parcel.Charge), parcel.Count);
+        : TryStack(parcel.Form, parcel.CustomItem, parcel.Health, parcel.Charge, out var stack) && goods.TryGive(player.Id, stack, parcel.Count);
+
+    // What the carried items a lot can be made of are: those the mode names and the house sorts into a kind of goods.
+    private ExchangeHoldings ReadGoods(PlayerId player) =>
+        carried.Read(player, item => known.Describe(item) is { } found && AuctionCategories.IsGoods(found.Type) ? found : null);
+
+    // The stack a lot keeps. False for a custom item no mod defines in this run: what holds it waits, as it would for a
+    // character out of the world, until one defines it again.
+    private bool TryStack(long form, string? customItem, float health, float charge, out ExchangeStack stack)
+    {
+        stack = AuctionViews.ToStack(form, health, charge);
+        if (customItem is null)
+            return true;
+
+        if (known.TryFindCustom(customItem, out var item))
+        {
+            stack = stack with { Item = item };
+            return true;
+        }
+
+        logger.LogError("[CyrodiilRP] The auction house holds the custom item {Key}, which no mod defines now: it waits to be handed out until one does.", customItem);
+        return false;
+    }
 
     // Every lot whose time ran out, sold to its top bid or back to its seller, and the windows shown again.
     private void SettleDue()
@@ -522,7 +547,8 @@ internal sealed partial class AuctionHouse(
     private bool HandBack(OnlinePlayer player, long characterId, AuctionLot? unposted, int gold)
     {
         var items = unposted is null
-            || (player.IsLive && goods.TryGive(player.Id, AuctionViews.ToStack(unposted.Form, unposted.Health, unposted.Charge), unposted.Count));
+            || (player.IsLive && TryStack(unposted.Form, unposted.CustomItem, unposted.Health, unposted.Charge, out var stack)
+                && goods.TryGive(player.Id, stack, unposted.Count));
         var coins = gold == 0 || (player.IsLive && wallet.TryGive(player.Id, gold));
         if (items && coins)
             return true;
@@ -550,7 +576,7 @@ internal sealed partial class AuctionHouse(
             return;
         }
 
-        audit.Log(KeepAction, player.Ref, CharacterRecord.FormatRef(characterId), new KeptDetails(unposted?.Form, unposted?.Count, gold));
+        audit.Log(KeepAction, player.Ref, CharacterRecord.FormatRef(characterId), new KeptDetails(unposted?.Form, unposted?.CustomItem, unposted?.Count, gold));
         if (gold > 0 && player.IsLive)
             deliveries.Deliver(player);
     });
@@ -610,7 +636,7 @@ internal sealed partial class AuctionHouse(
         {
             if (CheckWindow(player, open.Spot) is { } broken)
                 Close(player, broken);
-            else if (open.Seen is { } seen && !carried.Read(player.Id).Matches(seen))
+            else if (open.Seen is { } seen && !ReadGoods(player.Id).Matches(seen))
                 SendState(player);
         }
     }
@@ -645,7 +671,7 @@ internal sealed partial class AuctionHouse(
         if (!_open.TryGetValue(player, out var open) || open.Lists is not { } lists)
             return;
 
-        var held = carried.Read(player.Id);
+        var held = ReadGoods(player.Id);
         _open[player] = open with { Seen = held };
         var json = JsonSerializer.Serialize(AuctionViews.Build(lists, open.Query, held, open.CharacterId, Settings, MaxPrice, clock.UtcNow), AuctionJson.Default.AuctionView);
         if (open.Seen is null)
@@ -662,7 +688,7 @@ internal sealed partial class AuctionHouse(
 
     private sealed record LotDetails(long Lot);
 
-    private sealed record KeptDetails(long? Form, int? Count, int Gold);
+    private sealed record KeptDetails(long? Form, string? CustomItem, int? Count, int Gold);
 
     private sealed record CollectDetails(long Parcel, long Lot, AuctionParcelReason Reason, int Gold, int Count);
 }

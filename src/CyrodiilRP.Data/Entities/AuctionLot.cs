@@ -3,8 +3,9 @@ using CyrodiilRP.Data.Auction;
 namespace CyrodiilRP.Data;
 
 // Copies of one item a character put up, held by the house until they are sold, run out or are taken back. Form, Health
-// and Charge: the stack as the game keeps it. ItemName and ItemType: the catalogue's, for the search. SellerName: as it
-// was, for the staff.
+// and Charge: the stack as the game keeps it. CustomItem: the key of a custom item a mod defined, whose form is 0, null
+// for one of the game's. ItemName and ItemType: as the mode named it, for the search. SellerName: as it was, for the
+// staff.
 public sealed class AuctionLot
 {
     public long Id { get; set; }
@@ -14,6 +15,8 @@ public sealed class AuctionLot
     public required string SellerName { get; set; }
 
     public long Form { get; set; }
+
+    public string? CustomItem { get; set; }
 
     public required string ItemName { get; set; }
 

@@ -2,6 +2,7 @@ using CyrodiilRP.Data;
 using CyrodiilRP.Data.Auction;
 using CyrodiilRP.Server.Exchange;
 using CyrodiilRP.Server.Localization;
+using ReadyM.Relay.Common.Oblivion;
 
 namespace CyrodiilRP.Server.Auction;
 
@@ -35,7 +36,7 @@ internal static class AuctionViews
         lot.SellerCharacterId == readerId,
         lot.TopBidderCharacterId == readerId);
 
-    public static ExchangeStack ToStack(long form, float health, float charge) => new((uint)form, health, charge);
+    public static ExchangeStack ToStack(long form, float health, float charge) => new(new FormId((uint)form), health, charge);
 
     // The item's name, and how many when more than one.
     public static object Describe(string name, int count) => count == 1 ? name : AuctionText.Pieces(name, count);

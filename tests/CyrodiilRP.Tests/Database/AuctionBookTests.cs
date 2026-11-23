@@ -290,6 +290,45 @@ public sealed class AuctionBookTests(PostgresFixture pg) : IClassFixture<Postgre
         Assert.Equal("ck_auction_parcels_gold", Assert.IsType<Npgsql.PostgresException>(empty.InnerException).ConstraintName);
     }
 
+    [Fact]
+    public async Task A_custom_item_lot_is_kept_by_its_key_and_its_parcel_and_its_return_name_it()
+    {
+        var seller = await Seeds.CreateCharacterAsync(pg.Factory);
+        var lot = NewLot(seller.Id, Start, null, Seeds.Now + Runs);
+        lot.Form = 0;
+        lot.CustomItem = "jobs.firewood";
+        lot.ItemName = "Firewood";
+        lot.ItemType = "MISC";
+        lot.Id = (await pg.RunAsync(db => AuctionBook.PostAsync(db, lot, MaxOpen, default)))!.Value;
+
+        await pg.RunAsync(db => AuctionBook.WithdrawAsync(db, lot.Id, seller.Id, Seeds.Now, default));
+        var parcel = Assert.Single(await ParcelsAsync(seller.Id));
+        var claimed = await pg.RunAsync(db => AuctionBook.ClaimAsync(db, parcel.Id, seller.Id, Seeds.Now, default));
+        Assert.Equal(0, claimed!.Form);
+        Assert.Equal("jobs.firewood", claimed.CustomItem);
+
+        var unposted = NewLot(seller.Id, Start, null, Seeds.Now + Runs);
+        unposted.Form = 0;
+        unposted.CustomItem = "jobs.firewood";
+        await pg.RunAsync(db => AuctionBook.ReturnUnpostedAsync(db, unposted, Seeds.Now, default));
+        var returned = await pg.RunAsync(db => db.AuctionLots.AsNoTracking().SingleAsync(l => l.Status == AuctionLotStatus.Withdrawn && l.Id != lot.Id && l.SellerCharacterId == seller.Id));
+        Assert.Equal("jobs.firewood", returned.CustomItem);
+    }
+
+    [Theory]
+    [InlineData(0L, null)]
+    [InlineData(0x00019171L, "jobs.firewood")]
+    public async Task A_lot_is_a_game_item_or_a_custom_item_and_never_both_or_neither(long form, string? customItem)
+    {
+        var seller = await Seeds.CreateCharacterAsync(pg.Factory);
+        var lot = NewLot(seller.Id, Start, null, Seeds.Now + Runs);
+        lot.Form = form;
+        lot.CustomItem = customItem;
+
+        var refused = await Assert.ThrowsAsync<DbUpdateException>(() => pg.RunAsync(db => AuctionBook.PostAsync(db, lot, MaxOpen, default)));
+        Assert.Equal("ck_auction_lots_custom_item", Assert.IsType<Npgsql.PostgresException>(refused.InnerException).ConstraintName);
+    }
+
     private Task<AuctionLot> PostedAsync(int? start, int? buyout) => PostedAsync(start, buyout, Seeds.Now + Runs);
 
     private Task<AuctionLot> PostedAsync(int? start, int? buyout, DateTimeOffset endsAt) => PostedAsync(start, buyout, endsAt, "Iron Dagger");
