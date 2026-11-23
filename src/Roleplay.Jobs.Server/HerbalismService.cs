@@ -52,6 +52,9 @@ public sealed partial class HerbalismService(
     private readonly Inventories _inventories = new();
     // One herb for each ingredient, by the ingredient's form id: what an unknown herb of it turns into, and when
     private readonly Dictionary<uint, Herb> _byIngredient = [];
+    // The ingredient each unknown herb turns into, by what inventories name it: the SDK makes them a tick after Start
+    private readonly Dictionary<NetworkFormId, uint> _ingredientByUnknown = [];
+    private readonly HashSet<NetworkFormId> _carriedUnknown = [];
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private double _nextCheck;
 
@@ -113,28 +116,46 @@ public sealed partial class HerbalismService(
 
     private void TellAlchemy(PlayerId player)
     {
-        if (!TryReadAlchemy(player, out var tier) || (_told.TryGetValue(player, out var told) && told == tier))
+        if (!TryReadAlchemy(player, out var tier))
             return;
 
-        _told[player] = tier;
-        rpc.SendHerbAlchemy(player, (byte)tier);
-        logger.LogInformation("Jobs: {Player}'s Alchemy reaches {Tier} for herbs.", player, tier);
+        if (!_told.TryGetValue(player, out var told) || told != tier)
+        {
+            _told[player] = tier;
+            rpc.SendHerbAlchemy(player, (byte)tier);
+            logger.LogInformation("Jobs: {Player}'s Alchemy reaches {Tier} for herbs.", player, tier);
+        }
+
         Recognise(player, tier);
     }
 
-    // The unknown herbs the player carries whose plants their Alchemy now reaches become the ingredient.
+    // The unknown herbs the player carries whose plants their Alchemy reaches become the ingredient: those picked before
+    // their Alchemy grew, and those that came from another player, the staff or a sale since the last check.
     private void Recognise(PlayerId player, HerbTier alchemy)
     {
         if (!Settings.UnknownHerbs || !entities.TryLookup<MainCharacter, PlayerId>(player, out var character))
             return;
 
+        LearnUnknownHerbs();
         var inventory = character.As<Equipment>();
-        var gains = new List<string>();
-        foreach (var (ingredient, herb) in _byIngredient)
+        _carriedUnknown.Clear();
+        for (var i = 0; i < inventory.ItemsCount; i++)
         {
+            var item = inventory.GetItems(i).FormId;
+            if (_ingredientByUnknown.ContainsKey(item))
+                _carriedUnknown.Add(item);
+        }
+
+        if (_carriedUnknown.Count == 0)
+            return;
+
+        var gains = new List<string>();
+        foreach (var unknown in _carriedUnknown)
+        {
+            var ingredient = _ingredientByUnknown[unknown];
+            var herb = _byIngredient[ingredient];
             if (HerbLore.Know(herb.Tier, alchemy, Settings.RecognisedTiersBelow, Settings.MasteredTiersAbove)
-                    is HerbKnowledge.Unaware or HerbKnowledge.Recognised
-                || !customItems.TryGet(UnknownKey(ingredient), out var unknown))
+                    is HerbKnowledge.Unaware or HerbKnowledge.Recognised)
                 continue;
 
             var count = _inventories.CountCarried(inventory, StackOf(unknown, 1));
@@ -150,6 +171,18 @@ public sealed partial class HerbalismService(
 
         rpc.SendHerbGathered(player, string.Join(ListSeparator, gains), $"You recognise the herbs you carry: {string.Join(", ", gains)}.");
         logger.LogInformation("Jobs: {Player} ({Alchemy}) recognised {Gains}.", player, alchemy, string.Join(", ", gains));
+    }
+
+    private void LearnUnknownHerbs()
+    {
+        if (_ingredientByUnknown.Count == _byIngredient.Count)
+            return;
+
+        foreach (var ingredient in _byIngredient.Keys)
+        {
+            if (customItems.TryGet(UnknownKey(ingredient), out var unknown))
+                _ingredientByUnknown.TryAdd(unknown, ingredient);
+        }
     }
 
     // An ingredient has no wear and no charge
