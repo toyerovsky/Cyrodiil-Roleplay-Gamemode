@@ -7,8 +7,10 @@ silent character is not refusing to talk, and a screen over the player's own gam
 
 ## 2. Rules (as the player sees them)
 
-- **Signs of a player at the keyboard**: a step, a turn of the camera, the chat opened to write, and a key or the mouse
-  in one of the mode's windows (reading the bank's window is being there). Standing still is not a sign by itself.
+- **Signs of a player at the keyboard**: a step, a turn of the camera, the chat opened to write, a key or the mouse
+  in one of the mode's windows (reading the bank's window is being there), and the mouse moved or clicked, or a menu's
+  key (the arrows, Enter, Tab, Space, Esc, E) pressed, in one of the game's own menus (the inventory, a dialogue,
+  bartering). Standing still is not a sign by itself.
 - **The question.** 30 s before the mark (`AwayRules.WarnFor`, at most half of `away.afterMinutes`) the screen asks
   "Still there?" and counts down to the mark. Nothing shows over the head yet. Any sign ends the question.
 - **The mark.** After `away.afterMinutes` (5 by default) with no sign, `[AFK]` shows over the head and the screen says
@@ -30,7 +32,8 @@ silent character is not refusing to talk, and a screen over the player's own gam
 
 - **The server** (`AwayWatch`) looks at every player in play once a second: the position and the camera's turn from
   the entity, with the network's jitter left out (`AwayRules.MoveSlack`, `TurnSlack`). The chat reports writing
-  (`ReportTyping`), the client reports a key or the mouse in a page (`ReportPresence`). `AwayRules.StageAfter` turns
+  (`ReportTyping`), the client reports a key or the mouse in a page, the game's cursor moving (the chat's page watches it,
+  `ui/shared/cursor.js`) and a click or a menu's key read by polled binds (`GameInputPresence`), all as `ReportPresence`. `AwayRules.StageAfter` turns
   the time since the last sign into a stage: here, warned, away.
 - **The client** passes a page's touch on (`PresenceReports`): every page reports one at most every 5 s
   (`ui/shared/presence.js`, from `ui/shared/start.js`), and the client sends it to the server at most every 30 s, or
