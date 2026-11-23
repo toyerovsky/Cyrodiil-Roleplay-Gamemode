@@ -52,14 +52,15 @@ public sealed partial class SustenancePage(CefHost cef, IInput input, IPlayers p
     private const int HudZOrder = 2;
     private const int SatchelZOrder = 3;
 
-    // Where the bars go, as a share of the screen: left 2% to 17% across, 79.5% to 84.5% down. The bars fill this
-    // rectangle (hud.css lays them out in container units), so it sets their size at every resolution.
+    // Where the gauge goes: a band across the bottom middle of the screen, 30% to 70% across, 92.5% to 96.5% down, the
+    // gauge centred in it just under the game's health bar. hud.css sizes the gauge from the band's height, so it
+    // follows the screen's height as the game's own HUD does, whatever the screen's shape.
     private static readonly ViewportPlacement HudPlacement = new()
     {
-        AnchorMinX = 0.02f,
-        AnchorMaxX = 0.17f,
-        AnchorMinY = 0.795f,
-        AnchorMaxY = 0.845f,
+        AnchorMinX = 0.30f,
+        AnchorMaxX = 0.70f,
+        AnchorMinY = 0.925f,
+        AnchorMaxY = 0.965f,
     };
 
     private const double KeepAliveSeconds = 1.0;
