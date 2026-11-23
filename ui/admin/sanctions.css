@@ -19,7 +19,7 @@
   text-transform: uppercase;
   color: var(--ink-soft);
   background: var(--parchment);
-  border-bottom: 2px solid var(--gold);
+  border-bottom: 2px solid var(--parchment-edge);
 }
 
 .admin-table td {

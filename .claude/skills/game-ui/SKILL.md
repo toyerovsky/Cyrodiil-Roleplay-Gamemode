@@ -64,14 +64,19 @@ description: How Cyrodiil RP shows anything to a player. Use before writing play
 - A choice among a few (a kind of wares, a filter, a language) is a row of `RpChip`, toggle buttons with `pressed`
   (`aria-pressed`): each one a stop of Tab, picked with Enter or Space. Not radios, whose arrows the pages' tabs take.
   A chip without `pressed` acts at once (a weather).
-- Tabs are `RpTabs`: the game's medallions down the side, `size` large (the player's menu) or small (the staff's panel).
+- Tabs are `RpTabs`: the game's paper tabs across the top of the page, as many as it has, the picked one raised into the
+  page, each with its medallion before its name. `size` large (the player's menu) or small (the staff's panel, eight).
 - A page drawn over the game imports `ui/shared/click-through.css`, so its html and body let the clicks through, and
   sets `pointer-events: auto` on what takes them.
 - No style uses the `font` shorthand (`font: inherit` aside): it resets the full-height figures `base.css` gives the body,
   and Alegreya's own 0 reads as an o. A test keeps to it. A number carries its unit: "40 gold".
-- A page that asks something of the player before they play (the name) is a letter: `RpPanel variant="letter"` on the
-  game's parchment and frame, `RpIlluminated` for its first paragraph. Pictures live in `ui/rp/art` (`DEVELOPMENT.md`,
-  Pages). A picture that is only decoration has `alt=""`.
+- The look is the remaster's own UI art, baked into `ui/rp/art/game` (`DEVELOPMENT.md`, Pages' pictures): a window is
+  `RpPanel` on the game's menu paper (`variant="board"` for a merchant's window opened through Services: the wooden
+  board with the brass clip), a list's picked row `.rp-entry--on` (the game's highlight), anything over the game
+  `.rp-plate` (the HUD's dark box, its page positions it) and a notification `.rp-plate--notice` (with the boss bar's
+  diamond tab).
+- A page that asks something of the player before they play (the name) is a letter: `RpPanel variant="letter"`,
+  `RpIlluminated` for its first paragraph. Pictures live in `ui/rp/art`. A picture that is only decoration has `alt=""`.
 - Sizes are px in source for 1080p. The build turns them into rem (`postcss-pxtorem`) and `ui/shared/scale.css` scales
   the root with the window. Never write rem or vw by hand.
 - Texts from `locales/<language>/ui.<page>.json`. A limit a text names comes from the server's constant

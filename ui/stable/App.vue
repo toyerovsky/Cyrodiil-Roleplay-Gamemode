@@ -128,7 +128,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
 
 <template>
   <div v-if="stable" class="stable">
-    <RpPanel ref="panel" class="stable__panel" variant="letter" :title="t.title">
+    <RpPanel ref="panel" class="stable__panel" variant="board" :title="t.title">
       <p class="stable__lead">{{ t.lead }}</p>
 
       <dl class="stable__sums">

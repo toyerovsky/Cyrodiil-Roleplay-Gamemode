@@ -28,9 +28,9 @@ async function press(target, init) {
 }
 
 describe("the tabs", () => {
-  it("are a vertical tab list of the game's medallions, each tab naming the panel it controls", () => {
+  it("are a horizontal tab list of the game's paper tabs, each tab naming the panel it controls", () => {
     const tabs = mountTabs();
-    expect(tabs.attributes()).toMatchObject({ role: "tablist", "aria-orientation": "vertical", "aria-label": "Tabs" });
+    expect(tabs.attributes()).toMatchObject({ role: "tablist", "aria-orientation": "horizontal", "aria-label": "Tabs" });
     const buttons = tabs.findAll('[role="tab"]');
     expect(buttons.map((button) => button.text())).toEqual(["CHARACTER", "ACCOUNT", "HELP"]);
     expect(buttons.map((button) => button.attributes("id"))).toEqual(TABS.map((each) => makeTabId("panel", each.id)));

@@ -80,13 +80,13 @@
   cursor: pointer;
 }
 
-.trader__ware:hover {
-  background: rgba(156, 122, 60, 0.12);
+.trader__ware:hover:not(.trader__ware--on) {
+  background: var(--row-hover);
 }
 
+/* The ware picked lies on the game's list highlight (.rp-entry--on). */
 .trader__ware--on {
-  background: rgba(156, 122, 60, 0.28);
-  box-shadow: inset 3px 0 0 var(--gold-dark);
+  border-image: url("../rp/art/game/entry.webp") 8 24 fill / 4px 12px stretch;
 }
 
 .trader__ware--dear .trader__price {

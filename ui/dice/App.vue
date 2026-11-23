@@ -337,14 +337,14 @@ onUnmounted(() => {
     <canvas ref="canvas" class="dice__canvas" />
     <div ref="tags" class="dice__tags" aria-hidden="true" />
 
-    <p v-if="presenting !== null && !open && banner" class="dice__caption" :class="banner.kind && `dice__caption--${banner.kind}`" role="status">
+    <p v-if="presenting !== null && !open && banner" class="dice__caption rp-plate" :class="banner.kind && `dice__caption--${banner.kind}`" role="status">
       {{ banner.text }}
     </p>
 
     <div v-if="open" class="dice__layout">
       <header class="dice__top">
         <h1 class="dice__title"><img class="dice__medallion" :src="d20" alt="">{{ t.title }}</h1>
-        <p class="dice__banner" :class="banner?.kind && `dice__banner--${banner.kind}`" role="status" aria-live="polite">
+        <p class="dice__banner rp-plate" :class="banner?.kind && `dice__banner--${banner.kind}`" role="status" aria-live="polite">
           {{ failed ? t.no_board : banner?.text }}
           <span v-if="banner?.kind === 'high'" class="dice__natural">{{ t.natural_20 }}</span>
           <span v-else-if="banner?.kind === 'low'" class="dice__natural">{{ t.natural_1 }}</span>

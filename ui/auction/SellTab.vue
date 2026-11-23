@@ -96,7 +96,7 @@ function post() {
           <button
             type="button"
             class="auction-row"
-            :class="{ 'auction-row--on': item.key === selectedKey }"
+            :class="{ 'auction-row--on rp-entry--on': item.key === selectedKey }"
             :aria-pressed="item.key === selectedKey"
             :data-item="item.key"
             @click="select(item)"

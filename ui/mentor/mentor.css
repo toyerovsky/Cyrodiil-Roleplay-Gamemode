@@ -74,7 +74,7 @@
   padding: 6px 12px;
   font-size: 15px;
   color: var(--ink);
-  border-left: 3px solid var(--gold);
+  border-left: 3px solid var(--gold-dark);
   background: var(--ink-wash);
 }
 
@@ -101,8 +101,8 @@
 }
 
 .mentor__item--chosen {
-  background: var(--ink-wash);
-  border-color: var(--gold);
+  border-color: transparent;
+  border-image: url("../rp/art/game/entry.webp") 8 24 fill / 4px 12px stretch;
 }
 
 .mentor__picture {

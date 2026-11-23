@@ -129,7 +129,7 @@ onUnmounted(() => {
 
 <template>
   <div v-if="view" class="auction">
-    <RpPanel class="auction__panel" variant="letter" :title="t.title">
+    <RpPanel class="auction__panel" variant="board" :title="t.title">
       <p class="auction__purse">
         <RpIcon name="coins" class="auction__coin" />
         <span>{{ t.purse }}</span>

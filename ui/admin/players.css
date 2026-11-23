@@ -40,8 +40,8 @@
   cursor: pointer;
 }
 
-.admin-player:hover {
-  background: rgba(156, 122, 60, 0.14);
+.admin-player:hover:not(.admin-player--on) {
+  background: var(--row-hover);
 }
 
 .admin-player:focus-visible {
@@ -50,8 +50,7 @@
 }
 
 .admin-player--on {
-  background: rgba(156, 122, 60, 0.3);
-  box-shadow: inset 4px 0 0 var(--gold-dark);
+  border-image: url("../rp/art/game/entry.webp") 8 24 fill / 4px 12px stretch;
 }
 
 .admin-player__number {

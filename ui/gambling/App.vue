@@ -171,7 +171,7 @@ onUnmounted(() => { sound.ctx?.close(); clearInterval(ticker); window.removeEven
           </div>
           <div class="gambling__table-layout">
             <div class="gambling__hands">
-              <section v-for="seat in viewerSeats(match.seat)" :key="seat" class="gambling__hand" :data-seat="seat" :aria-label="seat === match.seat ? t.you : t.opponent">
+              <section v-for="seat in viewerSeats(match.seat)" :key="seat" class="gambling__hand rp-plate" :data-seat="seat" :aria-label="seat === match.seat ? t.you : t.opponent">
                 <div class="gambling__seat-info">
                   <span class="gambling__seat-label">{{ seat === match.seat ? t.you : t.opponent }}</span>
                   <h3>{{ seatName(match, seat) }}</h3>

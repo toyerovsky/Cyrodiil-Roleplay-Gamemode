@@ -1,10 +1,11 @@
 <script setup>
 import { useId } from "vue";
 
-// The title slot dresses the title, which still names the panel.
+// The title slot dresses the title, which still names the panel. A board is a merchant's: the game's wooden board
+// with the paper under its brass clip.
 defineProps({
   title: { type: String, required: true },
-  variant: { type: String, default: "plain", validator: (value) => ["plain", "letter"].includes(value) },
+  variant: { type: String, default: "plain", validator: (value) => ["plain", "letter", "board"].includes(value) },
 });
 
 const titleId = useId();

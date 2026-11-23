@@ -57,13 +57,27 @@ const buildUrl = (page, scenario) => `${page}/index.html${scenario ? `#${scenari
           </div>
         </RpPanel>
         <RpPanel title="Letter" variant="letter">
-          <RpIlluminated text="Written on the game's own parchment, in its gold frame, with an illuminated initial from its books." />
+          <RpIlluminated text="Written on the game's own paper, with an illuminated initial from its books." />
           <RpField v-model="name" label="Field on a letter" placeholder="e.g. Marius" />
           <RpField v-model="taken" label="Refused field on a letter" invalid />
           <RpButton variant="primary">Primary on a letter</RpButton>
         </RpPanel>
         <div class="gallery__wheel">
           <RpRadial v-model="highlight" :items="wheelItems" title="Lucia Gallus" label="Wheel" />
+        </div>
+        <div class="gallery__scene">
+          <section class="rp-plate gallery__plate" aria-label="Plate">
+            <strong>Plate</strong>
+            <p>The HUD's dark box over the game, for what stays on screen.</p>
+          </section>
+          <section class="rp-plate rp-plate--notice gallery__plate" aria-label="Notification">
+            <strong>Notification</strong>
+            <p>The same box with the diamond tab, for what just happened.</p>
+          </section>
+          <ul class="gallery__rows" aria-label="Rows">
+            <li>A row</li>
+            <li class="rp-entry--on">The row picked</li>
+          </ul>
         </div>
         <RpPanel title="Chips and tabs">
           <div class="gallery__chips" role="group" aria-label="Kinds">

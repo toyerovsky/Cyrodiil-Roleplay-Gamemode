@@ -33,7 +33,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <section v-if="members.length" class="party" :aria-label="t.title">
+  <section v-if="members.length" class="party rp-plate" :aria-label="t.title">
     <header class="party__head">
       <p class="party__title">{{ t.title }}</p>
       <p class="party__count">{{ fill(t.count, { count: members.length, max }) }}</p>

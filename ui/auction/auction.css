@@ -37,8 +37,8 @@
 
 .auction__body {
   display: grid;
-  grid-template-columns: 210px minmax(0, 1fr);
-  gap: 22px;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 18px;
   min-height: 0;
 }
 
@@ -106,7 +106,7 @@
   padding: 10px 12px;
   border: 1px solid var(--parchment-edge);
   border-radius: var(--radius-small);
-  background: var(--ink-wash);
+  background: none;
   color: var(--ink);
   font-size: 18px;
   font-family: var(--font-body);
@@ -116,7 +116,7 @@
 }
 
 .auction-row:hover:not(.auction-row--still) {
-  background: rgba(156, 122, 60, 0.14);
+  background: var(--row-hover);
 }
 
 .auction-row:focus-visible {
@@ -125,9 +125,7 @@
 }
 
 .auction-row--on {
-  border-color: var(--gold-dark);
-  background: rgba(156, 122, 60, 0.28);
-  box-shadow: inset 4px 0 0 var(--gold-dark);
+  box-shadow: inset 3px 0 0 var(--gold-dark);
 }
 
 .auction-row--still {
@@ -135,6 +133,7 @@
   grid-template-areas:
     "name left mark"
     "facts left mark";
+  background: var(--ink-wash);
   cursor: default;
 }
 
@@ -169,8 +168,9 @@
   grid-area: mark;
   justify-self: end;
   padding: 2px 10px;
+  border: 1px solid var(--parchment-edge);
   border-radius: var(--radius-pill);
-  background: var(--parchment-deep);
+  background: var(--parchment-light);
   color: var(--gold-dark);
   font-weight: 700;
   font-size: 15px;

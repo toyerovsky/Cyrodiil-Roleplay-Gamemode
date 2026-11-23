@@ -32,15 +32,13 @@
 .dice-tag {
   position: absolute;
   min-width: 40px;
-  padding: 2px 10px;
+  padding: 4px 12px;
   transform: translate(-50%, -100%);
   font-weight: 700;
   font-size: 24px;
   text-align: center;
   color: var(--night-text);
-  background: var(--night);
-  border: 1px solid var(--gold-bright);
-  border-radius: var(--radius);
+  border-image: url("../rp/art/game/plate.webp") 12 fill / 6px stretch;
   opacity: 0;
   transition: opacity var(--duration-hover);
 }
@@ -51,11 +49,11 @@
 
 .dice-tag.dice-tag--crit {
   color: var(--ink);
-  background: var(--gold-light);
+  border-image: url("../rp/art/game/button-gold.webp") 30 26 fill / 12px 10px stretch;
 }
 
 .dice-tag.dice-tag--fumble {
-  background: var(--problem);
+  color: var(--night-refusal);
 }
 
 .dice__layout {
@@ -101,6 +99,7 @@
 }
 
 .dice__banner {
+  position: relative;
   justify-self: center;
   max-width: 100%;
   min-height: 48px;
@@ -108,10 +107,6 @@
   padding: 8px 24px;
   font-size: 22px;
   text-align: center;
-  color: var(--night-text);
-  background: var(--night);
-  border: 1px solid var(--night-line);
-  border-radius: var(--radius);
 }
 
 .dice__banner:empty {
@@ -123,7 +118,6 @@
 }
 
 .dice__banner--high {
-  border-color: var(--gold-bright);
   color: var(--gold-light);
 }
 
@@ -141,12 +135,6 @@
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.dice__tools .rp-chip:not(.rp-chip--on) {
-  border-color: var(--night-line);
-  background: var(--night);
-  color: var(--night-text);
 }
 
 .dice__stage {
@@ -172,12 +160,15 @@
   font-size: 24px;
 }
 
-/* Dark: the night plate the game's notices sit on. */
+/* Dark: the HUD's plate instead of the paper. */
 .dice--dark .dice__panel.rp-panel {
   color: var(--night-text);
-  background: var(--night);
-  border-color: var(--night-line);
-  box-shadow: 0 18px 48px var(--shadow-deep);
+  border-image: url("../rp/art/game/plate.webp") 12 fill / 6px stretch;
+}
+
+/* The ink ornament drawn light on the plate. */
+.dice--dark .dice__panel .rp-panel__title::after {
+  filter: invert(1) sepia(0.3) brightness(0.75);
 }
 
 .dice__tiles {
@@ -199,14 +190,22 @@
   cursor: pointer;
 }
 
+.dice__tile:hover:not(.dice__tile--cursor) {
+  background: var(--row-hover);
+}
+
 .dice__tile--cursor {
-  border-color: var(--gold-dark);
-  background: var(--ink-wash);
+  border-image: url("../rp/art/game/entry.webp") 8 24 fill / 4px 12px stretch;
+}
+
+.dice--dark .dice__tile:hover:not(.dice__tile--cursor) {
+  background: rgba(165, 150, 140, 0.1);
 }
 
 .dice--dark .dice__tile--cursor {
-  border-color: var(--gold-bright);
-  background: rgba(201, 162, 89, 0.12);
+  border-image: none;
+  border-color: var(--night-line);
+  background: rgba(165, 150, 140, 0.18);
 }
 
 .dice__tile-icon {
@@ -250,21 +249,21 @@
   font-size: 24px;
   line-height: 1;
   color: var(--ink);
-  background: linear-gradient(180deg, var(--parchment-light), var(--parchment-deep));
-  border: 1px solid var(--gold-dark);
-  border-radius: var(--radius-small);
+  border: 0;
+  border-image: url("../rp/art/game/button.webp") 30 26 fill / 12px 10px stretch;
+  background: none;
   cursor: pointer;
+  transition: filter var(--duration-hover);
 }
 
 .dice__step:hover:not(:disabled),
 .dice__step:focus-visible {
   outline: none;
-  box-shadow: var(--focus-ring);
+  filter: brightness(1.08) drop-shadow(0 0 6px var(--glow));
 }
 
 .dice__step:disabled {
-  border-color: var(--parchment-edge);
-  background: var(--disabled-fill);
+  border-image-source: url("../rp/art/game/button-off.webp");
   color: var(--disabled-text);
   cursor: default;
 }
@@ -346,16 +345,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.dice--dark .dice__set.rp-chip:not(.rp-chip--on) {
-  border-color: var(--night-line);
-  background: rgba(244, 236, 220, 0.06);
-  color: var(--night-text);
-}
-
-.dice--dark .dice__set.rp-chip:hover:not(.rp-chip--on) {
-  border-color: var(--gold-bright);
 }
 
 .dice__set-icon {
@@ -469,8 +458,8 @@
   text-align: center;
   color: var(--ink);
   background: linear-gradient(180deg, var(--parchment-light), var(--parchment-deep));
-  border: 1px solid var(--gold-dark);
-  border-bottom-width: 2px;
+  border: 1px solid var(--parchment-edge);
+  border-bottom: 2px solid var(--handle-dark);
   border-radius: var(--radius-small);
 }
 
@@ -495,9 +484,7 @@
   inset: auto 24px 24px auto;
   width: 480px;
   height: 330px;
-  background: var(--night);
-  border: 1px solid var(--gold-bright);
-  border-radius: var(--radius);
+  border-image: url("../rp/art/game/plate.webp") 12 fill / 6px stretch;
   box-shadow: 0 18px 48px var(--shadow-deep);
 }
 
@@ -510,10 +497,6 @@
   padding: 8px 16px;
   font-size: 20px;
   text-align: center;
-  color: var(--night-text);
-  background: var(--night);
-  border: 1px solid var(--night-line);
-  border-radius: var(--radius);
 }
 
 .dice__caption--high {
