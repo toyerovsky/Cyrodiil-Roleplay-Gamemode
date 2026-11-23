@@ -66,3 +66,32 @@ body {
   gap: 8px;
   margin-top: 16px;
 }
+
+.gallery__scene {
+  display: grid;
+  gap: 24px;
+  padding: 28px 24px;
+  border-radius: var(--radius);
+  background: linear-gradient(170deg, #9fb6c9, #c8d3c3 45%, #6f7d52);
+}
+
+.gallery__plate {
+  position: relative;
+  padding: 12px 18px;
+}
+
+.gallery__plate p {
+  margin: 4px 0 0;
+}
+
+.gallery__rows {
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  border-image: url("../rp/art/game/paper.webp") 40 fill / 20px stretch;
+}
+
+.gallery__rows li {
+  padding: 6px 12px;
+  border: 1px solid transparent;
+}

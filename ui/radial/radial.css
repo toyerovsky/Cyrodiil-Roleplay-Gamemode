@@ -11,9 +11,8 @@
 
 .radial__hint {
   margin: 0;
-  padding: 6px 12px;
-  border-radius: var(--radius);
-  background: var(--night);
+  padding: 6px 14px;
+  border-image: url("../rp/art/game/plate.webp") 12 fill / 6px stretch;
   color: var(--night-text);
   font-size: 15px;
 }

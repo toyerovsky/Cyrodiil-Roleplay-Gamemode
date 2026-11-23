@@ -9,11 +9,7 @@
   left: 20px;
   width: 280px;
   padding: 10px 14px 12px;
-  color: var(--night-text);
-  background: var(--night);
-  border: 1px solid var(--night-line);
-  border-radius: var(--radius-small);
-  box-shadow: 0 8px 24px var(--shadow-deep);
+  filter: drop-shadow(0 8px 16px var(--shadow-deep));
 }
 
 .party__head {

@@ -5,8 +5,9 @@ import { watchGameCursor } from "../shared/cursor.js";
 // The game calls the page's __readym_cursor with the cursor's place every tick, and once with (-1, -1) as it goes.
 function watch(target = {}) {
   const reports = [];
-  watchGameCursor((shown) => reports.push(shown), target);
-  return { target, reports };
+  const moves = [];
+  watchGameCursor((shown) => reports.push(shown), () => moves.push(true), target);
+  return { target, reports, moves };
 }
 
 describe("the game's cursor as a page hears of it", () => {
@@ -18,6 +19,18 @@ describe("the game's cursor as a page hears of it", () => {
     target.__readym_cursor(-1, -1);
 
     expect(reports).toEqual([true, false]);
+  });
+
+  it("says when the shown cursor moves, not when it comes, stays or is gone", () => {
+    const { target, moves } = watch();
+
+    target.__readym_cursor(640, 360);
+    target.__readym_cursor(640, 360);
+    target.__readym_cursor(700, 360);
+    target.__readym_cursor(-1, -1);
+    target.__readym_cursor(-1, -1);
+
+    expect(moves).toEqual([true]);
   });
 
   it("takes a cursor at the page's corner for a cursor", () => {

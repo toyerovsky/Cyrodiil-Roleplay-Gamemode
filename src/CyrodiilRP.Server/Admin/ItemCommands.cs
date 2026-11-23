@@ -6,7 +6,6 @@ using CyrodiilRP.Server.Localization;
 using OblivionMP.SDK.Common.Archetypes;
 using OblivionMP.SDK.Common.Archetypes.Mixins;
 using OblivionMP.SDK.Serverside.Items;
-using ReadyM.Relay.Common.Oblivion;
 using ReadyM.Relay.Common.Oblivion.ECS.Values;
 using ReadyM.Relay.Common.Oblivion.Rpc;
 using ReadyM.SDK.Attributes;
@@ -16,7 +15,7 @@ using ReadyM.SDK.Server.Entities;
 namespace CyrodiilRP.Server.Admin;
 
 [Service]
-internal sealed partial class ItemCommands(CommandRegistry commands, IEntities entities, Inventories inventories, RpChat chat, Audit audit)
+internal sealed partial class ItemCommands(CommandRegistry commands, IEntities entities, Inventories inventories, KnownItems known, RpChat chat, Audit audit)
 {
     public const int MostPieces = 1000;
 
@@ -53,7 +52,7 @@ internal sealed partial class ItemCommands(CommandRegistry commands, IEntities e
         }
 
         var text = string.Join(' ', call.Words.Skip(2).Take(call.Words.Count - 2 - (skipLast ? 1 : 0)));
-        var found = ItemCatalog.Shipped.Find(text);
+        var found = known.Find(text);
         if (found.One is not { } item)
         {
             call.Refuse(found.Candidates.Count == 0
@@ -71,14 +70,14 @@ internal sealed partial class ItemCommands(CommandRegistry commands, IEntities e
         var inventory = EntityHandle.Of(main).As<Equipment>();
         if (giving)
         {
-            inventories.Add(inventory, new InventoryEntry(new FormId(item.Form), count, 0));
+            inventories.Add(inventory, new InventoryEntry(item.Item, count, 0));
             audit.Log(GiveAction, call.Sender.Ref, target.Ref, new ItemDetails(item.Id, count));
             chat.Notify(target, AdminText.ItemGiven(item: item.Name, count: count));
             call.Reply(AdminText.ItemGave(name: target.Name, item: item.Name, count: count));
             return;
         }
 
-        if (!TryTakeAll(inventory, item.Form, count))
+        if (!TryTakeAll(inventory, item.Item, count))
         {
             call.Refuse(AdminText.ItemTooFew(name: target.Name, item: item.Name));
             return;
@@ -91,13 +90,13 @@ internal sealed partial class ItemCommands(CommandRegistry commands, IEntities e
 
     // Copies differ by their health and charge, and the inventory takes one kind at a time: from each kind in turn
     // until enough, or nothing when there are too few of them all.
-    private bool TryTakeAll(Equipment inventory, uint form, int count)
+    private bool TryTakeAll(Equipment inventory, NetworkFormId item, int count)
     {
         var held = new Dictionary<StackKind, int>();
         for (var i = 0; i < inventory.ItemsCount; i++)
         {
             var entry = inventory.GetItems(i);
-            if (entry.FormId.FormId.Value == form)
+            if (entry.FormId == item)
             {
                 var kind = new StackKind(entry.Health, entry.Charge);
                 held[kind] = held.GetValueOrDefault(kind) + entry.Count;
@@ -111,7 +110,7 @@ internal sealed partial class ItemCommands(CommandRegistry commands, IEntities e
         foreach (var (kind, available) in held)
         {
             var taking = Math.Min(left, available);
-            inventories.TryTake(inventory, new ItemStackData { BaseId = new FormId(form), Count = taking, Durability = kind.Health, Charge = kind.Charge });
+            inventories.TryTake(inventory, new ItemStackData { BaseId = item, Count = taking, Durability = kind.Health, Charge = kind.Charge });
             left -= taking;
             if (left == 0)
                 break;

@@ -4,8 +4,9 @@ using ReadyM.SDK.Attributes;
 
 namespace CyrodiilRP.Client.Away;
 
-// A key or the mouse in any of the mode's pages (ui/shared/presence.js): the player is at the keyboard while a window
-// holds them still, which the server cannot see. It goes on to the server at most every half a minute, and while the AFK
+// A key or the mouse in any of the mode's pages (ui/shared/presence.js), the game's cursor moving in one of its menus
+// (the chat's page watches it) or a click there (GameInputPresence): the player is at the keyboard while a window holds
+// them still, which the server cannot see. It goes on to the server at most every half a minute, and while the AFK
 // screen is up at once, so the screen goes at the first touch.
 [Service]
 internal sealed partial class PresenceReports(RpcHandlers rpc, AwayOverlay screen)
@@ -18,7 +19,9 @@ internal sealed partial class PresenceReports(RpcHandlers rpc, AwayOverlay scree
     private long? _reportedAtMs;
 
     [ReceiveFromCef]
-    private void OnPresence(BrowserHandle browser)
+    private void OnPresence(BrowserHandle browser) => Note();
+
+    public void Note()
     {
         var now = Environment.TickCount64;
         var every = screen.IsShown ? ReportWhileShownMs : ReportEveryMs;

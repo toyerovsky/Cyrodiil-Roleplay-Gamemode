@@ -19,7 +19,8 @@ Built on the [OblivionMP mod template](https://github.com/readycodeio/oblivionmp
 
 ## In game
 
-- Two bars at the bottom left: food (amber) and drink (blue). They turn red and pulse when nearly empty, and hide
+- One gauge under the game's health bar, as long and as tall as it: drink (blue) fills from the middle to the left,
+  food (amber) from the middle to the right. A nearly empty side pulses and its icon flashes, and the gauge hides
   in the game's menus and dialogue (inventory, containers, map, pause, talking to someone): the mod watches for the
   game's mouse cursor, which is up exactly while one of its menus is.
 - **Alt+H** opens the satchel: every food and drink you carry and what it gives. Up and Down to choose, Enter to eat
@@ -91,6 +92,7 @@ the mod.
 | `src/Roleplay.HungerAndThirst.Client/` | prediction, warnings, the CEF page service, and `ILocalSustenance` |
 | `tests/Roleplay.HungerAndThirst.Tests/` | xUnit tests for the rules, food table, shipped config and save file |
 | `Content/web/` | the pages: `hud.html` (the bars), `satchel.html`, and `index.html` to preview both in a browser |
+| `Content/web/art/` | the bars' pictures, from the game's own vital bar textures (`Art/UI/Modern/HUD/Vitals` of an export), coloured per meter by `tools/bake_vitals.py` |
 | `Content/config.json` | the server config shipped with the mod |
 
 ## Develop

@@ -1,15 +1,12 @@
+/* The remaster's menu paper with its ragged edge: the edge keeps its size, the middle stretches with the text. */
 .rp-panel {
   width: min(480px, 100%);
   max-height: 100%;
   overflow-y: auto;
   padding: 32px 36px 26px;
   color: var(--ink);
-  background:
-    radial-gradient(ellipse at 30% 20%, rgba(255, 250, 235, 0.55), transparent 60%),
-    linear-gradient(180deg, var(--parchment-light), var(--parchment) 40%, var(--parchment-deep));
-  border: 2px solid var(--parchment-edge);
-  border-radius: var(--radius);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 18px 48px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(120, 90, 40, 0.25);
+  border-image: url("./art/game/paper.webp") 40 fill / 40px stretch;
+  filter: drop-shadow(0 18px 30px var(--shadow-deep));
 }
 
 .rp-panel__title {
@@ -22,35 +19,20 @@
   text-align: center;
 }
 
+/* The ornament the game's menus draw under a heading. */
 .rp-panel__title::after {
   content: "";
   display: block;
-  width: 60%;
-  height: 2px;
-  margin: 10px auto 0;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  width: min(320px, 80%);
+  height: 20px;
+  margin: 8px auto 0;
+  background: url("./art/game/separator.webp") center / contain no-repeat;
 }
 
-/* The game's message window: its parchment with the torn edge, its gold frame inside, its ornament under the title.
-   The edges keep their size and the middle stretches with the text. */
 .rp-panel--letter {
   position: relative;
   width: min(600px, 100%);
-  padding: 66px 78px 66px;
-  background: none;
-  border: 0;
-  border-radius: 0;
-  border-image: url("./art/parchment.webp") 48 fill / 48px stretch;
-  box-shadow: none;
-  filter: drop-shadow(0 22px 34px var(--shadow-deep));
-}
-
-.rp-panel--letter::before {
-  content: "";
-  position: absolute;
-  inset: 24px 26px;
-  border-image: url("./art/letter-frame.webp") 110 100 / 72px 66px stretch;
-  pointer-events: none;
+  padding: 58px 70px 58px;
 }
 
 .rp-panel--letter .rp-panel__title {
@@ -58,15 +40,35 @@
   letter-spacing: 0.06em;
 }
 
-.rp-panel--letter .rp-panel__title::after {
-  width: 300px;
-  height: 13px;
-  margin-top: 12px;
-  background: url("./art/divider.webp") center / contain no-repeat;
+/* A merchant's window: the player menu's wooden board, the paper on it and the brass clip over its top, the clip at its
+   own size whatever the board's width. */
+.rp-panel--board {
+  position: relative;
+  width: min(600px, 100%);
+  padding: 112px 56px 44px;
+  border-image: url("./art/game/board.webp") 112 24 24 24 fill / 100px 22px 22px 22px stretch;
+}
+
+.rp-panel--board::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: min(540px, 72%);
+  aspect-ratio: 8;
+  transform: translateX(-50%);
+  background: url("./art/game/clip.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 4px 4px var(--shadow-deep));
+  pointer-events: none;
+}
+
+.rp-panel--board .rp-panel__title {
+  font-size: 34px;
+  letter-spacing: 0.06em;
 }
 
 /* A name on a letter is written in ink on a line, not typed into a box. */
-.rp-panel--letter .rp-field__label {
+:is(.rp-panel--letter, .rp-panel--board) .rp-field__label {
   font-weight: 700;
   font-size: 15px;
   letter-spacing: 0.12em;
@@ -74,7 +76,7 @@
   color: var(--ink-soft);
 }
 
-.rp-panel--letter .rp-field__input {
+:is(.rp-panel--letter, .rp-panel--board) .rp-field__input {
   padding: 8px 6px 6px;
   border: 0;
   border-bottom: 2px solid var(--ink-line);
@@ -83,17 +85,17 @@
   font-size: 21px;
 }
 
-.rp-panel--letter .rp-field__input::placeholder {
+:is(.rp-panel--letter, .rp-panel--board) .rp-field__input::placeholder {
   font-style: italic;
   color: var(--ink-soft);
 }
 
-.rp-panel--letter .rp-field__input:focus {
+:is(.rp-panel--letter, .rp-panel--board) .rp-field__input:focus {
   border-bottom-color: var(--gold-dark);
   box-shadow: 0 2px 0 var(--gold), 0 8px 18px -10px var(--gold-bright);
 }
 
-.rp-panel--letter .rp-field__input[aria-invalid="true"] {
+:is(.rp-panel--letter, .rp-panel--board) .rp-field__input[aria-invalid="true"] {
   border-bottom-color: var(--problem);
   background: var(--problem-wash);
 }
@@ -130,76 +132,109 @@
   padding: 9px 12px;
   border: 1px solid var(--parchment-edge);
   border-radius: var(--radius-small);
-  background: rgba(255, 252, 242, 0.85);
+  background-color: rgba(244, 239, 231, 0.8);
   color: var(--ink);
   font: inherit;
   outline: none;
   transition: border-color var(--duration-hover), box-shadow var(--duration-hover);
 }
 
+/* The game's quill marks the field being written in. */
 .rp-field__input:focus {
-  border-color: var(--gold);
+  padding-right: 40px;
+  border-color: var(--gold-dark);
+  background-image: url("./art/game/feather.webp");
+  background-position: right 10px top 50%;
+  background-size: 22px 22px;
+  background-repeat: no-repeat;
   box-shadow: var(--focus-ring);
+}
+
+textarea.rp-field__input:focus {
+  background-position: right 10px top 10px;
 }
 
 .rp-field__input[aria-invalid="true"] {
   border-color: var(--problem);
 }
 
+/* The game's paper button: gold for the main action, grey when it cannot be pressed. Under the pointer or the focus the
+   tab arrows of the game's menus stand either side of it. */
 .rp-button {
-  padding: 11px 16px;
-  border: 1px solid var(--gold-dark);
-  border-radius: var(--radius-small);
-  background: linear-gradient(180deg, var(--parchment-light), var(--parchment-deep));
+  position: relative;
+  padding: 11px 18px;
+  border: 0;
+  border-image: url("./art/game/button.webp") 30 26 fill / 12px 10px stretch;
+  background: none;
   color: var(--ink);
   font-weight: 700;
   font-size: 17px;
   font-family: var(--font-body);
   letter-spacing: 0.03em;
   cursor: pointer;
-  transition: background var(--duration-hover), box-shadow var(--duration-hover);
+  transition: filter var(--duration-hover);
 }
 
 .rp-button--primary {
-  background: linear-gradient(180deg, var(--gold-pale), var(--gold-bright));
+  border-image-source: url("./art/game/button-gold.webp");
 }
 
 .rp-button:hover:not(:disabled),
 .rp-button:focus-visible {
   outline: none;
-  box-shadow: var(--focus-ring);
+  filter: brightness(1.08) drop-shadow(0 0 6px var(--glow));
 }
 
-.rp-button--primary:hover:not(:disabled),
-.rp-button--primary:focus-visible {
-  background: linear-gradient(180deg, var(--gold-light), var(--gold-pale));
+.rp-button:hover:not(:disabled)::before,
+.rp-button:hover:not(:disabled)::after,
+.rp-button:focus-visible::before,
+.rp-button:focus-visible::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 9px;
+  height: 12px;
+  transform: translateY(-50%);
+  background: center / contain no-repeat;
+  pointer-events: none;
 }
 
-/* Its own colours rather than a fade, which would leave the label under 4.5:1. */
+.rp-button:hover:not(:disabled)::before,
+.rp-button:focus-visible::before {
+  left: 4px;
+  background-image: url("./art/game/arrow.webp");
+}
+
+.rp-button:hover:not(:disabled)::after,
+.rp-button:focus-visible::after {
+  right: 4px;
+  background-image: url("./art/game/arrow-right.webp");
+}
+
+/* Its own paper rather than a fade, which would leave the label under 4.5:1. */
 .rp-button:disabled {
-  border-color: var(--parchment-edge);
-  background: var(--disabled-fill);
+  border-image-source: url("./art/game/button-off.webp");
   color: var(--disabled-text);
   cursor: default;
 }
 
-/* One of a few choices side by side: a kind of wares, a filter, a language, a weather. The one picked takes the dark
-   gold of the selected tab's edge. */
+/* One of a few choices side by side: a kind of wares, a filter, a language, a weather. The inventory's filters: light
+   paper at rest, the dark one picked. */
 .rp-chip {
   min-height: 36px;
   padding: 4px 14px;
-  border: 1px solid var(--parchment-edge);
-  border-radius: var(--radius-pill);
-  background: var(--ink-wash);
+  border: 0;
+  border-image: url("./art/game/chip.webp") 10 fill / 5px stretch;
+  background: none;
   color: var(--ink-soft);
   font-size: 16px;
   font-family: var(--font-body);
   cursor: pointer;
-  transition: background var(--duration-hover), border-color var(--duration-hover), color var(--duration-hover);
+  transition: color var(--duration-hover);
 }
 
 .rp-chip:hover:not(:disabled, .rp-chip--on) {
-  border-color: var(--gold);
+  border-image-source: url("./art/game/chip-hover.webp");
   color: var(--ink);
 }
 
@@ -209,92 +244,150 @@
 }
 
 .rp-chip--on {
-  border-color: var(--gold-dark);
-  background: var(--gold-dark);
-  color: var(--parchment-light);
+  border-image-source: url("./art/game/chip-on.webp");
+  color: var(--ink);
   font-weight: 700;
+  text-decoration: underline 2px var(--gold-dark);
+  text-underline-offset: 4px;
 }
 
 .rp-chip:disabled {
-  background: var(--disabled-fill);
+  border-image-source: url("./art/game/button-off.webp");
+  border-image-slice: 30 26 fill;
   color: var(--disabled-text);
   cursor: default;
 }
 
-/* The medallions of the game's own menus down the side of a page, a tab each. */
+/* The game's paper tabs across the top of a page: one lowered tab or one raised tab a piece (cut from its strips of
+   five), so a row holds as many as the page has. The raised one is taller and runs into the page under it. */
 .rp-tabs {
-  display: grid;
-  align-content: start;
-  gap: 10px;
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+  height: 52px;
 }
 
 .rp-tabs__tab {
-  display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
   align-items: center;
-  gap: 14px;
-  padding: 8px 14px 8px 8px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-small);
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  height: 52px;
+  padding: 0 26px;
+  border: 0;
+  border-image: url("./art/game/tab.webp") 0 40 fill / 0 21px stretch;
   background: none;
   color: var(--ink-soft);
   font-weight: 700;
-  font-size: 20px;
+  font-size: 18px;
   font-family: var(--font-body);
-  text-align: left;
+  white-space: nowrap;
   cursor: pointer;
-  transition: background var(--duration-hover), color var(--duration-hover);
+  transition: filter var(--duration-hover), color var(--duration-hover);
 }
 
 .rp-tabs__tab:hover:not(.rp-tabs__tab--on) {
-  background: rgba(156, 122, 60, 0.12);
+  filter: brightness(1.07);
   color: var(--ink);
 }
 
-/* A line of its own round the tab, as the tab picked already has the wash. */
 .rp-tabs__tab:focus-visible {
   outline: 2px solid var(--gold-dark);
-  outline-offset: 2px;
+  outline-offset: -8px;
 }
 
 .rp-tabs__tab--on {
-  border-color: var(--parchment-edge);
-  background: rgba(156, 122, 60, 0.28);
+  z-index: 1;
+  height: 60px;
+  padding-bottom: 8px;
+  border-image-source: url("./art/game/tab-on.webp");
   color: var(--ink);
-  box-shadow: inset 4px 0 0 var(--gold-dark);
 }
 
-/* The medallions' own size at 1080p. */
+/* A list's row picked, on the game's own highlight, its gold edge outside it as the highlight fills the inside. Rows at
+   rest stay clear: on a wash the light highlight hardly shows. */
+.rp-entry--on {
+  border-color: transparent;
+  border-image: url("./art/game/entry.webp") 8 24 fill / 4px 12px stretch;
+  box-shadow: -4px 0 0 var(--gold-dark);
+}
+
+/* The HUD's dark box over the game: a thin taupe line, a crown on top and a foot below its middle. Its page positions
+   it (relative at least), as a page places its plates itself. */
+.rp-plate {
+  border: 0;
+  border-image: url("./art/game/plate.webp") 12 fill / 6px stretch;
+  background: none;
+  color: var(--night-text);
+}
+
+.rp-plate::before,
+.rp-plate::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 32px;
+  transform: translateX(-50%);
+  background: center / 100% 100% no-repeat;
+  pointer-events: none;
+}
+
+.rp-plate::before {
+  top: -4px;
+  height: 10px;
+  background-image: url("./art/game/plate-crown.webp");
+}
+
+.rp-plate::after {
+  bottom: -5px;
+  height: 12px;
+  background-image: url("./art/game/plate-foot.webp");
+}
+
+/* A notification: the plate with the boss bar's diamond tab on its left side. */
+.rp-plate--notice {
+  margin-left: 22px;
+}
+
+.rp-plate--notice::before {
+  top: 50%;
+  left: -22px;
+  width: 30px;
+  height: 48px;
+  transform: translateY(-50%);
+  background-image: url("./art/game/notice-tab.webp");
+}
+
+/* The game's medallion before each tab's name. */
 .rp-tabs__medallion {
-  width: 64px;
-  height: 64px;
+  flex: none;
+  width: 32px;
+  height: 32px;
   filter: saturate(0.6) brightness(0.92);
   transition: filter var(--duration-hover);
 }
 
 .rp-tabs__tab--on .rp-tabs__medallion,
 .rp-tabs__tab:hover .rp-tabs__medallion {
-  filter: drop-shadow(0 0 6px var(--glow));
+  filter: drop-shadow(0 0 4px var(--glow));
 }
 
 .rp-tabs__label {
-  overflow-wrap: anywhere;
-}
-
-.rp-tabs--small {
-  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rp-tabs--small .rp-tabs__tab {
-  grid-template-columns: 52px minmax(0, 1fr);
-  gap: 10px;
-  padding: 6px 10px 6px 6px;
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .rp-tabs--small .rp-tabs__medallion {
-  width: 52px;
-  height: 52px;
+  width: 28px;
+  height: 28px;
 }
 
 .rp-icon {

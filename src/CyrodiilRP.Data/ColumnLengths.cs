@@ -69,6 +69,9 @@ internal static class ColumnLengths
     // The game's record types are four letters ("WEAP").
     public const int RecordType = 8;
 
+    // The SDK keeps a custom item's key in 254 characters. A key is never cut: cut, it would name another item.
+    public const int CustomItemKey = 256;
+
     // Never between the two halves of a surrogate pair, which PostgreSQL refuses to store.
     public static string Cut(string value, int length)
     {

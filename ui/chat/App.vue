@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { watchGameCursor } from "../shared/cursor.js";
+import { notePresence } from "../shared/presence.js";
 import { CHAT_HISTORY_LINES, CHAT_MAX_LENGTH } from "../shared/limits.js";
 import { usePageTexts } from "../shared/locale.js";
 import { isComposing, isHeldPress } from "../shared/press.js";
@@ -155,7 +156,7 @@ onMounted(() => {
   props.bridge.onOpen(setOpen);
   props.bridge.requestHistory();
   // After the request, which the game takes as a page that has reported no cursor yet.
-  watchGameCursor(props.bridge.reportGameCursor);
+  watchGameCursor(props.bridge.reportGameCursor, notePresence);
   wake();
 });
 </script>

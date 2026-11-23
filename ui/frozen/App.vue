@@ -24,7 +24,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
 
 <template>
   <div v-if="notice" class="frozen">
-    <section class="frozen__plate" role="alert" aria-labelledby="frozen-title">
+    <section class="frozen__plate rp-plate" role="alert" aria-labelledby="frozen-title">
       <h1 id="frozen-title" class="frozen__title">{{ t.title }}</h1>
       <p class="frozen__notice">{{ notice }}</p>
       <p class="frozen__hint">{{ t.hint }}</p>

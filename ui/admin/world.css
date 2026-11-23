@@ -1,8 +1,10 @@
-/* The sky and the spawn beside the places, the traders and the notices under them. */
+/* The sky and the spawn beside the places, the traders and the notices under them. Every row as tall as what it holds,
+   the tab scrolling past them: a row allowed to shrink lets the next section draw over a long list. */
 .admin-world {
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  align-content: start;
   gap: 0 26px;
   height: 100%;
   overflow-y: auto;
@@ -35,10 +37,6 @@
   gap: 10px;
 }
 
-.admin-world__places {
-  min-height: 0;
-}
-
 .admin-world__kind {
   margin: 14px 0 6px;
   font-size: 16px;
@@ -69,7 +67,7 @@
 }
 
 .admin-place:hover:not(:disabled) {
-  background: rgba(156, 122, 60, 0.2);
+  background: var(--row-hover);
 }
 
 .admin-place:focus-visible {
@@ -89,6 +87,16 @@
 
 .admin-world__row--spot {
   grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+}
+
+/* Each axis keeps to its column, or its input's own width runs under the next one. */
+.admin-world__row--spot .rp-field {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.admin-world__row--spot .rp-field__input {
+  width: 100%;
+  min-width: 0;
 }
 
 .admin-world__places {

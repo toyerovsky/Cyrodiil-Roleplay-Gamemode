@@ -4,6 +4,13 @@
 export const PRESENCE_EVERY_MS = 5000;
 const SIGNS = ["keydown", "pointerdown", "pointermove", "wheel"];
 
+let noted = () => {};
+
+// A sign no event of the page's own carries (the game's cursor moving in one of its menus), under the same pacing.
+export function notePresence() {
+  noted();
+}
+
 export function watchPresence(readym, now = () => Date.now()) {
   let reportedAt = -Infinity;
   const report = () => {
@@ -12,5 +19,6 @@ export function watchPresence(readym, now = () => Date.now()) {
     reportedAt = at;
     readym.sendPresence();
   };
+  noted = report;
   for (const sign of SIGNS) window.addEventListener(sign, report, { capture: true, passive: true });
 }

@@ -33,6 +33,7 @@ public sealed class HerbalismConfig
     public bool Markers { get; set; } = true;
     public float MarkerDistance { get; set; } = 800f;
 
-    // How often each player's Alchemy is read, to tell their client when it reaches another tier.
+    // How often each player's Alchemy is read, to tell their client when it reaches another tier, and their unknown herbs
+    // checked: those they can now tell, picked earlier or handed to them since, become the ingredient.
     public double AlchemyCheckSeconds { get; set; } = 2;
 }

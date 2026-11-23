@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../away/App.vue";
 import { createBridge } from "../away/bridge.js";
 import { formatClock } from "../away/clock.js";
-import { PRESENCE_EVERY_MS, watchPresence } from "../shared/presence.js";
+import { notePresence, PRESENCE_EVERY_MS, watchPresence } from "../shared/presence.js";
 import { mountPage } from "./readym.js";
 
 describe("the AFK screen", () => {
@@ -80,5 +80,19 @@ describe("the player's presence in a page", () => {
     now += PRESENCE_EVERY_MS;
     window.dispatchEvent(new Event("wheel"));
     expect(sent).toEqual([1_000_000, 1_000_000 + PRESENCE_EVERY_MS]);
+  });
+
+  it("takes a sign the page noted itself, the game's cursor moving, under the same pacing", () => {
+    let now = 2_000_000;
+    const sent = [];
+    watchPresence({ sendPresence: () => sent.push(now) }, () => now);
+
+    notePresence();
+    notePresence();
+    expect(sent).toEqual([2_000_000]);
+
+    now += PRESENCE_EVERY_MS;
+    notePresence();
+    expect(sent).toEqual([2_000_000, 2_000_000 + PRESENCE_EVERY_MS]);
   });
 });

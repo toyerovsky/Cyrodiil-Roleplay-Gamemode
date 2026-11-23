@@ -109,7 +109,7 @@ defineExpose({ focus: () => searchField.value.focus() });
             <button
               type="button"
               class="auction-row"
-              :class="{ 'auction-row--on': lot.id === selectedId }"
+              :class="{ 'auction-row--on rp-entry--on': lot.id === selectedId }"
               :aria-pressed="lot.id === selectedId"
               :data-lot="lot.id"
               @click="select(lot)"

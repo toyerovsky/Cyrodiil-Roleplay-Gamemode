@@ -3,11 +3,12 @@
   --font-title: "Cinzel", "Alegreya", Georgia, serif;
 
   --ink: #2b1d0e;
-  --ink-soft: #5a4630;
-  --parchment: #e9dcbc;
-  --parchment-light: #f3ead3;
-  --parchment-deep: #dfcfa8;
-  --parchment-edge: #c9b285;
+  --ink-soft: #4a3925;
+  /* The remaster's menu paper (ui/rp/art/game/paper.webp) and the shades a page draws beside it. */
+  --parchment: #cfc8bc;
+  --parchment-light: #e2dbd0;
+  --parchment-deep: #bdb3a5;
+  --parchment-edge: #8f8273;
   --gold: #9c7a3c;
   --gold-bright: #c9a259;
   --gold-pale: #d8b46b;
@@ -19,11 +20,14 @@
   --confirmed: #2f5d26;
 
   --ink-line: rgba(43, 29, 14, 0.45);
-  --ink-wash: rgba(255, 250, 236, 0.5);
+  --ink-wash: rgba(244, 239, 231, 0.5);
+  /* A list's row under the pointer; the row picked lies on the game's highlight (.rp-entry--on). */
+  --row-hover: rgba(74, 57, 37, 0.1);
   --problem-wash: rgba(143, 29, 20, 0.07);
 
-  --night: rgba(12, 9, 6, 0.85);
-  --night-line: rgba(201, 162, 89, 0.25);
+  /* The HUD's own box (ui/rp/art/game/plate.webp): black under a thin taupe line. */
+  --night: rgba(0, 0, 0, 0.8);
+  --night-line: rgba(165, 150, 140, 0.55);
   --night-text: #f4ecdc;
   --night-muted: #a89c88;
   --night-refusal: #ff9c8c;
@@ -34,14 +38,16 @@
   --shadow-deep: rgba(0, 0, 0, 0.7);
   --glow: rgba(255, 190, 110, 0.45);
 
-  --disabled-fill: #d6c9a8;
-  --disabled-text: var(--ink-soft);
+  --disabled-fill: #aaa49c;
+  --disabled-text: var(--ink);
 
   --radius: 6px;
   --radius-small: 4px;
   --radius-pill: 999px;
   --focus-ring: 0 0 0 3px rgba(201, 162, 89, 0.4);
   --size-scrollbar: 10px;
+  --handle-dark: #4f4136;
+  --handle-light: #8a7a6c;
 
   --duration-hover: 160ms;
   --duration-fade: 600ms;

@@ -149,7 +149,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
 
 <template>
   <div v-if="foreman" class="trader foreman">
-    <RpPanel class="trader__panel foreman__panel" :class="{ 'foreman__panel--wages': kinds.length === 0 }" variant="letter" :title="foreman.name">
+    <RpPanel class="trader__panel foreman__panel" :class="{ 'foreman__panel--wages': kinds.length === 0 }" variant="board" :title="foreman.name">
       <p class="trader__purse">
         <RpIcon name="coins" class="trader__coin" />
         <span>{{ t.purse }}</span>

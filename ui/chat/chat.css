@@ -42,9 +42,7 @@
   padding: 8px 10px;
   overflow-y: auto;
   list-style: none;
-  background: var(--night);
-  border: 1px solid var(--night-line);
-  border-radius: var(--radius);
+  border-image: url("../rp/art/game/plate.webp") 12 fill / 6px stretch;
   overflow-wrap: anywhere;
   transition: opacity var(--duration-fade) ease;
 }
@@ -84,9 +82,9 @@
   max-width: 900px;
   visibility: hidden;
   padding: 7px 10px;
-  border: 1px solid var(--night-line);
-  border-radius: var(--radius);
-  background: var(--night);
+  border: 0;
+  border-image: url("../rp/art/game/plate.webp") 12 fill / 6px stretch;
+  background: none;
   color: var(--say);
   font: inherit;
   text-shadow: inherit;
@@ -98,7 +96,7 @@
 }
 
 .chat__entry:focus {
-  border-color: var(--gold-bright);
+  box-shadow: 0 0 0 2px var(--gold-dark), 0 0 12px var(--glow);
 }
 
 .chat__entry::placeholder {

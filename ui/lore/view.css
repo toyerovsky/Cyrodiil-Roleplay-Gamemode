@@ -32,7 +32,7 @@
   display: block;
   height: 1px;
   margin-top: 4px;
-  background: linear-gradient(90deg, var(--gold), transparent);
+  background: linear-gradient(90deg, var(--ink-line), transparent);
 }
 
 .lore-view__fields {

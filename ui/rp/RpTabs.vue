@@ -7,8 +7,8 @@ export const makeTabId = (panel, tab) => `${panel}-tab-${tab}`;
 import { nextTick, useTemplateRef } from "vue";
 import { isComposing, isHeldPress, readCode } from "../shared/press.js";
 
-// A column of tabs under the medallions of the game's own menus. Large is the medallions' own size at 1080p, small for
-// a page that needs the room.
+// A row of the game's paper tabs across the top of a page, each with its medallion before its name. Small ones for a
+// page with many.
 const props = defineProps({
   tabs: { type: Array, required: true },
   label: { type: String, required: true },
@@ -47,7 +47,7 @@ defineExpose({ focus, takeKey });
 </script>
 
 <template>
-  <div class="rp-tabs" :class="`rp-tabs--${size}`" role="tablist" aria-orientation="vertical" :aria-label="label" @keydown="takeKey">
+  <div class="rp-tabs" :class="`rp-tabs--${size}`" role="tablist" aria-orientation="horizontal" :aria-label="label" @keydown="takeKey">
     <button
       v-for="each in tabs"
       :id="makeTabId(controls, each.id)"

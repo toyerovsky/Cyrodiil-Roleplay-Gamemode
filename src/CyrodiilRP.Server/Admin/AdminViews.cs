@@ -24,6 +24,7 @@ internal sealed partial class AdminViews(
     Freezes freezes,
     TraderSpots traders,
     SpawnPoints spawn,
+    KnownItems known,
     Persistence persistence)
 {
     private const int AuditPageSize = 25;
@@ -57,8 +58,8 @@ internal sealed partial class AdminViews(
                 : null);
     }
 
-    public static List<AdminItemView> SearchItems(AdminItemFilter filter) =>
-        ItemCatalog.Shipped.Search(filter.Text, filter.Type, ItemsShown).Select(item => new AdminItemView(item.Id, item.Name, item.Type, 0, false)).ToList();
+    public List<AdminItemView> SearchItems(AdminItemFilter filter) =>
+        known.Search(filter.Text, filter.Type, ItemsShown).Select(item => new AdminItemView(item.Id, item.Name, item.Type, 0, false)).ToList();
 
     // Null when the target left while the database answered.
     public async Task<AdminCardView?> ReadCardAsync(OnlinePlayer target, AdminSpecializationPart specialization)
@@ -142,7 +143,7 @@ internal sealed partial class AdminViews(
         {
             var entry = inventory.GetItems(i);
             var form = entry.FormId.FormId.Value;
-            var item = ItemCatalog.Shipped.FindByForm(form);
+            var item = known.Describe(entry.FormId);
             items.Add(new AdminItemView(item?.Id ?? $"{form:X8}", item?.Name ?? $"{form:X8}", item?.Type ?? string.Empty, entry.Count, entry.Worn != 0));
         }
 

@@ -134,7 +134,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
 
 <template>
   <div v-if="shop" class="trader">
-    <RpPanel class="trader__panel" variant="letter" :title="t[`shop.${shop.shop}`] ?? shop.shop">
+    <RpPanel class="trader__panel" variant="board" :title="t[`shop.${shop.shop}`] ?? shop.shop">
       <p class="trader__purse">
         <RpIcon name="coins" class="trader__coin" />
         <span>{{ t.purse }}</span>

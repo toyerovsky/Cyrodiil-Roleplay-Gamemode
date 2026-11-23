@@ -111,7 +111,7 @@
 }
 
 .exchange__item:hover:not(:disabled) {
-  background: rgba(156, 122, 60, 0.12);
+  background: var(--row-hover);
 }
 
 .exchange__item:focus-visible {

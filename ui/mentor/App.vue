@@ -182,7 +182,7 @@ onUnmounted(() => {
 
 <template>
   <div v-if="mentor" class="mentor">
-    <RpPanel ref="panel" class="mentor__panel" variant="letter" :title="title">
+    <RpPanel ref="panel" class="mentor__panel" variant="board" :title="title">
       <p class="mentor__lead">
         {{ fill(t.lead, { trained: mentor.caps.trainedSkill, limited: mentor.caps.limitedSkill }) }}
       </p>

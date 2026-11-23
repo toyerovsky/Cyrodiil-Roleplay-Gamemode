@@ -104,44 +104,49 @@
   transition: width var(--duration-hover);
 }
 
-/* The sections in one row under the head, the one picked underlined in dark gold. */
+/* The sections in one row under the head, the one picked on the game's list highlight, underlined in dark gold. */
+/* The game's paper tabs, as RpTabs draws them: the card has eight sections and its own keys for them. */
 .lore__sections {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px 4px;
+  align-items: flex-start;
   margin-top: 12px;
-  border-bottom: 1px solid var(--ink-line);
 }
 
 .lore__section {
+  position: relative;
   flex: 1 1 0;
   min-width: max-content;
-  padding: 8px 12px 9px;
+  height: 52px;
+  padding: 0 26px;
   border: 0;
-  border-bottom: 3px solid transparent;
-  border-radius: var(--radius-small) var(--radius-small) 0 0;
+  border-image: url("../rp/art/game/tab.webp") 0 40 fill / 0 21px stretch;
   background: none;
   color: var(--ink-soft);
   font-weight: 700;
-  font-size: 19px;
+  font-size: 18px;
   font-family: var(--font-body);
+  white-space: nowrap;
   cursor: pointer;
-  transition: background var(--duration-hover), color var(--duration-hover);
+  transition: filter var(--duration-hover), color var(--duration-hover);
 }
 
 .lore__section:hover:not(.lore__section--on) {
-  background: rgba(156, 122, 60, 0.12);
+  filter: brightness(1.07);
   color: var(--ink);
 }
 
 .lore__section:focus-visible {
   outline: 2px solid var(--gold-dark);
-  outline-offset: -2px;
+  outline-offset: -8px;
 }
 
 .lore__section--on {
-  border-bottom-color: var(--gold-dark);
-  background: rgba(156, 122, 60, 0.2);
+  z-index: 1;
+  height: 60px;
+  margin-bottom: -8px;
+  padding-bottom: 8px;
+  border-image-source: url("../rp/art/game/tab-on.webp");
   color: var(--ink);
 }
 
@@ -265,8 +270,8 @@
   line-height: 1;
   color: var(--ink);
   background: linear-gradient(180deg, var(--parchment-light), var(--parchment-deep));
-  border: 1px solid var(--gold-dark);
-  border-bottom-width: 2px;
+  border: 1px solid var(--parchment-edge);
+  border-bottom: 2px solid var(--ink-soft);
   border-radius: var(--radius-small);
 }
 
@@ -327,12 +332,11 @@
 }
 
 .lore-row:hover:not(.lore-row--cursor) {
-  background: rgba(156, 122, 60, 0.1);
+  background: var(--row-hover);
 }
 
 .lore-row--cursor {
-  background: rgba(156, 122, 60, 0.26);
-  box-shadow: inset 4px 0 0 var(--gold-dark);
+  border-image: url("../rp/art/game/entry.webp") 8 24 fill / 4px 12px stretch;
 }
 
 /* The cursor's row says where the keys go while the list holds the focus. */
@@ -427,7 +431,7 @@
   letter-spacing: 0.04em;
   white-space: nowrap;
   color: var(--gold-dark);
-  border: 1px solid var(--gold);
+  border: 1px solid var(--gold-dark);
   border-radius: var(--radius-small);
   background: var(--ink-wash);
 }
@@ -619,7 +623,7 @@
   margin: 0;
   padding: 8px 12px;
   background: var(--ink-wash);
-  border-left: 3px solid var(--gold);
+  border-left: 3px solid var(--gold-dark);
   border-radius: var(--radius-small);
 }
 
@@ -732,7 +736,7 @@
   padding: 10px 12px;
   border: 1px solid var(--parchment-edge);
   border-radius: var(--radius-small);
-  background: rgba(255, 252, 242, 0.85);
+  background-color: rgba(244, 239, 231, 0.8);
   color: var(--ink);
   font: inherit;
   font-size: 20px;
@@ -740,9 +744,19 @@
   transition: border-color var(--duration-hover), box-shadow var(--duration-hover);
 }
 
+/* The game's quill marks the box being written in, as on the shared fields. */
 .lore-edit__box:focus {
-  border-color: var(--gold);
+  padding-right: 40px;
+  border-color: var(--gold-dark);
+  background-image: url("../rp/art/game/feather.webp");
+  background-position: right 10px top 50%;
+  background-size: 22px 22px;
+  background-repeat: no-repeat;
   box-shadow: var(--focus-ring);
+}
+
+.lore-edit__box--long:focus {
+  background-position: right 10px top 10px;
 }
 
 .lore-edit__box[aria-invalid="true"] {
@@ -819,12 +833,11 @@
 }
 
 .lore-option:hover:not(.lore-option--cursor) {
-  background: rgba(156, 122, 60, 0.1);
+  background: var(--row-hover);
 }
 
 .lore-option--cursor {
-  background: rgba(156, 122, 60, 0.28);
-  box-shadow: inset 4px 0 0 var(--gold-dark);
+  border-image: url("../rp/art/game/entry.webp") 8 24 fill / 4px 12px stretch;
 }
 
 .lore-option__name small {

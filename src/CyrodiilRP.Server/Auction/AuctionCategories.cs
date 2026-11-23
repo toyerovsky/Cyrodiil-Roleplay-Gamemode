@@ -24,6 +24,8 @@ internal static class AuctionCategories
         AuctionCategory.Other => Other,
     };
 
+    public static bool IsGoods(string type) => Enum.GetValues<AuctionCategory>().Any(category => ListTypes(category).Contains(type));
+
     public static AuctionCategory Find(string type)
     {
         foreach (var category in Enum.GetValues<AuctionCategory>())

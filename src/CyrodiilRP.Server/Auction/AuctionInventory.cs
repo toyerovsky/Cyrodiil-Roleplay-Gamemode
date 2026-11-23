@@ -3,7 +3,6 @@ using OblivionMP.SDK.Common.Archetypes;
 using OblivionMP.SDK.Common.Archetypes.Mixins;
 using OblivionMP.SDK.Serverside.Items;
 using ReadyM.Api.Idents;
-using ReadyM.Relay.Common.Oblivion;
 using ReadyM.Relay.Common.Oblivion.ECS.Values;
 using ReadyM.SDK.Attributes;
 using ReadyM.SDK.Entities;
@@ -25,7 +24,7 @@ internal sealed partial class AuctionInventory(IEntities entities, Inventories i
         if (count <= 0 || !entities.TryLookup(player, out MainCharacter main))
             return false;
 
-        var entry = new InventoryEntry(new FormId(stack.Form), count, 0) { Health = stack.Health, Charge = stack.Charge };
+        var entry = new InventoryEntry(stack.Item, count, 0) { Health = stack.Health, Charge = stack.Charge };
         inventories.Add(GetInventory(main), entry);
         return true;
     }

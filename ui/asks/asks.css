@@ -16,19 +16,13 @@
   grid-template-columns: auto 1fr auto;
   gap: 14px;
   align-items: start;
-  padding: 14px 18px 18px;
-  overflow: hidden;
-  color: var(--night-text);
-  background: var(--night);
-  border: 1px solid var(--night-line);
-  border-radius: var(--radius);
-  box-shadow: 0 10px 28px var(--shadow-deep);
+  padding: 14px 18px 20px;
+  filter: drop-shadow(0 10px 18px var(--shadow-deep));
   animation: ask-enter var(--duration-stamp) ease-out;
 }
 
 .ask--answerable {
-  border-color: var(--gold-bright);
-  box-shadow: 0 10px 28px var(--shadow-deep), 0 0 18px var(--glow);
+  filter: drop-shadow(0 10px 18px var(--shadow-deep)) drop-shadow(0 0 10px var(--glow));
 }
 
 .ask__icon {
@@ -95,10 +89,8 @@
   font-weight: 700;
   font-size: 16px;
   color: var(--ink);
-  background: linear-gradient(180deg, var(--parchment-light), var(--parchment-deep));
-  border: 1px solid var(--gold-dark);
-  border-bottom-width: 3px;
-  border-radius: var(--radius-small);
+  border: 0;
+  border-image: url("../rp/art/game/chip.webp") 10 fill / 5px stretch;
 }
 
 .ask__next {
@@ -116,11 +108,11 @@
 
 .ask__time {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 4px;
-  background: rgba(201, 162, 89, 0.15);
+  right: 8px;
+  bottom: 7px;
+  left: 8px;
+  height: 3px;
+  background: var(--night-line);
 }
 
 .ask__time-left {

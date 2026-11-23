@@ -40,8 +40,8 @@ textarea {
   color: var(--ink);
 }
 
-/* A thin rail with a gold handle, never the browser's grey. A page leaves scrollbar-width and scrollbar-color unset:
-   either one turns this look off in Chromium. */
+/* The game's thin rail with a dark taupe handle, never the browser's grey. A page leaves scrollbar-width and
+   scrollbar-color unset: either one turns this look off in Chromium. */
 ::-webkit-scrollbar {
   width: var(--size-scrollbar);
   height: var(--size-scrollbar);
@@ -55,7 +55,7 @@ textarea {
   min-height: 32px;
   border: 2px solid transparent;
   border-radius: var(--radius);
-  background: linear-gradient(90deg, var(--gold-dark), var(--gold-bright) 50%, var(--gold-dark)) padding-box;
+  background: linear-gradient(90deg, var(--handle-dark), var(--handle-light) 50%, var(--handle-dark)) padding-box;
 }
 
 ::-webkit-scrollbar-corner {

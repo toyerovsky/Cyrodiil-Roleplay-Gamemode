@@ -60,7 +60,7 @@ onUnmounted(stopTicking);
     <article
       v-for="ask in shown"
       :key="ask.id"
-      class="ask"
+      class="ask rp-plate rp-plate--notice"
       :class="{ 'ask--incoming': ask.incoming, 'ask--answerable': ask.id === answerable }"
       :data-ask="ask.id"
     >

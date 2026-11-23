@@ -51,11 +51,14 @@ collects it at any auctioneer. Sellers stay unnamed to the players.
 - **The NPC** is a trader spot whose shop is `auction` (`TraderRules.AuctionShop`, `TraderSpotKind.Auctioneer`),
   stood, kept and kept from harm by `TraderNpcs` with its origin `TraderOrigin.AuctioneerSpawnerRefId`. No shop of
   `stocks.json` may be named `auction`.
-- **Database**: `auction_lots` (the item as the game keeps it: form, count, durability and charge, with the catalogue's
-  name and record type for the search, the seller's name as it was for the staff, the prices, the fee, the top bid and
+- **Database**: `auction_lots` (the item as the game keeps it: form, count, durability and charge, or for a custom
+  item a mod defined form 0 and its key, `custom_item`, as its form lasts one run only; its name and record type for
+  the search, the seller's name as it was for the staff, the prices, the fee, the top bid and
   its bidder, the status `Open`, `Sold`, `Expired`, `Withdrawn` or `Removed`, the buyer, the price and the cut) and
   `auction_parcels` (what waits for a character: the lot's item, or gold for a sale, an outbid and a refund).
-  Constraints keep a lot's prices, bids and status consistent and a gold parcel above 0.
+  Constraints keep a lot's prices, bids and status consistent, a lot either a game item or a custom one, and a gold
+  parcel above 0. A custom item no mod defines when its parcel is collected or handed back waits in Collect, logged as
+  an error, until one defines it again.
 - **Every change on the writer** (`AuctionBook`): a post counts the seller's open lots, a bid, a purchase, a take back,
   a staff removal and the closing of lots that ran out each read the lot and write it with the parcels it owes in one
   save. So two bids never both win and a parcel is never owed twice. The shared arithmetic (fee, cut, least bid, the
@@ -78,7 +81,8 @@ collects it at any auctioneer. Sellers stay unnamed to the players.
 ## 5. Not built yet
 
 - The staff panel's tab for the house. The staff use `/aauction`.
-- Items players made (potions, enchanted gear), which no catalogue names, and anything worn.
+- Items players made in the game (potions, enchanted gear), which nothing names, and anything worn. The custom items
+  the mods define (`ICustomItems`) are sold like the game's, sorted by the kind of the item each copies.
 - Paying with gold at the bank.
 - Not checked in the game: the window at a real auctioneer, the items handed back with their durability and charge,
   and the crosshair's name.

@@ -70,3 +70,16 @@ The server refuses a config without a connection string and a database at anothe
 | `noticeBoards` | the notice boards: `shown` (10), `minLength` and `maxLength` (1 and 300), `perCharacter` (3), `cooldownMinutes` (5), `expiryDays` (7) and `asset`, the game's form a board stands as (`docs/features/notice-board.md`) |
 | `auction` | the auction house: `listingFeePercent` (2) and `cutPercent` (5), `durationHours` (12, 24, 48), `maxLots` (10) a character, `bidStepPercent` (5) and `extendMinutes` (5) (`docs/features/auction-house.md`) |
 | `lore` | the lore card: `catalogMode` (`Canon` by default) and `allowImplausibleSubtypes` (`false`: no kinds that do not fit the race's body, such as the Senche) |
+
+## Pages' pictures
+
+The pages draw with the game's own UI textures: the menu paper, the merchant's wooden board and brass clip, a lowered
+and a raised paper tab cut from the game's tab strips, its buttons and filter chips, the list's highlight,
+the ornament under a title, the HUD's dark box and the boss bar's diamond tab. `ui/scripts/bake-game-art.py` cuts,
+colours and sizes them from a retoc export of the game's paks into `ui/rp/art/game` (and the notification's pieces into
+the Jobs panel's `art/`), which are committed. Run it again only to change a cut or a colour (Python with Pillow and
+NumPy):
+
+```powershell
+python -I ui/scripts/bake-game-art.py "<export>/Art/UI"
+```

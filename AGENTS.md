@@ -55,8 +55,10 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   first; a pick gives them one through the Hunger and Thirst mod (`mods/HungerAndThirst`), and the feeding is said
   around as an action.
 - **Exchange:** an offer from the H wheel, taken up with Y as for a party, gold and items from hand to hand in a
-  window, both sides see both offers and confirm. Names come from the catalogue the mode ships, so what a player wears
-  and what players made (their potions and enchanted items) stay out of it.
+  window, both sides see both offers and confirm. Names come from the catalogue the mode ships and from the custom
+  items the mods define (the SDK's `ICustomItems`, `Admin/KnownItems.cs`), so what a player wears and what players made
+  in the game (their potions and enchanted items) stay out of it. The auction house takes the same, a custom item kept
+  by its key.
 - **Dice:** `/roll` rolls d6, d10, d20 and d100 (up to 5 dice) on the server and shows the line to those around. A 3D
   board (Home, `/board`, the G wheel, the F10 menu) throws them with the mouse or the keys and lands each die on the
   server's number, in one of 12 dice sets kept on the character (`/dice`). The H wheel adds an opposed d20 roll. Every
@@ -76,8 +78,8 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
 - **In-game administration:** staff roles from the database (moderator, administrator, owner), duty with `/duty`
   (staff actions only on duty, which shows in the name over the head), sanctions with a reason and an audit log
   (kick, ban, mute, freeze, warning, lifting them also for offline players), care of a character (healing, health,
-  reviving, gold, the game's items by name and kind, for oneself and for players), a message to a player, teleports
-  (to a player, to the gates of cities and settlements, back, and through walls, see
+  reviving, gold, the game's items and the mods' custom items by name and kind, for oneself and for players), a
+  message to a player, teleports (to a player, to the gates of cities and settlements, back, and through walls, see
   `docs/features/staff-movement.md`), the area's time and weather. The `/admin` panel (also from the G and H wheels
   for the staff): players with a card and their lore card (`/alore` clears a field), items, sanctions in force, the
   audit log by pages, the world, the roll log, the factions.

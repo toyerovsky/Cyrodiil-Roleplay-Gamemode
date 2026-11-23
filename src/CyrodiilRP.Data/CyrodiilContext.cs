@@ -302,6 +302,7 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.ToTable("auction_lots", table =>
             {
                 table.HasCheckConstraint("ck_auction_lots_item", "count > 0");
+                table.HasCheckConstraint("ck_auction_lots_custom_item", "(custom_item IS NULL AND form <> 0) OR (custom_item IS NOT NULL AND form = 0)");
                 table.HasCheckConstraint("ck_auction_lots_prices", "(start_price IS NOT NULL OR buyout_price IS NOT NULL) AND (start_price IS NULL OR start_price > 0) AND (buyout_price IS NULL OR buyout_price > 0) AND (start_price IS NULL OR buyout_price IS NULL OR buyout_price > start_price) AND fee >= 0");
                 table.HasCheckConstraint("ck_auction_lots_bid", "bids >= 0 AND (top_bid IS NULL) = (top_bidder_character_id IS NULL) AND (top_bid IS NULL) = (bids = 0) AND (top_bid IS NULL OR (start_price IS NOT NULL AND top_bid >= start_price AND (buyout_price IS NULL OR top_bid < buyout_price))) AND (top_bidder_character_id IS NULL OR top_bidder_character_id <> seller_character_id)");
                 table.HasCheckConstraint("ck_auction_lots_status", "(status = 'Open' AND closed_at IS NULL AND buyer_character_id IS NULL AND price IS NULL AND cut = 0) OR (status = 'Sold' AND closed_at IS NOT NULL AND buyer_character_id IS NOT NULL AND buyer_character_id <> seller_character_id AND price > 0 AND cut >= 0 AND cut <= price) OR (status IN ('Expired', 'Withdrawn', 'Removed') AND closed_at IS NOT NULL AND buyer_character_id IS NULL AND price IS NULL AND cut = 0)");
@@ -310,6 +311,7 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.Property(x => x.SellerName).HasMaxLength(ColumnLengths.NameKey);
             entity.Property(x => x.ItemName).HasMaxLength(ColumnLengths.ItemName);
             entity.Property(x => x.ItemType).HasMaxLength(ColumnLengths.RecordType);
+            entity.Property(x => x.CustomItem).HasMaxLength(ColumnLengths.CustomItemKey);
             entity.HasIndex(x => new { x.Status, x.EndsAt });
             entity.HasIndex(x => new { x.SellerCharacterId, x.Status });
             entity.HasIndex(x => x.TopBidderCharacterId);
