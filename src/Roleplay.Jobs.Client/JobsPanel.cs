@@ -6,6 +6,7 @@ using OblivionMP.SDK;
 using ReadyM.Cef;
 using ReadyM.Cef.Rpc;
 using ReadyM.SDK.Attributes;
+using Roleplay.Jobs.Common;
 
 namespace Roleplay.Jobs.Client;
 
@@ -32,22 +33,21 @@ public sealed partial class JobsPanel(CefHost cef, IPlayers players, ILogger log
     // What is on the plate is dropped this long after the last change: the page has faded it by then
     private const double ForgetAfterSeconds = 7.0;
 
-    /// <summary>78.5% to 98.5% across, 30% to 44% down: clear of the compass, the quest notes and the game's own
-    /// messages. panel.css sizes the plate from this viewport's height.</summary>
+    /// <summary>78.5% to 98.5% across, 30% to 50% down: clear of the compass, the quest notes and the game's own
+    /// messages, and tall enough for the title, the bar and the most lines shown (<see cref="PanelLines"/>), one of
+    /// them wrapped. panel.css sizes the plate from this viewport's height.</summary>
     private static readonly ViewportPlacement Placement = new()
     {
         AnchorMinX = 0.785f,
         AnchorMaxX = 0.985f,
         AnchorMinY = 0.30f,
-        AnchorMaxY = 0.44f,
+        AnchorMaxY = 0.50f,
     };
 
     private static readonly JsonSerializerOptions Json = new() { TypeInfoResolver = new DefaultJsonTypeInfoResolver() };
 
-    private sealed record Line(string Kind, string Text);
-
     private readonly Stopwatch _clock = Stopwatch.StartNew();
-    private readonly List<Line> _lines = [];
+    private readonly PanelLines _lines = new();
     private string? _folder;
     private ViewportHandle _viewport;
     private BrowserHandle? _page;
@@ -82,15 +82,16 @@ public sealed partial class JobsPanel(CefHost cef, IPlayers players, ILogger log
         Changed();
     }
 
-    /// <summary>What came of the work: one line for each thing gained, or the sentence when nothing was.</summary>
+    /// <summary>What came of the work: a line for each thing gained, counted up with what is shown, or the sentence when
+    /// nothing was.</summary>
     public void Outcome(IReadOnlyList<string> gains, string sentence)
     {
         if (Stale)
             ClearWork();
-        if (gains.Count > 0)
-            _lines.AddRange(gains.Select(gain => new Line("gain", "+" + gain)));
-        else if (sentence.Length > 0)
-            _lines.Add(new Line("note", sentence));
+        foreach (var gain in gains)
+            _lines.AddGain(gain);
+        if (gains.Count == 0 && sentence.Length > 0)
+            _lines.Say("note", sentence);
         Changed();
     }
 
@@ -108,8 +109,7 @@ public sealed partial class JobsPanel(CefHost cef, IPlayers players, ILogger log
             PanelLineKind.Refusal => "refusal",
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Not a panel line kind."),
         };
-        _lines.RemoveAll(line => line.Text == text);
-        _lines.Add(new Line(name, text));
+        _lines.Say(name, text);
         Changed();
     }
 
@@ -180,7 +180,7 @@ public sealed partial class JobsPanel(CefHost cef, IPlayers players, ILogger log
         if (wanted != _shown)
             Guard("showing or hiding the panel", () => Show(wanted, rearm: false));
 
-        if (_seq > 0 && Stale && (_title.Length > 0 || _lines.Count > 0))
+        if (_seq > 0 && Stale && (_title.Length > 0 || _lines.Lines.Count > 0))
             ClearWork();
         Push(force: false);
     }
@@ -215,7 +215,7 @@ public sealed partial class JobsPanel(CefHost cef, IPlayers players, ILogger log
                 title = _title,
                 damage = _damage,
                 health = _health,
-                lines = _lines.Select(line => new { kind = line.Kind, text = line.Text }).ToArray(),
+                lines = _lines.Lines.Select(line => new { kind = line.Kind, text = line.Text }).ToArray(),
             }, Json);
             if (!force && json == _lastJson && Now - _lastPush < KeepAliveSeconds)
                 return;

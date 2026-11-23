@@ -19,6 +19,10 @@
   const title = $('title');
   const count = $('count');
   const fill = $('fill');
+  const bar = $('bar');
+
+  // The bar's colour by how far the work is: red as it starts, yellow halfway, green when done.
+  const WORK_COLOURS = [[200, 58, 44], [226, 188, 66], [86, 182, 80]];
   const lines = $('lines');
 
   let lastSeq = -1;
@@ -26,6 +30,15 @@
   let hideTimer = 0;
   let cursorEpoch = 0;
   let forgetCursor = () => {};
+
+  // Between the two colours either side of done, from 0 (just begun) to 1 (finished).
+  function workColour(done) {
+    const at = done * (WORK_COLOURS.length - 1);
+    const from = Math.min(Math.floor(at), WORK_COLOURS.length - 2);
+    const share = at - from;
+    const mix = WORK_COLOURS[from].map((value, i) => Math.round(value + (WORK_COLOURS[from + 1][i] - value) * share));
+    return `rgb(${mix.join(' ')})`;
+  }
 
   function render(state) {
     if (typeof state.cursorEpoch === 'number' && state.cursorEpoch !== cursorEpoch) {
@@ -40,7 +53,9 @@
     const hasWork = !!state.title && state.health > 0;
     title.textContent = state.title || '';
     count.textContent = hasWork ? `${Math.min(state.damage, state.health)} / ${state.health}` : '';
-    fill.style.width = hasWork ? `${Math.max(0, Math.min(1, state.damage / state.health)) * 100}%` : '0';
+    const done = hasWork ? Math.max(0, Math.min(1, state.damage / state.health)) : 0;
+    fill.style.width = `${done * 100}%`;
+    bar.style.setProperty('--work', workColour(done));
     panel.classList.toggle('lines-only', !hasWork);
     lines.replaceChildren(...(state.lines || []).map((line) => {
       const li = document.createElement('li');

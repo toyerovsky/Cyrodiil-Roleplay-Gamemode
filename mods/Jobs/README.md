@@ -106,7 +106,10 @@ real references, and are not handled yet.
   it: what the player got ("+3 Firewood"), a hint, or why a hit did not count (no axe, too far, outside a lumber
   camp, someone felled it a moment before). It fades six seconds after the last hit and steps aside while a game menu
   is open. Its page is `Content/web/panel.html` (plain HTML, Cinzel and Alegreya, the fonts' OFL licences beside
-  them), hosted by `JobsPanel`; opened in a browser it shows a preview with a mock game (C, P, M, R and Q).
+  them, and in `art/` the game's own HUD box and diamond tab, which `ui/scripts/bake-game-art.py` writes, and its
+  vital bar, which `mods/HungerAndThirst/tools/bake_vitals.py` writes uncoloured: the page colours it by how far the
+  work is, red to yellow to green), hosted by
+  `JobsPanel`; opened in a browser it shows a preview with a mock game (C, P, M, R and Q).
 
 ## For other mods
 
