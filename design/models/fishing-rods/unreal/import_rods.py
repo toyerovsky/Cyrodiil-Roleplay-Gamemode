@@ -1,7 +1,12 @@
 # Runs inside Unreal Editor 5.3 (the PythonScript commandlet): imports the rods export_rods.py made into
-# /Game/CyrodiilRP/Fishing, each with its three textures and a material instance of M_FishingRod, and labels
-# /Game/CyrodiilRP for chunk 1, so the cook puts the mode's assets into a container of their own.
+# /Game/CyrodiilRP/Fishing, each with its two textures and a material instance of the game's own base material, and
+# labels /Game/CyrodiilRP for chunk 1, so the cook puts the mode's assets into a container of their own.
 # usage: UnrealEditor-Cmd.exe OblivionRemastered.uproject -run=pythonscript -script="import_rods.py SOURCE_DIR"
+#
+# The game runs Unreal 5.3.2 changed by its makers: a material cooked by the stock engine crashes it on load ("Bad
+# export index"). So the rods own no material. Their instances take the base material the game's staves use, which
+# this project stands in for with a stand-in at the same path, cooked only into chunk 0, which is never shipped: in the
+# game the reference finds the game's own.
 import os
 import sys
 
@@ -14,6 +19,13 @@ GRADES = ("Basic", "Sturdy", "Master")
 CHUNK = 1
 # The rods are about 2.7 to 3.1 m long: anything else means the FBX came in at the wrong scale.
 SHORTEST_CM, LONGEST_CM = 250.0, 330.0
+
+# The game's base material for held things and its parameters, as the staves' MIC_Staff01 names them.
+GAME_MATERIALS = "/Game/Materials/Template"
+GAME_BASE = "MI_T_BaseMaterial_FPSClippingFix"
+STAND_IN_PARENT = "M_CyrodiilRP_StandIn"
+COLOR_MAP = "BaseColor Map"
+NNRM_MAP = "NNRM Map"
 
 tools = unreal.AssetToolsHelpers.get_asset_tools()
 materials = unreal.MaterialEditingLibrary
@@ -54,7 +66,7 @@ def import_all():
     jobs = []
     for grade in GRADES:
         jobs.append(task(os.path.join(SOURCE, f"SM_FishingRod_{grade}.fbx"), FISHING, mesh_options()))
-        for kind in ("BaseColor", "Normal", "ORM"):
+        for kind in ("BaseColor", "NNRM"):
             jobs.append(task(os.path.join(SOURCE, f"T_FishingRod_{grade}_{kind}.png"), FISHING))
     tools.import_asset_tasks(jobs)
     for job in jobs:
@@ -67,55 +79,50 @@ def texture(grade, kind):
     if kind == "BaseColor":
         found.set_editor_property("srgb", True)
         found.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_DEFAULT)
-    elif kind == "Normal":
-        # Blender bakes OpenGL normals, green up: Unreal's are DirectX.
+    elif kind == "NNRM":
         found.set_editor_property("srgb", False)
-        found.set_editor_property("flip_green_channel", True)
-        found.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_NORMALMAP)
-    elif kind == "ORM":
-        found.set_editor_property("srgb", False)
-        found.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_MASKS)
+        found.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_BC7)
     else:
         raise ValueError(kind)
     assets.save_loaded_asset(found)
     return found
 
 
-def master_material():
-    path = f"{FISHING}/M_FishingRod"
+def fresh(path):
     if assets.does_asset_exist(path):
         assets.delete_asset(path)
-    material = tools.create_asset("M_FishingRod", FISHING, unreal.Material, unreal.MaterialFactoryNew())
 
-    def parameter(name, y, sampler, default):
-        node = materials.create_material_expression(material, unreal.MaterialExpressionTextureSampleParameter2D, -500, y)
-        node.set_editor_property("parameter_name", name)
-        node.set_editor_property("sampler_type", sampler)
-        node.set_editor_property("texture", default)
-        return node
 
-    color = parameter("BaseColor", -300, unreal.MaterialSamplerType.SAMPLERTYPE_COLOR, texture("Basic", "BaseColor"))
-    orm = parameter("ORM", 0, unreal.MaterialSamplerType.SAMPLERTYPE_MASKS, texture("Basic", "ORM"))
-    normal = parameter("Normal", 300, unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL, texture("Basic", "Normal"))
+# A material with the game's parameter names, and an instance of it at the game's base material's path.
+def stand_in():
+    fresh(f"{GAME_MATERIALS}/{GAME_BASE}")
+    fresh(f"{GAME_MATERIALS}/{STAND_IN_PARENT}")
+    parent = tools.create_asset(STAND_IN_PARENT, GAME_MATERIALS, unreal.Material, unreal.MaterialFactoryNew())
+    color = materials.create_material_expression(parent, unreal.MaterialExpressionTextureSampleParameter2D, -500, -200)
+    color.set_editor_property("parameter_name", COLOR_MAP)
+    color.set_editor_property("sampler_type", unreal.MaterialSamplerType.SAMPLERTYPE_COLOR)
+    color.set_editor_property("texture", texture("Basic", "BaseColor"))
+    nnrm = materials.create_material_expression(parent, unreal.MaterialExpressionTextureSampleParameter2D, -500, 200)
+    nnrm.set_editor_property("parameter_name", NNRM_MAP)
+    nnrm.set_editor_property("sampler_type", unreal.MaterialSamplerType.SAMPLERTYPE_LINEAR_COLOR)
+    nnrm.set_editor_property("texture", texture("Basic", "NNRM"))
     materials.connect_material_property(color, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
-    materials.connect_material_property(orm, "R", unreal.MaterialProperty.MP_AMBIENT_OCCLUSION)
-    materials.connect_material_property(orm, "G", unreal.MaterialProperty.MP_ROUGHNESS)
-    materials.connect_material_property(orm, "B", unreal.MaterialProperty.MP_METALLIC)
-    materials.connect_material_property(normal, "RGB", unreal.MaterialProperty.MP_NORMAL)
-    materials.recompile_material(material)
-    assets.save_loaded_asset(material)
-    return material
+    materials.connect_material_property(nnrm, "B", unreal.MaterialProperty.MP_ROUGHNESS)
+    materials.recompile_material(parent)
+    assets.save_loaded_asset(parent)
+    base = tools.create_asset(GAME_BASE, GAME_MATERIALS, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+    materials.set_material_instance_parent(base, parent)
+    assets.save_loaded_asset(base)
+    return base
 
 
 def instance(grade, parent):
     name = f"MI_FishingRod_{grade}"
-    path = f"{FISHING}/{name}"
-    if assets.does_asset_exist(path):
-        assets.delete_asset(path)
+    fresh(f"{FISHING}/{name}")
     made = tools.create_asset(name, FISHING, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
     materials.set_material_instance_parent(made, parent)
-    for kind in ("BaseColor", "ORM", "Normal"):
-        materials.set_material_instance_texture_parameter_value(made, kind, texture(grade, kind))
+    materials.set_material_instance_texture_parameter_value(made, COLOR_MAP, texture(grade, "BaseColor"))
+    materials.set_material_instance_texture_parameter_value(made, NNRM_MAP, texture(grade, "NNRM"))
     materials.update_material_instance(made)
     assets.save_loaded_asset(made)
     return made
@@ -132,25 +139,27 @@ def dress(grade, made):
     assets.save_loaded_asset(mesh)
 
 
+# Chunk 1 takes /Game/CyrodiilRP and nothing it refers to, so the stand-in stays in chunk 0.
 def chunk_label():
     path = f"{ROOT}/PAL_CyrodiilRP"
-    if assets.does_asset_exist(path):
-        assets.delete_asset(path)
+    fresh(path)
     factory = unreal.DataAssetFactory()
     factory.set_editor_property("data_asset_class", unreal.PrimaryAssetLabel)
     label = tools.create_asset("PAL_CyrodiilRP", ROOT, unreal.PrimaryAssetLabel, factory)
     rules = label.get_editor_property("rules")
     rules.set_editor_property("chunk_id", CHUNK)
     rules.set_editor_property("cook_rule", unreal.PrimaryAssetCookRule.ALWAYS_COOK)
+    rules.set_editor_property("apply_recursively", False)
     label.set_editor_property("rules", rules)
     label.set_editor_property("label_assets_in_my_directory", True)
     assets.save_loaded_asset(label)
 
 
 import_all()
-parent = master_material()
+parent = stand_in()
 for grade in GRADES:
     dress(grade, instance(grade, parent))
 chunk_label()
 assets.save_directory(ROOT, only_if_is_dirty=False, recursive=True)
+assets.save_directory(GAME_MATERIALS, only_if_is_dirty=False, recursive=True)
 unreal.log("CyrodiilRP rods imported")

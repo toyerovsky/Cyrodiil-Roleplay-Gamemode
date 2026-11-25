@@ -27,10 +27,11 @@ guides' pictures stand on the right of each guide's card (`ui/guides/pictures.js
 ## Models
 
 The mode's own meshes. `models/fishing-rods/make_rods.py` builds the three fishing rods in Blender 4.2 from code
-(`fishing_rods.blend`, with previews unless given `--no-render`), `export_rods.py` bakes each into one texture set
-(colour, OpenGL normal, occlusion-roughness-metallic) on a UV map of its own and exports it as FBX, and
-`unreal/build_pak.ps1` imports them into an Unreal Engine 5.3.2 project named as the game (the remaster's engine) and
-cooks them into `CyrodiilRP_P.pak`, `.utoc` and `.ucas` for the game's `Content\Paks\~mods`:
+(`fishing_rods.blend`, with previews unless given `--no-render`), `export_rods.py` bakes each on a UV map of its own
+into the two textures the game's base material takes (colour with the occlusion in it, and NNRM: the normal's X and Y
+as DirectX has them, roughness, metallic) and exports it as FBX, and `unreal/build_pak.ps1` imports them into an Unreal
+Engine 5.3.2 project named as the game (the remaster's engine) and cooks them into `CyrodiilRP_P.pak`, `.utoc` and
+`.ucas` for the game's `Content\Paks\~mods`:
 
 ```powershell
 $blender = "C:\Program Files\Blender Foundation\Blender 4.2\blender.exe"
@@ -40,5 +41,7 @@ design/models/fishing-rods/unreal/build_pak.ps1 -Source <export dir> -Work <unre
 ```
 
 A rod lies along +Y in Blender, the hand at the origin, the tip where a staff's head is, so it hangs on the hand as the
-game's staves do. The client holds `/Game/CyrodiilRP/Fishing/SM_FishingRod_<Grade>` when the game has it, and the
+game's staves do. The container holds no material: the game's engine is Unreal 5.3.2 changed by its makers, and a
+material the stock engine cooks crashes it on load ("Bad export index"). The rods' material instances take the game's
+own `MI_T_BaseMaterial_FPSClippingFix`, which the project stands in for at its path and never ships. The client holds `/Game/CyrodiilRP/Fishing/SM_FishingRod_<Grade>` when the game has it, and the
 grade's staff when not.

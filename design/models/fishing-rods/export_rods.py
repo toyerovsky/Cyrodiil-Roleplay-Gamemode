@@ -1,6 +1,7 @@
 # Bakes each rod of fishing_rods.blend (made by make_rods.py) into one texture set on a UV map of its own and exports
-# it for Unreal: SM_FishingRod_<Grade>.fbx with one material slot, and T_FishingRod_<Grade>_BaseColor.png, _Normal.png
-# (OpenGL, green up) and _ORM.png (ambient occlusion, roughness, metallic).
+# it for Unreal: SM_FishingRod_<Grade>.fbx with one material slot, and the two textures the game's own base material
+# takes: T_FishingRod_<Grade>_BaseColor.png (colour, darkened by the ambient occlusion) and _NNRM.png (the normal's X
+# and Y as DirectX has them, green down, then roughness and metallic).
 # usage: blender -b --factory-startup -P export_rods.py -- BLEND OUT_DIR [SIZE]
 import math
 import os
@@ -123,15 +124,29 @@ def save(image, path):
     print("SAVED", path)
 
 
-def pack_orm(rod, grade, occlusion, roughness, metallic):
-    orm = bpy.data.images.new(f"T_FishingRod_{grade}_ORM", SIZE, SIZE, alpha=False, float_buffer=False)
-    orm.colorspace_settings.name = "Non-Color"
+# The base material has no occlusion input: the colour carries it, at this share.
+OCCLUSION_IN_COLOR = 0.6
+
+
+def shade(color, occlusion):
+    shaded = pixels(color).copy()
+    darkening = 1.0 - OCCLUSION_IN_COLOR * (1.0 - pixels(occlusion)[:, :, :1])
+    shaded[:, :, :3] *= darkening
+    color.pixels.foreach_set(shaded.ravel())
+    return color
+
+
+def pack_nnrm(grade, normal, roughness, metallic):
+    nnrm = bpy.data.images.new(f"T_FishingRod_{grade}_NNRM", SIZE, SIZE, alpha=True, float_buffer=False)
+    nnrm.colorspace_settings.name = "Non-Color"
     packed = numpy.ones((SIZE, SIZE, 4), dtype=numpy.float32)
-    packed[:, :, 0] = pixels(occlusion)[:, :, 0]
-    packed[:, :, 1] = pixels(roughness)[:, :, 0]
-    packed[:, :, 2] = pixels(metallic)[:, :, 0]
-    orm.pixels.foreach_set(packed.ravel())
-    return orm
+    baked = pixels(normal)
+    packed[:, :, 0] = baked[:, :, 0]
+    packed[:, :, 1] = 1.0 - baked[:, :, 1]
+    packed[:, :, 2] = pixels(roughness)[:, :, 0]
+    packed[:, :, 3] = pixels(metallic)[:, :, 0]
+    nnrm.pixels.foreach_set(packed.ravel())
+    return nnrm
 
 
 def export(rod, grade):
@@ -155,12 +170,11 @@ for rod in rods:
         other.hide_render = other is not rod
     unwrap(rod)
     color = bake_input(rod, target(rod, f"T_FishingRod_{grade}_BaseColor", True), "Base Color")
-    save(color, os.path.join(OUT, f"T_FishingRod_{grade}_BaseColor.png"))
-    normal = bake(rod, "NORMAL", target(rod, f"T_FishingRod_{grade}_Normal", False), 8)
-    save(normal, os.path.join(OUT, f"T_FishingRod_{grade}_Normal.png"))
+    normal = bake(rod, "NORMAL", target(rod, f"normal_{grade}", False), 8)
     roughness = bake(rod, "ROUGHNESS", target(rod, f"rough_{grade}", False), 1)
     metallic = bake_input(rod, target(rod, f"metal_{grade}", False), "Metallic")
     occlusion = bake(rod, "AO", target(rod, f"ao_{grade}", False), 64)
-    save(pack_orm(rod, grade, occlusion, roughness, metallic), os.path.join(OUT, f"T_FishingRod_{grade}_ORM.png"))
+    save(shade(color, occlusion), os.path.join(OUT, f"T_FishingRod_{grade}_BaseColor.png"))
+    save(pack_nnrm(grade, normal, roughness, metallic), os.path.join(OUT, f"T_FishingRod_{grade}_NNRM.png"))
 for rod in rods:
     export(rod, rod.name.removeprefix("SM_FishingRod_"))

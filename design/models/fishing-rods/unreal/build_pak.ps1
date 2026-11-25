@@ -20,8 +20,10 @@ New-Item -ItemType Directory -Force (Join-Path $project 'Config'), (Join-Path $p
 Copy-Item (Join-Path $PSScriptRoot 'OblivionRemastered.uproject') $project -Force
 Copy-Item (Join-Path $PSScriptRoot 'Config\*.ini') (Join-Path $project 'Config') -Force
 # A fresh import each time: a reimport over an asset keeps the import settings stored on it.
-$imported = Join-Path $project 'Content\CyrodiilRP'
-if (Test-Path $imported) { Remove-Item $imported -Recurse -Force }
+foreach ($folder in 'Content\CyrodiilRP', 'Content\Materials') {
+    $imported = Join-Path $project $folder
+    if (Test-Path $imported) { Remove-Item $imported -Recurse -Force }
+}
 $uproject = Join-Path $project 'OblivionRemastered.uproject'
 # The commandlet reads backslashes in -script as escapes (a \t in a path turns into a tab), so both paths go with forward ones.
 $script = (Join-Path $PSScriptRoot 'import_rods.py') -replace '\\', '/'
@@ -39,4 +41,9 @@ foreach ($extension in 'pak', 'utoc', 'ucas') {
     if (-not (Test-Path $cooked)) { throw "The cook made no $cooked." }
     Copy-Item $cooked (Join-Path $Out "CyrodiilRP_P.$extension") -Force
 }
+
+# Only the mode's own assets may ship: the stand-in for the game's base material would replace the game's own.
+$listing = & (Join-Path $Engine 'Engine\Binaries\Win64\UnrealPak.exe') (Join-Path $Out 'CyrodiilRP_P.utoc') -List 2>&1 | Out-String
+$foreign = [regex]::Matches($listing, '"\.\./\.\./\.\./OblivionRemastered/Content/(?!CyrodiilRP/)[^"]+"') | ForEach-Object Value
+if ($foreign) { throw "The container holds assets outside /Game/CyrodiilRP: $($foreign -join ', ')" }
 Get-ChildItem $Out -Filter 'CyrodiilRP_P.*' | Select-Object Name, Length
