@@ -61,6 +61,7 @@
   "ui.menu.lore.preview_none": "Nic na twojej karcie nie jest jeszcze publiczne.",
   "ui.menu.key.lore": "Otwórz lub zamknij swoją kartę lore",
   "ui.menu.key.lore_look": "Przeczytaj kartę lore gracza przed tobą",
+  "ui.menu.key.architect_look": "W trybie architekta (obsługa): rozejrzyj się i chodź, i wróć do budowania",
   "ui.menu.tab.faction": "Frakcja",
   "ui.menu.faction.lead": "Frakcja to trwała organizacja postaci: gildia, banda, ród albo kompania. Twoja postać może należeć do jednej.",
   "ui.menu.faction.waiting": "Pytam serwer...",

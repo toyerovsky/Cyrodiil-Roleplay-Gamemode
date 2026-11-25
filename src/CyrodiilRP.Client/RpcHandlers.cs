@@ -336,4 +336,29 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnFishingFloatGone(int angler) => FishingFloatGone?.Invoke(angler);
 
     partial void OnFishingSplash(string kind, float x, float y, float z) => FishingSplashed?.Invoke(kind, new Vector3(x, y, z));
+
+    public event Action<string, long[], float[]>? PlotsArrived;
+
+    public event Action<long[], string[], float[], long[]>? PiecesArrived;
+
+    public event Action<string[], string[], float[]>? ArchitectCatalogueArrived;
+
+    public event Action<string, long, string>? ArchitectChanged;
+
+    public event Action<string, bool>? ArchitectAnswered;
+
+    public event Action? ArchitectClosed;
+
+    partial void OnPlotsHere(string signAsset, long[] plots, float[] numbers) => PlotsArrived?.Invoke(signAsset, plots, numbers);
+
+    partial void OnPiecesHere(long[] pieces, string[] assets, float[] numbers, long[] references) =>
+        PiecesArrived?.Invoke(pieces, assets, numbers, references);
+
+    partial void OnArchitectCatalogue(string[] keys, string[] assets, float[] scales) => ArchitectCatalogueArrived?.Invoke(keys, assets, scales);
+
+    partial void OnArchitectState(string json, long plot, string tool) => ArchitectChanged?.Invoke(json, plot, tool);
+
+    partial void OnArchitectAnswer(string text, bool done) => ArchitectAnswered?.Invoke(text, done);
+
+    partial void OnArchitectClosed() => ArchitectClosed?.Invoke();
 }

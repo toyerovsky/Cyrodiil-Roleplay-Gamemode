@@ -1119,6 +1119,181 @@ namespace CyrodiilRP.Data.Migrations
                     b.ToTable("notice_boards", (string)null);
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.Plot", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Area")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("area");
+
+                    b.Property<int>("Depth")
+                        .HasColumnType("integer")
+                        .HasColumnName("depth");
+
+                    b.Property<int>("FirstTileX")
+                        .HasColumnType("integer")
+                        .HasColumnName("first_tile_x");
+
+                    b.Property<int>("FirstTileY")
+                        .HasColumnType("integer")
+                        .HasColumnName("first_tile_y");
+
+                    b.Property<float>("GroundZ")
+                        .HasColumnType("real")
+                        .HasColumnName("ground_z");
+
+                    b.Property<float>("Height")
+                        .HasColumnType("real")
+                        .HasColumnName("height");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("kind");
+
+                    b.Property<DateTimeOffset>("MadeAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("made_at");
+
+                    b.Property<string>("MadeByRef")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("made_by_ref");
+
+                    b.Property<long?>("OwnerCharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("owner_character_id");
+
+                    b.Property<int>("Price")
+                        .HasColumnType("integer")
+                        .HasColumnName("price");
+
+                    b.Property<float>("SignX")
+                        .HasColumnType("real")
+                        .HasColumnName("sign_x");
+
+                    b.Property<float>("SignY")
+                        .HasColumnType("real")
+                        .HasColumnName("sign_y");
+
+                    b.Property<float>("SignYaw")
+                        .HasColumnType("real")
+                        .HasColumnName("sign_yaw");
+
+                    b.Property<float>("SignZ")
+                        .HasColumnType("real")
+                        .HasColumnName("sign_z");
+
+                    b.Property<int>("WeeklyTax")
+                        .HasColumnType("integer")
+                        .HasColumnName("weekly_tax");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer")
+                        .HasColumnName("width");
+
+                    b.HasKey("Id")
+                        .HasName("pk_plots");
+
+                    b.HasIndex("Area")
+                        .HasDatabaseName("ix_plots_area");
+
+                    b.HasIndex("OwnerCharacterId")
+                        .HasDatabaseName("ix_plots_owner_character_id");
+
+                    b.ToTable("plots", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_plots_gold", "price >= 0 AND weekly_tax >= 0");
+
+                            t.HasCheckConstraint("ck_plots_size", "width > 0 AND depth > 0 AND height > 0");
+                        });
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.PlotObject", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Piece")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("piece");
+
+                    b.Property<float>("Pitch")
+                        .HasColumnType("real")
+                        .HasColumnName("pitch");
+
+                    b.Property<DateTimeOffset>("PlacedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("placed_at");
+
+                    b.Property<string>("PlacedByRef")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("placed_by_ref");
+
+                    b.Property<long>("PlotId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("plot_id");
+
+                    b.Property<long?>("RefId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ref_id");
+
+                    b.Property<float>("Roll")
+                        .HasColumnType("real")
+                        .HasColumnName("roll");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("state");
+
+                    b.Property<float>("X")
+                        .HasColumnType("real")
+                        .HasColumnName("x");
+
+                    b.Property<float>("Y")
+                        .HasColumnType("real")
+                        .HasColumnName("y");
+
+                    b.Property<float>("Yaw")
+                        .HasColumnType("real")
+                        .HasColumnName("yaw");
+
+                    b.Property<float>("Z")
+                        .HasColumnType("real")
+                        .HasColumnName("z");
+
+                    b.HasKey("Id")
+                        .HasName("pk_plot_objects");
+
+                    b.HasIndex("PlotId")
+                        .HasDatabaseName("ix_plot_objects_plot_id");
+
+                    b.ToTable("plot_objects", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_plot_objects_piece", "length(piece) > 0");
+                        });
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.SpawnPoint", b =>
                 {
                     b.Property<int>("Id")
@@ -1206,7 +1381,7 @@ namespace CyrodiilRP.Data.Migrations
                             Name = "admin",
                             GrantsAll = false,
                             Label = "Administrator",
-                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "anotice", "agamble", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction", "aboard", "aspec", "acap", "astat", "atable", "aauction" }
+                            Permissions = new[] { "a", "duty", "admin", "aheal", "agoto", "abring", "apos", "atp", "aback", "arevive", "akick", "amute", "aunmute", "afreeze", "aunfreeze", "awarn", "awhy", "amsg", "ahp", "alore", "astep", "afly", "afeed", "anotice", "agamble", "agold", "aitem", "atime", "aweather", "aban", "aunban", "aroles", "anpc", "aspawn", "afaction", "aboard", "aspec", "acap", "astat", "atable", "aauction", "aplot", "abuild" }
                         },
                         new
                         {
@@ -1511,6 +1686,25 @@ namespace CyrodiilRP.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_notices_characters_character_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.Plot", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerCharacterId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_plots_characters_owner_character_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.PlotObject", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Plot", null)
+                        .WithMany()
+                        .HasForeignKey("PlotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_plot_objects_plots_plot_id");
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.Account", b =>

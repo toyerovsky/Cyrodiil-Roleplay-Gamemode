@@ -51,6 +51,9 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   into the pack, seen by everyone near. See `docs/features/fishing.md`.
 - **Notice board:** a board the staff stand in the world, H opens its unsigned notices and lets anyone pin one. See
   `docs/features/notice-board.md`.
+- **Building:** the staff mark plots of land on a grid of 1.83 m tiles (`/aplot new`) and place, move and remove the
+  game's buildings, fences and furniture on them in architect mode (`/abuild`), a page over the game with a drawer of
+  pieces dragged into the world under the mouse. See `docs/features/building.md`.
 - **Spawn:** the staff set it in the outside world (`/aspawn here`, a button in the panel), a new character goes
   there after closing the game's creator.
 - **Feeding:** Feed on the H wheel opens a wheel of the foods the player carries, what the one in front needs most

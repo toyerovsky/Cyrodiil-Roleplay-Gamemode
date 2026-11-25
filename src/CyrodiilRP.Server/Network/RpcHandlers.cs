@@ -1,5 +1,7 @@
 using CyrodiilRP.Common;
 using System.Numerics;
+
+using CyrodiilRP.Server.Building;
 using CyrodiilRP.Server.Dice;
 using CyrodiilRP.Server.Fishing;
 using CyrodiilRP.Server.Infrastructure;
@@ -283,4 +285,44 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
         callbacks.Raise("rpc.fishing_space", FishingSpacePressed, context.Sender, down, reactionMs);
 
     partial void OnFishingStop(RpcContext context) => callbacks.Raise("rpc.fishing_stop", FishingStopAsked, context.Sender);
+
+    public event Action<PlayerId>? BuildingAsked;
+
+    public event Action<PlayerId, string, float[]>? ArchitectPlaced;
+
+    public event Action<PlayerId, long, float[]>? ArchitectMoved;
+
+    public event Action<PlayerId, long>? ArchitectRemoved;
+
+    public event Action<PlayerId, string, float[]>? ArchitectMeasured;
+
+    public event Action<PlayerId, PlotMarking>? ArchitectMarked;
+
+    public event Action<PlayerId>? ArchitectLeft;
+
+    public event Action<PlayerId, long>? ArchitectChose;
+
+    public event Action<PlayerId>? ArchitectNewPlotAsked;
+
+    partial void OnAskBuilding(RpcContext context) => callbacks.Raise("rpc.ask_building", BuildingAsked, context.Sender);
+
+    partial void OnArchitectPlace(RpcContext context, string piece, float[] spot) =>
+        callbacks.Raise("rpc.architect_place", ArchitectPlaced, context.Sender, piece, spot);
+
+    partial void OnArchitectMove(RpcContext context, long piece, float[] spot) =>
+        callbacks.Raise("rpc.architect_move", ArchitectMoved, context.Sender, piece, spot);
+
+    partial void OnArchitectRemove(RpcContext context, long piece) => callbacks.Raise("rpc.architect_remove", ArchitectRemoved, context.Sender, piece);
+
+    partial void OnArchitectMeasured(RpcContext context, string piece, float[] bounds) =>
+        callbacks.Raise("rpc.architect_measured", ArchitectMeasured, context.Sender, piece, bounds);
+
+    partial void OnArchitectMarkPlot(RpcContext context, int[] tiles, float[] ground, string form) =>
+        callbacks.Raise("rpc.architect_mark_plot", ArchitectMarked, context.Sender, new PlotMarking(tiles, ground, form));
+
+    partial void OnArchitectClose(RpcContext context) => callbacks.Raise("rpc.architect_close", ArchitectLeft, context.Sender);
+
+    partial void OnArchitectChoose(RpcContext context, long plot) => callbacks.Raise("rpc.architect_choose", ArchitectChose, context.Sender, plot);
+
+    partial void OnArchitectNewPlot(RpcContext context) => callbacks.Raise("rpc.architect_new_plot", ArchitectNewPlotAsked, context.Sender);
 }

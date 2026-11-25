@@ -69,6 +69,7 @@ The server refuses a config without a connection string and a database at anothe
 | `specializations` | `firstPrice` (0) and `changePrice` (1000) in gold, `changeCooldownSeconds` (left out: 30 in a Debug build, 60 in a Release one; a live server sets its own, 259200 is three days), the caps `trainedSkillCap` (60), `limitedSkillCap` (30), `trainedAttributeCap` (75), `limitedAttributeCap` (50) and `unchosenSkillCap` (50), and `potions` (`PlayerMade`, `All` or `Off`): see `docs/features/specializations.md` |
 | `noticeBoards` | the notice boards: `shown` (10), `minLength` and `maxLength` (1 and 300), `perCharacter` (3), `cooldownMinutes` (5), `expiryDays` (7) and `asset`, the game's form a board stands as (`docs/features/notice-board.md`) |
 | `auction` | the auction house: `listingFeePercent` (2) and `cutPercent` (5), `durationHours` (12, 24, 48), `maxLots` (10) a character, `bidStepPercent` (5) and `extendMinutes` (5) (`docs/features/auction-house.md`) |
+| `building` | `mostTiles` (64), the longest side of a plot in tiles; `plotHeight` (1500 cm), `plotPrice` (5000) and `plotWeeklyTax` (100), what a new plot starts with; `signAsset`, the game's form a plot's sign stands as; `pieces`, the architect's drawer, which replaces the shipped catalogue whole (`docs/features/building.md`) |
 | `lore` | the lore card: `catalogMode` (`Canon` by default) and `allowImplausibleSubtypes` (`false`: no kinds that do not fit the race's body, such as the Senche) |
 
 ## Pages' pictures

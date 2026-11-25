@@ -87,5 +87,16 @@
     "maxLots": 10,
     "bidStepPercent": 5,
     "extendMinutes": 5
+  },
+
+  // Building: the longest side of a plot in tiles of 1.83 m, what a new plot starts with (its height in centimetres, its
+  // price and its tax a week in gold) and the game's form its sign stands as. "pieces" lists the architect's drawer and
+  // replaces the shipped catalogue whole (docs/features/building.md).
+  "building": {
+    "mostTiles": 64,
+    "plotHeight": 1500,
+    "plotPrice": 5000,
+    "plotWeeklyTax": 100,
+    "signAsset": "/Game/Forms/worldobjects/activator/sign02.sign02"
   }
 }

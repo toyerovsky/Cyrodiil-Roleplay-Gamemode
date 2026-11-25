@@ -36,7 +36,7 @@ test("the menu opens on the character and goes round its tabs from the keyboard 
   await expect(tab(page, "character")).toHaveAttribute("aria-selected", "true");
 
   await tab(page, "keys").click();
-  await expect(page.getByRole("tabpanel").locator("kbd")).toHaveText(["G", "H", "Y", "N", "K", "F10", "Home", "End", "Shift+End", "Esc"]);
+  await expect(page.getByRole("tabpanel").locator("kbd")).toHaveText(["G", "H", "Y", "N", "K", "F10", "Home", "End", "Shift+End", "B", "Esc"]);
   await screenshot(page, testInfo, "menu-keys");
 });
 

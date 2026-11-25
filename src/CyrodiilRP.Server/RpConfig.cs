@@ -32,4 +32,6 @@ internal sealed partial class RpConfig
     public GamblingSettings Gambling { get; set; } = new();
 
     public AuctionSettings Auction { get; set; } = new();
+
+    public BuildingSettings Building { get; set; } = new();
 }

@@ -61,6 +61,7 @@
   "ui.menu.lore.preview_none": "Nothing on your card is public yet.",
   "ui.menu.key.lore": "Open or close your lore card",
   "ui.menu.key.lore_look": "Read the lore card of the player in front of you",
+  "ui.menu.key.architect_look": "In architect mode (staff): look around and walk, and back to building",
   "ui.menu.tab.faction": "Faction",
   "ui.menu.faction.lead": "A faction is a lasting organisation of characters: a guild, a gang, a house or a company. Your character can be in one.",
   "ui.menu.faction.waiting": "Asking the server...",
