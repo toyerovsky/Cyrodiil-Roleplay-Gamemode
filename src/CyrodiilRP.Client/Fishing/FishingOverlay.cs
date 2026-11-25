@@ -1,8 +1,10 @@
 using System.Numerics;
+using System.Text.Json;
 using CyrodiilRP.Client.Chat;
 using CyrodiilRP.Client.Pages;
 using CyrodiilRP.Client.Talk;
 using CyrodiilRP.Common.Fishing;
+using Microsoft.Extensions.Logging;
 using OblivionMP.SDK;
 using OblivionMP.SDK.Archetypes.Mixins;
 using OblivionMpCSharpMod.Input;
@@ -13,8 +15,9 @@ using ReadyM.SDK.Attributes;
 namespace CyrodiilRP.Client.Fishing;
 
 // The player's own fishing. Asked by the server, it looks for water around the character. While the server holds the
-// character fishing it puts the camera over the shoulder, aims the cast where the player looks, sends the cast and the
-// space key's presses, and shows the fishing page over the game, which never takes the input. A move key stops it.
+// character fishing it aims the cast where the player looks, charges it while Space is held and throws it as far as the
+// power took it, then sends Space (the strike, the reel), the rod's lean (A, D) and the stop (E). It moves the camera
+// with the line, plays the angler's own sounds and shows the fishing page over the game, which never takes the input.
 [Service]
 internal sealed partial class FishingOverlay(
     CefHost cef,
@@ -27,29 +30,36 @@ internal sealed partial class FishingOverlay(
     IInput input,
     IWater water,
     AnglerScenery scenery,
+    AnglerCamera shots,
+    AnglerCues cues,
     PageInput pageInput,
     ChatOverlay chat,
-    GameCursor cursor)
+    GameCursor cursor,
+    ILogger logger)
 {
     private const string PageName = "fishing";
     // A character's position is the middle of its capsule.
     private const float FeetBelowPosition = 90f;
     // The ways round from where the player looks that the water is looked for: ahead first, behind last.
     private static readonly float[] SearchTurns = [0f, -30f, 30f, -60f, 60f, 180f];
-    private const float MoveStops = 0.5f;
-    private const float CameraGlide = 4f;
-    private const float CameraBlendInSeconds = 0.7f;
-    private const float CameraBlendOutSeconds = 0.5f;
     // An aim this many degrees from the last one is looked for again.
     private const float AimMoves = 0.5f;
     // A move of the anchor smaller than this share of the screen is not worth a message.
     private const float AnchorMoves = 0.002f;
     private const float MsPerSecond = 1000f;
     private const int NoReaction = -1;
+    // The server takes one change of Space or of the lean in 60 ms, so the game sends none sooner than this.
+    private const float InputPaceSeconds = 0.08f;
+    private const int LeanLeft = -1;
+    private const int LeanNone = 0;
+    private const int LeanRight = 1;
+    private const int ChargeUpMs = (int)(FishingCharge.UpSeconds * MsPerSecond);
 
     private OverlayPage? _page;
     private AnglerState? _fishing;
     private string? _view;
+    private AnglerView? _read;
+    private bool _unreadTold;
     private int? _shownFor;
 
     private OverlayPage Page => _page ??= new OverlayPage(pages, locale, PageName, WebPages.FishingLayer, SendLocale);
@@ -101,26 +111,43 @@ internal sealed partial class FishingOverlay(
         return WaterFound.Refused(FishingVerdict.NoWater);
     }
 
-    // Where a cast along the yaw lands: the farthest open water deep enough the rod reaches. Water under a quay, a pier,
-    // a bridge or a rock is covered, and a float does not land in it.
+    // Where the farthest cast along the yaw lands: the farthest open water deep enough the rod reaches.
     private Vector3? FindCast(Vector3 feet, float yaw, float reach)
     {
         foreach (var point in FishingShot.CastPoints(feet, yaw, reach))
         {
-            if (water.FindBelow(point with { Z = feet.Z + FishingShot.LookFromAbove }, FishingShot.LookDown) is { Covered: false } found
-                && (found.Depth is null || found.Depth >= FishingReach.ShallowestWater))
-                return point with { Z = found.SurfaceZ };
+            if (FindOpenWater(point, feet.Z) is { } found)
+                return found;
         }
 
         return null;
     }
+
+    // Where a throw this far lands: the nearest open water at or before it along the yaw, or past it for a short one.
+    private Vector3? FindLanding(Vector3 feet, float yaw, float distance, float reach)
+    {
+        foreach (var point in CastFlight.LandingPoints(feet, yaw, distance, reach))
+        {
+            if (FindOpenWater(point, feet.Z) is { } found)
+                return found;
+        }
+
+        return null;
+    }
+
+    // Water under a quay, a pier, a bridge or a rock is covered, and a float does not land in it.
+    private Vector3? FindOpenWater(Vector3 point, float feetZ) =>
+        water.FindBelow(point with { Z = feetZ + FishingShot.LookFromAbove }, FishingShot.LookDown) is { Covered: false } found
+        && (found.Depth is null || found.Depth >= FishingReach.ShallowestWater)
+            ? point with { Z = found.SurfaceZ }
+            : null;
 
     // The first aim begins the fishing; every later one is the line in again after a catch or a loss.
     private void OnAimed(float yaw, float waterZ, float reach)
     {
         if (_fishing is { } fishing)
         {
-            _fishing = fishing with { Aiming = true, BiteHeardAt = null };
+            _fishing = fishing with { Aiming = true, ChargeFrom = null, SpaceSent = false, BiteHeardAt = null };
             return;
         }
 
@@ -128,10 +155,12 @@ internal sealed partial class FishingOverlay(
             return;
 
         var stand = me.Position - new Vector3(0f, 0f, FeetBelowPosition);
-        var lookAt = stand + FishingShot.Forward(yaw) * reach;
-        _fishing = new AnglerState(stand, yaw, waterZ, reach, Aiming: true, AimYaw: null, AimAt: null, LookingAt: lookAt with { Z = waterZ },
-            SpaceDown: input.IsKeyDown(Key.SPACE), BiteHeardAt: null, StopAsked: false, AnchorSent: null);
-        camera.Set(FishingShot.CameraAt(stand, yaw, waterZ), lookAt with { Z = waterZ }, CameraBlendInSeconds);
+        var lookAt = (stand + FishingShot.Forward(yaw) * reach) with { Z = waterZ };
+        _fishing = new AnglerState(stand, yaw, waterZ, reach, Aiming: true, ChargeFrom: null, AimYaw: null, AimAt: null,
+            SpaceDown: input.IsKeyDown(Key.SPACE), SpaceDownAt: 0f, SpaceSent: false, LeanSent: null, InputSentAt: float.NegativeInfinity,
+            StopDown: input.IsKeyDown(Key.E), StopAsked: false, BiteHeardAt: null, AnchorSent: null);
+        shots.Begin(AnglerFraming.Shoulder(stand, yaw, waterZ, lookAt), Time.Elapsed);
+        cues.Begin(_read);
         _shownFor = null;
         var page = Page.Open();
         if (Page.IsReady && _view is { } view)
@@ -143,6 +172,36 @@ internal sealed partial class FishingOverlay(
         _view = json;
         if (Page.Opened is { } page && Page.IsReady)
             SendState(page.Browser, json);
+
+        if (Read(json) is not { } read)
+            return;
+
+        _read = read;
+        if (_fishing is { } fishing && players.LocalMainCharacter is { } me)
+            cues.Hear(read, me.Position, AnglerFraming.HandAt(fishing.Stand, fishing.Yaw));
+    }
+
+    // A view this game cannot read is told once a fishing: the views come many a second in a fight.
+    private AnglerView? Read(string json)
+    {
+        try
+        {
+            var read = JsonSerializer.Deserialize(json, AnglerViewJson.Default.AnglerView);
+            if (read is null && !_unreadTold)
+            {
+                logger.LogWarning("The server sent an empty fishing view.");
+                _unreadTold = true;
+            }
+
+            return read;
+        }
+        catch (JsonException ex)
+        {
+            if (!_unreadTold)
+                logger.LogWarning(ex, "The server sent a fishing view this game cannot read: {Json}.", json);
+            _unreadTold = true;
+            return null;
+        }
     }
 
     private void OnBitten()
@@ -158,7 +217,10 @@ internal sealed partial class FishingOverlay(
 
         _fishing = null;
         _view = null;
-        camera.Reset(CameraBlendOutSeconds);
+        _read = null;
+        _unreadTold = false;
+        shots.End();
+        cues.End();
         if (Page.Opened is not { } page)
             return;
 
@@ -174,21 +236,33 @@ internal sealed partial class FishingOverlay(
             return;
 
         ShowPage();
+        var now = Time.Elapsed;
         var keysFree = !pageInput.IsHeld && !chat.IsOpen && !cursor.IsGameMenuOpen;
-        if (keysFree && !fishing.StopAsked && input.MoveAxis.Length() > MoveStops)
+        fishing = AskStop(fishing, keysFree && input.IsKeyDown(Key.E));
+        fishing = Aim(fishing);
+        var spaceDown = keysFree && input.IsKeyDown(Key.SPACE);
+        fishing = fishing.Aiming ? Charge(fishing, spaceDown, keysFree, now) : Reel(fishing, spaceDown, now);
+        fishing = Lean(fishing, keysFree, now);
+
+        var self = me.PlayerId.RawValue;
+        var floatAt = scenery.FindFloat(self);
+        Film(fishing, floatAt, scenery.IsShowingCatch(self), now);
+        cues.Keep(_read, me.Position, now);
+        _fishing = Anchor(fishing, Marked(fishing, floatAt, now));
+    }
+
+    private AnglerState AskStop(AnglerState fishing, bool down)
+    {
+        if (down == fishing.StopDown)
+            return fishing;
+
+        if (down && !fishing.StopAsked)
         {
             rpc.SendFishingStop();
-            fishing = fishing with { StopAsked = true };
+            return fishing with { StopDown = true, StopAsked = true };
         }
 
-        fishing = Aim(fishing);
-        var down = keysFree && input.IsKeyDown(Key.SPACE);
-        if (down != fishing.SpaceDown)
-            fishing = Press(fishing with { SpaceDown = down }, down);
-
-        var floatAt = scenery.FindFloat(me.PlayerId.RawValue);
-        fishing = Film(fishing, floatAt ?? fishing.AimAt);
-        _fishing = Anchor(fishing, floatAt ?? fishing.AimAt);
+        return fishing with { StopDown = down };
     }
 
     // Looked for again only when the player turned the view far enough.
@@ -204,32 +278,118 @@ internal sealed partial class FishingOverlay(
         return fishing with { AimYaw = yaw, AimAt = FindCast(fishing.Stand, yaw, fishing.Reach) };
     }
 
-    private AnglerState Press(AnglerState fishing, bool down)
+    // Space pressed with water along the aim charges the cast, let go throws it. A page or the chat taking the keys
+    // meanwhile puts the rod down without a throw.
+    private AnglerState Charge(AnglerState fishing, bool down, bool keysFree, float now)
     {
-        if (fishing.Aiming)
+        var pressed = down && !fishing.SpaceDown;
+        fishing = fishing with { SpaceDown = down };
+        if (fishing.ChargeFrom is { } from)
         {
-            if (!down || fishing.AimAt is not { } cast)
-                return fishing;
+            if (!keysFree)
+            {
+                TellCharge(charging: false);
+                return fishing with { ChargeFrom = null };
+            }
 
-            rpc.SendFishingCast(cast.X, cast.Y, cast.Z);
-            return fishing with { Aiming = false };
+            return down ? fishing : Throw(fishing, now - from);
         }
 
-        var reaction = down && fishing.BiteHeardAt is { } heard ? (int)((Time.Elapsed - heard) * MsPerSecond) : NoReaction;
-        rpc.SendFishingSpace(down, reaction);
-        return down ? fishing with { BiteHeardAt = null } : fishing;
-    }
-
-    // The camera stays over the shoulder and glides to look at the float, or where the cast would land.
-    private AnglerState Film(AnglerState fishing, Vector3? target)
-    {
-        var wanted = target ?? fishing.Stand + FishingShot.Forward(fishing.AimYaw ?? fishing.Yaw) * fishing.Reach;
-        var lookingAt = Vector3.Lerp(fishing.LookingAt, wanted with { Z = target?.Z ?? fishing.WaterZ }, Math.Min(1f, CameraGlide * Time.DeltaTime));
-        if (lookingAt == fishing.LookingAt)
+        if (!pressed || fishing.AimAt is null)
             return fishing;
 
-        camera.Set(FishingShot.CameraAt(fishing.Stand, fishing.Yaw, fishing.WaterZ), lookingAt);
-        return fishing with { LookingAt = lookingAt };
+        TellCharge(charging: true);
+        return fishing with { ChargeFrom = now };
+    }
+
+    private AnglerState Throw(AnglerState fishing, float heldSeconds)
+    {
+        TellCharge(charging: false);
+        var thrown = fishing with { ChargeFrom = null };
+        if (fishing.AimYaw is not { } yaw)
+            return thrown;
+
+        var distance = CastFlight.Distance(FishingCharge.PowerAt(Math.Max(0f, heldSeconds)), fishing.Reach);
+        if (FindLanding(fishing.Stand, yaw, distance, fishing.Reach) is not { } landing)
+            return thrown;
+
+        rpc.SendFishingCast(landing.X, landing.Y, landing.Z);
+        return thrown with { Aiming = false, SpaceSent = false };
+    }
+
+    // Space after the cast goes to the server: a press soon after the bite strikes, held it reels. A change waits for the
+    // server's pace, and the reaction is counted from when the key went down.
+    private AnglerState Reel(AnglerState fishing, bool down, float now)
+    {
+        if (down != fishing.SpaceDown)
+            fishing = down ? fishing with { SpaceDown = true, SpaceDownAt = now } : fishing with { SpaceDown = false };
+
+        if (fishing.SpaceDown == fishing.SpaceSent || now - fishing.InputSentAt < InputPaceSeconds)
+            return fishing;
+
+        var reaction = fishing.SpaceDown && fishing.BiteHeardAt is { } heard && fishing.SpaceDownAt >= heard
+            ? (int)((fishing.SpaceDownAt - heard) * MsPerSecond)
+            : NoReaction;
+        rpc.SendFishingSpace(fishing.SpaceDown, reaction);
+        return fishing with
+        {
+            SpaceSent = fishing.SpaceDown,
+            InputSentAt = now,
+            BiteHeardAt = fishing.SpaceDown ? null : fishing.BiteHeardAt,
+        };
+    }
+
+    // A and D lean the rod while a fish is on the line. The lean the server took starts each fight.
+    private AnglerState Lean(AnglerState fishing, bool keysFree, float now)
+    {
+        if (_read is not { Stage: LineStage.Fight } read)
+            return fishing.LeanSent is null ? fishing : fishing with { LeanSent = null };
+
+        var sent = fishing.LeanSent ?? read.Fight?.Lean ?? LeanNone;
+        var left = keysFree && input.IsKeyDown(Key.A) ? LeanLeft : LeanNone;
+        var right = keysFree && input.IsKeyDown(Key.D) ? LeanRight : LeanNone;
+        var wanted = left + right;
+        if (wanted == sent || now - fishing.InputSentAt < InputPaceSeconds)
+            return fishing.LeanSent == sent ? fishing : fishing with { LeanSent = sent };
+
+        rpc.SendFishingLean(wanted);
+        return fishing with { LeanSent = wanted, InputSentAt = now };
+    }
+
+    // Over the shoulder at the aim or the float, closer at the bite, after the float in the fight, round to the front for
+    // the catch held up.
+    private void Film(AnglerState fishing, Vector3? floatAt, bool showingCatch, float now)
+    {
+        var target = floatAt ?? fishing.AimAt;
+        var lookAt = target ?? (fishing.Stand + FishingShot.Forward(fishing.AimYaw ?? fishing.Yaw) * fishing.Reach) with { Z = fishing.WaterZ };
+        var shoulder = AnglerFraming.Shoulder(fishing.Stand, fishing.Yaw, fishing.WaterZ, lookAt);
+        var stage = _read?.Stage ?? LineStage.Aim;
+        var shot = showingCatch ? AnglerShot.Catch
+            : floatAt is null ? AnglerShot.Shoulder
+            : stage switch
+            {
+                LineStage.Bite => AnglerShot.Bite,
+                LineStage.Fight => AnglerShot.Fight,
+                LineStage.Aim or LineStage.Waiting or LineStage.Rest => AnglerShot.Shoulder,
+            };
+        var frame = shot switch
+        {
+            AnglerShot.Shoulder => shoulder,
+            AnglerShot.Bite => AnglerFraming.Bite(shoulder, lookAt),
+            AnglerShot.Fight => AnglerFraming.Fight(fishing.Stand, fishing.Yaw, fishing.WaterZ, lookAt),
+            AnglerShot.Catch => AnglerFraming.Catch(fishing.Stand, fishing.Yaw),
+        };
+        shots.Film(shot, frame, now, Time.DeltaTime);
+    }
+
+    // What the page marks: while charging, where the power would throw the float, else the float or the aim.
+    private static Vector3? Marked(AnglerState fishing, Vector3? floatAt, float now)
+    {
+        if (fishing.ChargeFrom is not { } from || fishing.AimYaw is not { } yaw)
+            return floatAt ?? fishing.AimAt;
+
+        var distance = CastFlight.Distance(FishingCharge.PowerAt(Math.Max(0f, now - from)), fishing.Reach);
+        return (fishing.Stand + FishingShot.Forward(yaw) * distance) with { Z = fishing.WaterZ };
     }
 
     // Where on the screen the page draws the float's marks: told only when it moved.
@@ -244,6 +404,12 @@ internal sealed partial class FishingOverlay(
 
         SendAnchor(page.Browser, shown?.X ?? -1f, shown?.Y ?? -1f, shown is not null);
         return fishing with { AnchorSent = shown };
+    }
+
+    private void TellCharge(bool charging)
+    {
+        if (Page.Opened is { } page && Page.IsReady)
+            SendCharge(page.Browser, charging, ChargeUpMs);
     }
 
     // The game builds its overlay anew after every load: the page is shown again once the pawn has settled.
@@ -277,19 +443,29 @@ internal sealed partial class FishingOverlay(
     [SendToCef]
     private partial void SendEnded(BrowserHandle browser);
 
-    // Stand: the feet. Reach: the rod's farthest cast. LookingAt: where the camera looks now, gliding after what it should.
+    // Space went down with the cast to charge (the page runs the power from now, up in so many ms), or up, or was let go.
+    [SendToCef]
+    private partial void SendCharge(BrowserHandle browser, bool charging, int upMs);
+
+    // Stand: the feet. Reach: the rod's farthest cast. ChargeFrom: when Space went down for the cast. SpaceSent, LeanSent
+    // and InputSentAt: what the server was told last, and when.
     private sealed record AnglerState(
         Vector3 Stand,
         float Yaw,
         float WaterZ,
         float Reach,
         bool Aiming,
+        float? ChargeFrom,
         float? AimYaw,
         Vector3? AimAt,
-        Vector3 LookingAt,
         bool SpaceDown,
-        float? BiteHeardAt,
+        float SpaceDownAt,
+        bool SpaceSent,
+        int? LeanSent,
+        float InputSentAt,
+        bool StopDown,
         bool StopAsked,
+        float? BiteHeardAt,
         Vector2? AnchorSent);
 
     private sealed record WaterFound(FishingVerdict Verdict, float Yaw, float WaterZ)
