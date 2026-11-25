@@ -101,12 +101,13 @@ internal sealed partial class FishingOverlay(
         return WaterFound.Refused(FishingVerdict.NoWater);
     }
 
-    // Where a cast along the yaw lands: the farthest water deep enough the rod reaches.
+    // Where a cast along the yaw lands: the farthest open water deep enough the rod reaches. Water under a quay, a pier,
+    // a bridge or a rock is covered, and a float does not land in it.
     private Vector3? FindCast(Vector3 feet, float yaw)
     {
         foreach (var point in FishingShot.CastPoints(feet, yaw))
         {
-            if (water.FindBelow(point with { Z = feet.Z + FishingShot.LookFromAbove }, FishingShot.LookDown) is { } found
+            if (water.FindBelow(point with { Z = feet.Z + FishingShot.LookFromAbove }, FishingShot.LookDown) is { Covered: false } found
                 && (found.Depth is null || found.Depth >= FishingReach.ShallowestWater))
                 return point with { Z = found.SurfaceZ };
         }

@@ -20,7 +20,7 @@ of the water goes into the pack.
   freeze, or the character being moved more than 3 m away.
 - **The cast.** The aim follows where the player looks, up to 60 degrees to either side of the way the character faces.
   Space casts the float onto the water there, as far as the rod reaches (4.5 m), nearer when the water there is too
-  shallow, never less than 1.5 m.
+  shallow or covered (under a quay, a pier's planks, a bridge or a rock), never less than 1.5 m.
 - **The wait.** A fish bites 5 to 20 s after the cast. Before that it may nibble up to five times: the float dips and the
   page says so a moment. A strike before the bite loses the fish ("Too soon", or "That was only a nibble" right after one).
 - **The bite.** The float goes under with a splash and a ring closes over it on the page. Space within 1 s strikes.
@@ -57,7 +57,8 @@ auction house like any other. The fish are not food for Hunger and Thirst yet.
 - **The rod at the trader.** A trader's ware may be a custom item: `stocks.json` names it under `custom` (its key, its
   weight, and for the page its name and the game item whose icon it shows) with a price of its own. The research's
   `export_wares.py` bakes its name and icon with the game's wares.
-- **The water** is the player's game's, through the SDK's `IWater`: a look straight down finds the surface and the bed.
+- **The water** is the player's game's, through the SDK's `IWater`: a look straight down finds the surface and the bed,
+  and whether something stood over the water first (`Covered`). Only open water takes the float.
   The server checks a cast against where the character stands and the water's height it began at.
 - **The page** (`ui/fishing`) is a picture over the game that takes no input: what the line asks for now, the ring over
   the float (`ICamera.TryProject`), the bend meter and the catch's card. The server sends it a `FishingView`.
