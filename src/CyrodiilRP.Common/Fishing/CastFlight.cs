@@ -7,10 +7,10 @@ namespace CyrodiilRP.Common.Fishing;
 public static class CastFlight
 {
     public const float ShortestSeconds = 0.6f;
-    public const float LongestSeconds = 0.8f;
+    public const float LongestSeconds = 1.1f;
 
     // A throw this far or farther flies the longest time.
-    public const float LongThrow = 1300f;
+    public const float LongThrow = 2200f;
 
     // How high the arc rises over the straight way, at the least and for each centimetre thrown.
     public const float RiseLeast = 80f;

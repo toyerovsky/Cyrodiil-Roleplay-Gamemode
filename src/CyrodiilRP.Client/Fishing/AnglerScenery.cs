@@ -9,8 +9,8 @@ using ReadyM.SDK.Attributes;
 namespace CyrodiilRP.Client.Fishing;
 
 // Every angler this player sees, themselves included: the rod of its grade in the hand and the staff's poses, the cast's
-// swing and the float's flight, the float bobbing on the water, the fish under it, the catch held up, and the splashes
-// seen and heard here. The game has no fishing rod: its staves stand for one.
+// swing and the float's flight, the float bobbing on the water, the fish under it and the small fish round it, the catch
+// held up, and the splashes seen and heard here. The game has no fishing rod: its staves stand for one.
 [Service]
 internal sealed partial class AnglerScenery(
     RpcHandlers rpc,
@@ -72,7 +72,7 @@ internal sealed partial class AnglerScenery(
         if (!_anglers.TryGetValue(angler, out var scene))
         {
             _anglers[angler] = new AnglerScene(tier, Rod: null, RodRetryAt: 0f, AnglerPose.Holding, PoseSince: Time.Elapsed,
-                PosePlayed: false, PoseNextAt: 0f, Cast: null, Float: null, Fish: null, Show: null);
+                PosePlayed: false, PoseNextAt: 0f, Cast: null, Float: null, Fish: null, Shoal: null, Show: null);
             return;
         }
 
@@ -92,10 +92,11 @@ internal sealed partial class AnglerScenery(
         var distance = Vector2.Distance(new Vector2(from.X, from.Y), new Vector2(at.X, at.Y));
         var flies = now + AnglerLooks.ReleaseSeconds;
         var cast = new CastScene(from, at, CastFlight.Rise(distance), flies, flies + CastFlight.Seconds(distance), Flying: false);
-        _anglers[angler] = Pose(RemoveFish(RemoveFloat(scene)) with { Cast = cast }, AnglerPose.Casting, now);
+        _anglers[angler] = Pose(Scatter(RemoveFish(RemoveFloat(scene)), now) with { Cast = cast }, AnglerPose.Casting, now);
     }
 
-    // While the float flies the server's word on it waits for the landing.
+    // While the float flies the server's word on it waits for the landing. A float seen first here, on coming near the
+    // angler, brings its small fish.
     private void OnFloatMoved(int angler, Vector3 at)
     {
         if (!_anglers.TryGetValue(angler, out var scene) || scene.Cast is not null)
@@ -108,13 +109,14 @@ internal sealed partial class AnglerScenery(
             return;
         }
 
-        _anglers[angler] = scene with { Float = PlaceFloat(at, at) };
+        var placed = scene with { Float = PlaceFloat(at, at) };
+        _anglers[angler] = FindCharacter(angler) is { } character ? Gather(placed, character.Position, at, Time.Elapsed) : placed;
     }
 
     private void OnFloatGone(int angler)
     {
         if (_anglers.TryGetValue(angler, out var scene))
-            _anglers[angler] = RemoveFloat(scene);
+            _anglers[angler] = Scatter(RemoveFloat(scene), Time.Elapsed);
     }
 
     private void OnFishMoved(int angler, string move, Vector3 at, float yaw, int lengthCm)
@@ -134,7 +136,7 @@ internal sealed partial class AnglerScenery(
             FishMove.Approach => Approach(scene, at, yaw, lengthCm, now),
             FishMove.Nibble => Nibble(Swim(scene, FishSwim.Darting, at, yaw, lengthCm, now, Under(at)), now),
             FishMove.Bite => Bite(Swim(scene, FishSwim.Diving, at, yaw, lengthCm, now, Under(at)), at),
-            FishMove.Hooked => Pose(Swim(scene, FishSwim.Following, at, yaw, lengthCm, now, Under(at)), AnglerPose.Striking, now),
+            FishMove.Hooked => Pose(Scatter(Swim(scene, FishSwim.Following, at, yaw, lengthCm, now, Under(at)), now), AnglerPose.Striking, now),
             FishMove.Jump => Swim(scene, FishSwim.Jumping, at, yaw, lengthCm, now, Under(at)),
             FishMove.Landed => Land(RemoveFish(scene), angler, lengthCm, now),
             FishMove.Escaped => Unbrace(Swim(scene, FishSwim.Leaving, at, yaw, lengthCm, now, Under(at)), now),
@@ -186,6 +188,7 @@ internal sealed partial class AnglerScenery(
             next = Fly(next, now);
             next = Bob(next, angler, now, seconds);
             next = SwimOn(next, now, seconds);
+            next = SwimShoal(next, now, seconds);
             next = EndShow(next, now);
             if (next != scene)
                 _anglers[angler] = next;
@@ -251,7 +254,7 @@ internal sealed partial class AnglerScenery(
         effects.Stop(bobber.Ripples);
         var ripples = effects.Play(AnglerLooks.Ripples, cast.To, Vector3.Zero, AnglerLooks.RipplesScale, AnglerLooks.RipplesSeconds);
         var landed = bobber with { Drawn = cast.To, Target = cast.To, Sunk = Afloat, NibbledAt = float.NegativeInfinity, Ripples = ripples };
-        return scene with { Cast = null, Float = landed };
+        return Gather(scene with { Cast = null, Float = landed }, cast.From, cast.To, now);
     }
 
     // On the water the float glides to where the server put it, bobs and dips at a nibble, and sinks when a fish takes it.
@@ -291,6 +294,66 @@ internal sealed partial class AnglerScenery(
         return scene with { Fish = fish with { Drawn = drawn, DrawnYaw = yaw } };
     }
 
+    // Each small fish swims its circle round the float, or flees until it is out of sight.
+    private AnglerScene SwimShoal(AnglerScene scene, float now, float seconds)
+    {
+        if (scene.Shoal is not { } shoal)
+            return scene;
+
+        if (shoal.FleeingSince is { } fled && now - fled >= ShoalMotion.FleeSeconds)
+            return RemoveShoal(scene);
+
+        var since = now - shoal.Since;
+        var swum = new ShoalFish[shoal.Fish.Count];
+        for (var index = 0; index < swum.Length; index++)
+        {
+            var fish = shoal.Fish[index];
+            var drawn = shoal.FleeingSince is null
+                ? FishingGlide.Toward(fish.Drawn, ShoalMotion.At(shoal.Center, fish.Swimmer, since), AnglerLooks.ShoalGlide, seconds)
+                : ShoalMotion.Flee(shoal.Center, fish.Drawn, seconds);
+            var ahead = shoal.FleeingSince is null
+                ? ShoalMotion.At(shoal.Center, fish.Swimmer, since + ShoalMotion.AheadSeconds)
+                : drawn + ShoalMotion.Flat(drawn - shoal.Center);
+            var yaw = FishingGlide.TurnToward(fish.DrawnYaw, FishMotion.Heading(drawn, ahead, fish.DrawnYaw), AnglerLooks.FishTurn, seconds);
+            props.Move(fish.Prop, drawn, FishRotation(yaw, 0f));
+            swum[index] = fish with { Drawn = drawn, DrawnYaw = yaw };
+        }
+
+        return scene with { Shoal = shoal with { Fish = swum } };
+    }
+
+    // A few small fish swim in from the open water to circle the float, kept off the angler's bank.
+    private AnglerScene Gather(AnglerScene scene, Vector3 angler, Vector3 at, float now)
+    {
+        scene = RemoveShoal(scene);
+        var room = Vector2.Distance(new Vector2(angler.X, angler.Y), new Vector2(at.X, at.Y)) * ShoalMotion.ShoreShare;
+        var fish = new ShoalFish[ShoalMotion.Count];
+        for (var index = 0; index < fish.Length; index++)
+        {
+            var swimmer = ShoalMotion.Pick(Random.Shared, room);
+            var from = ShoalMotion.ArrivingFrom(at, swimmer, at - angler);
+            var yaw = FishMotion.Heading(from, at, 0f);
+            var prop = props.Place(new Prop(AnglerLooks.FishMesh, from, FishRotation(yaw, 0f), FishMotion.ScaleFor(swimmer.LengthCm)), collides: false);
+            fish[index] = new ShoalFish(prop, swimmer, from, yaw);
+        }
+
+        return scene with { Shoal = new ShoalScene(at, now, FleeingSince: null, fish) };
+    }
+
+    private static AnglerScene Scatter(AnglerScene scene, float now) =>
+        scene.Shoal is { FleeingSince: null } shoal ? scene with { Shoal = shoal with { FleeingSince = now } } : scene;
+
+    private AnglerScene RemoveShoal(AnglerScene scene)
+    {
+        if (scene.Shoal is { } shoal)
+        {
+            foreach (var fish in shoal.Fish)
+                props.Remove(fish.Prop);
+        }
+
+        return scene with { Shoal = null };
+    }
+
     // The catch goes back to where it came from and the rod comes back to the hand.
     private AnglerScene EndShow(AnglerScene scene, float now)
     {
@@ -303,17 +366,8 @@ internal sealed partial class AnglerScenery(
     }
 
     // A new fish swims in along the yaw to circle the float.
-    private AnglerScene Approach(AnglerScene scene, Vector3 at, float yaw, int lengthCm, float now)
-    {
-        var next = Swim(scene, FishSwim.Circling, at, yaw, lengthCm, now, Under(at - FishingShot.Forward(yaw) * AnglerLooks.ApproachFrom));
-        if (next.Fish is not { } fish)
-            return next;
-
-        effects.Stop(fish.School);
-        var school = effects.Play(AnglerLooks.School, at - new Vector3(0f, 0f, AnglerLooks.SchoolDepth), Vector3.Zero,
-            AnglerLooks.SchoolScale, AnglerLooks.SchoolSeconds);
-        return next with { Fish = fish with { School = school } };
-    }
+    private AnglerScene Approach(AnglerScene scene, Vector3 at, float yaw, int lengthCm, float now) =>
+        Swim(scene, FishSwim.Circling, at, yaw, lengthCm, now, Under(at - FishingShot.Forward(yaw) * AnglerLooks.ApproachFrom));
 
     private static AnglerScene Nibble(AnglerScene scene, float now) =>
         scene.Float is { } bobber ? scene with { Float = bobber with { NibbledAt = now } } : scene;
@@ -342,7 +396,7 @@ internal sealed partial class AnglerScenery(
         if (before is { } old)
             props.Remove(old.Prop);
         var prop = props.Place(new Prop(AnglerLooks.FishMesh, drawn, FishRotation(facing, 0f), scale), collides: false);
-        return new FishScene(prop, scale, FishSwim.Circling, at, yaw, Since: 0f, drawn, facing, before?.School ?? VisualEffectHandle.None);
+        return new FishScene(prop, scale, FishSwim.Circling, at, yaw, Since: 0f, drawn, facing);
     }
 
     // The catch comes out of the water into the angler's hand, the rod set aside, while the angler looks at it.
@@ -415,10 +469,7 @@ internal sealed partial class AnglerScenery(
     private AnglerScene RemoveFish(AnglerScene scene)
     {
         if (scene.Fish is { } fish)
-        {
             props.Remove(fish.Prop);
-            effects.Stop(fish.School);
-        }
 
         return scene with { Fish = null };
     }
@@ -428,7 +479,7 @@ internal sealed partial class AnglerScenery(
         if (!_anglers.Remove(angler, out var scene))
             return;
 
-        scene = RemoveFish(RemoveFloat(RemoveRod(scene)));
+        scene = RemoveShoal(RemoveFish(RemoveFloat(RemoveRod(scene))));
         if (scene.Show is { Fish: { } held })
             props.Remove(held);
         if (players.LocalMainCharacter is { } me && me.PlayerId.RawValue == angler)

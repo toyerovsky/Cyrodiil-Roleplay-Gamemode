@@ -11,9 +11,9 @@ internal static class RodCatalog
 
     public static readonly IReadOnlyList<RodKind> All =
     [
-        new(RodTier.Basic, "fishing.rod", "Fishing Rod", ReachCm: 700f, Line: 1.0, BiteSpeed: 1.0, WearOneIn: 12, Price: 25, Weight: 3f),
-        new(RodTier.Sturdy, "fishing.rod.sturdy", "Sturdy Fishing Rod", ReachCm: 1000f, Line: 1.25, BiteSpeed: 1.1, WearOneIn: 18, Price: 120, Weight: 3.5f),
-        new(RodTier.Master, "fishing.rod.master", "Master Fishing Rod", ReachCm: 1300f, Line: 1.5, BiteSpeed: 1.2, WearOneIn: 26, Price: 450, Weight: 4f),
+        new(RodTier.Basic, "fishing.rod", "Fishing Rod", ReachCm: 1400f, Line: 1.0, BiteSpeed: 1.0, WearOneIn: 12, Price: 25, Weight: 3f),
+        new(RodTier.Sturdy, "fishing.rod.sturdy", "Sturdy Fishing Rod", ReachCm: 1800f, Line: 1.25, BiteSpeed: 1.1, WearOneIn: 18, Price: 120, Weight: 3.5f),
+        new(RodTier.Master, "fishing.rod.master", "Master Fishing Rod", ReachCm: 2200f, Line: 1.5, BiteSpeed: 1.2, WearOneIn: 26, Price: 450, Weight: 4f),
     ];
 
     private static readonly Dictionary<string, RodItem> ByKey = All

@@ -68,6 +68,8 @@ internal static class AnglerLooks
     public const float BiteDepth = 60f;
     public const float FightDepth = 30f;
     public const float EscapeSeconds = 1.6f;
+    // How quickly a small fish of the shoal keeps to its circle, and so how fast it swims in to it.
+    public const float ShoalGlide = 1.2f;
 
     public static readonly Vector3 ShowOffset = Vector3.Zero;
     public static readonly Vector3 ShowRotation = Vector3.Zero;
@@ -81,7 +83,6 @@ internal static class AnglerLooks
     public const string SplashMedium = Effects + "Environment/NS_Static_WaterSplash_02.NS_Static_WaterSplash_02";
     public const string SplashLarge = Effects + "Environment/NS_Static_WaterSplash_03.NS_Static_WaterSplash_03";
     public const string SplashHuge = Effects + "Environment/NS_Static_WaterSplash_04.NS_Static_WaterSplash_04";
-    public const string School = Effects + "Crowd/NS_Static_SmallFishes_01.NS_Static_SmallFishes_01";
     public const string Bubbles = Effects + "Environment/NS_Static_UnderwaterBubbles.NS_Static_UnderwaterBubbles";
 
     // The game's splashes keep running unseen after they show, so each is taken away after this.
@@ -96,9 +97,6 @@ internal static class AnglerLooks
     public const float ReentryScale = 0.7f;
     public const float CatchScale = 1f;
     public const float SnapScale = 0.6f;
-    public const float SchoolScale = 0.5f;
-    public const float SchoolDepth = 30f;
-    public const float SchoolSeconds = 4f;
     public const float BubblesScale = 0.5f;
     public const float BubblesDepth = 30f;
     public const float BubblesSeconds = 1.5f;

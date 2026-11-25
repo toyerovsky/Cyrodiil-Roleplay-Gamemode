@@ -6,8 +6,8 @@ public sealed class FishingLineTests
 {
     private const long CastAt = 1_000;
     private const long TickMs = 100;
-    private const float Reach = 700f;
-    private const float Distance = 500f;
+    private const float Reach = 1400f;
+    private const float Distance = 1000f;
 
     // A pull roll under RestFresh rests a fresh fish; one at the top runs right; one just past it dives away.
     private const double RestRoll = 0.0;

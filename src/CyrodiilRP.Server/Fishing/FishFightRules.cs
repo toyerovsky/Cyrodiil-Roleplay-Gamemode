@@ -33,9 +33,9 @@ internal static class FishFightRules
 
     // Centimetres a second: the reel at rest and its share against a run, the fish's away and sideways runs at full
     // effort.
-    public const double ReelSpeed = 90;
+    public const double ReelSpeed = 160;
     public const double ReelInRunShare = 0.25;
-    public const double AwaySpeed = 80;
+    public const double AwaySpeed = 130;
     public const double SideSpeed = 20;
 
     // Landed this near once tired enough; a fresher fish there bolts away, and it never comes nearer than Closest.

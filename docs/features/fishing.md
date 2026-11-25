@@ -12,7 +12,7 @@ lure, and mends rods.
 ## 2. Rules (as the player sees them)
 
 - **The rod.** A fishing rod in the pack (not in hand: the game has no rod to hold). Three grades, each reaching farther
-  with a stronger line and quicker bites: the plain Fishing Rod (7 m), the Sturdy (10 m) and the Master's (13 m). The
+  with a stronger line and quicker bites: the plain Fishing Rod (14 m), the Sturdy (18 m) and the Master's (22 m). The
   general trader sells the plain one, the fisher all three. A rod wears after fights, Good, Worn, Damaged, then Broken,
   which does not fish; the fisher mends it. The best rod carried fishes: the highest grade, then the best condition.
   Without a whole one "Fish" on the wheel is shut and says why.
@@ -31,7 +31,9 @@ lure, and mends rods.
   not stop it. Stopping with a fish on the line cuts the line, at what a snap costs: the rod may wear, the lure goes.
 - **The cast.** The aim follows where the player looks, up to 60 degrees to either side. Holding Space swings a power
   meter up in 1.1 s and down again; letting go casts as far as the power gives, from 1.5 m to the rod's reach, onto the
-  nearest open water at or before that point. The angler swings the rod and the float flies to the water.
+  nearest open water at or before that point. The angler swings the rod and the float flies to the water. Five small
+  fish swim in from the open water and circle the float at 1 to 3 m, kept off the angler's bank; they flee when a fish
+  is hooked, the float leaves the water or the angler casts again.
 - **The wait.** An untrained angler waits 5 to 20 s for a bite, less with skill, a better rod and a bait. About 3 s
   before the first nibble (or the bite) a fish shows under the water and circles the float. It may nibble up to five
   times: the float dips. A strike before the bite loses the fish ("Too soon", or "That was only a nibble" right after
@@ -67,7 +69,8 @@ lure, and mends rods.
   southern rivers, best in the rain; the longfin and the sea bass at sea; eels and catfish at night and underground; the
   slaughterfish in deep water at night; the trout in rivers, lakes and streams at dawn.
 - **Seen by others.** Everyone within 60 m sees the angler hold the rod (its grade by the staff's mesh), the cast, the
-  float, the fish circling, biting, on the line, jumping, held up or swimming off, and the splashes, and hears them.
+  float, the small fish round it, the fish circling, biting, on the line, jumping, held up or swimming off, and the
+  splashes, and hears them.
 
 ## 3. Ways in
 
@@ -101,8 +104,8 @@ lure, and mends rods.
   + 1.2 reeling) x effort / the line's strength, + 0.2 reeling, x 0.7 leaning against the run; at rest 0.4 while reeling,
   else it falls to nothing at 2 a second. The line's strength is the rod's (1, 1.25, 1.5, less worn) x the skill's
   tolerance. Stamina falls 1 / the species' stamina seconds a second within tension 0.15 to 0.85, 0.3 of that outside,
-  1.8 times while the rod leans against the run. The reel brings the fish 90 cm a second at rest, a quarter of that
-  against a run; it runs away 80 x effort and aside 20 x effort a second, dragging the float up to 3 m to the side.
+  1.8 times while the rod leans against the run. The reel brings the fish 160 cm a second at rest, a quarter of that
+  against a run; it runs away 130 x effort and aside 20 x effort a second, dragging the float up to 3 m to the side.
   Snapped at tension 1, thrown off after 2 s at or below 0.05, run out past 3 x the rod's reach, landed within 1.5 m once
   its stamina is down to 0.35. Bots in `tests/CyrodiilRP.Tests/Fishing/FishingFightTests.cs` hold these numbers.
 - **The skill and the records** (`FishingSkills`, `FishingSkillRules`) are read when the character starts playing
@@ -139,8 +142,8 @@ None of it has run in the game. The SDK blocks it stands on were checked there f
   character jump;
 - the rods on the hand (offset and turn on `Weapon_Socket`) for each grade, the cast, strike, fight and showing
   animations, and how others see them;
-- the float's flight, its bobbing and dips, the fish circling, biting, following the float, jumping, held up and
-  swimming off, the splashes' size and sound;
+- the float's flight, its bobbing and dips, the small fish round it (whether they show through the water), the fish
+  circling, biting, following the float, jumping, held up and swimming off, the splashes' size and sound;
 - the fight's feel: whether the numbers tuned by bots feel right in a player's hands, and whether the page and the
   splashes tell the runs in time;
 - the items: the fish's names, icon and mesh when dropped, the rods' names, icon and staff mesh, the baits as items;
