@@ -8,6 +8,7 @@ using CyrodiilRP.Client.Chat;
 using CyrodiilRP.Client.Creator;
 using CyrodiilRP.Client.Dice;
 using CyrodiilRP.Client.Exchange;
+using CyrodiilRP.Client.Fisher;
 using CyrodiilRP.Client.Fishing;
 using CyrodiilRP.Client.Guide;
 using CyrodiilRP.Client.Interactions;
@@ -43,6 +44,7 @@ internal sealed partial class Mod(IDependencyContainer services, ILogger logger)
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<ForemanOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<BankOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<AuctionOverlay>());
+        services.RegisterSingleton<ICefRpcHandler>(services.Resolve<FisherOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<StableOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<MentorOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<BoardOverlay>());
