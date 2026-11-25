@@ -53,10 +53,12 @@ const progress = computed(() => (skill.value.xpNext > 0 ? Math.min(1, skill.valu
         <span>{{ t.skill }}</span>
         <strong>{{ fill(t.level, { level: skill.level }) }}</strong>
       </p>
-      <div class="fishing-gear__xp" role="meter" :aria-label="t.skill" aria-valuemin="0" :aria-valuemax="skill.xpNext" :aria-valuenow="skill.xp">
+      <div class="fishing-gear__xp" role="meter" :aria-label="t.skill" aria-valuemin="0" :aria-valuemax="Math.max(1, skill.xpNext)" :aria-valuenow="skill.xpNext > 0 ? skill.xp : 1">
         <span :style="{ width: `${Math.round(progress * PERCENT * 10) / 10}%` }"></span>
       </div>
-      <p class="fishing-gear__xp-text">{{ fill(t.xp_of, { xp: skill.xp.toLocaleString(locale), next: skill.xpNext.toLocaleString(locale) }) }}</p>
+      <p class="fishing-gear__xp-text">
+        {{ skill.xpNext > 0 ? fill(t.xp_of, { xp: skill.xp.toLocaleString(locale), next: skill.xpNext.toLocaleString(locale) }) : t.xp_top }}
+      </p>
     </div>
   </aside>
 </template>

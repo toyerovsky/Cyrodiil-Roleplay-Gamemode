@@ -80,8 +80,17 @@ internal static class FishingRules
         new(FindKindName.FlawlessPearl, new FormId(0x00038B9A), Share: 0.05),
     ];
 
+    // How far above the water a character may stand and fish, as from a high bridge; centimetres from the middle of the
+    // character to the surface.
+    public const float WaterBelowMost = 1200f;
+
+    // How much wider than the aim's reach a cast may land, for the yaw the server last heard.
+    public const float AimSlackDegrees = 10f;
+
+    public const float DegreesPerRadian = 180f / MathF.PI;
+
     // A find comes up without a run, a jump or much of a pull.
-    public static readonly FishFight FindFight = new(Strength: 0.1, StaminaSeconds: 2, ChangeSoonestSeconds: 1.5, ChangeLatestSeconds: 2.5, Jumpiness: 0);
+    public static readonly FishFight FindFight = new(Strength: 0.1, StaminaSeconds: 2, ChangeSoonestSeconds: 1.5, ChangeLatestSeconds: 2.5, Jumpiness: 0, Runs: false);
 
     public static TimeSpan BiteWait(double roll) => BiteSoonest + (BiteLatest - BiteSoonest) * roll;
 

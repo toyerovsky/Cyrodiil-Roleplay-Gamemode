@@ -54,7 +54,7 @@ describe("the fishing page", () => {
     expect(power()).toBe(0);
     expect(key("cast").text()).toBe(`${text("key_space")}${text("keys.cast")}`);
     expect(key("cast").classes()).toContain("fishing__key--wanted");
-    expect(key("stop").text()).toBe(`${text("key_e")}${text("keys.stop")}`);
+    expect(key("stop").text()).toBe(`${text("key_stop")}${text("keys.stop")}`);
     expect(page.find(".fishing__mark--aim").attributes("style")).toContain("left: 25%");
     expect(page.find(".fishing__mark--aim").attributes("style")).toContain("top: 50%");
   });
@@ -305,7 +305,7 @@ describe("the fishing page's texts", () => {
       pull: ["Rest", "Left", "Right", "Away"],
       counter: ["Rest", "Left", "Right", "Away"],
       feel: ["Small", "Fair", "Heavy", "Monster"],
-      condition: ["Good", "Worn", "Damaged"],
+      condition: ["Good", "Worn", "Damaged", "Broken"],
       rod_now: ["Worn", "Damaged", "Broken"],
     };
     const missing = Object.entries(names).flatMap(([group, values]) => values.map((value) => `${group}.${value}`).filter((key) => !text(key)));

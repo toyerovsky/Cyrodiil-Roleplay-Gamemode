@@ -38,6 +38,8 @@ internal sealed partial class FishingOverlay(
     ILogger logger)
 {
     private const string PageName = "fishing";
+    // The game leaves X alone: E would also activate whatever stands in front.
+    private const Key StopKey = Key.X;
     // A character's position is the middle of its capsule.
     private const float FeetBelowPosition = 90f;
     // The ways round from where the player looks that the water is looked for: ahead first, behind last.
@@ -104,19 +106,20 @@ internal sealed partial class FishingOverlay(
         foreach (var turn in SearchTurns)
         {
             var yaw = facing + turn;
-            if (FindCast(feet, yaw, reach) is { } cast)
+            if (FindCast(feet, yaw, reach, sameWaterAs: null) is { } cast)
                 return new WaterFound(FishingVerdict.Found, yaw, cast.Z);
         }
 
         return WaterFound.Refused(FishingVerdict.NoWater);
     }
 
-    // Where the farthest cast along the yaw lands: the farthest open water deep enough the rod reaches.
-    private Vector3? FindCast(Vector3 feet, float yaw, float reach)
+    // Where the farthest cast along the yaw lands: the farthest open water deep enough the rod reaches. sameWaterAs: once
+    // fishing, the surface the server holds the angler to (null while looking for one).
+    private Vector3? FindCast(Vector3 feet, float yaw, float reach, float? sameWaterAs)
     {
         foreach (var point in FishingShot.CastPoints(feet, yaw, reach))
         {
-            if (FindOpenWater(point, feet.Z) is { } found)
+            if (FindOpenWater(point, feet.Z, sameWaterAs) is { } found)
                 return found;
         }
 
@@ -124,21 +127,23 @@ internal sealed partial class FishingOverlay(
     }
 
     // Where a throw this far lands: the nearest open water at or before it along the yaw, or past it for a short one.
-    private Vector3? FindLanding(Vector3 feet, float yaw, float distance, float reach)
+    private Vector3? FindLanding(Vector3 feet, float yaw, float distance, float reach, float waterZ)
     {
         foreach (var point in CastFlight.LandingPoints(feet, yaw, distance, reach))
         {
-            if (FindOpenWater(point, feet.Z) is { } found)
+            if (FindOpenWater(point, feet.Z, waterZ) is { } found)
                 return found;
         }
 
         return null;
     }
 
-    // Water under a quay, a pier, a bridge or a rock is covered, and a float does not land in it.
-    private Vector3? FindOpenWater(Vector3 point, float feetZ) =>
+    // Water under a quay, a pier, a bridge or a rock is covered, and a float does not land in it; nor in water whose
+    // surface lies too far from the angler's, which the server refuses.
+    private Vector3? FindOpenWater(Vector3 point, float feetZ, float? sameWaterAs) =>
         water.FindBelow(point with { Z = feetZ + FishingShot.LookFromAbove }, FishingShot.LookDown) is { Covered: false } found
         && (found.Depth is null || found.Depth >= FishingReach.ShallowestWater)
+        && (sameWaterAs is not { } surface || Math.Abs(found.SurfaceZ - surface) <= FishingReach.SameWater)
             ? point with { Z = found.SurfaceZ }
             : null;
 
@@ -147,7 +152,11 @@ internal sealed partial class FishingOverlay(
     {
         if (_fishing is { } fishing)
         {
-            _fishing = fishing with { Aiming = true, ChargeFrom = null, SpaceSent = false, BiteHeardAt = null };
+            _fishing = fishing with
+            {
+                Yaw = yaw, WaterZ = waterZ, Reach = reach, Aiming = true, ChargeFrom = null, AimYaw = null, AimAt = null, SpaceSent = false,
+                BiteHeardAt = null,
+            };
             return;
         }
 
@@ -158,7 +167,7 @@ internal sealed partial class FishingOverlay(
         var lookAt = (stand + FishingShot.Forward(yaw) * reach) with { Z = waterZ };
         _fishing = new AnglerState(stand, yaw, waterZ, reach, Aiming: true, ChargeFrom: null, AimYaw: null, AimAt: null,
             SpaceDown: input.IsKeyDown(Key.SPACE), SpaceDownAt: 0f, SpaceSent: false, LeanSent: null, InputSentAt: float.NegativeInfinity,
-            StopDown: input.IsKeyDown(Key.E), StopAsked: false, BiteHeardAt: null, AnchorSent: null);
+            StopDown: input.IsKeyDown(StopKey), StopAsked: false, BiteHeardAt: null, AnchorSent: null);
         shots.Begin(AnglerFraming.Shoulder(stand, yaw, waterZ, lookAt), Time.Elapsed);
         cues.Begin(_read);
         _shownFor = null;
@@ -238,7 +247,7 @@ internal sealed partial class FishingOverlay(
         ShowPage();
         var now = Time.Elapsed;
         var keysFree = !pageInput.IsHeld && !chat.IsOpen && !cursor.IsGameMenuOpen;
-        fishing = AskStop(fishing, keysFree && input.IsKeyDown(Key.E));
+        fishing = AskStop(fishing, keysFree && input.IsKeyDown(StopKey));
         fishing = Aim(fishing);
         var spaceDown = keysFree && input.IsKeyDown(Key.SPACE);
         fishing = fishing.Aiming ? Charge(fishing, spaceDown, keysFree, now) : Reel(fishing, spaceDown, now);
@@ -275,7 +284,7 @@ internal sealed partial class FishingOverlay(
         if (fishing.AimYaw is { } before && Math.Abs(FishingShot.Turn(yaw - before)) < AimMoves)
             return fishing;
 
-        return fishing with { AimYaw = yaw, AimAt = FindCast(fishing.Stand, yaw, fishing.Reach) };
+        return fishing with { AimYaw = yaw, AimAt = FindCast(fishing.Stand, yaw, fishing.Reach, fishing.WaterZ) };
     }
 
     // Space pressed with water along the aim charges the cast, let go throws it. A page or the chat taking the keys
@@ -310,7 +319,7 @@ internal sealed partial class FishingOverlay(
             return thrown;
 
         var distance = CastFlight.Distance(FishingCharge.PowerAt(Math.Max(0f, heldSeconds)), fishing.Reach);
-        if (FindLanding(fishing.Stand, yaw, distance, fishing.Reach) is not { } landing)
+        if ((FindLanding(fishing.Stand, yaw, distance, fishing.Reach, fishing.WaterZ) ?? fishing.AimAt) is not { } landing)
             return thrown;
 
         rpc.SendFishingCast(landing.X, landing.Y, landing.Z);

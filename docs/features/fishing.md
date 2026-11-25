@@ -26,8 +26,9 @@ lure, and mends rods.
   in the corner when no water is in reach, while swimming, out of the world, while held still (a staff member's freeze
   or flight), or while the character's fishing is still being read as it starts playing.
 - **Held still.** While fishing the character stands where it began, facing the water, and the camera looks from over
-  its right shoulder. E stops the fishing at any stage, so does "Stop fishing" on the wheel, a staff member's freeze, or
-  the character being moved more than 3 m away. W, A, S and D do not stop it.
+  its right shoulder. X stops the fishing at any stage (not E, which the game takes as activate), so does "Stop
+  fishing" on the wheel, a staff member's freeze, or the character being moved more than 3 m away. W, A, S and D do
+  not stop it. Stopping with a fish on the line cuts the line, at what a snap costs: the rod may wear, the lure goes.
 - **The cast.** The aim follows where the player looks, up to 60 degrees to either side. Holding Space swings a power
   meter up in 1.1 s and down again; letting go casts as far as the power gives, from 1.5 m to the rod's reach, onto the
   nearest open water at or before that point. The angler swings the rod and the float flies to the water.
@@ -74,8 +75,8 @@ lure, and mends rods.
 |---|---|---|
 | G wheel: Fish | asks the player's game for water and starts; shut without a whole rod | `Fishing/Anglers.cs` |
 | G wheel: Bait | a wheel of the baits carried and "No bait"; shown while any is carried | `Fishing/BaitWheel.cs` |
-| G wheel: Stop fishing | stops, as E does | `Fishing/Anglers.cs` |
-| Space, A, D, E | read every frame while fishing, under no page that holds the keyboard | `Client/Fishing/` |
+| G wheel: Stop fishing | stops, as X does | `Fishing/Anglers.cs` |
+| Space, A, D, X | read every frame while fishing, under no page that holds the keyboard | `Client/Fishing/` |
 | The general trader: Fishing Rod | sells the plain rod | `Traders/stocks.json` |
 | The fisher, "Services" | sells the catch, buys rods, baits and the lure, mends rods | `Fisher/` |
 

@@ -267,9 +267,12 @@ internal sealed class FishingLine(Func<double> roll)
         DriftCm = Math.Abs(toward - DriftCm) <= step ? toward : DriftCm + Math.Sign(toward - DriftCm) * step;
     }
 
-    // Rests grow likelier as the fish tires; a run may bring a jump.
+    // Rests grow likelier as the fish tires; a run may bring a jump. What does not run only rests.
     private FishPull NextPull()
     {
+        if (!Current.Fight.Runs)
+            return FishPull.Rest;
+
         var rest = FishFightRules.RestFresh + (FishFightRules.RestSpent - FishFightRules.RestFresh) * (1 - Stamina);
         var pick = roll();
         if (pick < rest)

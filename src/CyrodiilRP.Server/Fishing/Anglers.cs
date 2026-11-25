@@ -164,6 +164,13 @@ internal sealed partial class Anglers(
             return;
         }
 
+        if (!float.IsFinite(waterZ) || Math.Abs(stand.Z - waterZ) > FishingRules.WaterBelowMost)
+        {
+            logger.LogWarning("{Player} told of water at {WaterZ} while standing at {Stand}.", player.Ref, waterZ, stand);
+            chat.Notify(player, FishingText.NoWater);
+            return;
+        }
+
         entity.IsFrozen = true;
         main.Rotation = yaw;
         var angler = new Angler(player, area, stand, yaw, waterZ, new FishingLine(_random.NextDouble), rod, BaitKind.None, CountBait(player),
@@ -187,11 +194,15 @@ internal sealed partial class Anglers(
         }
 
         var reach = Vector2.Distance(new Vector2(point.X, point.Y), new Vector2(angler.Stand.X, angler.Stand.Y));
+        var aim = MathF.Atan2(point.Y - angler.Stand.Y, point.X - angler.Stand.X) * FishingRules.DegreesPerRadian;
         if (!float.IsFinite(point.X) || !float.IsFinite(point.Y) || !float.IsFinite(point.Z)
-            || reach > rod.Rod.ReachCm + FishingReach.Slack || Math.Abs(point.Z - angler.WaterZ) > FishingReach.SameWater)
+            || reach > rod.Rod.ReachCm + FishingReach.Slack || reach < FishingReach.Nearest - FishingReach.Slack
+            || Math.Abs(FishingShot.Turn(aim - angler.Yaw)) > FishingReach.AimDegrees + FishingRules.AimSlackDegrees
+            || Math.Abs(point.Z - angler.WaterZ) > FishingReach.SameWater)
         {
             logger.LogWarning("{Player} cast to {Point}, {Reach} cm away, out of the rod's reach or off the water at {WaterZ}.",
                 player.Ref, point, reach, angler.WaterZ);
+            rpc.SendFishingAim(player.Id, angler.Yaw, angler.WaterZ, rod.Rod.ReachCm);
             return;
         }
 
@@ -203,8 +214,9 @@ internal sealed partial class Anglers(
 
         var progress = skills.Find(player) ?? throw new InvalidOperationException($"{player.Ref} fishes before their fishing is read.");
         var level = progress.Skill.Level;
+        var conditions = surroundings.Read(area, point);
         var bait = PutOnBait(player, progress.Bait);
-        var quarry = CatchPicker.Pick(surroundings.Read(area, point), bait, level, _random.NextDouble);
+        var quarry = CatchPicker.Pick(conditions, bait, level, _random.NextDouble);
         var cast = new LineCast(quarry.Fight, quarry.SizeShare, CatchPicker.WaitFactor(level, rod.Rod, bait),
             FishingRules.StrikeWindow + FishingSkillRules.StrikeBonus(level), rod.Line * FishingSkillRules.LineTolerance(level), rod.Rod.ReachCm,
             reach);
@@ -464,7 +476,7 @@ internal sealed partial class Anglers(
             chat.Notify(player, FishingText.NotGiven);
         }
 
-        return angler with { Float = null, Quarry = null, Outcome = outcome };
+        return angler with { Float = null, Quarry = null, BaitCount = CountBait(player), Outcome = outcome };
     }
 
     // A fish that got away swims off. One that was hooked may wear the rod and take the lure along.
@@ -661,6 +673,10 @@ internal sealed partial class Anglers(
         _looks.Forget(player);
         if (!_anglers.Remove(player, out var angler))
             return;
+
+        // Walking away from a fish on the line cuts it, at what a snap would cost.
+        if (angler.Line.Stage == FishingStage.Fight)
+            angler = Lose(angler, FishingOutcome.LostSnapped);
 
         if (entities.TryLookup(player.Id, out Player entity) && !entity.IgnoresCollision)
             entity.IsFrozen = freezes.IsFrozen(player);

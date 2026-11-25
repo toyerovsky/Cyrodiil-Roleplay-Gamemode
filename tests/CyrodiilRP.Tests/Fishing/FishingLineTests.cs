@@ -25,7 +25,7 @@ public sealed class FishingLineTests
     private static readonly long Soonest = (long)FishingRules.BiteSoonest.TotalMilliseconds;
 
     // Turns only every 30 s, so a test sees one pull.
-    private static readonly FishFight Steady = new(Strength: 0.5, StaminaSeconds: 10, ChangeSoonestSeconds: 30, ChangeLatestSeconds: 30, Jumpiness: 0.5);
+    private static readonly FishFight Steady = new(Strength: 0.5, StaminaSeconds: 10, ChangeSoonestSeconds: 30, ChangeLatestSeconds: 30, Jumpiness: 0.5, Runs: true);
 
     [Fact]
     public void A_bite_comes_when_the_roll_and_the_casts_wait_put_it_and_not_a_moment_before()
@@ -160,6 +160,18 @@ public sealed class FishingLineTests
         Assert.InRange(line.Tension, FishFightRules.RestHold - 0.05, FishFightRules.RestHold + 0.05);
         Assert.Equal(Distance - 3 * FishFightRules.ReelSpeed, line.DistanceCm, 1);
         Assert.Equal(0, line.SlackShare);
+    }
+
+    [Fact]
+    public void A_find_comes_up_as_dead_weight_whatever_the_rolls_ask_for()
+    {
+        var line = Hooked(out var hookedAt, FishingRules.FindFight, LeftRoll, NoJump, LongestTurn);
+
+        for (var now = hookedAt + TickMs; now <= hookedAt + 2_000; now += TickMs)
+            line.Tick(now);
+
+        Assert.Equal(FishPull.Rest, line.Pull);
+        Assert.Equal(0, line.DriftCm);
     }
 
     [Fact]

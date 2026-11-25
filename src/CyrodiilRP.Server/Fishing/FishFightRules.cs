@@ -1,7 +1,7 @@
 namespace CyrodiilRP.Server.Fishing;
 
-// The fight with a hooked fish, as docs/features/fishing.md describes it. The tension moves towards what the moment
-// asks for at Give a second, at SlackGive while a resting fish is not reeled.
+// The fight with a hooked fish. The tension moves towards what the moment asks for at Give a second, at SlackGive while
+// a resting fish is not reeled.
 internal static class FishFightRules
 {
     public const double TensionAtHook = 0.3;

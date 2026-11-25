@@ -422,7 +422,8 @@
   color: var(--fishing-warn);
 }
 
-.fishing-gear__condition--damaged {
+.fishing-gear__condition--damaged,
+.fishing-gear__condition--broken {
   font-weight: 700;
   color: var(--fishing-danger);
 }

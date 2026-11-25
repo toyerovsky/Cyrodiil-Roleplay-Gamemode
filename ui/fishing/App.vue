@@ -8,9 +8,7 @@ import GearCorner from "./GearCorner.vue";
 import { isCatch, OUTCOME_TEXTS } from "./outcomes.js";
 import PullArrow from "./PullArrow.vue";
 
-// The fishing's marks over the game, which never take the input: what the line asks for now, the cast's power, the ring
-// over the float, the fight's gauges, the gear in the corner and the card of what came of it. The server keeps every
-// time and the game reads the keys; the page only shows.
+// Shown over the game, never taking the input: the server keeps every time and the game reads the keys.
 const props = defineProps({ bridge: { type: Object, required: true } });
 
 const NIBBLE_SHOWN_MS = 800;
@@ -77,7 +75,7 @@ const hint = computed(() => {
 });
 
 const keys = computed(() => {
-  const stop = { id: "stop", cap: t.value.key_e, label: t.value["keys.stop"] };
+  const stop = { id: "stop", cap: t.value.key_stop, label: t.value["keys.stop"] };
   switch (stage.value) {
     case "Aim":
       return [{ id: "cast", cap: t.value.key_space, label: t.value["keys.cast"], on: charging.value, wanted: !charging.value }, stop];

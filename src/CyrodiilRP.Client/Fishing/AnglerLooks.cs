@@ -3,7 +3,7 @@ using System.Numerics;
 namespace CyrodiilRP.Client.Fishing;
 
 // How an angler is drawn: the game's meshes, animations, effects and sounds, where they hang, how big and for how long.
-// None of it has been seen in the game yet. Centimetres, degrees (pitch, yaw, roll) and seconds.
+// Centimetres, degrees (pitch, yaw, roll) and seconds.
 internal static class AnglerLooks
 {
     // The right hand, where the game hangs a held prop.
