@@ -9,8 +9,6 @@ public sealed class StaffSettingRegistryTests
     private const string Bruma = "L_BrumaWorld";
     private const uint Clear = 0x00038EEE;
     private const uint Rain = 0x00038EF2;
-    private const float Day = 12f;
-    private const float Noon = 12f;
 
     private static readonly TimeSpan Moment = TimeSpan.FromMilliseconds(1);
 
@@ -23,7 +21,6 @@ public sealed class StaffSettingRegistryTests
     public void Nothing_is_refused_where_the_staff_set_nothing()
     {
         Assert.False(_settings.RefusesWeather(Tamriel, Rain));
-        Assert.False(_settings.RefusesClock(Tamriel, Day, Noon));
     }
 
     [Fact]
@@ -58,40 +55,5 @@ public sealed class StaffSettingRegistryTests
 
         Assert.True(_settings.RefusesWeather(Tamriel, Rain));
         Assert.False(_settings.RefusesWeather(Tamriel, Clear));
-    }
-
-    [Fact]
-    public void A_report_of_a_moment_before_the_one_set_is_refused_and_a_later_one_passes()
-    {
-        _settings.HoldClock(Tamriel, Day, Noon);
-
-        Assert.True(_settings.RefusesClock(Tamriel, Day - 1f, Noon + 6f));
-        Assert.True(_settings.RefusesClock(Tamriel, Day, Noon - 1f));
-        Assert.False(_settings.RefusesClock(Tamriel, Day, Noon));
-        Assert.False(_settings.RefusesClock(Tamriel, Day, Noon + 0.1f));
-        Assert.False(_settings.RefusesClock(Tamriel, Day + 1f, 0f));
-        Assert.False(_settings.RefusesClock(Bruma, Day - 1f, Noon));
-    }
-
-    [Fact]
-    public void An_hour_gone_by_set_as_the_next_days_refuses_the_day_it_was()
-    {
-        var before = Noon + 3f;
-        var set = Noon - 2f;
-        var daysPassed = WorldCommands.DaysPassedAt(Day, before, set);
-        _settings.HoldClock(Tamriel, daysPassed, set);
-
-        Assert.True(_settings.RefusesClock(Tamriel, Day, before));
-        Assert.False(_settings.RefusesClock(Tamriel, daysPassed, set));
-    }
-
-    [Fact]
-    public void The_clock_is_the_games_again_once_the_hold_is_over()
-    {
-        _settings.HoldClock(Tamriel, Day, Noon);
-
-        _clock.Advance(StaffSettingRegistry.HoldFor);
-
-        Assert.False(_settings.RefusesClock(Tamriel, Day - 1f, Noon));
     }
 }

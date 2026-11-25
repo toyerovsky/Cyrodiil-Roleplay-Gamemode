@@ -188,8 +188,8 @@ internal sealed partial class SpecializationCommands(
             return;
         }
 
-        float? before = main.TryGetSkillAttributeValue((byte)stat, out var was) ? was : null;
-        main.SetSkillAttribute((byte)stat, value);
+        float? before = main.TryGetBaseSkillAttributeValue((byte)stat, out var was) ? was : null;
+        main.SetBaseSkillAttribute((byte)stat, value);
         audit.Log(StatAction, call.Sender.Ref, target.Character is { } character ? CharacterRecord.FormatRef(character.Id) : target.Ref,
             new StatDetails(stat, value, before));
         call.Reply(SpecializationText.StaffStatSet(target.Name, stat.DisplayName(), value));

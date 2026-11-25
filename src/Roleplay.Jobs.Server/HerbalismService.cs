@@ -312,7 +312,7 @@ public sealed partial class HerbalismService(
     {
         tier = HerbTier.Novice;
         if (!entities.TryLookup<MainCharacter, PlayerId>(player, out var character)
-            || !character.TryGetSkillAttributeValue((byte)Stat.Alchemy, out var value))
+            || !character.As<SkillAttributes>().TryGetEffective((CharacterAttribute)(byte)Stat.Alchemy, out var value))
             return false;
 
         tier = HerbLore.TierOf(value);

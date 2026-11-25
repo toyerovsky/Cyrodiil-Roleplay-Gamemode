@@ -1,6 +1,7 @@
 using System.Numerics;
 using CyrodiilRP.Common.Players;
 using OblivionMP.SDK.Common.Archetypes;
+using OblivionMP.SDK.Common.Archetypes.Mixins;
 using ReadyM.Api.Idents;
 using ReadyM.SDK.Archetypes.Core;
 using ReadyM.SDK.Attributes;
@@ -55,7 +56,7 @@ internal sealed partial class Proximity(IEntities entities)
         var nearestDistance = float.MaxValue;
         foreach (var candidate in candidates)
         {
-            if (candidate == origin || !TryLocate(candidate, out var area, out var position) || area != scope.AreaId
+            if (candidate == origin || IsHidden(candidate) || !TryLocate(candidate, out var area, out var position) || area != scope.AreaId
                 || !FrontCone.Contains(main.Position, main.Rotation, position, reach, coneDegrees))
                 continue;
 
@@ -69,6 +70,9 @@ internal sealed partial class Proximity(IEntities entities)
 
         return nearest;
     }
+
+    // Nobody sees a hidden player, so nobody finds one in front of them either.
+    private bool IsHidden(PlayerId player) => entities.TryLookup(player, out Player entity) && entity.IsHidden;
 
     // Null in another area or out of the world.
     public float? MeasureDistance(PlayerId origin, AreaId area, Vector3 point) =>

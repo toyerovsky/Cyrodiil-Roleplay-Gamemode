@@ -64,7 +64,7 @@ internal sealed partial class CharacterSpecializations(
             .Select(stat => new AdminStatView(
                 stat.ToString(),
                 stat.DisplayName(),
-                inWorld && main.TryGetSkillAttributeValue((byte)stat, out var value) ? (int)MathF.Round(value) : null,
+                inWorld && main.TryGetBaseSkillAttributeValue((byte)stat, out var value) ? (int)MathF.Floor(value) : null,
                 caps.FindCap(stat),
                 chosen.Overrides.ContainsKey(stat)))
             .ToList();

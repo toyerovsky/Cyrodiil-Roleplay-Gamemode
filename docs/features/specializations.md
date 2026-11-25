@@ -74,8 +74,8 @@ There is no player command.
   welcome already up is sent again, so a read that finishes after it went out still shows.
 - **Staff fixes:** `character_cap_overrides` (key `character_id` and the stat by name, the cap 0 to 100) holds the staff's
   caps, applied over the specialization's in `SpecializationRules.BuildCaps`. A value goes to the game through the
-  character's `SkillAttributes`, which the player's game applies to the base value; a value above the cap is refused
-  first, as the game would put it back. The three commands are an administrator's (`StaffRoleSeeds`).
+  character's base attributes and skills (`BaseSkillAttributes`), which the player's game applies; a value above the
+  cap is refused first, as the game would put it back. The staff's card shows the base value, a skill's whole level. The three commands are an administrator's (`StaffRoleSeeds`).
 - **Audit:** `staff.specialization`, `staff.cap` and `staff.stat` with what was set and what was there before;
   `economy.specialization_choose`, with the specialization, the price and the one it replaced.
 

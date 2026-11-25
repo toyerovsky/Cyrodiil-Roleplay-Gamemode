@@ -65,7 +65,19 @@ Each fact below was checked in this repo.
   (`Nicknames`).
 - The server moves a character (`main.Position`) only within the area it stands in (`IEntities.TryGetScope`). An area is
   an interior (`L_PersistentDungeon-<cell>`) or a whole world space (`L_Tamriel`, and each city is its own,
-  `OblivionAreaIds`). There is no teleport to another area, no kill and no camera.
+  `OblivionAreaIds`). There is no teleport to another area and no kill.
+- Three properties of a `Player` are the server's to set and every client's to read (SDK 1.1.0-rp.0f821c38):
+  `IsHidden`, `IgnoresCollision` and `IsFrozen`. They go with the connection. No client draws a hidden player's
+  character, the player's own included, and its `Hidden` (`LocalVisibility`) reads 1, which `Nameplates` already fades
+  a name by. Hiding is only what is drawn: the character still stands in the way and can be hit. The player's own game
+  takes a character that ignores collision or is frozen out of the game's physics, and the client half moves it
+  (`ILocalCharacter.MoveBy`) by where the player looks (`ICamera.Look`) and what the move keys or stick ask
+  (`IInput.MoveAxis`). `/afly` is made of these (`Flights`, `Flight`). `ICamera.Set` puts the view at a point of the
+  mod's own and `Reset` gives it back. None of it seen in the game yet.
+- A character's attributes and skills are two mixins: `SkillAttributes` is what the owner's game has now, effects
+  applied, and only read (`main.As<SkillAttributes>().TryGetEffective(...)`), `BaseSkillAttributes` the base, which
+  the server writes (`SetBaseSkillAttribute`). A base skill's whole part is its level and its fraction the way to the
+  next. A weapon's poison is the item's own (`ItemExtraData`), not the equipment's.
 - The server applies every change of health (`HealthChangedEvent`, since SDK 1.1): the game of whoever dealt it reports
   it, and a `[EventHandler(Stage.Validate)]` that calls `context.Cancel()` leaves the health as it was. So the mode's
   people take no harm (`TraderNpcs.CheckHarm`) and members of a party spare each other (`Parties.CheckFriendlyFire`).
@@ -74,17 +86,18 @@ Each fact below was checked in this repo.
   (`Admin/GameSpace.cs`).
 - `ResurrectLocalPlayer()` works on the local player only, so the server asks the player's own game (`Revive`). It is
   the platform's rebirth: a heal and a quick load.
-- An area's `Time` (`SetGameHour`) and `Weather` (`SetWeatherFormId`, `SetTransitionRatio`) are the server's to write,
-  but the area's master client also reports its own (`TimeChangeEvent`, `WeatherChangeEvent`, since SDK 1.1) whenever
-  its game differs from the server's. In the tick a new value reaches it, it reports the old one first and takes the
-  new one after, and the server would apply that report over the value set. So what the staff set is held for a moment:
-  a Validate handler refuses a report of another weather or an earlier time (`StaffSettingRegistry`). Not seen in the
-  game yet.
-- A game does not take a clock going back, and the master client then sends its own time over the one set. An hour
-  earlier than the clock needs `SetGameDaysPassed` a day on, as waiting past midnight does.
-- A freeze holds the input on a page (`FrozenOverlay`), the server puts the character back, and a status
-  (`IStatuses`, of the `rp-framework` SDK) gives it a Burden no character walks under. A status is applied by the
-  player's own game and ends with the connection, so it is laid again at each join and the other two stay.
+- An area's `Weather` (`SetWeatherFormId`, `SetTransitionRatio`) is the server's to write, but the area's master client
+  also reports its own (`WeatherChangeEvent`, since SDK 1.1) whenever its game differs from the server's. In the tick a
+  new value reaches it, it reports the old one first and takes the new one after, and the server would apply that
+  report over the value set. So what the staff set is held for a moment: a Validate handler refuses a report of
+  another weather (`StaffSettingRegistry`). Not seen in the game yet.
+- The clock is one for the whole world and the server's alone (`Time` on the `World` entity, SDK 1.1.0-rp.0f821c38):
+  `TimeOfDayMinutes`, `GameDay`, and `Advance(TimeSpan)`, which only goes forward. No client reports a time. So
+  `/atime` advances to the next time the hour comes, the next day's for one already gone by
+  (`WorldCommands.MinutesUntil`).
+- A freeze holds the input on a page (`FrozenOverlay`), the server puts the character back, and the player's
+  `IsFrozen` takes the character out of the game's movement. The property ends with the connection, so it is set again
+  at each join and the other two stay.
 
 ## RPC
 
@@ -152,7 +165,9 @@ Each fact below was checked in this repo.
   F9, the game's quick load, does nothing in multiplayer ("QuickLoadInput_Pressed called but ignored" in the log). F10 is free unless UE4SS's ConsoleEnablerMod is on (off in
   the platform's `mods.txt`), which adds F10 as a console key. A polled press also fires while a page has the keyboard,
   so a bind checks that none does (`PageInput.IsHeld`, `ChatOverlay.IsOpen`), and the chat page leaves out the K that
-  opened it. A bind hears the press only, never the release, so a wheel opens on a tap and stays until picked. The
+  opened it. A bind hears the press only, never the release, so a wheel opens on a tap and stays until picked. A key
+  held down is read with `IInput.IsKeyDown` (a `Key`, or `ModifierKeys` for Ctrl, Alt and Shift, SDK
+  1.1.0-rp.0f821c38), which reads the key itself, a page with the keyboard or not. The
   platform's chat mod (`OblivionMP.Chat`) answers K too, so `pack.ps1` moves it to `mods-disabled/`.
 - A page with the keyboard gets the press first and the polled bind after it. So a key that both opens a window (a
   bind) and closes it (on the page) closes it on the page and opens it again from the bind: the bind alone toggles it

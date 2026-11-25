@@ -14,14 +14,14 @@ using ReadyM.SDK.Server.Entities;
 
 namespace CyrodiilRP.Server.Admin;
 
-// The game of the area's master client keeps its clock going from the hour set, and its weather changing from the one
-// set. What it reports of the time before is refused for a moment (StaffSettingRegistry), so the staff's word holds.
+// The clock is the world's and the server's alone. The weather is an area's, and the game of the area's master client
+// keeps it changing from the one set, so what it reports of the weather before is refused for a moment.
 [Service]
 internal sealed partial class WorldCommands(CommandRegistry commands, IEntities entities, Audit audit, SystemClock clock)
 {
     private const int HoursInDay = 24;
     private const int MinutesInHour = 60;
-    private const float OneDay = 1f;
+    private const float MinutesInDay = HoursInDay * MinutesInHour;
     private const char HourSeparator = ':';
     private const string TimeAction = "admin.time";
     private const string WeatherAction = "admin.weather";
@@ -45,13 +45,6 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
             context.Cancel();
     }
 
-    [EventHandler(Stage.Validate)]
-    public void CheckTime(in TimeChangeEvent change, EventContext context)
-    {
-        if (_settings.RefusesClock(change.Area.AreaId.ToString(), change.GameDaysPassed, change.GameHour))
-            context.Cancel();
-    }
-
     private void SetTime(CommandCall call)
     {
         if (call.Words.Count != 1 || !TryHour(call.Words[0], out var hour))
@@ -60,15 +53,10 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
             return;
         }
 
-        if (!TryArea(call, out var area))
-            return;
-
-        var daysPassed = DaysPassedAt(area.GameDaysPassed, area.GameHour, hour);
-        area.SetGameDaysPassed(daysPassed);
-        area.SetGameHour(hour);
-        _settings.HoldClock(area.AreaId.ToString(), daysPassed, hour);
-        audit.Log(TimeAction, call.Sender.Ref, details: new AreaDetails(area.AreaId.ToString(), call.Words[0]));
-        call.Reply(AdminText.TimeSet(area: area.AreaId.ToString(), time: call.Words[0]));
+        var world = FindWorld();
+        world.As<Time>().Advance(TimeSpan.FromMinutes(MinutesUntil(world.TimeOfDayMinutes, hour * MinutesInHour)));
+        audit.Log(TimeAction, call.Sender.Ref, details: new TimeDetails(call.Words[0]));
+        call.Reply(AdminText.TimeSet(time: call.Words[0]));
     }
 
     private void SetWeather(CommandCall call)
@@ -89,8 +77,9 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
         call.Reply(AdminText.WeatherSet(area: area.AreaId.ToString(), weather: call.Words[0]));
     }
 
-    // A game does not take a clock going back, so an hour already gone by is the next day's.
-    public static float DaysPassedAt(float daysPassed, float now, float hour) => hour < now ? daysPassed + OneDay : daysPassed;
+    // The world's clock only goes forward, so a time of day already gone by is the next day's.
+    public static float MinutesUntil(float nowMinutes, float wantedMinutes)
+        => wantedMinutes >= nowMinutes ? wantedMinutes - nowMinutes : MinutesInDay - nowMinutes + wantedMinutes;
 
     // "13" or "13:30", from 0:00 to 23:59.
     public static bool TryHour(string text, out float hour)
@@ -108,6 +97,14 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
         return true;
     }
 
+    private World FindWorld()
+    {
+        foreach (var world in entities.Query<World>())
+            return world;
+
+        throw new InvalidOperationException("The server has no world while a player gives it a command.");
+    }
+
     private bool TryArea(CommandCall call, out Area area)
     {
         if (entities.TryLookup(call.Sender.Id, out MainCharacter main) && entities.TryGetScope(main, out area))
@@ -119,4 +116,6 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
     }
 
     private sealed record AreaDetails(string Area, string To);
+
+    private sealed record TimeDetails(string To);
 }

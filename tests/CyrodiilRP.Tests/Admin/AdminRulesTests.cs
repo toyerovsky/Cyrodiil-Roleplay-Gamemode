@@ -1,4 +1,3 @@
-using System.Numerics;
 using System.Reflection;
 using CyrodiilRP.Data.Staff;
 using CyrodiilRP.Server.Admin;
@@ -30,12 +29,13 @@ public sealed class AdminRulesTests
     }
 
     [Theory]
-    [InlineData(23.8f, 12f, 4f)]
-    [InlineData(1.5f, 13f, 3f)]
-    [InlineData(12f, 12f, 3f)]
-    public void An_hour_already_gone_by_is_the_next_days(float now, float hour, float daysPassed)
+    [InlineData(90f, 780f, 690f)]
+    [InlineData(720f, 720f, 0f)]
+    [InlineData(1428f, 720f, 732f)]
+    [InlineData(1439f, 0f, 1f)]
+    public void A_time_of_day_already_gone_by_is_the_next_days(float nowMinutes, float wantedMinutes, float minutesUntil)
     {
-        Assert.Equal(daysPassed, WorldCommands.DaysPassedAt(3f, now, hour));
+        Assert.Equal(minutesUntil, WorldCommands.MinutesUntil(nowMinutes, wantedMinutes));
     }
 
     [Fact]
@@ -56,28 +56,6 @@ public sealed class AdminRulesTests
     [InlineData("3 up")]
     [InlineData("up 3 more")]
     public void Anything_else_is_no_step(string typed) => Assert.False(TeleportCommands.TryReadStep(Split(typed), out _, out _));
-
-    [Fact]
-    public void A_flyer_standing_still_is_held_at_their_height_where_they_are()
-    {
-        var sunk = new Vector3(100f, 200f, 480f);
-
-        Assert.Equal(new Vector3(100f, 200f, 500f), FlightRules.FindNext(sunk, Vector3.Zero, height: 500f));
-    }
-
-    [Theory]
-    [InlineData(1f)]
-    [InlineData(0.3f)]
-    public void A_flyer_who_walks_is_carried_that_way_at_one_speed_however_hard_they_push(float push)
-    {
-        var carried = FlightRules.Speed * (float)FlightRules.MoveEvery.TotalSeconds;
-
-        var next = FlightRules.FindNext(Vector3.Zero, new Vector3(0f, push, 0.8f), height: 500f);
-
-        Assert.Equal(0f, next.X, 0.001f);
-        Assert.Equal(carried, next.Y, 0.001f);
-        Assert.Equal(500f, next.Z);
-    }
 
     // A button runs a command the registry knows by a permission, so its checks and the audit are the command's own.
     [Fact]

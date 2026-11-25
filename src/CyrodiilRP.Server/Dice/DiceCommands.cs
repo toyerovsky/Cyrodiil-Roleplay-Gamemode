@@ -2,7 +2,9 @@ using CyrodiilRP.Server.Commands;
 using CyrodiilRP.Server.Interactions;
 using CyrodiilRP.Server.Localization;
 using OblivionMP.SDK.Common.Archetypes;
+using OblivionMP.SDK.Common.Archetypes.Mixins;
 using OblivionMP.SDK.Common.Statuses;
+using ReadyM.Relay.Common.Oblivion.ECS.Values;
 using ReadyM.SDK.Attributes;
 using ReadyM.SDK.Server.Entities;
 
@@ -104,7 +106,7 @@ internal sealed partial class DiceCommands(
     // The bonus comes from the stat's value in the game now, so the character has to be in the world.
     private void RollStat(CommandCall call, Stat stat, SkillRollMode mode)
     {
-        if (!entities.TryLookup(call.Sender.Id, out MainCharacter main) || !main.TryGetSkillAttributeValue((byte)stat, out var value))
+        if (!entities.TryLookup(call.Sender.Id, out MainCharacter main) || !main.As<SkillAttributes>().TryGetEffective((CharacterAttribute)(byte)stat, out var value))
         {
             call.Refuse(DiceText.SkillUnread);
             return;

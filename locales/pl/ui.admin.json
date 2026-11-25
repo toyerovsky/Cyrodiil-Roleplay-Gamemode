@@ -146,7 +146,7 @@
   "ui.admin.audit.older": "Starsze wpisy",
   "ui.admin.audit.none": "Żaden wpis nie pasuje.",
   "ui.admin.audit.on": "wobec {target}",
-  "ui.admin.world.time": "Pora dnia w twoim obszarze",
+  "ui.admin.world.time": "Pora dnia, w całym świecie",
   "ui.admin.world.hour": "Godzina, np. 13 albo 13:30",
   "ui.admin.world.weather": "Pogoda w twoim obszarze",
   "ui.admin.world.places": "Miejsca w świecie zewnętrznym",

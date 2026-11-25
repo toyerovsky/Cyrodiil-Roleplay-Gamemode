@@ -21,7 +21,6 @@ internal sealed partial class FreshStart(IEntities entities, ISustenance sustena
         var character = EntityHandle.Of(main);
         var equipment = character.As<Equipment>();
         StartingKit.Dress(equipment);
-        equipment.CurrentPoison = default;
 
         var quiver = character.As<Quiver>();
         quiver.HasQuiver = false;

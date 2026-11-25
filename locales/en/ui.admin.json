@@ -146,7 +146,7 @@
   "ui.admin.audit.older": "Older entries",
   "ui.admin.audit.none": "No entry matches.",
   "ui.admin.audit.on": "on {target}",
-  "ui.admin.world.time": "Time of day in your area",
+  "ui.admin.world.time": "Time of day, for the whole world",
   "ui.admin.world.hour": "Hour, as 13 or 13:30",
   "ui.admin.world.weather": "Weather in your area",
   "ui.admin.world.places": "Places of the outside world",

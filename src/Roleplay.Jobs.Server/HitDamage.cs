@@ -1,4 +1,5 @@
 using OblivionMP.SDK.Common.Archetypes;
+using OblivionMP.SDK.Common.Archetypes.Mixins;
 using ReadyM.Relay.Common.Oblivion.ECS.Values;
 using Roleplay.Jobs.Common;
 
@@ -56,9 +57,7 @@ public static class HitDamage
 
     /// <summary>The character's Strength as it is now, fortified or drained; 0 before its attributes came in.</summary>
     public static int StrengthOf(MainCharacter character)
-        => character.ContainsSkillAttributeKey((byte)CharacterAttribute.Strength)
-            ? (int)character.GetSkillAttribute((byte)CharacterAttribute.Strength)
-            : 0;
+        => character.As<SkillAttributes>().TryGetEffective(CharacterAttribute.Strength, out var strength) ? (int)strength : 0;
 
     // bonus for every whole step of Strength above from; a step of 0 is no bonus
     private static int StrengthBonus(int strength, int from, int step, int bonus)
