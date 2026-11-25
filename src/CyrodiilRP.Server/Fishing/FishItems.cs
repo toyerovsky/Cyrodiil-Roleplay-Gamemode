@@ -23,7 +23,7 @@ internal sealed partial class FishItems(ICustomItems customItems, IEntities enti
             .WithName(FishingRules.RodName)
             .WithValue(FishingRules.RodValue)
             .WithWeight(FishingRules.RodWeight)
-            .WithMesh(FishingGear.RodMesh));
+            .WithMesh(FishingGear.MeshOf(RodTier.Basic)));
 
         foreach (var fish in FishingRules.Fish)
             customItems.Define(fish.ItemKey, CustomItem.CopyOf(FishingRules.FishBase)

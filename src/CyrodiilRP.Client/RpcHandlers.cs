@@ -301,9 +301,9 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     partial void OnAwayEnded() => AwayEnded?.Invoke();
 
-    public event Action? FishingLookAsked;
+    public event Action<float>? FishingLookAsked;
 
-    public event Action<float, float>? FishingAimed;
+    public event Action<float, float, float>? FishingAimed;
 
     public event Action<string>? FishingPageChanged;
 
@@ -311,7 +311,17 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action? FishingEnded;
 
-    public event Action<int, bool>? AnglerShown;
+    public event Action<int, bool, string>? AnglerShown;
+
+    public event Action<int, Vector3>? AnglerCasted;
+
+    public event Action<int, string, Vector3, float, int>? FishingFishMoved;
+
+    public event Action<string>? FisherChanged;
+
+    public event Action<string, bool>? FisherAnswered;
+
+    public event Action? FisherClosed;
 
     public event Action<int, Vector3>? FishingFloatMoved;
 
@@ -319,9 +329,9 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action<string, Vector3>? FishingSplashed;
 
-    partial void OnFishingLook() => FishingLookAsked?.Invoke();
+    partial void OnFishingLook(float reach) => FishingLookAsked?.Invoke(reach);
 
-    partial void OnFishingAim(float yaw, float waterZ) => FishingAimed?.Invoke(yaw, waterZ);
+    partial void OnFishingAim(float yaw, float waterZ, float reach) => FishingAimed?.Invoke(yaw, waterZ, reach);
 
     partial void OnFishingPage(string json) => FishingPageChanged?.Invoke(json);
 
@@ -329,7 +339,18 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     partial void OnFishingEnded() => FishingEnded?.Invoke();
 
-    partial void OnAnglerShown(int angler, bool fishing) => AnglerShown?.Invoke(angler, fishing);
+    partial void OnAnglerShown(int angler, bool fishing, string rod) => AnglerShown?.Invoke(angler, fishing, rod);
+
+    partial void OnAnglerCast(int angler, float x, float y, float z) => AnglerCasted?.Invoke(angler, new Vector3(x, y, z));
+
+    partial void OnFishingFish(int angler, string move, float x, float y, float z, float yaw, int lengthCm) =>
+        FishingFishMoved?.Invoke(angler, move, new Vector3(x, y, z), yaw, lengthCm);
+
+    partial void OnFisherState(string json) => FisherChanged?.Invoke(json);
+
+    partial void OnFisherAnswer(string text, bool done) => FisherAnswered?.Invoke(text, done);
+
+    partial void OnFisherClosed() => FisherClosed?.Invoke();
 
     partial void OnFishingFloat(int angler, float x, float y, float z) => FishingFloatMoved?.Invoke(angler, new Vector3(x, y, z));
 

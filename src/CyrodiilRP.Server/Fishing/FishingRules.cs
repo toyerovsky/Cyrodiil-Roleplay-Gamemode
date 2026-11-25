@@ -68,6 +68,9 @@ internal static class FishingRules
     // A fish in the top share of its kind's lengths is a trophy.
     public const double TrophyFrom = 0.85;
 
+    // How far the rod casts, in centimetres.
+    public const float RodReach = 450f;
+
     // The rod, which the fishing asks for in the pack: a custom item made as a copy of the game's oar, whose icon it
     // keeps, shown on the ground as the staff the angler holds. The general trader sells it (stocks.json).
     public const string RodKey = "fishing.rod";

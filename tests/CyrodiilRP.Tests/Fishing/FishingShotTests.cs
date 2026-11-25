@@ -39,11 +39,24 @@ public sealed class FishingShotTests
     [Fact]
     public void A_cast_tries_the_farthest_the_rod_reaches_first_and_the_nearest_last()
     {
-        var points = FishingShot.CastPoints(Vector3.Zero, yaw: 90f).ToList();
+        const float reach = 700f;
 
-        AssertNear(new Vector3(0f, FishingReach.Farthest, 0f), points[0]);
+        var points = FishingShot.CastPoints(Vector3.Zero, yaw: 90f, reach).ToList();
+
+        AssertNear(new Vector3(0f, reach, 0f), points[0]);
         AssertNear(new Vector3(0f, FishingReach.Nearest, 0f), points[^1]);
-        Assert.Equal((int)((FishingReach.Farthest - FishingReach.Nearest) / FishingShot.CastStep) + 1, points.Count);
+        Assert.Equal((int)((reach - FishingReach.Nearest) / FishingShot.CastStep) + 1, points.Count);
+    }
+
+    [Theory]
+    [InlineData(0f, 0f)]
+    [InlineData(FishingCharge.UpSeconds / 2, 0.5f)]
+    [InlineData(FishingCharge.UpSeconds, 1f)]
+    [InlineData(FishingCharge.UpSeconds * 1.5f, 0.5f)]
+    [InlineData(FishingCharge.UpSeconds * 2, 0f)]
+    public void The_casts_power_rises_to_full_and_falls_back_while_space_is_held(float held, float power)
+    {
+        Assert.Equal(power, FishingCharge.PowerAt(held), 3);
     }
 
     private static void AssertNear(Vector3 expected, Vector3 actual) =>

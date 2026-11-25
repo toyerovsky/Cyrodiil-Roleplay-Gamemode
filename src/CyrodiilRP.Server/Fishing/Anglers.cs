@@ -81,7 +81,7 @@ internal sealed partial class Anglers(
     private void Look(OnlinePlayer player)
     {
         _looks.Ask(player, clock.MonotonicMs);
-        rpc.SendFishingLook(player.Id);
+        rpc.SendFishingLook(player.Id, FishingRules.RodReach);
     }
 
     private void OnSpot(PlayerId sender, FishingSpotReport report)
@@ -144,7 +144,7 @@ internal sealed partial class Anglers(
         main.Rotation = yaw;
         var angler = new Angler(player, area, stand, yaw, waterZ, new FishingLine(_random.NextDouble), Bait: null, FloatShown: null,
             DipEndsAtMs: 0, NextThrashAtMs: 0, Nibbles: 0, Bites: 0, Outcome: null, Seers: new HashSet<PlayerId>());
-        rpc.SendFishingAim(player.Id, yaw, waterZ);
+        rpc.SendFishingAim(player.Id, yaw, waterZ, FishingRules.RodReach);
         angler = SeeAround(angler);
         _anglers.Set(angler);
         SendPage(angler);
@@ -163,7 +163,7 @@ internal sealed partial class Anglers(
 
         var reach = Vector2.Distance(new Vector2(point.X, point.Y), new Vector2(angler.Stand.X, angler.Stand.Y));
         if (!float.IsFinite(point.X) || !float.IsFinite(point.Y) || !float.IsFinite(point.Z)
-            || reach > FishingReach.Farthest + FishingReach.Slack || Math.Abs(point.Z - angler.WaterZ) > FishingReach.SameWater)
+            || reach > FishingRules.RodReach + FishingReach.Slack || Math.Abs(point.Z - angler.WaterZ) > FishingReach.SameWater)
         {
             logger.LogWarning("{Player} cast to {Point}, {Reach} cm away, out of the rod's reach or off the water at {WaterZ}.",
                 player.Ref, point, reach, angler.WaterZ);
@@ -251,7 +251,7 @@ internal sealed partial class Anglers(
 
     private Angler Aim(Angler angler)
     {
-        rpc.SendFishingAim(angler.Player.Id, angler.Yaw, angler.WaterZ);
+        rpc.SendFishingAim(angler.Player.Id, angler.Yaw, angler.WaterZ, FishingRules.RodReach);
         return angler;
     }
 
@@ -367,7 +367,7 @@ internal sealed partial class Anglers(
         var id = angler.Player.Id.RawValue;
         foreach (var seer in near.Except(angler.Seers))
         {
-            rpc.SendAnglerShown(seer, id, true);
+            rpc.SendAnglerShown(seer, id, true, nameof(RodTier.Basic));
             if (angler.FloatShown is { } shown)
                 rpc.SendFishingFloat(seer, id, shown.X, shown.Y, shown.Z);
         }
@@ -375,7 +375,7 @@ internal sealed partial class Anglers(
         foreach (var gone in angler.Seers.Except(near))
         {
             rpc.SendFishingFloatGone(gone, id);
-            rpc.SendAnglerShown(gone, id, false);
+            rpc.SendAnglerShown(gone, id, false, string.Empty);
         }
 
         return angler with { Seers = near };
@@ -404,7 +404,7 @@ internal sealed partial class Anglers(
         foreach (var seer in angler.Seers.Where(seer => seer != angler.Player.Id || angler.Player.IsLive))
         {
             rpc.SendFishingFloatGone(seer, id);
-            rpc.SendAnglerShown(seer, id, false);
+            rpc.SendAnglerShown(seer, id, false, string.Empty);
         }
     }
 

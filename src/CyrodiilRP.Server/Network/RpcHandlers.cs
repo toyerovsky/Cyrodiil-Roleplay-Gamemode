@@ -265,6 +265,18 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId>? FishingStopAsked;
 
+    public event Action<PlayerId, int>? FishingLeaned;
+
+    public event Action<PlayerId, string, int>? FisherBought;
+
+    public event Action<PlayerId, string, int>? FisherSold;
+
+    public event Action<PlayerId>? FisherSoldAll;
+
+    public event Action<PlayerId, string>? FisherRepaired;
+
+    public event Action<PlayerId>? FisherLeft;
+
     partial void OnGuideContinue(RpcContext context) => callbacks.Raise("rpc.guide_continue", GuideContinued, context.Sender);
 
     partial void OnGuideClose(RpcContext context, bool replaced) => callbacks.Raise("rpc.guide_close", GuideLeft, context.Sender, replaced);
@@ -283,4 +295,16 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
         callbacks.Raise("rpc.fishing_space", FishingSpacePressed, context.Sender, down, reactionMs);
 
     partial void OnFishingStop(RpcContext context) => callbacks.Raise("rpc.fishing_stop", FishingStopAsked, context.Sender);
+
+    partial void OnFishingLean(RpcContext context, int lean) => callbacks.Raise("rpc.fishing_lean", FishingLeaned, context.Sender, lean);
+
+    partial void OnFisherBuy(RpcContext context, string ware, int count) => callbacks.Raise("rpc.fisher_buy", FisherBought, context.Sender, ware, count);
+
+    partial void OnFisherSell(RpcContext context, string item, int count) => callbacks.Raise("rpc.fisher_sell", FisherSold, context.Sender, item, count);
+
+    partial void OnFisherSellAll(RpcContext context) => callbacks.Raise("rpc.fisher_sell_all", FisherSoldAll, context.Sender);
+
+    partial void OnFisherRepair(RpcContext context, string item) => callbacks.Raise("rpc.fisher_repair", FisherRepaired, context.Sender, item);
+
+    partial void OnFisherClose(RpcContext context) => callbacks.Raise("rpc.fisher_close", FisherLeft, context.Sender);
 }

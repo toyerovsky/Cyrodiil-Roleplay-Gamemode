@@ -486,9 +486,10 @@ public static partial class RpContracts
     [ClientToServer]
     public static partial void ReportPresence();
 
-    // Fishing from the wheel: the server asks the player's game where the water is around the character.
+    // Fishing from the wheel: the server asks the player's game where the water is around the character, within the
+    // rod's reach in centimetres.
     [ServerToClient]
-    public static partial void FishingLook();
+    public static partial void FishingLook(float reach);
 
     // What the look found (a FishingVerdict's name): for water, the way the character faces it, in degrees, and the
     // height of its surface, in centimetres.
@@ -496,9 +497,9 @@ public static partial class RpContracts
     public static partial void FishingSpot(string verdict, float yaw, float waterZ);
 
     // The line is in and the player may cast: at the start of the fishing and after every catch or loss. The character
-    // is held facing the water at this yaw, its surface this high.
+    // is held facing the water at this yaw, its surface this high; the rod casts this far at the most, in centimetres.
     [ServerToClient]
-    public static partial void FishingAim(float yaw, float waterZ);
+    public static partial void FishingAim(float yaw, float waterZ, float reach);
 
     // A FishingView as JSON, for the fishing page: what to show of the line now.
     [ServerToClient]
@@ -511,20 +512,31 @@ public static partial class RpContracts
     [ServerToClient]
     public static partial void FishingEnded();
 
-    // The float lands where the player aimed, on the water: its point, in centimetres.
+    // The float lands where the player aimed, as far as the cast's power took it, on the water: its point, in
+    // centimetres.
     [ClientToServer]
     public static partial void FishingCast(float x, float y, float z);
 
-    // The cast key went down or up. A strike carries how many milliseconds after FishingBite the player's game heard it.
+    // The space key went down or up: a strike carries how many milliseconds after FishingBite the player's game heard
+    // it; on the line, held, it reels in.
     [ClientToServer]
     public static partial void FishingSpace(bool down, int reactionMs);
+
+    // The rod's lean changed while a fish is on the line: -1 to the left (A), 0, 1 to the right (D).
+    [ClientToServer]
+    public static partial void FishingLean(int lean);
 
     [ClientToServer]
     public static partial void FishingStop();
 
-    // To everyone near an angler (by their PlayerId's raw value), the angler included: they hold a rod now, or not.
+    // To everyone near an angler (by their PlayerId's raw value), the angler included: they hold a rod now (a RodTier's
+    // name), or not ("").
     [ServerToClient]
-    public static partial void AnglerShown(int angler, bool fishing);
+    public static partial void AnglerShown(int angler, bool fishing, string rod);
+
+    // To everyone near: the angler casts, and the float flies to this point on the water and lands there.
+    [ServerToClient]
+    public static partial void AnglerCast(int angler, float x, float y, float z);
 
     // To everyone near: an angler's float lies here, in centimetres.
     [ServerToClient]
@@ -536,4 +548,39 @@ public static partial class RpContracts
     // To everyone near: the water splashes here (a FishingSplashKind's name), seen and heard in the world.
     [ServerToClient]
     public static partial void FishingSplash(string kind, float x, float y, float z);
+
+    // To everyone near: an angler's fish does a FishMove (by name) at this point, heading the yaw in degrees, so long in
+    // centimetres.
+    [ServerToClient]
+    public static partial void FishingFish(int angler, string move, float x, float y, float z, float yaw, int lengthCm);
+
+    // A FisherView as JSON: opens the fisher's window or brings it up to date.
+    [ServerToClient]
+    public static partial void FisherState(string json);
+
+    // What came of the player's last deal at the fisher, in their language, and whether it went through.
+    [ServerToClient]
+    public static partial void FisherAnswer(string text, bool done);
+
+    [ServerToClient]
+    public static partial void FisherClosed();
+
+    // Buy so many of a ware from the fisher's shop, by its item key.
+    [ClientToServer]
+    public static partial void FisherBuy(string ware, int count);
+
+    // Sell so many of a catch carried, by its item key.
+    [ClientToServer]
+    public static partial void FisherSell(string item, int count);
+
+    // Sell every fish and trophy carried.
+    [ClientToServer]
+    public static partial void FisherSellAll();
+
+    // Have a rod carried mended, by its item key.
+    [ClientToServer]
+    public static partial void FisherRepair(string item);
+
+    [ClientToServer]
+    public static partial void FisherClose();
 }

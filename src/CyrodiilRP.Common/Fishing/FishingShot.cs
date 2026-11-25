@@ -41,10 +41,10 @@ public static class FishingShot
         return behind with { Z = waterZ + CameraUp };
     }
 
-    // The points a cast may land on along a yaw, the farthest first.
-    public static IEnumerable<Vector3> CastPoints(Vector3 stand, float yaw)
+    // The points a cast may land on along a yaw, from the farthest given down to the nearest.
+    public static IEnumerable<Vector3> CastPoints(Vector3 stand, float yaw, float farthest)
     {
-        for (var reach = FishingReach.Farthest; reach >= FishingReach.Nearest; reach -= CastStep)
+        for (var reach = farthest; reach >= FishingReach.Nearest; reach -= CastStep)
             yield return stand + Forward(yaw) * reach;
     }
 }

@@ -75,13 +75,13 @@ internal sealed partial class FishingOverlay(
         End();
     }
 
-    private void OnLookAsked()
+    private void OnLookAsked(float reach)
     {
-        var found = FindWater();
+        var found = FindWater(reach);
         rpc.SendFishingSpot(found.Verdict.ToString(), found.Yaw, found.WaterZ);
     }
 
-    private WaterFound FindWater()
+    private WaterFound FindWater(float reach)
     {
         if (players.LocalMainCharacter is not { } me || me.Pawn == IntPtr.Zero)
             return WaterFound.Refused(FishingVerdict.NotInWorld);
@@ -94,7 +94,7 @@ internal sealed partial class FishingOverlay(
         foreach (var turn in SearchTurns)
         {
             var yaw = facing + turn;
-            if (FindCast(feet, yaw) is { } cast)
+            if (FindCast(feet, yaw, reach) is { } cast)
                 return new WaterFound(FishingVerdict.Found, yaw, cast.Z);
         }
 
@@ -103,9 +103,9 @@ internal sealed partial class FishingOverlay(
 
     // Where a cast along the yaw lands: the farthest open water deep enough the rod reaches. Water under a quay, a pier,
     // a bridge or a rock is covered, and a float does not land in it.
-    private Vector3? FindCast(Vector3 feet, float yaw)
+    private Vector3? FindCast(Vector3 feet, float yaw, float reach)
     {
-        foreach (var point in FishingShot.CastPoints(feet, yaw))
+        foreach (var point in FishingShot.CastPoints(feet, yaw, reach))
         {
             if (water.FindBelow(point with { Z = feet.Z + FishingShot.LookFromAbove }, FishingShot.LookDown) is { Covered: false } found
                 && (found.Depth is null || found.Depth >= FishingReach.ShallowestWater))
@@ -116,7 +116,7 @@ internal sealed partial class FishingOverlay(
     }
 
     // The first aim begins the fishing; every later one is the line in again after a catch or a loss.
-    private void OnAimed(float yaw, float waterZ)
+    private void OnAimed(float yaw, float waterZ, float reach)
     {
         if (_fishing is { } fishing)
         {
@@ -128,8 +128,8 @@ internal sealed partial class FishingOverlay(
             return;
 
         var stand = me.Position - new Vector3(0f, 0f, FeetBelowPosition);
-        var lookAt = stand + FishingShot.Forward(yaw) * FishingReach.Farthest;
-        _fishing = new AnglerState(stand, yaw, waterZ, Aiming: true, AimYaw: null, AimAt: null, LookingAt: lookAt with { Z = waterZ },
+        var lookAt = stand + FishingShot.Forward(yaw) * reach;
+        _fishing = new AnglerState(stand, yaw, waterZ, reach, Aiming: true, AimYaw: null, AimAt: null, LookingAt: lookAt with { Z = waterZ },
             SpaceDown: input.IsKeyDown(Key.SPACE), BiteHeardAt: null, StopAsked: false, AnchorSent: null);
         camera.Set(FishingShot.CameraAt(stand, yaw, waterZ), lookAt with { Z = waterZ }, CameraBlendInSeconds);
         _shownFor = null;
@@ -201,7 +201,7 @@ internal sealed partial class FishingOverlay(
         if (fishing.AimYaw is { } before && Math.Abs(FishingShot.Turn(yaw - before)) < AimMoves)
             return fishing;
 
-        return fishing with { AimYaw = yaw, AimAt = FindCast(fishing.Stand, yaw) };
+        return fishing with { AimYaw = yaw, AimAt = FindCast(fishing.Stand, yaw, fishing.Reach) };
     }
 
     private AnglerState Press(AnglerState fishing, bool down)
@@ -223,7 +223,7 @@ internal sealed partial class FishingOverlay(
     // The camera stays over the shoulder and glides to look at the float, or where the cast would land.
     private AnglerState Film(AnglerState fishing, Vector3? target)
     {
-        var wanted = target ?? fishing.Stand + FishingShot.Forward(fishing.AimYaw ?? fishing.Yaw) * FishingReach.Farthest;
+        var wanted = target ?? fishing.Stand + FishingShot.Forward(fishing.AimYaw ?? fishing.Yaw) * fishing.Reach;
         var lookingAt = Vector3.Lerp(fishing.LookingAt, wanted with { Z = target?.Z ?? fishing.WaterZ }, Math.Min(1f, CameraGlide * Time.DeltaTime));
         if (lookingAt == fishing.LookingAt)
             return fishing;
@@ -277,11 +277,12 @@ internal sealed partial class FishingOverlay(
     [SendToCef]
     private partial void SendEnded(BrowserHandle browser);
 
-    // Stand: the feet. LookingAt: where the camera looks now, gliding after what it should.
+    // Stand: the feet. Reach: the rod's farthest cast. LookingAt: where the camera looks now, gliding after what it should.
     private sealed record AnglerState(
         Vector3 Stand,
         float Yaw,
         float WaterZ,
+        float Reach,
         bool Aiming,
         float? AimYaw,
         Vector3? AimAt,

@@ -1,11 +1,10 @@
 namespace CyrodiilRP.Common.Fishing;
 
-// How far a rod reaches: the player's game aims within it, the server checks the cast against it. Centimetres and degrees.
+// How a cast reaches: the player's game aims within it, the server checks the cast against it. The farthest is the rod's,
+// sent with FishingAim. Centimetres and degrees.
 public static class FishingReach
 {
-    // The rod and its line reach so far, a short swing no less.
-    public const float Farthest = 450f;
-
+    // A short swing no less.
     public const float Nearest = 150f;
 
     // How far to either side of the way the character faces a cast may turn.

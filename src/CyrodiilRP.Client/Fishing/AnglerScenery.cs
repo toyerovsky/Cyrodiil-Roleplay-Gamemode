@@ -68,12 +68,22 @@ internal sealed partial class AnglerScenery(
     // Where the own float is drawn now, for the angler's camera and page.
     public Vector3? FindFloat(int angler) => _anglers.TryGetValue(angler, out var scene) ? scene.FloatDrawn : null;
 
-    private void OnShown(int angler, bool fishing)
+    private void OnShown(int angler, bool fishing, string rod)
     {
         if (!fishing)
+        {
             Forget(angler);
-        else if (!_anglers.ContainsKey(angler))
-            _anglers[angler] = new AnglerScene(Rod: null, Float: null, FloatDrawn: null, FloatTarget: null, HoldAgainAt: 0f);
+            return;
+        }
+
+        if (!Enum.TryParse<RodTier>(rod, out var tier) || !Enum.IsDefined(tier))
+        {
+            logger.LogWarning("The server showed an angler with a rod this game does not know: {Rod}.", rod);
+            return;
+        }
+
+        if (!_anglers.ContainsKey(angler))
+            _anglers[angler] = new AnglerScene(tier, Rod: null, Float: null, FloatDrawn: null, FloatTarget: null, HoldAgainAt: 0f);
     }
 
     private void OnFloatMoved(int angler, Vector3 at)
@@ -106,9 +116,9 @@ internal sealed partial class AnglerScenery(
 
         var look = splash switch
         {
-            FishingSplashKind.Cast => new SplashLook(SplashSmall, SmallSplash, SplashSound),
-            FishingSplashKind.Bite => new SplashLook(SplashSmall, FullSplash, SplashSound),
-            FishingSplashKind.Thrash => new SplashLook(SplashSmall, FullSplash, ThrashSound),
+            FishingSplashKind.Cast or FishingSplashKind.Nibble => new SplashLook(SplashSmall, SmallSplash, SplashSound),
+            FishingSplashKind.Bite or FishingSplashKind.Jump => new SplashLook(SplashSmall, FullSplash, SplashSound),
+            FishingSplashKind.Thrash or FishingSplashKind.Snap => new SplashLook(SplashSmall, FullSplash, ThrashSound),
             FishingSplashKind.Catch => new SplashLook(SplashBig, FullSplash, SplashSound),
         };
         effects.Play(look.System, at, Vector3.Zero, look.Scale, SplashSeconds);
@@ -135,7 +145,7 @@ internal sealed partial class AnglerScenery(
         var rod = scene.Rod;
         if (rod is null)
         {
-            var placed = props.Place(new Prop(FishingGear.RodMesh, character.Position, Vector3.Zero, 1f), collides: false);
+            var placed = props.Place(new Prop(FishingGear.MeshOf(scene.Tier), character.Position, Vector3.Zero, 1f), collides: false);
             if (props.AttachTo(placed, character, CharacterMesh.ThirdPerson, HandSocket, Vector3.Zero, Vector3.Zero))
                 rod = placed;
             else
