@@ -22,5 +22,10 @@ export const PAGES = [
   { name: "lore", title: "Lore card", scenarios: ["", "empty", "view", "nocard", "readonly"], game: "Lore/LoreOverlay.cs" },
   { name: "guides", title: "Guide", scenarios: ["", "welcome", "read", "trader", "stable", "mentor", "foreman", "noticeboard", "gambling", "dice", "lore", "exchange"], game: "Guide/GuideOverlay.cs" },
   { name: "away", title: "Away", scenarios: ["", "away", "long"], game: "Away/AwayOverlay.cs" },
-  { name: "fishing", title: "Fishing", scenarios: ["", "waiting", "nibble", "bite", "landing", "tight", "slack", "caught", "found", "lost"], game: "Fishing/FishingOverlay.cs" },
+  {
+    name: "fishing",
+    title: "Fishing",
+    scenarios: ["", "charging", "waiting", "nibble", "bite", "fight", "strain", "dive", "rest", "slack", "monster", "caught", "rare", "found", "lostearly", "lostnibble", "lostlate", "snapped", "slipped", "runaway", "nobait"],
+    game: "Fishing/FishingOverlay.cs",
+  },
 ];

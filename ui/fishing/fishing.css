@@ -1,5 +1,11 @@
-/* The game shows through: only the plate, the card and the ring over the float draw, and no click is taken. */
+/* The game shows through: only the plates, the card and the marks over the float draw, and no click is taken. Text sits on
+   the HUD's dark plate or the game's paper, so a sunlit lake and a night sky both read. */
 .fishing {
+  --fishing-good: #a9db92;
+  --fishing-warn: #f4bb62;
+  --fishing-danger: var(--night-refusal);
+  --fishing-water: #8cc6de;
+
   position: relative;
   height: 100%;
 }
@@ -9,7 +15,7 @@
   position: absolute;
   left: 50%;
   bottom: 150px;
-  width: min(560px, calc(100% - 48px));
+  width: min(640px, calc(100% - 48px));
   padding: 16px 28px 14px;
   text-align: center;
   transform: translateX(-50%);
@@ -17,106 +23,451 @@
 }
 
 .fishing__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   margin: 0;
   font-family: var(--font-title);
   font-weight: 600;
-  font-size: 26px;
+  font-size: 28px;
+  line-height: 1.2;
   letter-spacing: 0.04em;
   color: var(--gold-light);
   overflow-wrap: anywhere;
 }
 
-.fishing__plate--tight .fishing__title,
 .fishing__plate--lost .fishing__title {
-  color: var(--night-refusal);
+  color: var(--fishing-danger);
 }
 
-.fishing__plate--slack .fishing__title {
-  color: var(--night-muted);
+.fishing__pull {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  color: var(--gold-bright);
 }
 
-.fishing__hint,
-.fishing__stop {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: 10px 0 0;
+.fishing__hint {
+  margin: 6px 0 0;
   font-size: 18px;
   color: var(--night-text);
 }
 
-.fishing__stop {
-  margin-top: 6px;
-  font-size: 15px;
-  color: var(--night-muted);
+.fishing__hint--done {
+  color: var(--fishing-good);
 }
 
-.fishing__key {
-  display: inline-block;
-  min-width: 28px;
-  padding: 2px 10px;
-  border: 1px solid var(--gold);
-  border-radius: var(--radius-small);
-  font-family: var(--font-body);
-  font-size: 16px;
-  color: var(--gold-light);
-  background: var(--night);
-}
-
-.fishing__key--quiet {
-  border-color: var(--night-line);
-  color: var(--night-muted);
-}
-
-/* The rod's bend from slack to breaking, the safe band in it, and the needle. */
-.fishing__meter {
-  position: relative;
-  height: 18px;
+/* The cast's power, from the nearest cast to the rod's reach. */
+.fishing__power {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
   margin: 14px 0 0;
+}
+
+.fishing__power-end {
+  font-size: 15px;
+  white-space: nowrap;
+  color: var(--night-muted);
+}
+
+.fishing__power-track {
+  position: relative;
+  height: 20px;
   border: 1px solid var(--night-line);
   border-radius: var(--radius-pill);
-  background: var(--night);
+  background: rgba(255, 255, 255, 0.06);
   overflow: hidden;
 }
 
-.fishing__band {
+.fishing__power-track--charging {
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 10px var(--glow);
+}
+
+.fishing__power-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold-bright) 70%, #fff0c8);
+}
+
+.fishing__power-tick {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: var(--night-line);
+}
+
+/* The fight: two gauges, then what the fish feels like, the rod's lean and how far it is. */
+.fishing-fight {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+}
+
+.fishing-fight__gauge {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: 10px;
+}
+
+.fishing-fight__label {
+  font-size: 15px;
+  text-align: left;
+  color: var(--night-muted);
+}
+
+.fishing-fight__value {
+  font-weight: 700;
+  font-size: 15px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--night-text);
+}
+
+.fishing-fight__track {
+  position: relative;
+  height: 14px;
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+/* Where the line is close to snapping. */
+.fishing-fight__danger {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(-45deg, rgba(255, 110, 90, 0.5) 0 5px, rgba(255, 110, 90, 0.2) 5px 10px);
+}
+
+.fishing-fight__fill {
   position: absolute;
   top: 0;
   bottom: 0;
-  background: var(--confirmed);
+  left: 0;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold-bright));
+  transition: width var(--duration-hover) linear;
 }
 
-.fishing__needle {
+.fishing-fight__needle {
   position: absolute;
-  top: -2px;
-  bottom: -2px;
-  width: 4px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
   margin-left: -2px;
-  background: var(--gold-bright);
+  background: #fff4dc;
   box-shadow: 0 0 6px var(--glow);
   transition: left var(--duration-hover) linear;
 }
 
-.fishing__plate--tight .fishing__needle {
-  background: var(--night-refusal);
+.fishing-fight__gauge--red .fishing-fight__fill {
+  background: linear-gradient(90deg, #a8321f, #ff7a5c);
 }
 
-/* How much fight the fish has left. */
-.fishing__tired {
-  height: 6px;
-  margin: 6px 0 0;
+.fishing-fight__gauge--red :is(.fishing-fight__label, .fishing-fight__value) {
+  font-weight: 700;
+  color: var(--fishing-danger);
+}
+
+.fishing-fight__gauge--stamina .fishing-fight__fill {
+  background: linear-gradient(90deg, #3f6f88, var(--fishing-water));
+}
+
+.fishing-fight__facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-top: 2px;
+  font-size: 16px;
+  color: var(--night-text);
+}
+
+.fishing-fight__feel {
+  justify-self: start;
+  padding: 1px 10px;
+  border: 1px solid var(--night-line);
   border-radius: var(--radius-pill);
-  background: var(--night-line);
+  color: var(--night-text);
+}
+
+.fishing-fight__feel--small {
+  color: var(--night-muted);
+}
+
+.fishing-fight__feel--heavy {
+  border-color: var(--fishing-warn);
+  color: var(--fishing-warn);
+}
+
+.fishing-fight__feel--monster {
+  border-color: var(--fishing-danger);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fishing-danger);
+}
+
+.fishing-fight__lean {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fishing-fight__rod {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  transform-origin: 50% 92%;
+  transition: transform var(--duration-hover);
+}
+
+.fishing-fight__lean--against {
+  color: var(--fishing-good);
+}
+
+.fishing-fight__lean--with {
+  font-weight: 700;
+  color: var(--fishing-danger);
+}
+
+.fishing-fight__distance {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  justify-self: end;
+  gap: 2px 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fishing-fight__reeling {
+  font-weight: 700;
+  color: var(--gold-light);
+}
+
+.fishing-fight__slack {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 12px;
+  margin: 2px 0 0;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--fishing-warn);
+}
+
+.fishing-fight__slack-track {
+  width: 120px;
+  height: 8px;
+  border: 1px solid var(--fishing-warn);
+  border-radius: var(--radius-pill);
   overflow: hidden;
 }
 
-.fishing__tired span {
+.fishing-fight__slack-track span {
   display: block;
   height: 100%;
-  background: var(--gold);
-  transition: width var(--duration-hover) linear;
+  background: var(--fishing-warn);
+}
+
+/* The keys of the stage, the one wanted now marked, a pressed one lit, one that strains the line red. */
+.fishing__keys {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+  margin: 14px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--night-line);
+  list-style: none;
+}
+
+.fishing__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 15px;
+  color: var(--night-muted);
+}
+
+.fishing__key kbd {
+  min-width: 30px;
+  padding: 2px 9px;
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius-small);
+  background: rgba(255, 255, 255, 0.06);
+  font-weight: 700;
+  font-size: 15px;
+  font-family: var(--font-body);
+  text-align: center;
+  color: var(--night-text);
+}
+
+.fishing__key--on kbd {
+  border-color: var(--gold-bright);
+  background: var(--gold-dark);
+  color: #fff6e0;
+}
+
+.fishing__key--on {
+  color: var(--night-text);
+}
+
+.fishing__key--wanted kbd {
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 0 2px rgba(201, 162, 89, 0.35), 0 0 10px var(--glow);
+  animation: fishing-wanted 900ms ease-in-out infinite alternate;
+}
+
+.fishing__key--wanted {
+  color: var(--gold-light);
+}
+
+.fishing__key--strain kbd {
+  border-color: var(--fishing-danger);
+  background: rgba(143, 29, 20, 0.7);
+  color: #fff6e0;
+}
+
+.fishing__key--strain {
+  color: var(--fishing-danger);
+}
+
+/* The gear and the skill, in the lower right corner. */
+.fishing-gear {
+  position: absolute;
+  right: 28px;
+  bottom: 120px;
+  display: grid;
+  gap: 8px;
+  width: 300px;
+  padding: 12px 16px 10px;
+  filter: drop-shadow(0 10px 18px var(--shadow-deep));
+}
+
+.fishing-gear__row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+/* The painted pictures sit on a disc of the game's paper, as they were painted for. */
+.fishing-gear__picture {
+  width: 52px;
+  height: 52px;
+  padding: 4px;
+  border: 1px solid var(--gold-dark);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, var(--parchment-light), var(--parchment) 60%, var(--parchment-deep));
+  object-fit: contain;
+}
+
+.fishing-gear__picture--none {
+  display: grid;
+  place-items: center;
+  border-color: var(--night-line);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--night-muted);
+}
+
+.fishing-gear__picture--none .rp-icon {
+  width: 30px;
+  height: 30px;
+}
+
+.fishing-gear__text {
+  display: grid;
+  margin: 0;
+}
+
+.fishing-gear__name {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.25;
+  color: var(--night-text);
+  overflow-wrap: anywhere;
+}
+
+.fishing-gear__row--none .fishing-gear__name {
+  font-weight: 400;
+  color: var(--night-muted);
+}
+
+.fishing-gear__fact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  font-size: 15px;
+  color: var(--night-muted);
+}
+
+.fishing-gear__condition--good {
+  color: var(--fishing-good);
+}
+
+.fishing-gear__condition--worn {
+  color: var(--fishing-warn);
+}
+
+.fishing-gear__condition--damaged {
+  font-weight: 700;
+  color: var(--fishing-danger);
+}
+
+.fishing-gear__skill {
+  padding-top: 8px;
+  border-top: 1px solid var(--night-line);
+}
+
+.fishing-gear__skill-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 5px;
+  font-size: 15px;
+  color: var(--night-muted);
+}
+
+.fishing-gear__skill-head strong {
+  font-size: 16px;
+  color: var(--gold-light);
+}
+
+.fishing-gear__xp {
+  height: 8px;
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.fishing-gear__xp span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold-bright));
+  transition: width var(--duration-fade);
+}
+
+.fishing-gear__xp-text {
+  margin: 4px 0 0;
+  font-size: 15px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--night-muted);
 }
 
 /* Over the float, or where the cast would land. */
@@ -134,7 +485,7 @@
   height: 56px;
   border: 3px solid var(--gold-light);
   border-radius: 50%;
-  box-shadow: 0 0 10px var(--shadow-deep);
+  box-shadow: 0 0 10px var(--shadow-deep), inset 0 0 6px var(--shadow-deep);
 }
 
 .fishing__mark--aim .fishing__ring {
@@ -146,6 +497,33 @@
   border-color: var(--night-text);
 }
 
+/* While Space is held the game moves the mark to where the power would land the float. */
+.fishing__mark--charging .fishing__ring {
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 10px var(--glow), 0 0 4px var(--shadow-deep);
+}
+
+.fishing__mark--waiting .fishing__ring {
+  left: -20px;
+  top: -20px;
+  width: 40px;
+  height: 40px;
+  border-width: 2px;
+  border-color: rgba(244, 236, 220, 0.7);
+}
+
+/* A nibble: a ripple spreads from the float. */
+.fishing__ripple {
+  position: absolute;
+  left: -20px;
+  top: -20px;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--gold-light);
+  border-radius: 50%;
+  animation: fishing-ripple 800ms ease-out forwards;
+}
+
 /* The strike's window running out. */
 .fishing__mark--bite .fishing__ring {
   border-color: var(--gold-bright);
@@ -154,53 +532,187 @@
   animation-fill-mode: forwards;
 }
 
-.fishing__mark--landing .fishing__ring {
+.fishing__mark--fight .fishing__ring {
   border-color: var(--gold-bright);
   border-style: dashed;
 }
 
-/* The catch, on the right, under where the game's messages show. */
-.fishing__card {
+/* The run, beside the float on the side it goes. */
+.fishing__run {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  color: var(--gold-bright);
+  filter: drop-shadow(0 0 3px var(--shadow-deep)) drop-shadow(0 0 6px var(--shadow-deep));
+}
+
+.fishing__run--left {
+  left: -90px;
+  top: -22px;
+}
+
+.fishing__run--right {
+  left: 46px;
+  top: -22px;
+}
+
+.fishing__run--away {
+  left: -22px;
+  top: -90px;
+}
+
+.pull-arrow {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* What came of the bite, on the right, on the game's paper. */
+.fishing-card.rp-panel {
   position: absolute;
   right: 48px;
-  top: 38%;
-  width: min(340px, calc(100% - 96px));
-  padding: 18px 24px;
+  top: 12%;
+  width: min(380px, calc(100% - 96px));
+  max-height: calc(100% - 24%);
+  padding: 26px 30px 22px;
+  overflow: hidden;
   text-align: center;
-  filter: drop-shadow(0 14px 24px var(--shadow-deep));
 }
 
-.fishing__card-kind {
-  margin: 0;
-  font-size: 16px;
-  letter-spacing: 0.08em;
+.fishing-card .rp-panel__title {
+  font-size: 28px;
+}
+
+.fishing-card__eyebrow {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 700;
+  font-size: 15px;
+  font-family: var(--font-body);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--night-muted);
+  color: var(--ink-soft);
 }
 
-.fishing__card-name {
-  margin: 4px 0 0;
-  font-family: var(--font-title);
-  font-weight: 600;
-  font-size: 30px;
-  color: var(--gold-light);
+.fishing-card__name {
+  display: block;
   overflow-wrap: anywhere;
 }
 
-.fishing__card-size {
-  display: flex;
-  justify-content: center;
-  gap: 18px;
-  margin: 8px 0 0;
-  font-size: 19px;
-  color: var(--night-text);
+.fishing-card__picture {
+  display: grid;
+  place-items: center;
+  width: 240px;
+  height: 150px;
+  margin: 0 auto;
 }
 
-.fishing__trophy {
-  margin: 8px 0 0;
+.fishing-card__picture img {
+  width: 240px;
+  height: 240px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 6px rgba(43, 29, 14, 0.35));
+}
+
+.fishing-card--rare .fishing-card__picture img {
+  filter: drop-shadow(0 0 10px rgba(255, 196, 80, 0.95)) drop-shadow(0 0 22px rgba(255, 176, 40, 0.6));
+}
+
+.fishing-card__picture--find {
+  height: 96px;
+  color: var(--gold-dark);
+}
+
+.fishing-card__picture--find .rp-icon {
+  width: 72px;
+  height: 72px;
+}
+
+.fishing-card--lost .fishing-card__picture {
+  height: 120px;
+}
+
+.fishing-card--lost .fishing-card__picture img {
+  width: 150px;
+  height: 150px;
+  filter: grayscale(1) contrast(0.8);
+  opacity: 0.55;
+}
+
+.fishing-card__lost-name {
+  margin: -8px 0 0;
+  font-style: italic;
+  font-size: 17px;
+  color: var(--ink-soft);
+}
+
+.fishing-card__size {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 10px;
+  margin: 0;
+  font-weight: 700;
+  font-size: 21px;
+}
+
+.fishing-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fishing-card__badge {
+  padding: 2px 12px;
+  border: 1px solid var(--gold-dark);
+  border-radius: var(--radius-pill);
+  background: var(--parchment-light);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.fishing-card__badge--record {
+  border-color: var(--confirmed);
+  color: var(--confirmed);
+}
+
+.fishing-card__badge--rare {
+  background: var(--gold-pale);
+}
+
+.fishing-card__xp {
+  margin: 10px 0 0;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--confirmed);
+}
+
+.fishing-card__level {
+  margin: 6px 0 0;
+  font-weight: 600;
+  font-size: 21px;
   font-family: var(--font-title);
-  font-size: 20px;
-  color: var(--gold-bright);
+  letter-spacing: 0.03em;
+  text-decoration: underline 2px var(--gold);
+  text-underline-offset: 5px;
+}
+
+.fishing-card__cost {
+  margin: 8px 0 0;
+  font-size: 16px;
+  color: var(--problem);
+}
+
+.fishing-card__cost--broken {
+  font-weight: 700;
 }
 
 .fishing-card-enter-active,
@@ -223,5 +735,27 @@
 
   to {
     transform: scale(0.6);
+  }
+}
+
+@keyframes fishing-ripple {
+  from {
+    opacity: 1;
+    transform: scale(0.6);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@keyframes fishing-wanted {
+  from {
+    filter: brightness(1);
+  }
+
+  to {
+    filter: brightness(1.35);
   }
 }
