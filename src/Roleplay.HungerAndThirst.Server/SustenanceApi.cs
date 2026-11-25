@@ -9,7 +9,12 @@ namespace Roleplay.HungerAndThirst.Server;
 
 /// <summary>The <see cref="ISustenance"/> other mods get, over the service that keeps the meters.</summary>
 [Service]
-public sealed partial class SustenanceApi(SustenanceService sustenance, FoodTable foods, INetworkedEvents events, IEntities entities)
+public sealed partial class SustenanceApi(
+    SustenanceService sustenance,
+    FoodTable foods,
+    CustomFoodRegistry customFoods,
+    INetworkedEvents events,
+    IEntities entities)
     : ISustenance
 {
     public IReadOnlyCollection<FoodItem> Foods => foods.All;
@@ -29,6 +34,8 @@ public sealed partial class SustenanceApi(SustenanceService sustenance, FoodTabl
         events.RaiseAs(feeder, new MealEvent { Feeder = giver, Eater = taker, FormId = formId });
         return null;
     }
+
+    public void RegisterCustomFood(CustomFood food) => customFoods.Register(food);
 
     public void Refill(PlayerId player) => sustenance.Refill(player);
 

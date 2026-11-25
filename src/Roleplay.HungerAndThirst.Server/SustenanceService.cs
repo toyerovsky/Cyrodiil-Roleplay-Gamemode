@@ -38,6 +38,8 @@ public sealed partial class SustenanceService(
     IStatuses statuses,
     SustenanceStore store,
     FoodTable foods,
+    CustomFoodRegistry customFoods,
+    ICustomItems customItems,
     SustenanceConfig config,
     ILogger logger)
 {
@@ -58,6 +60,8 @@ public sealed partial class SustenanceService(
     private readonly record struct AppliedStatus(StatusHandle Handle, StatusEffect Effect, Stat? Vital);
 
     private readonly record struct StatusKey(int Hunger, int Thirst, bool HealthDamage);
+
+    private sealed record Eaten(string Name, int Satiety, int Hydration);
 
     private readonly Dictionary<PlayerId, Meters> _meters = [];
     private readonly Inventories _inventories = new();
@@ -386,8 +390,9 @@ public sealed partial class SustenanceService(
 
     /// <summary>
     /// The player ate or drank from the game's own inventory menu. The game used the item already, so only the meters
-    /// move: a food the table knows feeds, anything else (a healing potion) changes nothing. No cooldown, since the
-    /// item is gone either way. The player's client raises this, so it is only taken for that player's own character.
+    /// move: a food the table knows or a custom food another mod registered feeds, anything else (a healing potion)
+    /// changes nothing. No cooldown, since the item is gone either way. The player's client raises this, so it is only
+    /// taken for that player's own character.
     /// </summary>
     [EventHandler(Stage.Apply)]
     public void OnPlayerConsume(in PlayerConsumeEvent consumed, EventContext context)
@@ -402,18 +407,28 @@ public sealed partial class SustenanceService(
         }
 
         PlayerId player = context.Origin;
-        uint formId = consumed.Item.FormId.Value;
-        Guard("inventory meal", player, () => FeedFromInventory(player, formId));
+        NetworkFormId item = consumed.Item;
+        Guard("inventory meal", player, () => FeedFromInventory(player, item));
     }
 
-    private void FeedFromInventory(PlayerId player, uint formId)
+    private void FeedFromInventory(PlayerId player, NetworkFormId item)
     {
-        if (!_meters.TryGetValue(player, out Meters? meters) || !foods.TryGet(formId, out FoodItem food))
+        if (!_meters.TryGetValue(player, out Meters? meters) || FindEaten(item) is not { } food)
             return;
         Feed(player, meters, food.Satiety, food.Hydration);
         logger.LogInformation(
             "HungerAndThirst: {Player} had {Food} from the inventory (+{Satiety} satiety, +{Hydration} hydration).",
             player, food.Name, food.Satiety, food.Hydration);
+    }
+
+    // A game's item by its form id in the table, a custom item, whose form id is 0, by its key among the custom foods.
+    private Eaten? FindEaten(NetworkFormId item)
+    {
+        if (item.FormId.Value != 0)
+            return foods.TryGet(item.FormId.Value, out FoodItem food) ? new Eaten(food.Name, food.Satiety, food.Hydration) : null;
+        return customItems.TryFind(item, out DefinedCustomItem defined) && customFoods.TryGet(defined.Key, out CustomFood custom)
+            ? new Eaten(custom.Name, custom.Satiety, custom.Hydration)
+            : null;
     }
 
     /// <summary>A player's meters as their client sees them, with the decay rates and the tier each meter is in.</summary>

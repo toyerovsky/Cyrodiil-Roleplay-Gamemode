@@ -35,6 +35,16 @@ public interface ISustenance
     /// </summary>
     MealRefusal? Feed(PlayerId feeder, PlayerId eater, uint formId);
 
+    /// <summary>
+    /// Makes a custom item (<c>ICustomItems</c>, by its key) food or drink: eaten from the game's inventory, it fills the
+    /// meters by these values, as a food of the table does. Call it from your mod's <c>Start</c>. The item is found by
+    /// its key at each meal, so it may be defined before or after. A key registered already, or values outside the
+    /// scale, throw.
+    /// </summary>
+    /// <remarks>The satchel and <see cref="Feed"/> do not offer custom foods: a <see cref="MealEvent"/> names its item
+    /// by a form id, which a custom item lacks.</remarks>
+    void RegisterCustomFood(CustomFood food);
+
     /// <summary>Fills a player's meters to the server's start values, for a mod that gives the player a new
     /// character. The meters are kept per ReadyM account, so without this a new character inherits the last one's.</summary>
     void Refill(PlayerId player);

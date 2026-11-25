@@ -60,7 +60,10 @@ mod's projects to build, and leaves the mod's DLLs out of its own package.
 
 **Server, `ISustenance`:** any player's meters, rates and tier (`TryGetMeters`), the food table (`Foods`), what a player
 carries (`CarriedBy`), `Check(feeder, eater, formId)` for a wheel or a button to show why not, and `Feed(feeder, eater,
-formId)`, which raises `MealEvent` as the feeder.
+formId)`, which raises `MealEvent` as the feeder. `RegisterCustomFood(new CustomFood(key, name, satiety, hydration))`,
+called from a mod's `Start`, makes a custom item of that mod (`ICustomItems`, by its key) food: eaten from the game's
+inventory, it feeds as a food of the table does. The satchel and `Feed` leave custom foods out, since `MealEvent` names
+its item by a form id and a custom item's is 0.
 
 **Client, `ILocalSustenance`:** for a UI of your own. The local player's meters as the bars show them (counted down
 between updates, a meal on its way included), rates, bands (`SustenanceBand`), `InWater`, the food table and what the
