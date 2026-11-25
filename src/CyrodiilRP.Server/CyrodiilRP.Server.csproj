@@ -37,6 +37,11 @@
         <EmbeddedResource Include="Admin\weathers.json" LogicalName="weathers.json" />
     </ItemGroup>
 
+    <!-- The named waters of Tamriel the fishing tells apart, as polygons in the server's centimetres. -->
+    <ItemGroup>
+        <EmbeddedResource Include="Fishing\waters.json" LogicalName="waters.json" />
+    </ItemGroup>
+
     <!-- What every item of the game is to the crafting: a trade's product, a material, a relic or exempt. -->
     <ItemGroup>
         <EmbeddedResource Include="Crafting\classification.json" LogicalName="classification.json" />

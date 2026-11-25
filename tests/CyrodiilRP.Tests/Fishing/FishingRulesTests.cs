@@ -52,7 +52,7 @@ public sealed class FishingRulesTests
     [InlineData(double.NaN)]
     public void A_roll_outside_zero_to_one_is_refused(double roll)
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => FishingRules.FishOf(roll));
+        Assert.Throws<ArgumentOutOfRangeException>(() => FishingRules.FindOf(roll));
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public sealed class FishingRulesTests
     {
         Assert.Equal(FishingRules.BiteSoonest, FishingRules.BiteWait(0));
         Assert.Equal(FishingRules.BiteLatest, FishingRules.BiteWait(1));
-        Assert.Equal(FishingRules.LandShortest, FishingRules.LandingFor(0));
-        Assert.Equal(FishingRules.LandLongest, FishingRules.LandingFor(1));
+        Assert.Equal(FishingRules.ThrashSoonest, FishingRules.ThrashWait(0));
+        Assert.Equal(FishingRules.ThrashLatest, FishingRules.ThrashWait(1));
     }
 }

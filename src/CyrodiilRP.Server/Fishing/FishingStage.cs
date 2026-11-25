@@ -11,8 +11,8 @@ internal enum FishingStage
     // A fish took the bait: the strike's window is open.
     Bite,
 
-    // The fish is on the hook, held by the rod's bend.
-    Landing,
+    // The fish is on the hook and fights.
+    Fight,
 
     // After a catch or a loss, before the next cast.
     Rest,

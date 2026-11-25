@@ -35,8 +35,6 @@ internal sealed partial class FishItems(ICustomItems customItems, FishingStock s
                 .WithIconOf(FishingRules.FishIcon));
     }
 
-    public bool CarriesRod(OnlinePlayer player) => stock.FindBestRod(player) is not null;
-
     public bool TryGive(OnlinePlayer player, FishItem fish) => stock.TryFind(fish.Key, out var item) && stock.TryGive(player, item, 1);
 
     public bool TryGive(OnlinePlayer player, FindKind find) => stock.TryGive(player, find.Item, 1);

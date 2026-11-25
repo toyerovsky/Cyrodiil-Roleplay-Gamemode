@@ -28,6 +28,7 @@ internal static class WheelIcons
     public const string Stop = "stop";
     public const string Horse = "horse";
     public const string Fish = "fish";
+    public const string Bait = "bait";
 
     // The page draws these on the wedges that turn a wheel of more than a page.
     public const string Previous = "previous";

@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Text.Json;
+using CyrodiilRP.Common.Chat;
 using CyrodiilRP.Common.Fishing;
 using CyrodiilRP.Server.Admin;
 using CyrodiilRP.Server.Chat;
@@ -20,8 +21,8 @@ using ReadyM.SDK.Server.Entities;
 namespace CyrodiilRP.Server.Fishing;
 
 // Fishing from the G wheel. The player's game finds the water and where the float lands; the server holds the character
-// still, keeps every time of the line on its own clock (FishingLine), decides every catch and gives it, and tells the
-// games near the angler where the float lies and where the water splashes.
+// still, picks what bites at each cast, keeps every time and the whole fight on its own clock (FishingLine), decides
+// every catch and gives it, wears the rod, and tells the games near the angler what their rod, float and fish do.
 [Service]
 internal sealed partial class Anglers(
     SelfMenu self,
@@ -31,7 +32,11 @@ internal sealed partial class Anglers(
     IEntities entities,
     Freezes freezes,
     FishItems items,
+    FishingStock stock,
+    FishingSkills skills,
+    FishingSurroundings surroundings,
     RpChat chat,
+    RpConfig config,
     Timers timers,
     SystemClock clock,
     ILogger logger)
@@ -40,6 +45,11 @@ internal sealed partial class Anglers(
     private const string StopOption = "self.fish_stop";
     private const int FishOrder = 35;
     private const string TickJob = "fishing.tick";
+    private const int LeanLeft = -1;
+    private const int LeanRight = 1;
+    private const float QuarterTurn = 90f;
+    private const float HalfTurn = 180f;
+    private const int Decimals = 3;
 
     private readonly AnglerRegistry _anglers = new();
     private readonly FishingLookRegistry _looks = new();
@@ -61,9 +71,11 @@ internal sealed partial class Anglers(
         rpc.FishingSpotReported += OnSpot;
         rpc.FishingCastMade += OnCast;
         rpc.FishingSpacePressed += OnSpace;
+        rpc.FishingLeaned += OnLean;
         rpc.FishingStopAsked += OnStopAsked;
         online.Left += OnLeft;
         freezes.Froze += OnFroze;
+        skills.BaitChosen += OnBaitChosen;
         timers.RunEvery(TickJob, FishingRules.Tick, Tick);
     }
 
@@ -72,16 +84,34 @@ internal sealed partial class Anglers(
         if (_anglers.Contains(player) || !player.IsPlaying)
             return OptionState.Hidden;
 
-        if (entities.TryLookup(player.Id, out Player entity) && entity.IsFrozen)
-            return OptionState.Close(FishingText.Held);
+        return OptionState.OpenUnless(FindRefusal(player));
+    }
 
-        return items.CarriesRod(player) ? OptionState.Open : OptionState.Close(FishingText.NoRod);
+    // Null when the player may fish now.
+    private Phrase? FindRefusal(OnlinePlayer player)
+    {
+        if (entities.TryLookup(player.Id, out Player entity) && entity.IsFrozen)
+            return FishingText.Held;
+
+        if (skills.Find(player) is null)
+            return FishingText.NotReady;
+
+        if (stock.FindBestRod(player) is not null)
+            return null;
+
+        return stock.ListRods(player).Count > 0 ? FishingText.RodBroken : FishingText.NoRod;
     }
 
     private void Look(OnlinePlayer player)
     {
+        if (stock.FindBestRod(player) is not { } rod)
+        {
+            chat.Notify(player, FishingText.NoRod);
+            return;
+        }
+
         _looks.Ask(player, clock.MonotonicMs);
-        rpc.SendFishingLook(player.Id, FishingRules.RodReach);
+        rpc.SendFishingLook(player.Id, rod.Rod.ReachCm);
     }
 
     private void OnSpot(PlayerId sender, FishingSpotReport report)
@@ -128,23 +158,18 @@ internal sealed partial class Anglers(
             return;
         }
 
-        if (entity.IsFrozen)
+        if (FindRefusal(player) is { } refusal || stock.FindBestRod(player) is not { } rod)
         {
-            chat.Notify(player, FishingText.Held);
-            return;
-        }
-
-        if (!items.CarriesRod(player))
-        {
-            chat.Notify(player, FishingText.NoRod);
+            chat.Notify(player, FindRefusal(player) ?? FishingText.NoRod);
             return;
         }
 
         entity.IsFrozen = true;
         main.Rotation = yaw;
-        var angler = new Angler(player, area, stand, yaw, waterZ, new FishingLine(_random.NextDouble), Bait: null, FloatShown: null,
-            DipEndsAtMs: 0, NextThrashAtMs: 0, Nibbles: 0, Bites: 0, Outcome: null, Seers: new HashSet<PlayerId>());
-        rpc.SendFishingAim(player.Id, yaw, waterZ, FishingRules.RodReach);
+        var angler = new Angler(player, area, stand, yaw, waterZ, new FishingLine(_random.NextDouble), rod, BaitKind.None, CountBait(player),
+            Quarry: null, Float: null, FloatShown: null, FishShown: false, DipEndsAtMs: 0, NextThrashAtMs: 0, Nibbles: 0, Bites: 0, Outcome: null,
+            Seers: new HashSet<PlayerId>());
+        rpc.SendFishingAim(player.Id, yaw, waterZ, rod.Rod.ReachCm);
         angler = SeeAround(angler);
         _anglers.Set(angler);
         SendPage(angler);
@@ -155,7 +180,7 @@ internal sealed partial class Anglers(
         if (!online.TryGet(sender, out var player) || !_anglers.TryGet(player, out var angler) || angler.Line.Stage != FishingStage.Aim)
             return;
 
-        if (!items.CarriesRod(player))
+        if (stock.FindBestRod(player) is not { } rod)
         {
             End(player, FishingText.RodGone);
             return;
@@ -163,19 +188,62 @@ internal sealed partial class Anglers(
 
         var reach = Vector2.Distance(new Vector2(point.X, point.Y), new Vector2(angler.Stand.X, angler.Stand.Y));
         if (!float.IsFinite(point.X) || !float.IsFinite(point.Y) || !float.IsFinite(point.Z)
-            || reach > FishingRules.RodReach + FishingReach.Slack || Math.Abs(point.Z - angler.WaterZ) > FishingReach.SameWater)
+            || reach > rod.Rod.ReachCm + FishingReach.Slack || Math.Abs(point.Z - angler.WaterZ) > FishingReach.SameWater)
         {
             logger.LogWarning("{Player} cast to {Point}, {Reach} cm away, out of the rod's reach or off the water at {WaterZ}.",
                 player.Ref, point, reach, angler.WaterZ);
             return;
         }
 
+        if (!entities.TryLookup(player.Id, out MainCharacter main) || !entities.TryGetScope(main, out Area area))
+        {
+            End(player, FishingText.NotInWorld);
+            return;
+        }
+
+        var progress = skills.Find(player) ?? throw new InvalidOperationException($"{player.Ref} fishes before their fishing is read.");
+        var level = progress.Skill.Level;
+        var bait = PutOnBait(player, progress.Bait);
+        var quarry = CatchPicker.Pick(surroundings.Read(area, point), bait, level, _random.NextDouble);
+        var cast = new LineCast(quarry.Fight, quarry.SizeShare, CatchPicker.WaitFactor(level, rod.Rod, bait),
+            FishingRules.StrikeWindow + FishingSkillRules.StrikeBonus(level), rod.Line * FishingSkillRules.LineTolerance(level), rod.Rod.ReachCm,
+            reach);
         var now = clock.MonotonicMs;
-        angler.Line.Cast(now);
-        angler = ShowFloat(angler with { Bait = point }, now);
-        Splash(angler, FishingSplashKind.Cast, point);
+        angler.Line.Cast(now, cast);
+        angler = Wield(angler, rod) with { Float = point, BaitUsed = bait, BaitCount = CountBait(player), Quarry = quarry };
+        foreach (var seer in angler.Seers)
+            rpc.SendAnglerCast(seer, player.Id.RawValue, point.X, point.Y, point.Z);
+
+        angler = ShowFloat(angler, now);
         _anglers.Set(angler);
         SendPage(angler);
+    }
+
+    // The bait chosen, one piece of it taken unless it stays on the line, or a bare hook when the pack has none left.
+    private BaitKind PutOnBait(OnlinePlayer player, BaitKind chosen)
+    {
+        if (chosen == BaitKind.None)
+            return BaitKind.None;
+
+        var bait = BaitCatalog.Find(chosen);
+        var taken = stock.TryFind(bait, out var item) && bait.Use switch
+        {
+            BaitUse.PerCast => stock.TryTake(player, item, 1),
+            BaitUse.LostWithLine => stock.Count(player, item) > 0,
+        };
+        if (taken)
+            return chosen;
+
+        chat.Notify(player, FishingText.BaitOut(bait.Name));
+        return BaitKind.None;
+    }
+
+    private int CountBait(OnlinePlayer player)
+    {
+        if (skills.Find(player) is not { Bait: not BaitKind.None } progress)
+            return 0;
+
+        return stock.TryFind(BaitCatalog.Find(progress.Bait), out var item) ? stock.Count(player, item) : 0;
     }
 
     private void OnSpace(PlayerId sender, bool down, int reactionMs)
@@ -188,6 +256,21 @@ internal sealed partial class Anglers(
         Apply(angler, change, now);
     }
 
+    private void OnLean(PlayerId sender, int lean)
+    {
+        if (!online.TryGet(sender, out var player) || !_anglers.TryGet(player, out var angler))
+            return;
+
+        if (lean is < LeanLeft or > LeanRight)
+        {
+            logger.LogWarning("{Player} leaned the rod {Lean}, which is no way a rod leans.", player.Ref, lean);
+            return;
+        }
+
+        var now = clock.MonotonicMs;
+        Apply(angler, angler.Line.LeanTo(now, lean), now);
+    }
+
     private void OnStopAsked(PlayerId sender)
     {
         if (online.TryGet(sender, out var player))
@@ -195,6 +278,16 @@ internal sealed partial class Anglers(
     }
 
     private void OnFroze(OnlinePlayer player) => End(player, notice: null);
+
+    private void OnBaitChosen(OnlinePlayer player)
+    {
+        if (!_anglers.TryGet(player, out var angler))
+            return;
+
+        angler = angler with { BaitCount = CountBait(player) };
+        _anglers.Set(angler);
+        SendPage(angler);
+    }
 
     private void OnLeft(OnlinePlayer player)
     {
@@ -230,77 +323,139 @@ internal sealed partial class Anglers(
     {
         var next = change switch
         {
-            LineChange.None or LineChange.Cast => angler,
-            LineChange.Nibble => angler with { Nibbles = angler.Nibbles + 1, DipEndsAtMs = now + (long)FishingRules.NibbleDips.TotalMilliseconds },
+            LineChange.None or LineChange.Cast or LineChange.Fought => angler,
+            LineChange.Approach => ShowFish(angler, FishMove.Approach),
+            LineChange.Nibble => Nibbled(angler, now),
             LineChange.Bite => Bitten(angler),
-            LineChange.Hooked => angler with { NextThrashAtMs = now + (long)FishingRules.ThrashSoonest.TotalMilliseconds },
-            LineChange.Bend => Thrash(angler, now),
+            LineChange.Hooked => ShowFish(angler, FishMove.Hooked) with { NextThrashAtMs = now },
+            LineChange.Turned => angler with { NextThrashAtMs = now },
+            LineChange.Jumped => Jumped(angler, now),
             LineChange.Caught => Land(angler),
             LineChange.LostEarly => Lose(angler, FishingOutcome.LostEarly),
             LineChange.LostNibble => Lose(angler, FishingOutcome.LostNibble),
             LineChange.LostLate => Lose(angler, FishingOutcome.LostLate),
             LineChange.LostSnapped => Lose(angler, FishingOutcome.LostSnapped),
             LineChange.LostSlack => Lose(angler, FishingOutcome.LostSlack),
-            LineChange.Ready => Aim(angler),
+            LineChange.LostRunaway => Lose(angler, FishingOutcome.LostRunaway),
+            LineChange.Ready => Ready(angler),
         };
+        if (next is null)
+            return;
+
+        next = Thrash(next, now);
         next = ShowFloat(next, now);
         _anglers.Set(next);
         if (change != LineChange.None)
             SendPage(next);
     }
 
-    private Angler Aim(Angler angler)
+    // Null when the fishing ended: no whole rod is left.
+    private Angler? Ready(Angler angler)
     {
-        rpc.SendFishingAim(angler.Player.Id, angler.Yaw, angler.WaterZ, FishingRules.RodReach);
+        var player = angler.Player;
+        if (stock.FindBestRod(player) is not { } rod)
+        {
+            _anglers.Set(angler);
+            End(player, FishingText.NoRodLeft);
+            return null;
+        }
+
+        angler = Wield(TakeFishAway(angler), rod);
+        rpc.SendFishingAim(player.Id, angler.Yaw, angler.WaterZ, rod.Rod.ReachCm);
         return angler;
+    }
+
+    // The rod in hand, shown again to everyone near when it is another grade.
+    private Angler Wield(Angler angler, RodItem rod)
+    {
+        if (rod.Rod.Tier != angler.Rod.Rod.Tier)
+        {
+            foreach (var seer in angler.Seers)
+                rpc.SendAnglerShown(seer, angler.Player.Id.RawValue, true, rod.Rod.Tier.ToString());
+        }
+
+        return angler with { Rod = rod };
+    }
+
+    private Angler Nibbled(Angler angler, long now)
+    {
+        if (angler.Float is { } at)
+            Splash(angler, FishingSplashKind.Nibble, at);
+
+        return ShowFish(angler, FishMove.Nibble) with { Nibbles = angler.Nibbles + 1, DipEndsAtMs = now + (long)FishingRules.NibbleDips.TotalMilliseconds };
     }
 
     private Angler Bitten(Angler angler)
     {
         rpc.SendFishingBite(angler.Player.Id);
-        if (angler.Bait is { } bait)
-            Splash(angler, FishingSplashKind.Bite, bait);
+        if (angler.Float is { } at)
+            Splash(angler, FishingSplashKind.Bite, at);
 
-        return angler with { Bites = angler.Bites + 1 };
+        return ShowFish(angler, FishMove.Bite) with { Bites = angler.Bites + 1 };
     }
 
+    private Angler Jumped(Angler angler, long now)
+    {
+        if (FindFloat(angler, now) is { } under)
+        {
+            var at = under with { Z = angler.WaterZ };
+            Splash(angler, FishingSplashKind.Jump, at);
+            angler = ShowFish(angler, FishMove.Jump, at, HeadingOf(angler));
+        }
+
+        return angler with { NextThrashAtMs = now + (long)FishingRules.ThrashSoonest.TotalMilliseconds };
+    }
+
+    // The water splashes at the float while the fish runs, every so often.
     private Angler Thrash(Angler angler, long now)
     {
-        if (now < angler.NextThrashAtMs || angler.FloatShown is not { } shown)
+        if (angler.Line.Stage != FishingStage.Fight || angler.Line.Pull == FishPull.Rest || now < angler.NextThrashAtMs
+            || FindFloat(angler, now) is not { } under)
             return angler;
 
-        Splash(angler, FishingSplashKind.Thrash, shown with { Z = angler.WaterZ });
+        Splash(angler, FishingSplashKind.Thrash, under with { Z = angler.WaterZ });
         return angler with { NextThrashAtMs = now + (long)FishingRules.ThrashWait(_random.NextDouble()).TotalMilliseconds };
     }
 
-    // A find in some of the landed bites, a fish in the rest, into the pack.
+    // A find in some of the landed bites, a fish in the rest, into the pack; the rod may wear.
     private Angler Land(Angler angler)
     {
         var player = angler.Player;
-        if (angler.FloatShown is { } shown)
-            Splash(angler, FishingSplashKind.Catch, shown with { Z = angler.WaterZ });
-
         var number = (angler.Outcome?.Number ?? 0) + 1;
+        var at = angler.FloatShown ?? angler.Float ?? angler.Stand;
+        Splash(angler, FishingSplashKind.Catch, at with { Z = angler.WaterZ });
+        var worn = Wear(angler, snapped: false);
+        angler = angler with { Rod = worn ?? angler.Rod };
         FishingOutcomeView outcome;
         bool given;
-        if (FishingRules.FindOf(_random.NextDouble()) is { } find)
+        switch (angler.Quarry)
         {
-            var name = ItemCatalog.Shipped.FindByForm(find.Item.Value)?.Name
-                       ?? throw new InvalidOperationException($"The find {find.Kind} is no item of the game's the mode knows.");
-            given = items.TryGive(player, find);
-            outcome = new FishingOutcomeView(number, FishingOutcome.Found, name, LengthCm: 0, Grams: 0, Trophy: false);
-            chat.Notify(player, FishingText.Found(name));
-        }
-        else
-        {
-            var fish = FishingRules.FishOf(_random.NextDouble());
-            var share = Math.Pow(_random.NextDouble(), FishingRules.SizeSkew);
-            var length = fish.LengthAt(share);
-            var grams = fish.GramsAt(length);
-            var item = new FishItem(fish, Trophy: share >= FishingRules.TrophyFrom);
-            given = items.TryGive(player, item);
-            outcome = new FishingOutcomeView(number, FishingOutcome.Caught, item.Name, length, grams, item.Trophy);
-            chat.Notify(player, FishingText.Caught(item.Name, length, grams));
+            case FishQuarry fish:
+            {
+                var item = fish.Item;
+                given = items.TryGive(player, item);
+                var gain = skills.RecordCatch(player, fish);
+                angler = ShowFish(angler, FishMove.Landed, angler.Stand, angler.Yaw);
+                var line = item.Trophy
+                    ? FishingText.LandedTrophy(new ShownName(player), FishNames.Landed(fish.Fish.Species), fish.LengthCm)
+                    : FishingText.Landed(new ShownName(player), FishNames.Landed(fish.Fish.Species), fish.LengthCm);
+                chat.SendAround(player, config.Chat.Emote, ChatLineKind.Action, line);
+                outcome = new FishingOutcomeView(number, FishingOutcome.Caught, fish.Fish.Species, item.Name, fish.LengthCm, fish.Grams, item.Trophy,
+                    gain.Record, gain.Xp, gain.LevelUp, fish.Fish.Rare, worn?.Condition, BaitLost: false);
+                break;
+            }
+            case FindQuarry find:
+            {
+                var name = ItemCatalog.Shipped.FindByForm(find.Find.Item.Value)?.Name
+                           ?? throw new InvalidOperationException($"The find {find.Find.Kind} is no item of the game's the mode knows.");
+                given = items.TryGive(player, find.Find);
+                var gain = skills.RecordFind(player);
+                outcome = new FishingOutcomeView(number, FishingOutcome.Found, Species: null, name, LengthCm: 0, Grams: 0, Trophy: false,
+                    Record: false, gain.Xp, gain.LevelUp, Rare: false, worn?.Condition, BaitLost: false);
+                break;
+            }
+            default:
+                throw new InvalidOperationException($"{player.Ref} landed a line nothing was on.");
         }
 
         if (!given)
@@ -309,23 +464,113 @@ internal sealed partial class Anglers(
             chat.Notify(player, FishingText.NotGiven);
         }
 
-        return angler with { Bait = null, Outcome = outcome };
+        return angler with { Float = null, Quarry = null, Outcome = outcome };
     }
 
-    private static Angler Lose(Angler angler, FishingOutcome why) =>
-        angler with { Bait = null, Outcome = new FishingOutcomeView((angler.Outcome?.Number ?? 0) + 1, why, Name: null, LengthCm: 0, Grams: 0, Trophy: false) };
+    // A fish that got away swims off. One that was hooked may wear the rod and take the lure along.
+    private Angler Lose(Angler angler, FishingOutcome why)
+    {
+        var hooked = why switch
+        {
+            FishingOutcome.LostSnapped or FishingOutcome.LostSlack or FishingOutcome.LostRunaway => true,
+            FishingOutcome.LostEarly or FishingOutcome.LostNibble or FishingOutcome.LostLate => false,
+            FishingOutcome.Caught or FishingOutcome.Found => throw new ArgumentOutOfRangeException(nameof(why), why, "A catch is no loss."),
+        };
+        var at = angler.FloatShown ?? angler.Float;
+        if (why == FishingOutcome.LostSnapped && at is { } snapped)
+            Splash(angler, FishingSplashKind.Snap, snapped with { Z = angler.WaterZ });
+        if (angler.FishShown && at is { } escapedAt)
+            angler = ShowFish(angler, FishMove.Escaped, escapedAt with { Z = angler.WaterZ }, HeadingOf(angler));
 
-    // Where the games near should draw the float now, told only when it moved.
+        var worn = hooked ? Wear(angler, snapped: why == FishingOutcome.LostSnapped) : null;
+        var baitLost = (why is FishingOutcome.LostSnapped or FishingOutcome.LostRunaway) && angler.BaitUsed == BaitKind.Lure && TakeLure(angler.Player);
+        var fish = hooked ? angler.Quarry as FishQuarry : null;
+        var outcome = new FishingOutcomeView((angler.Outcome?.Number ?? 0) + 1, why, fish?.Fish.Species, fish?.Item.Name, LengthCm: 0, Grams: 0,
+            Trophy: false, Record: false, Xp: 0, LevelUp: null, Rare: false, worn?.Condition, baitLost);
+        return angler with { Rod = worn ?? angler.Rod, Float = null, Quarry = null, BaitCount = CountBait(angler.Player), Outcome = outcome };
+    }
+
+    private bool TakeLure(OnlinePlayer player)
+    {
+        var lure = BaitCatalog.Find(BaitKind.Lure);
+        if (stock.TryFind(lure, out var item) && stock.TryTake(player, item, 1))
+            return true;
+
+        logger.LogWarning("{Player} lost a lure with the line, but no lure was left in their pack to take.", player.Ref);
+        return false;
+    }
+
+    // One step with a chance of one in the rod's WearOneIn, likelier on a snap: the rod in the pack becomes the next
+    // condition's item, which comes back. Null when it did not wear.
+    private RodItem? Wear(Angler angler, bool snapped)
+    {
+        var rod = angler.Rod;
+        var chance = (snapped ? FishingRules.SnapWears : 1) / (double)rod.Rod.WearOneIn;
+        if (_random.NextDouble() >= chance || rod.WornDown is not { } worn)
+            return null;
+
+        var player = angler.Player;
+        if (!stock.TryExchange(player, rod.Key, worn.Key))
+        {
+            logger.LogWarning("{Player}'s {Rod} wore down, but it was no longer in their pack.", player.Ref, rod.Key);
+            return null;
+        }
+
+        chat.Notify(player, worn.Usable ? FishingText.RodWore(worn.Name) : FishingText.RodBroke(worn.Name));
+        return worn;
+    }
+
+    private Angler ShowFish(Angler angler, FishMove move) =>
+        angler.Float is { } at ? ShowFish(angler, move, at with { Z = angler.WaterZ }, angler.Yaw + HalfTurn) : angler;
+
+    // Only a fish is shown: a find comes up without one.
+    private Angler ShowFish(Angler angler, FishMove move, Vector3 at, float yaw)
+    {
+        if (angler.Quarry is not FishQuarry fish)
+            return angler;
+
+        var name = move.ToString();
+        foreach (var seer in angler.Seers)
+            rpc.SendFishingFish(seer, angler.Player.Id.RawValue, name, at.X, at.Y, at.Z, yaw, fish.LengthCm);
+
+        return angler with { FishShown = true };
+    }
+
+    // The fish drawn so far, in the water or in the hand, is taken away.
+    private Angler TakeFishAway(Angler angler)
+    {
+        if (!angler.FishShown)
+            return angler;
+
+        foreach (var seer in angler.Seers)
+            rpc.SendFishingFish(seer, angler.Player.Id.RawValue, nameof(FishMove.Gone), angler.Stand.X, angler.Stand.Y, angler.Stand.Z, angler.Yaw, 0);
+
+        return angler with { FishShown = false };
+    }
+
+    // The way a fish heads as it runs, leaps or gets away: to the angler's side it runs to, or away.
+    private static float HeadingOf(Angler angler) => angler.Line.Pull switch
+    {
+        FishPull.Left => angler.Yaw - QuarterTurn,
+        FishPull.Right => angler.Yaw + QuarterTurn,
+        FishPull.Away or FishPull.Rest => angler.Yaw,
+    };
+
+    // Where the games near should draw the float now, told when it moved, under the water only when it moved far enough.
     private Angler ShowFloat(Angler angler, long now)
     {
         var at = FindFloat(angler, now);
         if (at == angler.FloatShown)
             return angler;
 
+        if (at is { } point && angler.FloatShown is { } shown && angler.Line.Stage == FishingStage.Fight
+            && Vector3.Distance(point, shown) < FishingRules.FloatMovesAtLeast)
+            return angler;
+
         foreach (var seer in angler.Seers)
         {
-            if (at is { } point)
-                rpc.SendFishingFloat(seer, angler.Player.Id.RawValue, point.X, point.Y, point.Z);
+            if (at is { } moved)
+                rpc.SendFishingFloat(seer, angler.Player.Id.RawValue, moved.X, moved.Y, moved.Z);
             else
                 rpc.SendFishingFloatGone(seer, angler.Player.Id.RawValue);
         }
@@ -333,25 +578,33 @@ internal sealed partial class Anglers(
         return angler with { FloatShown = at };
     }
 
-    // Riding on the water, dipped by a nibble, pulled under by the bite, and dragged aside by the fish while landing.
+    // Riding on the water, dipped by a nibble, pulled under by the bite, and dragged about under the water by the fish:
+    // out or in along the line and aside with its runs.
     private static Vector3? FindFloat(Angler angler, long now)
     {
-        if (angler.Bait is not { } bait)
+        if (angler.Float is not { } rest)
             return null;
 
         return angler.Line.Stage switch
         {
-            FishingStage.Waiting => bait with { Z = now < angler.DipEndsAtMs ? bait.Z - FishingRules.NibbleDip : bait.Z + FishingRules.FloatRides },
-            FishingStage.Bite => bait with { Z = bait.Z - FishingRules.FloatUnder },
-            FishingStage.Landing => Drag(angler, bait),
+            FishingStage.Waiting => rest with { Z = now < angler.DipEndsAtMs ? rest.Z - FishingRules.NibbleDip : rest.Z + FishingRules.FloatRides },
+            FishingStage.Bite => rest with { Z = rest.Z - FishingRules.FloatUnder },
+            FishingStage.Fight => Drag(angler, rest),
             FishingStage.Aim or FishingStage.Rest => null,
         };
     }
 
-    private static Vector3 Drag(Angler angler, Vector3 bait)
+    private static Vector3 Drag(Angler angler, Vector3 rest)
     {
-        var aside = FishingShot.Right(angler.Yaw) * (float)angler.Line.Pull * FishingRules.FishDragsAside;
-        return new Vector3(bait.X + aside.X, bait.Y + aside.Y, bait.Z - FishingRules.FloatUnder);
+        var outward = new Vector2(rest.X - angler.Stand.X, rest.Y - angler.Stand.Y);
+        var facing = FishingShot.Forward(angler.Yaw);
+        var along = outward.LengthSquared() > 0 ? Vector2.Normalize(outward) : new Vector2(facing.X, facing.Y);
+        var aside = FishingShot.Right(angler.Yaw);
+        var line = angler.Line;
+        return new Vector3(
+            angler.Stand.X + along.X * (float)line.DistanceCm + aside.X * (float)line.DriftCm,
+            angler.Stand.Y + along.Y * (float)line.DistanceCm + aside.Y * (float)line.DriftCm,
+            angler.WaterZ - FishingRules.FloatUnder);
     }
 
     private void Splash(Angler angler, FishingSplashKind kind, Vector3 at)
@@ -361,25 +614,44 @@ internal sealed partial class Anglers(
             rpc.SendFishingSplash(seer, name, at.X, at.Y, at.Z);
     }
 
-    // Who is near now: a newcomer is told of the rod and the float, one who went away that they are gone.
+    // Who is near now: a newcomer is told of the rod, the float and a fish by it, one who went away that they are gone.
     private Angler SeeAround(Angler angler)
     {
         var near = proximity.FindAround(angler.Player.Id, FishingRules.SeenWithin).ToHashSet();
         var id = angler.Player.Id.RawValue;
+        var fish = NewcomerFish(angler);
         foreach (var seer in near.Except(angler.Seers))
         {
-            rpc.SendAnglerShown(seer, id, true, nameof(RodTier.Basic));
+            rpc.SendAnglerShown(seer, id, true, angler.Rod.Rod.Tier.ToString());
             if (angler.FloatShown is { } shown)
                 rpc.SendFishingFloat(seer, id, shown.X, shown.Y, shown.Z);
+            if (fish is { } move && angler.Quarry is FishQuarry quarry && angler.Float is { } at)
+                rpc.SendFishingFish(seer, id, move.ToString(), at.X, at.Y, angler.WaterZ, angler.Yaw + HalfTurn, quarry.LengthCm);
         }
 
         foreach (var gone in angler.Seers.Except(near))
         {
+            if (angler.FishShown)
+                rpc.SendFishingFish(gone, id, nameof(FishMove.Gone), angler.Stand.X, angler.Stand.Y, angler.Stand.Z, angler.Yaw, 0);
             rpc.SendFishingFloatGone(gone, id);
             rpc.SendAnglerShown(gone, id, false, string.Empty);
         }
 
         return angler with { Seers = near };
+    }
+
+    // What a game that comes near should draw of a fish in the water: one circling the float, or one on the line.
+    private static FishMove? NewcomerFish(Angler angler)
+    {
+        if (!angler.FishShown || angler.Float is null)
+            return null;
+
+        return angler.Line.Stage switch
+        {
+            FishingStage.Waiting or FishingStage.Bite => FishMove.Approach,
+            FishingStage.Fight => FishMove.Hooked,
+            FishingStage.Aim or FishingStage.Rest => null,
+        };
     }
 
     // Stopped from the wheel or the keys, moved off, held by the staff: the character is free again, unless the staff
@@ -404,6 +676,8 @@ internal sealed partial class Anglers(
         var id = angler.Player.Id.RawValue;
         foreach (var seer in angler.Seers.Where(seer => seer != angler.Player.Id || angler.Player.IsLive))
         {
+            if (angler.FishShown)
+                rpc.SendFishingFish(seer, id, nameof(FishMove.Gone), angler.Stand.X, angler.Stand.Y, angler.Stand.Z, angler.Yaw, 0);
             rpc.SendFishingFloatGone(seer, id);
             rpc.SendAnglerShown(seer, id, false, string.Empty);
         }
@@ -412,8 +686,16 @@ internal sealed partial class Anglers(
     private void SendPage(Angler angler)
     {
         var line = angler.Line;
-        var view = new FishingView(line.Stage, angler.Nibbles, angler.Bites, Math.Round(line.Bend, 3), line.Lifting, Math.Round(line.Tired, 3),
-            FishingRules.SafeFrom, FishingRules.SafeTo, (int)FishingRules.StrikeWindow.TotalMilliseconds, angler.Outcome);
+        var progress = skills.Find(angler.Player) ?? throw new InvalidOperationException($"{angler.Player.Ref} fishes before their fishing is read.");
+        var fight = line.Stage == FishingStage.Fight
+            ? new FishingFightView(Math.Round(line.Tension, Decimals), FishFightRules.TensionWarn, Math.Round(line.Stamina, Decimals),
+                (int)Math.Round(line.DistanceCm), line.Pull, line.Lean, line.Reeling, Math.Round(line.SlackShare, Decimals), line.Feel)
+            : null;
+        var rod = angler.Rod;
+        var bait = progress.Bait == BaitKind.None ? null : new FishingBaitView(progress.Bait, BaitCatalog.Find(progress.Bait).Name, angler.BaitCount);
+        var skill = new FishingSkillView(progress.Skill.Level, progress.Skill.Xp, progress.Skill.XpNext);
+        var view = new FishingView(line.Stage, angler.Nibbles, angler.Bites, (int)line.StrikeWindow.TotalMilliseconds, fight,
+            new FishingRodView(rod.Name, rod.Rod.Tier, rod.Condition, (int)rod.Rod.ReachCm), bait, skill, angler.Outcome);
         rpc.SendFishingPage(angler.Player.Id, JsonSerializer.Serialize(view, FishingJson.Default.FishingView));
     }
 }

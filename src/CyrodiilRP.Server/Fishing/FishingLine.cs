@@ -1,44 +1,69 @@
 namespace CyrodiilRP.Server.Fishing;
 
-// One angler's line from the cast to the catch, on a clock in milliseconds the caller passes. Every time is kept here
-// and every catch decided here: the player's game only says where the float landed and when the key went down and up.
+// One angler's line from the cast to the catch, on a clock in milliseconds the caller passes, every chance from the rolls
+// it passes. Every time is kept here and every fight decided here: the player's game only says where the float landed,
+// when Space went down and up and which way the rod leans.
 internal sealed class FishingLine(Func<double> roll)
 {
     private const double MsPerSecond = 1000.0;
+    private const int LeanLeft = -1;
+    private const int LeanRight = 1;
 
     private readonly Queue<long> _nibbles = new();
+    private readonly PacedInput<bool> _reel = new(false);
+    private readonly PacedInput<int> _lean = new(0);
+    private LineCast? _cast;
     private long _biteAtMs;
+    private long? _approachAtMs;
     private long? _lastNibbleMs;
     private long _readyAtMs;
     private long _lastTickMs;
     private long _nextPullAtMs;
-    private long? _lastToggleMs;
-    private long _neededMs;
-    private long _safeMs;
     private long _slackMs;
 
     public FishingStage Stage { get; private set; } = FishingStage.Aim;
 
-    // The rod's bend while landing: 0 slack, 1 the line breaks.
-    public double Bend { get; private set; }
+    // 0 slack, FishFightRules.Snaps the line breaks.
+    public double Tension { get; private set; }
 
-    public bool Lifting { get; private set; }
+    // The fish's: 1 fresh, 0 spent.
+    public double Stamina { get; private set; }
 
-    // Which way and how hard the fish pulls now, from -1 to 1.
-    public double Pull { get; private set; }
+    public double DistanceCm { get; private set; }
 
-    // How tired the fish is: 0 fresh, 1 landed.
-    public double Tired => _neededMs == 0 ? 0 : Math.Min(1.0, (double)_safeMs / _neededMs);
+    // How far the fish dragged the float aside: below 0 to the angler's left, above 0 to the right.
+    public double DriftCm { get; private set; }
 
-    public LineChange Cast(long now)
+    public FishPull Pull { get; private set; } = FishPull.Rest;
+
+    public bool Reeling => _reel.Value;
+
+    public int Lean => _lean.Value;
+
+    // How near a slack line is to throwing the hook, 0 to 1.
+    public double SlackShare => Math.Min(1.0, (double)_slackMs / Ms(FishFightRules.SlackLoses));
+
+    public TimeSpan StrikeWindow => _cast?.StrikeWindow ?? FishingRules.StrikeWindow;
+
+    public FightFeel Feel => _cast is { } cast ? FishFightRules.FeelOf(cast.Fight.Strength, cast.SizeShare) : FightFeel.Small;
+
+    public LineChange Cast(long now, LineCast cast)
     {
         if (Stage != FishingStage.Aim)
             return LineChange.None;
 
+        if (!(cast.WaitFactor > 0 && cast.LineStrength > 0 && cast.ReachCm > 0 && cast.DistanceCm >= 0 && cast.SizeShare is >= 0 and <= 1))
+            throw new ArgumentOutOfRangeException(nameof(cast), cast, "A cast waits, holds and reaches more than nothing.");
+
+        _cast = cast;
         Stage = FishingStage.Waiting;
-        _biteAtMs = now + Ms(FishingRules.BiteWait(roll()));
+        _biteAtMs = now + (long)(Ms(FishingRules.BiteWait(roll())) * cast.WaitFactor);
         _lastNibbleMs = null;
+        _reel.Reset(false);
+        _lean.Reset(0);
         ScheduleNibbles(now);
+        var first = _nibbles.TryPeek(out var nibble) ? nibble : _biteAtMs;
+        _approachAtMs = Math.Min(first, Math.Max(now + Ms(FishingRules.ApproachSoonest), first - Ms(FishingRules.ApproachBefore)));
         return LineChange.Cast;
     }
 
@@ -47,23 +72,38 @@ internal sealed class FishingLine(Func<double> roll)
     {
         FishingStage.Waiting => Lose(now, SpookedByNibble(now) ? LineChange.LostNibble : LineChange.LostEarly),
         FishingStage.Bite => Strike(now, reactionMs),
-        FishingStage.Landing => Toggle(now, lifting: true),
+        FishingStage.Fight => Hold(_reel, now, true),
         FishingStage.Aim or FishingStage.Rest => LineChange.None,
     };
 
-    public LineChange Release(long now) => Stage == FishingStage.Landing ? Toggle(now, lifting: false) : LineChange.None;
+    public LineChange Release(long now) => Stage == FishingStage.Fight ? Hold(_reel, now, false) : LineChange.None;
+
+    // -1 to the left, 0 straight, 1 to the right, from the bite on: the rod may already lean as the fish is hooked.
+    public LineChange LeanTo(long now, int lean)
+    {
+        if (lean is < LeanLeft or > LeanRight)
+            throw new ArgumentOutOfRangeException(nameof(lean), lean, "A rod leans -1, 0 or 1.");
+
+        return Stage is FishingStage.Bite or FishingStage.Fight ? Hold(_lean, now, lean) : LineChange.None;
+    }
 
     public LineChange Tick(long now) => Stage switch
     {
         FishingStage.Waiting => WaitOn(now),
-        FishingStage.Bite => now - _biteAtMs > Ms(FishingRules.StrikeWindow + FishingRules.StrikeLatency) ? Lose(now, LineChange.LostLate) : LineChange.None,
-        FishingStage.Landing => Land(now),
+        FishingStage.Bite => now - _biteAtMs > Ms(StrikeWindow + FishingRules.StrikeLatency) ? Lose(now, LineChange.LostLate) : LineChange.None,
+        FishingStage.Fight => Fight(now),
         FishingStage.Rest => now >= _readyAtMs ? Ready() : LineChange.None,
         FishingStage.Aim => LineChange.None,
     };
 
     private LineChange WaitOn(long now)
     {
+        if (_approachAtMs is { } approach && now >= approach)
+        {
+            _approachAtMs = null;
+            return LineChange.Approach;
+        }
+
         if (now >= _biteAtMs)
         {
             // The strike's moment counts from the bite as it was shown, a tick after it was due.
@@ -81,66 +121,179 @@ internal sealed class FishingLine(Func<double> roll)
     }
 
     // In time when it reached the server within the window and the way there, and the player's own game heard it within
-    // the window. A reaction a game makes up still has to arrive in time.
+    // the window. A reaction a game makes up still has to arrive in time. The press is the strike's: reeling is a new one.
     private LineChange Strike(long now, int reactionMs)
     {
-        var window = Ms(FishingRules.StrikeWindow);
+        var window = Ms(StrikeWindow);
         if (now - _biteAtMs > window + Ms(FishingRules.StrikeLatency) || reactionMs > window)
             return Lose(now, LineChange.LostLate);
 
-        Stage = FishingStage.Landing;
-        Bend = FishingRules.BendStart;
-        Lifting = false;
-        Pull = 0;
+        Stage = FishingStage.Fight;
+        Tension = FishFightRules.TensionAtHook;
+        Stamina = 1;
+        DistanceCm = Current.DistanceCm;
+        DriftCm = 0;
+        Pull = FishPull.Rest;
+        _reel.Reset(false);
         _lastTickMs = now;
         _nextPullAtMs = now;
-        _safeMs = 0;
         _slackMs = 0;
-        _lastToggleMs = null;
-        _neededMs = Ms(FishingRules.LandingFor(roll()));
         return LineChange.Hooked;
     }
 
-    private LineChange Toggle(long now, bool lifting)
+    private static LineChange Hold<T>(PacedInput<T> input, long now, T value) where T : struct, IEquatable<T>
     {
-        if (_lastToggleMs is { } last && now - last < Ms(FishingRules.LiftToggleSoonest))
-            return LineChange.None;
-
-        _lastToggleMs = now;
-        Lifting = lifting;
+        input.Set(now, value);
         return LineChange.None;
     }
 
-    // Lifting raises the bend, lowering eases it, the fish pulls it either way. In the safe band the fish tires.
-    private LineChange Land(long now)
+    // The fish's turn first, then the angler's hands, then the fight worked out in short steps.
+    private LineChange Fight(long now)
     {
         var elapsed = now - _lastTickMs;
-        _lastTickMs = now;
         if (elapsed <= 0)
             return LineChange.None;
 
-        if (now >= _nextPullAtMs)
+        _lastTickMs = now;
+        var turned = now >= _nextPullAtMs ? Turn(now, NextPull()) : LineChange.Fought;
+        _reel.Settle(now);
+        _lean.Settle(now);
+        var pullBefore = Pull;
+        var stepMs = Ms(FishFightRules.LongestStep);
+        for (var left = elapsed; left > 0; left -= stepMs)
         {
-            Pull = roll() * 2 - 1;
-            _nextPullAtMs = now + Ms(FishingRules.FishPullChangesEvery);
+            var outcome = Step(now, Math.Min(left, stepMs));
+            if (outcome != LineChange.None)
+                return outcome;
         }
 
-        var hands = Lifting ? FishingRules.LiftRise : -FishingRules.LowerFall;
-        Bend = Math.Clamp(Bend + (hands + Pull * FishingRules.FishPullMost) * (elapsed / MsPerSecond), 0, 1);
-        if (Bend >= 1)
-            return Lose(now, LineChange.LostSnapped);
+        return turned == LineChange.Fought && Pull != pullBefore ? LineChange.Turned : turned;
+    }
 
-        _slackMs = Bend <= 0 ? _slackMs + elapsed : 0;
-        if (_slackMs >= Ms(FishingRules.SlackLoses))
+    private LineChange Step(long now, long stepMs)
+    {
+        var cast = Current;
+        var seconds = stepMs / MsPerSecond;
+        var effort = cast.Fight.Strength * FishFightRules.SizeFactor(cast.SizeShare)
+                     * (FishFightRules.EffortSpent + (1 - FishFightRules.EffortSpent) * Stamina);
+        var running = Pull != FishPull.Rest;
+        var against = IsAgainst();
+        var give = running || Reeling ? FishFightRules.Give : FishFightRules.SlackGive;
+        var target = TensionAsked(effort, running, against, cast.LineStrength);
+        Tension = Math.Max(0, Tension + (target - Tension) * Math.Min(1, give * seconds));
+        if (Tension >= FishFightRules.Snaps)
+        {
+            Tension = FishFightRules.Snaps;
+            return Lose(now, LineChange.LostSnapped);
+        }
+
+        _slackMs = Tension <= FishFightRules.SlackFrom ? _slackMs + stepMs : 0;
+        if (_slackMs >= Ms(FishFightRules.SlackLoses))
             return Lose(now, LineChange.LostSlack);
 
-        if (Bend >= FishingRules.SafeFrom && Bend <= FishingRules.SafeTo)
-            _safeMs += elapsed;
-        if (_safeMs < _neededMs)
-            return LineChange.Bend;
+        var tiring = Tension is >= FishFightRules.TiringFrom and <= FishFightRules.TiringTo ? 1 : FishFightRules.OutOfBandTires;
+        Stamina = Math.Max(0, Stamina - seconds / cast.Fight.StaminaSeconds * tiring * (against ? FishFightRules.AgainstTires : 1));
 
-        Rest(now, FishingRules.NextCastAfterCatch);
-        return LineChange.Caught;
+        if (Reeling)
+            DistanceCm -= FishFightRules.ReelSpeed * (running ? FishFightRules.ReelInRunShare : 1) * seconds;
+        DistanceCm += Pull switch
+        {
+            FishPull.Away => FishFightRules.AwaySpeed * effort * seconds,
+            FishPull.Left or FishPull.Right => FishFightRules.SideSpeed * effort * seconds,
+            FishPull.Rest => 0,
+        };
+        Drift(seconds);
+
+        if (DistanceCm > FishFightRules.RunsOutAt * cast.ReachCm)
+            return Lose(now, LineChange.LostRunaway);
+
+        if (DistanceCm > FishFightRules.LandWithin)
+            return LineChange.None;
+
+        if (Stamina <= FishFightRules.LandTired)
+        {
+            Rest(now, FishingRules.NextCastAfterCatch);
+            return LineChange.Caught;
+        }
+
+        // Too fresh to land: it bolts.
+        DistanceCm = Math.Max(DistanceCm, FishFightRules.Closest);
+        if (Pull != FishPull.Away)
+            Turn(now, FishPull.Away);
+
+        return LineChange.None;
+    }
+
+    private double TensionAsked(double effort, bool running, bool against, double line)
+    {
+        if (!running)
+            return Reeling ? FishFightRules.RestHold : 0;
+
+        var pulled = (Pull == FishPull.Away ? FishFightRules.RunAway : FishFightRules.RunSide) * effort;
+        if (IsWith())
+            pulled += FishFightRules.LeanWith * effort;
+        if (Reeling)
+            pulled += FishFightRules.ReelRun * effort;
+
+        var asked = FishFightRules.RunBase + (Reeling ? FishFightRules.ReelRunBase : 0) + pulled / line;
+        return against ? asked * FishFightRules.LeanAgainstShare : asked;
+    }
+
+    // Leaning against a run to the left is leaning right, and the other way round. A dive away has no side.
+    private bool IsAgainst() => Pull switch
+    {
+        FishPull.Left => Lean == LeanRight,
+        FishPull.Right => Lean == LeanLeft,
+        FishPull.Away or FishPull.Rest => false,
+    };
+
+    private bool IsWith() => Pull switch
+    {
+        FishPull.Left => Lean == LeanLeft,
+        FishPull.Right => Lean == LeanRight,
+        FishPull.Away or FishPull.Rest => false,
+    };
+
+    private void Drift(double seconds)
+    {
+        var toward = Pull switch
+        {
+            FishPull.Left => -FishFightRules.DriftMost,
+            FishPull.Right => FishFightRules.DriftMost,
+            FishPull.Away or FishPull.Rest => 0,
+        };
+        var speed = toward == 0 ? FishFightRules.DriftBack : FishFightRules.DriftSpeed;
+        var step = speed * seconds;
+        DriftCm = Math.Abs(toward - DriftCm) <= step ? toward : DriftCm + Math.Sign(toward - DriftCm) * step;
+    }
+
+    // Rests grow likelier as the fish tires; a run may bring a jump.
+    private FishPull NextPull()
+    {
+        var rest = FishFightRules.RestFresh + (FishFightRules.RestSpent - FishFightRules.RestFresh) * (1 - Stamina);
+        var pick = roll();
+        if (pick < rest)
+            return FishPull.Rest;
+
+        var run = (pick - rest) / (1 - rest);
+        if (run < FishFightRules.AwayShare)
+            return FishPull.Away;
+
+        return run < FishFightRules.AwayShare + (1 - FishFightRules.AwayShare) / 2 ? FishPull.Left : FishPull.Right;
+    }
+
+    // Fought when the fish keeps doing what it did.
+    private LineChange Turn(long now, FishPull pull)
+    {
+        var fight = Current.Fight;
+        var turned = pull != Pull;
+        Pull = pull;
+        var jumped = pull != FishPull.Rest && roll() < fight.Jumpiness;
+        _nextPullAtMs = now + (long)(MsPerSecond * (fight.ChangeSoonestSeconds + (fight.ChangeLatestSeconds - fight.ChangeSoonestSeconds) * roll()));
+        if (jumped)
+            return LineChange.Jumped;
+
+        return turned ? LineChange.Turned : LineChange.Fought;
     }
 
     private bool SpookedByNibble(long now) => _lastNibbleMs is { } nibble && now - nibble <= Ms(FishingRules.NibbleSpooks);
@@ -168,19 +321,24 @@ internal sealed class FishingLine(Func<double> roll)
     private void Rest(long now, TimeSpan pause)
     {
         Stage = FishingStage.Rest;
-        Lifting = false;
+        _reel.Reset(false);
         _readyAtMs = now + Ms(pause);
     }
 
     private LineChange Ready()
     {
         Stage = FishingStage.Aim;
-        Bend = 0;
-        Pull = 0;
-        _neededMs = 0;
-        _safeMs = 0;
+        Tension = 0;
+        Stamina = 0;
+        DistanceCm = 0;
+        DriftCm = 0;
+        Pull = FishPull.Rest;
+        _slackMs = 0;
+        _lean.Reset(0);
         return LineChange.Ready;
     }
+
+    private LineCast Current => _cast ?? throw new InvalidOperationException("The line has not been cast.");
 
     private static long Ms(TimeSpan span) => (long)span.TotalMilliseconds;
 }

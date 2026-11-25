@@ -19,4 +19,7 @@ internal sealed class WeatherCatalog(IReadOnlyDictionary<string, uint> forms, IR
     }
 
     public bool TryFind(string name, out uint form) => forms.TryGetValue(name.Trim(), out form);
+
+    // Null for a form that is none of these.
+    public string? FindName(uint form) => Names.FirstOrDefault(name => forms[name] == form);
 }
