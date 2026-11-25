@@ -19,7 +19,7 @@ internal sealed partial class BaitWheel(SelfMenu self, RadialWheel wheel, WheelR
         Label = FishingText.OptionBait,
         Icon = WheelIcons.Bait,
         Order = BaitOrder,
-        State = player => OptionState.OpenIf(skills.Find(player) is not null && ListCarried(player).Count > 0),
+        State = player => OptionState.OpenIf(skills.Find(player) is not null && stock.ListBaits(player).Count > 0),
         Run = Open,
     });
 
@@ -31,7 +31,7 @@ internal sealed partial class BaitWheel(SelfMenu self, RadialWheel wheel, WheelR
             return;
         }
 
-        var carried = ListCarried(player);
+        var carried = stock.ListBaits(player);
         if (carried.Count == 0)
         {
             rules.Notify(player, FishingText.BaitNoneCarried);
@@ -65,10 +65,4 @@ internal sealed partial class BaitWheel(SelfMenu self, RadialWheel wheel, WheelR
         skills.ChooseBait(player, bait);
         rules.Notify(player, bait == BaitKind.None ? FishingText.BaitBare : FishingText.BaitChosen(BaitCatalog.Find(bait).Name));
     }
-
-    private List<CarriedBait> ListCarried(OnlinePlayer player) =>
-        BaitCatalog.All
-            .Select(bait => new CarriedBait(bait, stock.TryFind(bait, out var item) ? stock.Count(player, item) : 0))
-            .Where(carried => carried.Count > 0)
-            .ToList();
 }

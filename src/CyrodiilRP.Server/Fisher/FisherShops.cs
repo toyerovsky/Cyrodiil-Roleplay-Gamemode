@@ -330,11 +330,7 @@ internal sealed partial class FisherShops(
     private FisherGoods ReadGoods(OnlinePlayer player)
     {
         wallet.TryCount(player.Id, out var gold);
-        var baits = BaitCatalog.All
-            .Select(bait => new CarriedBait(bait, stock.TryFind(bait, out var item) ? stock.Count(player, item) : 0))
-            .Where(carried => carried.Count > 0)
-            .ToList();
-        return new FisherGoods(gold, stock.ListCatch(player), stock.ListRods(player), baits);
+        return new FisherGoods(gold, stock.ListCatch(player), stock.ListRods(player), stock.ListBaits(player));
     }
 
     private sealed record BuyDetails(long Spot, string Ware, int Count, int Paid);

@@ -63,6 +63,12 @@ internal sealed partial class FishingStock(ICustomItems customItems, IEntities e
             .ThenBy(rod => rod.Condition)
             .FirstOrDefault();
 
+    public IReadOnlyList<CarriedBait> ListBaits(OnlinePlayer player) =>
+        BaitCatalog.All
+            .Select(bait => new CarriedBait(bait, TryFind(bait, out var item) ? Count(player, item) : 0))
+            .Where(carried => carried.Count > 0)
+            .ToList();
+
     public IReadOnlyList<CarriedFish> ListCatch(OnlinePlayer player) =>
         FishCatalog.Items
             .Select(fish => new CarriedFish(fish, Count(player, fish.Key)))
