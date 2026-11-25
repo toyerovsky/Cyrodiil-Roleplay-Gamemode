@@ -125,14 +125,16 @@ lure, and mends rods.
   Gone at the next cast or the end) and where the water splashes (`FishingSplash`: Nibble, Bite, Thrash, Jump, Catch,
   Snap; each game plays the landing's own). Each game draws it with the game's staves for the rods, a kelp bladder for
   the float, the ambient fish's mesh, the staff's animations, the game's water effects (`IVisualEffects`) and sounds
-  (`ISounds`). A find shows no fish.
+  (`ISounds`). A find shows no fish. The angler alone hears the reel (`AnglerCues`): the lockpick's tumblers clicking as
+  its ratchet while reeling a resting fish and faster as its drag while a fish runs, and a rope straining in the red.
 - Messages: `FishingLook`, `FishingSpot`, `FishingAim`, `FishingPage`, `FishingBite`, `FishingEnded`, `FishingCast`,
   `FishingSpace`, `FishingLean`, `FishingStop`, and the five above.
 
 ## 5. Not checked in the game yet
 
-None of it has run in the game. The SDK blocks it stands on were checked there from a probe before they were built
-(`IWater`'s traces in a river and from a bridge, the projection, the splash and its sound). To check:
+Seen in the game so far: the cast, the float, the fish round it and the fight, from a bank. The SDK blocks it stands
+on were checked there from a probe before they were built (`IWater`'s traces in a river and from a bridge, the
+projection, the splash and its sound). To check:
 
 - the look for water from the bank, wading, from a pier and a bridge, in a lake, the sea and Bravil's canals;
 - the waters map at its places: Lake Rumare by the Imperial City, Niben Bay at Bravil, the sea at Anvil, a river, a
@@ -143,7 +145,8 @@ None of it has run in the game. The SDK blocks it stands on were checked there f
 - the rods on the hand (offset and turn on `Weapon_Socket`) for each grade, the cast, strike, fight and showing
   animations, and how others see them;
 - the float's flight, its bobbing and dips, the small fish round it (whether they show through the water), the fish
-  circling, biting, following the float, jumping, held up and swimming off, the splashes' size and sound;
+  circling, biting, following the float, jumping, held up and swimming off, the splashes' size and sound, the reel's
+  ratchet and drag;
 - the fight's feel: whether the numbers tuned by bots feel right in a player's hands, and whether the page and the
   splashes tell the runs in time;
 - the items: the fish's names, icon and mesh when dropped, the rods' names, icon and staff mesh, the baits as items;
