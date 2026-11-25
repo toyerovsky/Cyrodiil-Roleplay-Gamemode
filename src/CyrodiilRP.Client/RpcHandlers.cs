@@ -1,3 +1,4 @@
+using System.Numerics;
 using CyrodiilRP.Common;
 using CyrodiilRP.Common.Gambling;
 using CyrodiilRP.Client.Traders;
@@ -299,4 +300,40 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnAwayMarked(int secondsAway) => AwayMarked?.Invoke(secondsAway);
 
     partial void OnAwayEnded() => AwayEnded?.Invoke();
+
+    public event Action? FishingLookAsked;
+
+    public event Action<float, float>? FishingAimed;
+
+    public event Action<string>? FishingPageChanged;
+
+    public event Action? FishingBitten;
+
+    public event Action? FishingEnded;
+
+    public event Action<int, bool>? AnglerShown;
+
+    public event Action<int, Vector3>? FishingFloatMoved;
+
+    public event Action<int>? FishingFloatGone;
+
+    public event Action<string, Vector3>? FishingSplashed;
+
+    partial void OnFishingLook() => FishingLookAsked?.Invoke();
+
+    partial void OnFishingAim(float yaw, float waterZ) => FishingAimed?.Invoke(yaw, waterZ);
+
+    partial void OnFishingPage(string json) => FishingPageChanged?.Invoke(json);
+
+    partial void OnFishingBite() => FishingBitten?.Invoke();
+
+    partial void OnFishingEnded() => FishingEnded?.Invoke();
+
+    partial void OnAnglerShown(int angler, bool fishing) => AnglerShown?.Invoke(angler, fishing);
+
+    partial void OnFishingFloat(int angler, float x, float y, float z) => FishingFloatMoved?.Invoke(angler, new Vector3(x, y, z));
+
+    partial void OnFishingFloatGone(int angler) => FishingFloatGone?.Invoke(angler);
+
+    partial void OnFishingSplash(string kind, float x, float y, float z) => FishingSplashed?.Invoke(kind, new Vector3(x, y, z));
 }

@@ -8,6 +8,7 @@ using CyrodiilRP.Client.Chat;
 using CyrodiilRP.Client.Creator;
 using CyrodiilRP.Client.Dice;
 using CyrodiilRP.Client.Exchange;
+using CyrodiilRP.Client.Fishing;
 using CyrodiilRP.Client.Guide;
 using CyrodiilRP.Client.Interactions;
 using CyrodiilRP.Client.Jobs;
@@ -54,6 +55,7 @@ internal sealed partial class Mod(IDependencyContainer services, ILogger logger)
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<WelcomeOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<GuideOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<AwayOverlay>());
+        services.RegisterSingleton<ICefRpcHandler>(services.Resolve<FishingOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<PresenceReports>());
 
         logger.LogInformation("[CyrodiilRP] Client half up.");

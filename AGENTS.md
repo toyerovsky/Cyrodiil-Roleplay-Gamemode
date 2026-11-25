@@ -47,6 +47,8 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   gold after a cooldown. Shown on the welcome screen, the F10 character tab and the staff's player card, where an
   administrator also sets the specialization, a stat's cap or its value (`/aspec`, `/acap`, `/astat`). See
   `docs/features/specializations.md`.
+- **Fishing:** "Fish" on the G wheel, in any water the rod reaches: cast, strike and land with Space, fish and finds
+  into the pack, seen by everyone near. See `docs/features/fishing.md`.
 - **Notice board:** a board the staff stand in the world, H opens its unsigned notices and lets anyone pin one. See
   `docs/features/notice-board.md`.
 - **Spawn:** the staff set it in the outside world (`/aspawn here`, a button in the panel), a new character goes

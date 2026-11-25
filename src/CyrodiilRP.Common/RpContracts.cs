@@ -485,4 +485,55 @@ public static partial class RpContracts
     // A key or the mouse in one of the mode's pages: the player is at the keyboard while a window holds them still.
     [ClientToServer]
     public static partial void ReportPresence();
+
+    // Fishing from the wheel: the server asks the player's game where the water is around the character.
+    [ServerToClient]
+    public static partial void FishingLook();
+
+    // What the look found (a FishingVerdict's name): for water, the way the character faces it, in degrees, and the
+    // height of its surface, in centimetres.
+    [ClientToServer]
+    public static partial void FishingSpot(string verdict, float yaw, float waterZ);
+
+    // The line is in and the player may cast: at the start of the fishing and after every catch or loss. The character
+    // is held facing the water at this yaw, its surface this high.
+    [ServerToClient]
+    public static partial void FishingAim(float yaw, float waterZ);
+
+    // A FishingView as JSON, for the fishing page: what to show of the line now.
+    [ServerToClient]
+    public static partial void FishingPage(string json);
+
+    // A fish took the bait: the strike's moment counts from when the player's game heard this.
+    [ServerToClient]
+    public static partial void FishingBite();
+
+    [ServerToClient]
+    public static partial void FishingEnded();
+
+    // The float lands where the player aimed, on the water: its point, in centimetres.
+    [ClientToServer]
+    public static partial void FishingCast(float x, float y, float z);
+
+    // The cast key went down or up. A strike carries how many milliseconds after FishingBite the player's game heard it.
+    [ClientToServer]
+    public static partial void FishingSpace(bool down, int reactionMs);
+
+    [ClientToServer]
+    public static partial void FishingStop();
+
+    // To everyone near an angler (by their PlayerId's raw value), the angler included: they hold a rod now, or not.
+    [ServerToClient]
+    public static partial void AnglerShown(int angler, bool fishing);
+
+    // To everyone near: an angler's float lies here, in centimetres.
+    [ServerToClient]
+    public static partial void FishingFloat(int angler, float x, float y, float z);
+
+    [ServerToClient]
+    public static partial void FishingFloatGone(int angler);
+
+    // To everyone near: the water splashes here (a FishingSplashKind's name), seen and heard in the world.
+    [ServerToClient]
+    public static partial void FishingSplash(string kind, float x, float y, float z);
 }

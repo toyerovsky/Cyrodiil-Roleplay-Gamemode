@@ -1,5 +1,7 @@
 using CyrodiilRP.Common;
+using System.Numerics;
 using CyrodiilRP.Server.Dice;
+using CyrodiilRP.Server.Fishing;
 using CyrodiilRP.Server.Infrastructure;
 using ReadyM.Api.Idents;
 using ReadyM.Relay.Server.Sdk.Rpc;
@@ -255,6 +257,14 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId>? PresenceReported;
 
+    public event Action<PlayerId, FishingSpotReport>? FishingSpotReported;
+
+    public event Action<PlayerId, Vector3>? FishingCastMade;
+
+    public event Action<PlayerId, bool, int>? FishingSpacePressed;
+
+    public event Action<PlayerId>? FishingStopAsked;
+
     partial void OnGuideContinue(RpcContext context) => callbacks.Raise("rpc.guide_continue", GuideContinued, context.Sender);
 
     partial void OnGuideClose(RpcContext context, bool replaced) => callbacks.Raise("rpc.guide_close", GuideLeft, context.Sender, replaced);
@@ -262,4 +272,15 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnReadGuide(RpcContext context, string topic) => callbacks.Raise("rpc.read_guide", GuideAsked, context.Sender, topic);
 
     partial void OnReportPresence(RpcContext context) => callbacks.Raise("rpc.report_presence", PresenceReported, context.Sender);
+
+    partial void OnFishingSpot(RpcContext context, string verdict, float yaw, float waterZ) =>
+        callbacks.Raise("rpc.fishing_spot", FishingSpotReported, context.Sender, new FishingSpotReport(verdict, yaw, waterZ));
+
+    partial void OnFishingCast(RpcContext context, float x, float y, float z) =>
+        callbacks.Raise("rpc.fishing_cast", FishingCastMade, context.Sender, new Vector3(x, y, z));
+
+    partial void OnFishingSpace(RpcContext context, bool down, int reactionMs) =>
+        callbacks.Raise("rpc.fishing_space", FishingSpacePressed, context.Sender, down, reactionMs);
+
+    partial void OnFishingStop(RpcContext context) => callbacks.Raise("rpc.fishing_stop", FishingStopAsked, context.Sender);
 }

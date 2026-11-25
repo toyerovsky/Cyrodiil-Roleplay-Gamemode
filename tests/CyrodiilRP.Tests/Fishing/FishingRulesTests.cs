@@ -1,0 +1,80 @@
+using CyrodiilRP.Server.Admin;
+using CyrodiilRP.Server.Fishing;
+
+namespace CyrodiilRP.Tests.Fishing;
+
+public sealed class FishingRulesTests
+{
+    private const double Tolerance = 1e-9;
+
+    [Fact]
+    public void The_shares_of_the_fish_and_of_the_finds_each_make_a_whole()
+    {
+        Assert.Equal(1.0, FishingRules.Fish.Sum(fish => fish.Share), Tolerance);
+        Assert.Equal(1.0, FishingRules.Finds.Sum(find => find.Share), Tolerance);
+    }
+
+    [Fact]
+    public void Every_kind_of_fish_and_find_is_named_once_and_every_name_has_its_kind()
+    {
+        Assert.Equal(Enum.GetValues<FishKindName>().Order(), FishingRules.Fish.Select(fish => fish.Kind).Order());
+        Assert.Equal(Enum.GetValues<FindKindName>().Order(), FishingRules.Finds.Select(find => find.Kind).Order());
+        Assert.Equal(FishingRules.Fish.Count, FishingRules.Fish.Select(fish => fish.ItemKey).Distinct().Count());
+    }
+
+    [Fact]
+    public void Every_find_is_an_item_of_the_games_the_mode_names()
+    {
+        foreach (var find in FishingRules.Finds)
+            Assert.NotNull(ItemCatalog.Shipped.FindByForm(find.Item.Value));
+    }
+
+    [Fact]
+    public void A_roll_under_the_find_share_brings_a_find_and_one_at_it_a_fish()
+    {
+        Assert.Equal(FishingRules.Finds[0], FishingRules.FindOf(0.0));
+        Assert.Equal(FishingRules.Finds[^1], FishingRules.FindOf(FishingRules.FindShare - Tolerance));
+        Assert.Null(FishingRules.FindOf(FishingRules.FindShare));
+    }
+
+    [Fact]
+    public void Each_fish_takes_its_share_of_the_rolls_in_the_tables_order()
+    {
+        var reached = 0.0;
+        foreach (var fish in FishingRules.Fish)
+        {
+            Assert.Equal(fish, FishingRules.FishOf(reached));
+            reached += fish.Share;
+            Assert.Equal(fish, FishingRules.FishOf(reached - 1e-6));
+        }
+    }
+
+    [Theory]
+    [InlineData(-0.1)]
+    [InlineData(1.0)]
+    [InlineData(double.NaN)]
+    public void A_roll_outside_zero_to_one_is_refused(double roll)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => FishingRules.FishOf(roll));
+    }
+
+    [Fact]
+    public void A_fishs_length_spans_its_kind_and_its_weight_follows_from_it()
+    {
+        var perch = FishingRules.Fish.Single(fish => fish.Kind == FishKindName.Perch);
+
+        Assert.Equal(perch.ShortestCm, perch.LengthAt(0));
+        Assert.Equal(perch.LongestCm, perch.LengthAt(1));
+        // A perch of 25 cm weighs about 200 g.
+        Assert.InRange(perch.GramsAt(25), 190, 210);
+    }
+
+    [Fact]
+    public void The_waits_run_from_their_soonest_to_their_latest()
+    {
+        Assert.Equal(FishingRules.BiteSoonest, FishingRules.BiteWait(0));
+        Assert.Equal(FishingRules.BiteLatest, FishingRules.BiteWait(1));
+        Assert.Equal(FishingRules.LandShortest, FishingRules.LandingFor(0));
+        Assert.Equal(FishingRules.LandLongest, FishingRules.LandingFor(1));
+    }
+}

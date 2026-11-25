@@ -1,0 +1,227 @@
+/* The game shows through: only the plate, the card and the ring over the float draw, and no click is taken. */
+.fishing {
+  position: relative;
+  height: 100%;
+}
+
+/* Low in the middle, over the game's compass. */
+.fishing__plate {
+  position: absolute;
+  left: 50%;
+  bottom: 150px;
+  width: min(560px, calc(100% - 48px));
+  padding: 16px 28px 14px;
+  text-align: center;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 14px 24px var(--shadow-deep));
+}
+
+.fishing__title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  color: var(--gold-light);
+  overflow-wrap: anywhere;
+}
+
+.fishing__plate--tight .fishing__title,
+.fishing__plate--lost .fishing__title {
+  color: var(--night-refusal);
+}
+
+.fishing__plate--slack .fishing__title {
+  color: var(--night-muted);
+}
+
+.fishing__hint,
+.fishing__stop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  font-size: 18px;
+  color: var(--night-text);
+}
+
+.fishing__stop {
+  margin-top: 6px;
+  font-size: 15px;
+  color: var(--night-muted);
+}
+
+.fishing__key {
+  display: inline-block;
+  min-width: 28px;
+  padding: 2px 10px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-small);
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--gold-light);
+  background: var(--night);
+}
+
+.fishing__key--quiet {
+  border-color: var(--night-line);
+  color: var(--night-muted);
+}
+
+/* The rod's bend from slack to breaking, the safe band in it, and the needle. */
+.fishing__meter {
+  position: relative;
+  height: 18px;
+  margin: 14px 0 0;
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius-pill);
+  background: var(--night);
+  overflow: hidden;
+}
+
+.fishing__band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--confirmed);
+}
+
+.fishing__needle {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 4px;
+  margin-left: -2px;
+  background: var(--gold-bright);
+  box-shadow: 0 0 6px var(--glow);
+  transition: left var(--duration-hover) linear;
+}
+
+.fishing__plate--tight .fishing__needle {
+  background: var(--night-refusal);
+}
+
+/* How much fight the fish has left. */
+.fishing__tired {
+  height: 6px;
+  margin: 6px 0 0;
+  border-radius: var(--radius-pill);
+  background: var(--night-line);
+  overflow: hidden;
+}
+
+.fishing__tired span {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transition: width var(--duration-hover) linear;
+}
+
+/* Over the float, or where the cast would land. */
+.fishing__mark {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.fishing__ring {
+  position: absolute;
+  left: -28px;
+  top: -28px;
+  width: 56px;
+  height: 56px;
+  border: 3px solid var(--gold-light);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--shadow-deep);
+}
+
+.fishing__mark--aim .fishing__ring {
+  left: -14px;
+  top: -14px;
+  width: 28px;
+  height: 28px;
+  border-width: 2px;
+  border-color: var(--night-text);
+}
+
+/* The strike's window running out. */
+.fishing__mark--bite .fishing__ring {
+  border-color: var(--gold-bright);
+  animation-name: fishing-window;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.fishing__mark--landing .fishing__ring {
+  border-color: var(--gold-bright);
+  border-style: dashed;
+}
+
+/* The catch, on the right, under where the game's messages show. */
+.fishing__card {
+  position: absolute;
+  right: 48px;
+  top: 38%;
+  width: min(340px, calc(100% - 96px));
+  padding: 18px 24px;
+  text-align: center;
+  filter: drop-shadow(0 14px 24px var(--shadow-deep));
+}
+
+.fishing__card-kind {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--night-muted);
+}
+
+.fishing__card-name {
+  margin: 4px 0 0;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 30px;
+  color: var(--gold-light);
+  overflow-wrap: anywhere;
+}
+
+.fishing__card-size {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin: 8px 0 0;
+  font-size: 19px;
+  color: var(--night-text);
+}
+
+.fishing__trophy {
+  margin: 8px 0 0;
+  font-family: var(--font-title);
+  font-size: 20px;
+  color: var(--gold-bright);
+}
+
+.fishing-card-enter-active,
+.fishing-card-leave-active {
+  transition:
+    opacity var(--duration-fade),
+    transform var(--duration-fade);
+}
+
+.fishing-card-enter-from,
+.fishing-card-leave-to {
+  opacity: 0;
+  transform: translateX(24px);
+}
+
+@keyframes fishing-window {
+  from {
+    transform: scale(1.6);
+  }
+
+  to {
+    transform: scale(0.6);
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "fishing.option.fish": "Łów ryby",
+  "fishing.option.stop": "Przestań łowić",
+  "fishing.no_water": "Twoja wędka nie sięga tu wody. Stań na brzegu przodem do wody albo wejdź do niej.",
+  "fishing.swimming": "Nie łowi się wpław. Wejdź do wody najwyżej po pas.",
+  "fishing.not_in_world": "Żeby łowić, musisz być w świecie.",
+  "fishing.held": "Nie możesz łowić, kiedy ktoś trzyma cię w miejscu.",
+  "fishing.no_answer": "Twoja gra nie powiedziała, gdzie jest woda. Spróbuj jeszcze raz.",
+  "fishing.moved": "Oddalasz się od miejsca, w którym stoisz z wędką, więc przestajesz łowić.",
+  "fishing.caught": "Na haczyku: {fish}, {length} cm, {grams} g.",
+  "fishing.found": "Zamiast ryby na haczyku: {item}.",
+  "fishing.not_given": "Połowu nie udało się włożyć do twojej torby. Zgłoś to administracji."
+}

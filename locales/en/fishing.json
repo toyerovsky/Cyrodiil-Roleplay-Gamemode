@@ -1,0 +1,13 @@
+{
+  "fishing.option.fish": "Fish",
+  "fishing.option.stop": "Stop fishing",
+  "fishing.no_water": "Your rod reaches no water here. Stand on the bank facing the water, or wade in.",
+  "fishing.swimming": "You cannot fish while you swim. Wade in no deeper than your waist.",
+  "fishing.not_in_world": "You have to be in the world to fish.",
+  "fishing.held": "You cannot fish while you are held still.",
+  "fishing.no_answer": "Your game did not say where the water is. Try again.",
+  "fishing.moved": "You moved away from where you stood, so you stopped fishing.",
+  "fishing.caught": "You caught a {fish}: {length} cm, {grams} g.",
+  "fishing.found": "Instead of a fish, the hook brings up: {item}.",
+  "fishing.not_given": "The catch could not be put in your pack. Tell the staff."
+}

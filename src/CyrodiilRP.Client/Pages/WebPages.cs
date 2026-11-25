@@ -14,6 +14,9 @@ internal sealed partial class WebPages(CefHost cef, PawnWatch pawn, ILogger logg
     // The AFK screen, beside the party's panel: over the chat's log, under every window.
     public const int AwayLayer = PartyLayer;
 
+    // The fishing's marks and meter, beside the AFK screen: the two never show together, since fishing is not being away.
+    public const int FishingLayer = PartyLayer;
+
     public const int FrozenLayer = 2;
 
     public const int AsksLayer = 3;
