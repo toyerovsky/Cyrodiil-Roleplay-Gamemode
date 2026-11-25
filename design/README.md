@@ -1,6 +1,6 @@
 # Design
 
-Pictures for the pages that the game does not have. The pages use them from `ui/rp/art` as webp.
+Pictures for the pages and models that the game does not have. The pages use the pictures from `ui/rp/art` as webp.
 
 ## Recraft
 
@@ -23,3 +23,22 @@ python -I design/recraft/to_round.py design/recraft/<group>/<name>.webp ui/rp/ar
 The seal closes the name letter (`ui/creator`): faded while the name is not whole, pressed once it is. The
 specializations' pictures stand beside each specialization in the mentor's window (`ui/mentor/pictures.js`). The
 guides' pictures stand on the right of each guide's card (`ui/guides/pictures.js`) and, small, in the menu's Help tab.
+
+## Models
+
+The mode's own meshes. `models/fishing-rods/make_rods.py` builds the three fishing rods in Blender 4.2 from code
+(`fishing_rods.blend`, with previews unless given `--no-render`), `export_rods.py` bakes each into one texture set
+(colour, OpenGL normal, occlusion-roughness-metallic) on a UV map of its own and exports it as FBX, and
+`unreal/build_pak.ps1` imports them into an Unreal Engine 5.3.2 project named as the game (the remaster's engine) and
+cooks them into `CyrodiilRP_P.pak`, `.utoc` and `.ucas` for the game's `Content\Paks\~mods`:
+
+```powershell
+$blender = "C:\Program Files\Blender Foundation\Blender 4.2\blender.exe"
+& $blender -b --factory-startup -P design/models/fishing-rods/make_rods.py -- <dir> --no-render
+& $blender -b --factory-startup -P design/models/fishing-rods/export_rods.py -- <dir>/fishing_rods.blend <export dir>
+design/models/fishing-rods/unreal/build_pak.ps1 -Source <export dir> -Work <unreal dir> -Out <dir> -Engine "C:\Program Files\Epic Games\UE_5.3"
+```
+
+A rod lies along +Y in Blender, the hand at the origin, the tip where a staff's head is, so it hangs on the hand as the
+game's staves do. The client holds `/Game/CyrodiilRP/Fishing/SM_FishingRod_<Grade>` when the game has it, and the
+grade's staff when not.

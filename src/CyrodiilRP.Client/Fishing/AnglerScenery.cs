@@ -26,6 +26,7 @@ internal sealed partial class AnglerScenery(
     private const float Afloat = 0f;
 
     private readonly Dictionary<int, AnglerScene> _anglers = [];
+    private readonly Dictionary<RodTier, string> _heldMeshes = [];
     private bool _castSplashTold;
 
     private void Start()
@@ -201,7 +202,7 @@ internal sealed partial class AnglerScenery(
         if (scene.Rod is not null || scene.Show is not null || character is not { } holder || now < scene.RodRetryAt)
             return scene;
 
-        var mesh = FishingGear.MeshOf(scene.Tier);
+        var mesh = HeldMeshOf(scene.Tier);
         var placed = props.Place(new Prop(mesh, holder.Position, Vector3.Zero, AnglerLooks.RodScale), collides: false);
         if (props.AttachTo(placed, holder, CharacterMesh.ThirdPerson, AnglerLooks.HandSocket, AnglerLooks.RodOffset, AnglerLooks.RodRotation))
             return scene with { Rod = placed };
@@ -210,6 +211,21 @@ internal sealed partial class AnglerScenery(
         if (IsLocal(holder))
             missing.Report(mesh, "rod on " + AnglerLooks.HandSocket);
         return scene with { RodRetryAt = now + AnglerLooks.RodRetrySeconds };
+    }
+
+    // The mode's rod of the grade when this game has the mode's container, else the game's staff for it. Asked once a
+    // grade, when a character is first drawn holding one, so there is a world to ask.
+    private string HeldMeshOf(RodTier tier)
+    {
+        if (_heldMeshes.TryGetValue(tier, out var known))
+            return known;
+
+        var rod = AnglerLooks.RodOf(tier);
+        var mesh = props.TryMeasure(rod, 1f, out _) ? rod : FishingGear.StaffOf(tier);
+        if (mesh != rod)
+            logger.LogInformation("This game has no {Mesh}, the mode's {Tier} fishing rod: a staff stands for it.", rod, tier);
+        _heldMeshes[tier] = mesh;
+        return mesh;
     }
 
     // A pose that loops is played again before it ends. A move played once gives way to the next pose when it ends, or

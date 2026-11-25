@@ -18,7 +18,7 @@ internal sealed partial class FishItems(ICustomItems customItems, FishingStock s
                 .WithName(rod.Name)
                 .WithValue(rod.Value)
                 .WithWeight(rod.Rod.Weight)
-                .WithMesh(FishingGear.MeshOf(rod.Rod.Tier)));
+                .WithMesh(FishingGear.StaffOf(rod.Rod.Tier)));
 
         foreach (var bait in BaitCatalog.All)
         {

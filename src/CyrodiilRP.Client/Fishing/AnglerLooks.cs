@@ -1,4 +1,5 @@
 using System.Numerics;
+using CyrodiilRP.Common.Fishing;
 
 namespace CyrodiilRP.Client.Fishing;
 
@@ -8,6 +9,15 @@ internal static class AnglerLooks
 {
     // The right hand, where the game hangs a held prop.
     public const string HandSocket = "Weapon_Socket";
+
+    // The mode's own rods, from its container in the game's Content\Paks\~mods (design/models/fishing-rods): held at
+    // the grip, the tip where a staff's head is.
+    public static string RodOf(RodTier tier) => tier switch
+    {
+        RodTier.Basic => "/Game/CyrodiilRP/Fishing/SM_FishingRod_Basic.SM_FishingRod_Basic",
+        RodTier.Sturdy => "/Game/CyrodiilRP/Fishing/SM_FishingRod_Sturdy.SM_FishingRod_Sturdy",
+        RodTier.Master => "/Game/CyrodiilRP/Fishing/SM_FishingRod_Master.SM_FishingRod_Master",
+    };
     public static readonly Vector3 RodOffset = Vector3.Zero;
     public static readonly Vector3 RodRotation = Vector3.Zero;
     public const float RodScale = 1f;

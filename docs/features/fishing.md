@@ -123,7 +123,8 @@ lure, and mends rods.
   (`AnglerShown`), the cast (`AnglerCast`), where the float lies (`FishingFloat`, `FishingFloatGone`; in a fight the fish
   follows it under the water), what the fish does (`FishingFish`: Approach, Nibble, Bite, Hooked, Jump, Landed, Escaped,
   Gone at the next cast or the end) and where the water splashes (`FishingSplash`: Nibble, Bite, Thrash, Jump, Catch,
-  Snap; each game plays the landing's own). Each game draws it with the game's staves for the rods, a kelp bladder for
+  Snap; each game plays the landing's own). Each game draws it with the mode's own rods (`design/models/fishing-rods`, from
+  its container in the game's `Content\Paks\~mods`) or, in a game without them, the game's staves, a kelp bladder for
   the float, the ambient fish's mesh, the staff's animations, the game's water effects (`IVisualEffects`) and sounds
   (`ISounds`). A find shows no fish. The angler alone hears the reel (`AnglerCues`): the lockpick's tumblers clicking as
   its ratchet while reeling a resting fish and faster as its drag while a fish runs, and a rope straining in the red.
@@ -142,8 +143,8 @@ projection, the splash and its sound). To check:
 - the area's weather and the world's hour as the server reads them while fishing;
 - whether the mouse still turns the aim while the camera is the mode's, and that Space does not make the frozen
   character jump;
-- the rods on the hand (offset and turn on `Weapon_Socket`) for each grade, the cast, strike, fight and showing
-  animations, and how others see them;
+- the mode's rods from `~mods` (whether the game loads the container), on the hand (offset and turn on `Weapon_Socket`)
+  for each grade, the cast, strike, fight and showing animations, and how others see them;
 - the float's flight, its bobbing and dips, the small fish round it (whether they show through the water), the fish
   circling, biting, following the float, jumping, held up and swimming off, the splashes' size and sound, the reel's
   ratchet and drag;
