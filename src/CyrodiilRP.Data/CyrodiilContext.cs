@@ -54,6 +54,10 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<AuctionParcel> AuctionParcels => Set<AuctionParcel>();
 
+    public DbSet<CharacterFishing> CharacterFishing => Set<CharacterFishing>();
+
+    public DbSet<CharacterFishRecord> CharacterFishRecords => Set<CharacterFishRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -328,6 +332,28 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.HasIndex(x => x.CharacterId).HasFilter("collected_at IS NULL");
             entity.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<AuctionLot>().WithMany().HasForeignKey(x => x.LotId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<CharacterFishing>(entity =>
+        {
+            entity.ToTable("character_fishing", t =>
+            {
+                t.HasCheckConstraint("ck_character_fishing_level", "level BETWEEN 1 AND 100");
+                t.HasCheckConstraint("ck_character_fishing_counts", "xp >= 0 AND catches >= 0");
+            });
+            entity.HasKey(x => x.CharacterId);
+            entity.Property(x => x.CharacterId).ValueGeneratedNever();
+            entity.Property(x => x.Bait).HasMaxLength(ColumnLengths.EnumName);
+            entity.HasOne<Character>().WithOne().HasForeignKey<CharacterFishing>(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CharacterFishRecord>(entity =>
+        {
+            entity.ToTable("character_fish_records", t => t.HasCheckConstraint("ck_character_fish_records_best",
+                "best_length_cm > 0 AND best_grams > 0 AND count > 0"));
+            entity.HasKey(x => new { x.CharacterId, x.Species });
+            entity.Property(x => x.Species).HasMaxLength(ColumnLengths.EnumName);
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
         });
 
         SnakeCase.Apply(modelBuilder);

@@ -488,6 +488,81 @@ namespace CyrodiilRP.Data.Migrations
                     b.ToTable("character_conditions", (string)null);
                 });
 
+            modelBuilder.Entity("CyrodiilRP.Data.CharacterFishRecord", b =>
+                {
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("character_id");
+
+                    b.Property<string>("Species")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("species");
+
+                    b.Property<DateTimeOffset>("BestAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("best_at");
+
+                    b.Property<int>("BestGrams")
+                        .HasColumnType("integer")
+                        .HasColumnName("best_grams");
+
+                    b.Property<int>("BestLengthCm")
+                        .HasColumnType("integer")
+                        .HasColumnName("best_length_cm");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer")
+                        .HasColumnName("count");
+
+                    b.HasKey("CharacterId", "Species")
+                        .HasName("pk_character_fish_records");
+
+                    b.ToTable("character_fish_records", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_character_fish_records_best", "best_length_cm > 0 AND best_grams > 0 AND count > 0");
+                        });
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.CharacterFishing", b =>
+                {
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("character_id");
+
+                    b.Property<string>("Bait")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("bait");
+
+                    b.Property<int>("Catches")
+                        .HasColumnType("integer")
+                        .HasColumnName("catches");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer")
+                        .HasColumnName("level");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Xp")
+                        .HasColumnType("integer")
+                        .HasColumnName("xp");
+
+                    b.HasKey("CharacterId")
+                        .HasName("pk_character_fishing");
+
+                    b.ToTable("character_fishing", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_character_fishing_counts", "xp >= 0 AND catches >= 0");
+
+                            t.HasCheckConstraint("ck_character_fishing_level", "level BETWEEN 1 AND 100");
+                        });
+                });
+
             modelBuilder.Entity("CyrodiilRP.Data.CharacterHorse", b =>
                 {
                     b.Property<long>("CharacterId")
@@ -1369,6 +1444,26 @@ namespace CyrodiilRP.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_character_conditions_characters_character_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.CharacterFishRecord", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_character_fish_records_characters_character_id");
+                });
+
+            modelBuilder.Entity("CyrodiilRP.Data.CharacterFishing", b =>
+                {
+                    b.HasOne("CyrodiilRP.Data.Character", null)
+                        .WithOne()
+                        .HasForeignKey("CyrodiilRP.Data.CharacterFishing", "CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_character_fishing_characters_character_id");
                 });
 
             modelBuilder.Entity("CyrodiilRP.Data.CharacterHorse", b =>
