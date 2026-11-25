@@ -39,6 +39,9 @@ internal static class TraderRules
     // The shop an auctioneer's spot is stored under. No shop of stocks.json may take the name.
     public const string AuctionShop = "auction";
 
+    // The shop a fisher's spot is stored under. No shop of stocks.json may take the name.
+    public const string FisherShop = "fisher";
+
     private static readonly IReadOnlyList<FormId> ShopOutfit = [Items.Clothes.MiddleShirt01, Items.Clothes.MiddlePants01, Items.Clothes.MiddleShoes01];
     private static readonly IReadOnlyList<FormId> BankerOutfit = [Items.Clothes.UpperShirt01, Items.Clothes.UpperPants01, Items.Clothes.UpperShoes01];
 
@@ -50,6 +53,9 @@ internal static class TraderRules
     private static readonly IReadOnlyList<FormId> SupportMentorOutfit = [Items.Clothes.LowerRobe03, Items.Clothes.LowerShoes01];
     private static readonly IReadOnlyList<FormId> RegistrarOutfit = [Items.Clothes.UpperShirt04, Items.Clothes.UpperPants04, Items.Clothes.UpperShoes02];
     private static readonly IReadOnlyList<FormId> AuctioneerOutfit = [Items.Clothes.UpperShirt01, Items.Clothes.MiddlePants01, Items.Clothes.UpperShoes01];
+
+    // The game's Fishing Waders over rough shoes.
+    private static readonly IReadOnlyList<FormId> FisherOutfit = [Items.Clothes.LowerShirt09, Items.Clothes.LowerShoes01];
 
     public const float WanderRadius = 50f;
 
@@ -73,6 +79,7 @@ internal static class TraderRules
         TraderSpotKind.SupportMentor => TraderOrigin.SupportMentorSpawnerRefId,
         TraderSpotKind.Registrar => TraderOrigin.RegistrarSpawnerRefId,
         TraderSpotKind.Auctioneer => TraderOrigin.AuctioneerSpawnerRefId,
+        TraderSpotKind.Fisher => TraderOrigin.FisherSpawnerRefId,
     };
 
     public static IReadOnlyList<FormId> FindOutfit(TraderSpotKind kind) => kind switch
@@ -85,13 +92,14 @@ internal static class TraderRules
         TraderSpotKind.SupportMentor => SupportMentorOutfit,
         TraderSpotKind.Registrar => RegistrarOutfit,
         TraderSpotKind.Auctioneer => AuctioneerOutfit,
+        TraderSpotKind.Fisher => FisherOutfit,
     };
 
     // A person the mode stood, of any kind.
     public static bool IsOurs(uint spawnerRefId) =>
         spawnerRefId is TraderOrigin.SpawnerRefId or TraderOrigin.BankerSpawnerRefId or TraderOrigin.StablemasterSpawnerRefId
             or TraderOrigin.WarriorMentorSpawnerRefId or TraderOrigin.MageMentorSpawnerRefId or TraderOrigin.SupportMentorSpawnerRefId
-            or TraderOrigin.RegistrarSpawnerRefId or TraderOrigin.AuctioneerSpawnerRefId;
+            or TraderOrigin.RegistrarSpawnerRefId or TraderOrigin.AuctioneerSpawnerRefId or TraderOrigin.FisherSpawnerRefId;
 
     // The kind a spot stands by the shop it is stored under.
     public static TraderSpotKind FindKind(string shop) => shop switch
@@ -103,6 +111,7 @@ internal static class TraderRules
         SupportMentorShop => TraderSpotKind.SupportMentor,
         RegistrarShop => TraderSpotKind.Registrar,
         AuctionShop => TraderSpotKind.Auctioneer,
+        FisherShop => TraderSpotKind.Fisher,
         _ => TraderSpotKind.Shop,
     };
 

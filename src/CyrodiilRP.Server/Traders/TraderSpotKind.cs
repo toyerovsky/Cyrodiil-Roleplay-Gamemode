@@ -26,4 +26,7 @@ internal enum TraderSpotKind
 
     // Runs the auction house, the same lots at every one (Auction/).
     Auctioneer,
+
+    // Buys the catch, sells rods and baits and mends rods (Fisher/).
+    Fisher,
 }

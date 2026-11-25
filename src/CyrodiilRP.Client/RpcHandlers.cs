@@ -68,6 +68,8 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action<string>? AuctioneerLabelled;
 
+    public event Action<string>? FisherLabelled;
+
     public event Action<string>? AuctionOpened;
 
     public event Action<string>? AuctionChanged;
@@ -196,6 +198,8 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnBankClosed() => BankClosed?.Invoke();
 
     partial void OnAuctioneerLabel(string text) => AuctioneerLabelled?.Invoke(text);
+
+    partial void OnFisherLabel(string text) => FisherLabelled?.Invoke(text);
 
     partial void OnAuctionOpened(string json) => AuctionOpened?.Invoke(json);
 

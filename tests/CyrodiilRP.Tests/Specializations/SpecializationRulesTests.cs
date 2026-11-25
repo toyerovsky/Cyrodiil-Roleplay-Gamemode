@@ -153,9 +153,9 @@ public sealed class SpecializationRulesTests
     }
 
     [Fact]
-    public void Traders_bankers_and_stablemasters_teach_nothing()
+    public void Traders_bankers_stablemasters_auctioneers_and_fishers_teach_nothing()
     {
-        foreach (var kind in new[] { TraderSpotKind.Shop, TraderSpotKind.Banker, TraderSpotKind.Stablemaster })
+        foreach (var kind in new[] { TraderSpotKind.Shop, TraderSpotKind.Banker, TraderSpotKind.Stablemaster, TraderSpotKind.Auctioneer, TraderSpotKind.Fisher })
         {
             Assert.Empty(SpecializationRules.FindOffered(kind));
             Assert.False(SpecializationRules.IsTeacher(kind));

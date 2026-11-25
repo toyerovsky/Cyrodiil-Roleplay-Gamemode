@@ -1,5 +1,5 @@
 {
-  "trader.cmd.npc": "/anpc here trader <sklep> | here banker | here stable | here mentor <warrior|mage|support> | here registrar | here auctioneer | remove | list - postaw handlarza, bankiera, koniuszego, mentora, rejestratora albo licytatora tam, gdzie stoisz, zabierz tego przed tobą albo wypisz wszystkich",
+  "trader.cmd.npc": "/anpc here trader <sklep> | here banker | here stable | here mentor <warrior|mage|support> | here registrar | here auctioneer | here fisher | remove | list - postaw handlarza, bankiera, koniuszego, mentora, rejestratora, licytatora albo rybaka tam, gdzie stoisz, zabierz tego przed tobą albo wypisz wszystkich",
   "trader.unknown_shop": "Nie ma sklepu „{shop}”. Sklepy: {shops}.",
   "trader.not_in_world": "Musisz być w świecie, żeby postawić handlarza.",
   "trader.not_settled": "Serwer widzi cię jeszcze w komórce {seen}, a stoisz w komórce {here}: gra nie nadążyła po dalekim skoku. Przejdź kilka kroków albo wejdź ponownie i spróbuj jeszcze raz.",
@@ -9,6 +9,7 @@
   "trader.placed_mentor": "Mentor ({shop}) stoi tu teraz (#{id}). Pojawi się za chwilę.",
   "trader.placed_registrar": "Cesarski rejestrator stoi tu teraz (#{id}). Pojawi się za chwilę.",
   "trader.placed_auctioneer": "Licytator stoi tu teraz (#{id}). Pojawi się za chwilę.",
+  "trader.placed_fisher": "Rybak stoi tu teraz (#{id}). Pojawi się za chwilę.",
   "trader.unknown_path": "Mentor uczy jednej ścieżki: warrior, mage albo support.",
   "trader.place_failed": "Nie udało się zapisać handlarza, więc nikt tu nie stanął. Spróbuj ponownie za chwilę.",
   "trader.none_in_front": "Przed tobą nie stoi żaden handlarz.",

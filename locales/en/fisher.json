@@ -1,0 +1,22 @@
+{
+  "fisher.label": "Fisher",
+  "fisher.unknown_ware": "The fisher does not sell that.",
+  "fisher.count": "Buy or sell from 1 to {max} at a time.",
+  "fisher.too_poor": "That costs {price} gold and you carry {gold}.",
+  "fisher.failed": "The deal could not be completed. You kept your gold and your things.",
+  "fisher.bought": "You bought {name} x{count} for {price} gold.",
+  "fisher.not_fish": "The fisher buys only fish.",
+  "fisher.none_carried": "You carry none of these.",
+  "fisher.not_carried": "You carry only {count} of these.",
+  "fisher.sold": "You sold {name} x{count} for {price} gold.",
+  "fisher.sold_all": "You sold your catch, {count} fish, for {price} gold.",
+  "fisher.no_catch": "You carry no fish to sell.",
+  "fisher.purse_full": "Your purse cannot hold that much gold. You kept your fish.",
+  "fisher.not_rod": "The fisher mends only fishing rods.",
+  "fisher.no_rod": "You do not carry that rod.",
+  "fisher.not_worn": "That rod needs no mending.",
+  "fisher.repaired": "Your {name} is as good as new. You paid {price} gold.",
+  "fisher.closed_far": "You walked more than {metres} m away from the fisher.",
+  "fisher.closed_gone": "The fisher is gone.",
+  "fisher.closed_not_in_world": "You left the world, so the fisher's window closed."
+}

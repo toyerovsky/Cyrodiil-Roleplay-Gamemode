@@ -7,8 +7,9 @@ using ReadyM.SDK.Client.Entities;
 
 namespace CyrodiilRP.Client.Traders;
 
-// The game names a trader, a banker, a stablemaster, a mentor or the registrar after the person it is made from, so the mode puts its own label
-// over each. A marker needs the person's pawn, which comes and goes with its cell, so they are looked over every second.
+// The game names a trader, a banker, a stablemaster, a mentor, the registrar, an auctioneer or a fisher after the person it is
+// made from, so the mode puts its own label over each. A marker needs the person's pawn, which comes and goes with its cell,
+// so they are looked over every second.
 [Service]
 internal sealed partial class TraderMarkers(IEntities entities, IMarkers markers, TraderLabelRegistry labels)
 {

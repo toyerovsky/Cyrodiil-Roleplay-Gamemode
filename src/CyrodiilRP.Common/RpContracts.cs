@@ -180,6 +180,10 @@ public static partial class RpContracts
     [ServerToClient]
     public static partial void AuctioneerLabel(string text);
 
+    // The label over the mode's fishers, in the player's language.
+    [ServerToClient]
+    public static partial void FisherLabel(string text);
+
     // An AuctionView as JSON, as the window opens at an auctioneer.
     [ServerToClient]
     public static partial void AuctionOpened(string json);

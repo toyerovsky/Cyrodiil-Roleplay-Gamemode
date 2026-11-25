@@ -31,15 +31,17 @@ public sealed class TraderSpotHomeTests
     }
 
     [Fact]
-    public void A_spot_of_the_bank_stands_a_banker_one_of_the_stable_a_stablemaster_and_any_other_a_trader()
+    public void A_spot_of_the_bank_stands_a_banker_one_of_the_stable_a_stablemaster_one_of_the_fisher_a_fisher_and_any_other_a_trader()
     {
         var trader = new TraderSpotRecord(3, Shop, Outside, "32,-6", ByTheInn, 0f);
         var banker = new TraderSpotRecord(4, TraderRules.BankShop, Outside, "32,-6", ByTheInn, 0f);
         var stablemaster = new TraderSpotRecord(5, TraderRules.StableShop, Outside, "32,-6", ByTheInn, 0f);
+        var fisher = new TraderSpotRecord(6, TraderRules.FisherShop, Outside, "32,-6", ByTheInn, 0f);
 
         Assert.Equal(TraderSpotKind.Shop, trader.Kind);
         Assert.Equal(TraderSpotKind.Banker, banker.Kind);
         Assert.Equal(TraderSpotKind.Stablemaster, stablemaster.Kind);
+        Assert.Equal(TraderSpotKind.Fisher, fisher.Kind);
     }
 
     [Fact]

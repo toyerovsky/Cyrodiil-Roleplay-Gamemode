@@ -3,8 +3,8 @@ using ReadyM.SDK.Attributes;
 
 namespace CyrodiilRP.Client.Traders;
 
-// The name of each kind of the mode's people (trader, banker, stablemaster, mentors, registrar, auctioneer) by the origin the server
-// stands it with, in the player's language, once the server has sent it.
+// The name of each kind of the mode's people (trader, banker, stablemaster, mentors, registrar, auctioneer, fisher) by the
+// origin the server stands it with, in the player's language, once the server has sent it.
 [Service]
 internal sealed partial class TraderLabelRegistry(RpcHandlers rpc)
 {
@@ -23,6 +23,7 @@ internal sealed partial class TraderLabelRegistry(RpcHandlers rpc)
         rpc.StablemasterLabelled += OnStablemasterLabelled;
         rpc.MentorsLabelled += OnMentorsLabelled;
         rpc.AuctioneerLabelled += OnAuctioneerLabelled;
+        rpc.FisherLabelled += OnFisherLabelled;
     }
 
     private void Stop()
@@ -32,6 +33,7 @@ internal sealed partial class TraderLabelRegistry(RpcHandlers rpc)
         rpc.StablemasterLabelled -= OnStablemasterLabelled;
         rpc.MentorsLabelled -= OnMentorsLabelled;
         rpc.AuctioneerLabelled -= OnAuctioneerLabelled;
+        rpc.FisherLabelled -= OnFisherLabelled;
     }
 
     private void OnTraderLabelled(string label) => Set(TraderOrigin.SpawnerRefId, label);
@@ -41,6 +43,8 @@ internal sealed partial class TraderLabelRegistry(RpcHandlers rpc)
     private void OnStablemasterLabelled(string label) => Set(TraderOrigin.StablemasterSpawnerRefId, label);
 
     private void OnAuctioneerLabelled(string label) => Set(TraderOrigin.AuctioneerSpawnerRefId, label);
+
+    private void OnFisherLabelled(string label) => Set(TraderOrigin.FisherSpawnerRefId, label);
 
     private void OnMentorsLabelled(MentorLabelSet labels)
     {

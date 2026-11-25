@@ -1,0 +1,27 @@
+{
+  "fisher.label": "Rybak",
+  "fisher.unknown_ware": "Rybak tego nie sprzedaje.",
+  "fisher.count": "Kupuj i sprzedawaj od 1 do {max} naraz.",
+  "fisher.too_poor": "To kosztuje {price} szt. złota, a masz przy sobie {gold}.",
+  "fisher.failed": "Nie udało się dobić targu. Złoto i rzeczy zostają u ciebie.",
+  "fisher.bought": "Kupujesz: {name} x{count} za {price} szt. złota.",
+  "fisher.not_fish": "Rybak kupuje tylko ryby.",
+  "fisher.none_carried": "Nie masz tego przy sobie.",
+  "fisher.not_carried": "Masz przy sobie tylko {count} szt.",
+  "fisher.sold": "Sprzedajesz: {name} x{count} za {price} szt. złota.",
+  "fisher.sold_all": {
+    "one": "Sprzedajesz cały połów, {count} rybę, za {price} szt. złota.",
+    "few": "Sprzedajesz cały połów, {count} ryby, za {price} szt. złota.",
+    "many": "Sprzedajesz cały połów, {count} ryb, za {price} szt. złota.",
+    "other": "Sprzedajesz cały połów, {count} ryby, za {price} szt. złota."
+  },
+  "fisher.no_catch": "Nie masz przy sobie ryb na sprzedaż.",
+  "fisher.purse_full": "Sakiewka nie pomieści tyle złota. Ryby zostają u ciebie.",
+  "fisher.not_rod": "Rybak naprawia tylko wędki.",
+  "fisher.no_rod": "Nie masz przy sobie tej wędki.",
+  "fisher.not_worn": "Ta wędka nie wymaga naprawy.",
+  "fisher.repaired": "Twoja wędka ({name}) jest jak nowa. Płacisz {price} szt. złota.",
+  "fisher.closed_far": "Oddalasz się od rybaka o ponad {metres} m.",
+  "fisher.closed_gone": "Rybaka już nie ma.",
+  "fisher.closed_not_in_world": "Opuszczasz świat, więc okno rybaka się zamyka."
+}

@@ -15,8 +15,8 @@ using ReadyM.SDK.Server.Entities;
 
 namespace CyrodiilRP.Server.Traders;
 
-// /anpc stands the mode's people (a trader of a shop, a banker, a stablemaster, a mentor, the registrar or an
-// auctioneer), takes one away and lists them.
+// /anpc stands the mode's people (a trader of a shop, a banker, a stablemaster, a mentor, the registrar, an auctioneer or a
+// fisher), takes one away and lists them.
 [Service]
 internal sealed partial class TraderCommands(
     CommandRegistry commands,
@@ -36,6 +36,7 @@ internal sealed partial class TraderCommands(
     private const string Mentor = "mentor";
     private const string Registrar = "registrar";
     private const string Auctioneer = "auctioneer";
+    private const string Fisher = "fisher";
     private const string WarriorPath = "warrior";
     private const string MagePath = "mage";
     private const string SupportPath = "support";
@@ -123,6 +124,7 @@ internal sealed partial class TraderCommands(
                         TraderText.PlacedMentor(spot.Shop, spot.Id),
                     TraderSpotKind.Registrar => TraderText.PlacedRegistrar(spot.Id),
                     TraderSpotKind.Auctioneer => TraderText.PlacedAuctioneer(spot.Id),
+                    TraderSpotKind.Fisher => TraderText.PlacedFisher(spot.Id),
                 });
         });
     }
@@ -144,6 +146,9 @@ internal sealed partial class TraderCommands(
 
             case Auctioneer:
                 return TraderRules.AuctionShop;
+
+            case Fisher:
+                return TraderRules.FisherShop;
 
             case Mentor:
                 switch (call.Words.Count > 2 ? call.Words[2] : string.Empty)
