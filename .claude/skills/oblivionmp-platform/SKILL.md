@@ -72,7 +72,9 @@ Each fact below was checked in this repo.
   a name by. Hiding is only what is drawn: the character still stands in the way and can be hit. The player's own game
   takes a character that ignores collision or is frozen out of the game's physics, and the client half moves it
   (`ILocalCharacter.MoveBy`) by where the player looks (`ICamera.Look`) and what the move keys or stick ask
-  (`IInput.MoveAxis`). `/afly` is made of these (`Flights`, `Flight`). `ICamera.Set` puts the view at a point of the
+  (`IInput.MoveAxis`). Seen in the game: for a frozen character `MoveAxis` is NaN while a move key is held, and
+  `MoveBy` throws on a move that is no number, which stops the frame for every client mod. So `Flight` reads W, A, S
+  and D with `IInput.IsKeyDown`. `/afly` is made of these (`Flights`, `Flight`). `ICamera.Set` puts the view at a point of the
   mod's own and `Reset` gives it back. None of it seen in the game yet.
 - A character's attributes and skills are two mixins: `SkillAttributes` is what the owner's game has now, effects
   applied, and only read (`main.As<SkillAttributes>().TryGetEffective(...)`), `BaseSkillAttributes` the base, which
