@@ -10,7 +10,8 @@ using ReadyM.SDK.Attributes;
 namespace CyrodiilRP.Client.Admin;
 
 // A staff member's flight (/afly). The server takes the character out of the game's physics, on the player's entity,
-// and this moves it where the camera looks for as long as the server holds it so. W, A, S and D fly, Shift hurries.
+// and this moves it where the camera looks for as long as the server holds it so. The game's move keys or stick
+// fly, Shift hurries.
 [Service]
 internal sealed partial class Flight(
     IPlayers players,
@@ -26,13 +27,11 @@ internal sealed partial class Flight(
         if (players.LocalPlayer is not { } me || !me.IsFrozen || !me.IgnoresCollision || camera.Look is not { } look)
             return;
 
-        // IsKeyDown reads the key itself, so a key typed into a page or pressed in a menu of the game is left out here.
+        // Under a page with the keyboard or a menu of the game the keys are not the flight's.
         if (pageInput.IsHeld || chat.IsOpen || cursor.IsGameMenuOpen)
             return;
 
-        // The game's own move input (IInput.MoveAxis) is no number for a character out of the game's movement.
-        var push = FlightRules.FindPush(input.IsKeyDown(Key.W), input.IsKeyDown(Key.S), input.IsKeyDown(Key.A), input.IsKeyDown(Key.D));
-        var step = FlightRules.FindStep(look.Forward, look.Right, push, input.IsKeyDown(ModifierKeys.Shift), Time.DeltaTime);
+        var step = FlightRules.FindStep(look.Forward, look.Right, input.MoveAxis, input.IsKeyDown(ModifierKeys.Shift), Time.DeltaTime);
         character.MoveBy(step);
     }
 }

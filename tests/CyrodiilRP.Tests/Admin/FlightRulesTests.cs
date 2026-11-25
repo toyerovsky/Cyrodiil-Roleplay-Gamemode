@@ -12,28 +12,6 @@ public sealed class FlightRulesTests
     private static readonly Vector3 ToTheRight = new(0f, 1f, 0f);
 
     [Fact]
-    public void A_key_pushes_its_way_and_no_key_pushes_nowhere()
-    {
-        Assert.Equal(Vector2.Zero, FlightRules.FindPush(isAheadHeld: false, isBackHeld: false, isLeftHeld: false, isRightHeld: false));
-        Assert.Equal(new Vector2(0f, 1f), FlightRules.FindPush(isAheadHeld: true, isBackHeld: false, isLeftHeld: false, isRightHeld: false));
-        Assert.Equal(new Vector2(0f, -1f), FlightRules.FindPush(isAheadHeld: false, isBackHeld: true, isLeftHeld: false, isRightHeld: false));
-        Assert.Equal(new Vector2(-1f, 0f), FlightRules.FindPush(isAheadHeld: false, isBackHeld: false, isLeftHeld: true, isRightHeld: false));
-        Assert.Equal(new Vector2(1f, 0f), FlightRules.FindPush(isAheadHeld: false, isBackHeld: false, isLeftHeld: false, isRightHeld: true));
-    }
-
-    [Fact]
-    public void Opposite_keys_cancel_and_two_keys_at_once_push_no_harder_than_one()
-    {
-        Assert.Equal(Vector2.Zero, FlightRules.FindPush(isAheadHeld: true, isBackHeld: true, isLeftHeld: true, isRightHeld: true));
-        Assert.Equal(new Vector2(1f, 0f), FlightRules.FindPush(isAheadHeld: true, isBackHeld: true, isLeftHeld: false, isRightHeld: true));
-
-        var diagonal = FlightRules.FindPush(isAheadHeld: true, isBackHeld: false, isLeftHeld: false, isRightHeld: true);
-        Assert.Equal(1f, diagonal.Length(), 0.0001f);
-        Assert.Equal(diagonal.X, diagonal.Y, 0.0001f);
-        Assert.True(diagonal.X > 0f);
-    }
-
-    [Fact]
     public void A_flyer_who_pushes_ahead_goes_the_way_the_camera_looks_up_and_down_too()
     {
         var step = FlightRules.FindStep(LookingUp, ToTheRight, push: new Vector2(0f, 1f), isHurried: false, Frame);
