@@ -35,8 +35,8 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   potions, tools, weapons, armour, books. It only sells. It takes no harm. The crosshair names it, as every person of
   the mode, by what it does.
 - **Talking to the mode's people:** the game's own dialogue with a trader, a banker, a stablemaster, a mentor, the
-  registrar, an auctioneer or a Jobs foreman offers the topic "Services", which opens that person's window. See
-  `docs/features/npc-dialogue.md`.
+  registrar, an auctioneer, a fisher or a Jobs foreman offers the topic "Services", which opens that person's window.
+  See `docs/features/npc-dialogue.md`.
 - **Bank:** a banker NPC keeps a character's gold over deaths and restarts. See `docs/features/bank.md`.
 - **Auction house:** an auctioneer NPC, the same lots at every one, where players put up what they carry for bids or
   to buy now and collect what they bought, won or are owed. See `docs/features/auction-house.md`.
@@ -49,6 +49,8 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   `docs/features/specializations.md`.
 - **Fishing:** "Fish" on the G wheel, in any water the rod reaches: cast, strike and land with Space, fish and finds
   into the pack, seen by everyone near. See `docs/features/fishing.md`.
+- **Fisher:** a fisher NPC buys the catch, sells rods, baits and the lure and mends rods. Raw fish feed through Hunger
+  and Thirst. See `docs/features/fisher.md`.
 - **Notice board:** a board the staff stand in the world, H opens its unsigned notices and lets anyone pin one. See
   `docs/features/notice-board.md`.
 - **Spawn:** the staff set it in the outside world (`/aspawn here`, a button in the panel), a new character goes

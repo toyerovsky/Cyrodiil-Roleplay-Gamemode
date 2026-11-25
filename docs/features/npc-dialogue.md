@@ -3,16 +3,17 @@
 ## 1. What it is
 
 A player reaches the people the mode stands (traders, bankers, stablemasters, mentors, the Imperial Registrar,
-auctioneers) and the Jobs mod's foremen the way the game reaches anyone: by talking to them. The game's dialogue offers
-one topic of the mode on them, "Services", and picking it opens that person's window. Before, the interaction key (H)
-opened it.
+auctioneers, fishers) and the Jobs mod's foremen the way the game reaches anyone: by talking to them. The game's
+dialogue offers one topic of the mode on them, "Services", and picking it opens that person's window. Before, the
+interaction key (H) opened it.
 
 ## 2. Rules (as the player sees them)
 
 - Activating one of the mode's people starts the game's own dialogue with them. Among the topics stands "Services"
   ("Usługi" in Polish).
 - Picking it makes the person answer ("Of course. We will get to it as soon as we are done talking."). The window
-  opens when the player leaves the dialogue: the shop, the bank, the stable, the mentor's or the foreman's.
+  opens when the player leaves the dialogue: the shop, the bank, the stable, the mentor's, the auction house, the
+  fisher's or the foreman's.
 - The topic can be picked again every time. It is the same on every person of the mode, whatever they do.
 - The topic is in the language the player joined with. A language chosen in the F10 menu shows on the topic after the
   next join.
@@ -42,9 +43,9 @@ There is no command and no key.
   (`ui/shared/cursor.js`, `GameCursor` message). Once no menu of the game is up, the client sends `TalkTo(npc)`. A load
   in between drops it.
 - **The window** (`Conversations`, server): `TalkTo` goes to the kinds registered with `Conversations.AddTarget`
-  (`TraderShops`, `Bankers`, `Stables`, `Mentors`, `AuctionHouse`, `ForemanWindows`). The first whose person stands under the ref id
-  opens its window, after its own check that the player is in the world and within 5 m (`CheckWindow`), with its own
-  notice when not. A ref id that is nobody's is logged as a warning.
+  (`TraderShops`, `Bankers`, `Stables`, `Mentors`, `AuctionHouse`, `FisherShops`, `ForemanWindows`). The first whose
+  person stands under the ref id opens its window, after its own check that the player is in the world and within 5 m
+  (`CheckWindow`), with its own notice when not. A ref id that is nobody's is logged as a warning.
 - **Trust**: the server takes the client's word that the topic was spoken, as it took the press of H. A client that
   lies gets a window it could also have reached by walking up to the person.
 

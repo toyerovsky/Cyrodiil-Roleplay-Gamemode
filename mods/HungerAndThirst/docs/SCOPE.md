@@ -25,14 +25,16 @@ put together, and we follow it:
 `ReadyM.Relay.Common.Oblivion.Items.Items.Ingredients` (Apple, Breadloaf, CheeseWheel, Venison, ...) and
 `Items.Potions` (DrinkAle, DrinkMead, DrinkWine0Cheap, PotionCyrodiilicBrandy, ...). There is no "food" flag on
 them, so the mod keeps a curated nutrition table that points at those fields. Server owners can change values, add
-items by editor name or hex form id, and remove defaults in `config.json`.
+items by editor name or hex form id, and remove defaults in `config.json`. Another mod makes its own custom items food
+with `ISustenance.RegisterCustomFood`, by their `ICustomItems` key: a custom item's form id is 0, so a meal names it by
+its network id, which `ICustomItems.TryFind` turns back into the key.
 
 **Detecting that someone ate.** Two ways in, both ending in `SustenanceService.Feed`:
 
 | Way | How | Trust |
 |---|---|---|
 | **The satchel** | the client asks, the server checks the item is a known food and carried, takes one out of the inventory itself, then feeds; a cooldown between meals | fully server-authoritative |
-| **The game's inventory menu** | the game's own `DrinkPotion` and `EatIngredient` raise the SDK's `PlayerConsumeEvent` (the character, the item's form id, `Eat` or `Drink`), a networked event the eater's client sends; `SustenanceService.OnPlayerConsume` feeds by the same food table, for the sender's own character only, with no cooldown since the game used the item already | the client reports it, so a modified client could report meals it never had; `countInventoryMeals: false` turns this way off |
+| **The game's inventory menu** | the game's own `DrinkPotion` and `EatIngredient` raise the SDK's `PlayerConsumeEvent` (the character, the item's form id, `Eat` or `Drink`), a networked event the eater's client sends; `SustenanceService.OnPlayerConsume` feeds by the same food table, for the sender's own character only, with no cooldown since the game used the item already; a custom item is found by its key among the custom foods | the client reports it, so a modified client could report meals it never had; `countInventoryMeals: false` turns this way off |
 
 The two never count one meal twice: a satchel meal is the server taking the item, which does not go through the
 game's `DrinkPotion` or `EatIngredient`. Statuses applied as potions (`directApply`) raise no event either.
