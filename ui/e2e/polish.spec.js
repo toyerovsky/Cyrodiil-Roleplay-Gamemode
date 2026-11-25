@@ -27,6 +27,8 @@ const PAGES = [
   { url: "/frozen/index.html", root: ".frozen", text: ["ui.frozen", "title"] },
   { url: "/fishing/index.html#fight", root: ".fishing", text: ["ui.fishing", "counter.Left"] },
   { url: "/fishing/index.html#rare", root: ".fishing", text: ["ui.fishing", "rare"] },
+  { url: "/fisher/index.html", root: ".fisher__panel", text: ["ui.fisher", "sell_one"] },
+  { url: "/fisher/index.html#empty", root: ".fisher__panel", text: ["ui.fisher", "empty.catch"] },
   { url: "/menu/index.html#lore", root: ".menu", text: ["ui.menu", "lore.open"] },
   { url: "/lore/index.html", root: ".lore", text: ["ui.lore", "part.identity"] },
   { url: "/lore/index.html#view", root: ".lore", text: ["ui.lore", "viewer_lead"] },

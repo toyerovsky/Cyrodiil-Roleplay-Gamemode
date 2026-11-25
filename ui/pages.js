@@ -28,4 +28,5 @@ export const PAGES = [
     scenarios: ["", "charging", "waiting", "nibble", "bite", "fight", "strain", "dive", "rest", "slack", "monster", "caught", "rare", "found", "lostearly", "lostnibble", "lostlate", "snapped", "slipped", "runaway", "nobait"],
     game: "Fishing/FishingOverlay.cs",
   },
+  { name: "fisher", title: "Fisher", scenarios: ["", "empty", "poor", "many"], game: "Fisher/FisherOverlay.cs" },
 ];
