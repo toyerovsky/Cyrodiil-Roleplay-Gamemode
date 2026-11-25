@@ -1,6 +1,10 @@
 {
   "prices": {
-    "Torch02": 3
+    "Torch02": 3,
+    "FishingRod": 25
+  },
+  "custom": {
+    "FishingRod": { "item": "fishing.rod", "name": "Fishing Rod", "icon": "Oar01", "weight": 3 }
   },
   "shops": {
     "general": {
@@ -13,7 +17,7 @@
         "LowerRobe01", "LowerRobe03", "LowerRobe03hood"
       ],
       "potions": ["PotionRestoreHealthW", "PotionRestoreFatigueW", "PotionRestoreMagickaW", "PotionCurePoison", "PotionCureDisease"],
-      "tools": ["Torch02", "Lockpick", "RepairHammer", "MortarPestle", "Alembic", "Retort", "Calcinator", "SoulGemEmpty1Petty", "SoulGemEmpty2Lesser"],
+      "tools": ["Torch02", "FishingRod", "Lockpick", "RepairHammer", "MortarPestle", "Alembic", "Retort", "Calcinator", "SoulGemEmpty1Petty", "SoulGemEmpty2Lesser"],
       "weapons": ["WeapIronDagger", "WeapIronShortsword", "WeapIronLongsword", "WeapIronWarAxe", "WeapIronMace", "WeapIronClaymore", "WeapIronBow", "Arrow1Iron"],
       "armor": [
         "FurHelmet", "FurCuirass", "FurGauntlets", "FurGreaves", "FurBoots", "FurShield",

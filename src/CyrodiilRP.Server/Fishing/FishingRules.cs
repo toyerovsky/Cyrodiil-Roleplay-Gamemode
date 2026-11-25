@@ -68,6 +68,14 @@ internal static class FishingRules
     // A fish in the top share of its kind's lengths is a trophy.
     public const double TrophyFrom = 0.85;
 
+    // The rod, which the fishing asks for in the pack: a custom item made as a copy of the game's oar, whose icon it
+    // keeps, shown on the ground as the staff the angler holds. The general trader sells it (stocks.json).
+    public const string RodKey = "fishing.rod";
+    public const string RodName = "Fishing Rod";
+    public static readonly FormId RodBase = new(0x00025102);
+    public const int RodValue = 10;
+    public const float RodWeight = 3f;
+
     // The fish: a custom item each, made as a copy of Crab Meat, the game's food from the water, shown with the
     // ambient fish's mesh and the fish scales' icon.
     public static readonly FormId FishBase = new(0x0003366C);

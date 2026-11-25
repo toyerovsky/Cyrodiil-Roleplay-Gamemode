@@ -41,6 +41,20 @@ test("a kind of wares at a time, from the keyboard too", async ({ page }, testIn
   expect(await readSent(page, "TraderBuy")).toEqual([["Arrow1Iron", 3]]);
 });
 
+test("the fishing rod, the mode's own item, sits among the tools and is bought as any ware", async ({ page }, testInfo) => {
+  await page.goto("/trader/index.html");
+  await page.getByRole("navigation", { name: t("categories") }).getByRole("button", { name: t("category.tools") }).click();
+  const rod = page.getByRole("option", { name: /Fishing Rod/ });
+  await rod.click();
+  await expect(rod).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(".trader__detail-name")).toHaveText("Fishing Rod");
+  await expect(page.locator(".trader__total")).toHaveText("Total 25 gold");
+  await screenshot(page, testInfo, "trader-tools");
+  await page.getByRole("button", { name: t("buy"), exact: true }).click();
+  await expect(page.locator(".trader__purse")).toContainText("95 gold");
+  expect(await readSent(page, "TraderBuy")).toEqual([["FishingRod", 1]]);
+});
+
 test("with a thin purse the dear wares are marked and cannot be bought", async ({ page }, testInfo) => {
   await page.goto("/trader/index.html#poor");
   await page.getByRole("option", { name: /Iron Longsword/ }).click();

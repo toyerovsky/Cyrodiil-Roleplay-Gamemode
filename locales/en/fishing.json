@@ -5,6 +5,8 @@
   "fishing.swimming": "You cannot fish while you swim. Wade in no deeper than your waist.",
   "fishing.not_in_world": "You have to be in the world to fish.",
   "fishing.held": "You cannot fish while you are held still.",
+  "fishing.no_rod": "You need a fishing rod in your pack. Traders sell them among their tools.",
+  "fishing.rod_gone": "You no longer carry a fishing rod, so you stopped fishing.",
   "fishing.no_answer": "Your game did not say where the water is. Try again.",
   "fishing.moved": "You moved away from where you stood, so you stopped fishing.",
   "fishing.caught": "You caught a {fish}: {length} cm, {grams} g.",

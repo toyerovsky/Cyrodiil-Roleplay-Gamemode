@@ -3,8 +3,8 @@ using System.Text.Json;
 
 namespace CyrodiilRP.Server.Traders;
 
-// A ware a shop names that the game lacks, or one it values at nothing or too dearly without a price of its own, is a
-// mistake in the files, so loading throws.
+// A ware a shop names that the game lacks, or one it values at nothing or too dearly without a price of its own, or a
+// custom one without a price, is a mistake in the files, so loading throws.
 internal sealed class WareCatalog
 {
     private const string WaresResource = "wares.json";
@@ -26,6 +26,8 @@ internal sealed class WareCatalog
             .ToDictionary(entry => entry.Id, StringComparer.Ordinal);
         var stocks = JsonSerializer.Deserialize(stocksJson, WareJson.Default.StockFile)
                      ?? throw new InvalidOperationException("stocks.json is empty.");
+        if (stocks.Prices is null || stocks.Custom is null || stocks.Shops is null)
+            throw new InvalidOperationException("stocks.json lacks its prices, its custom wares or its shops.");
 
         var shops = new Dictionary<string, TraderShop>(StringComparer.Ordinal);
         foreach (var (shop, categories) in stocks.Shops)
@@ -37,23 +39,33 @@ internal sealed class WareCatalog
             foreach (var (category, ids) in categories)
             {
                 foreach (var id in ids)
-                {
-                    if (!wares.TryGetValue(id, out var entry))
-                        throw new InvalidOperationException($"Shop {shop} sells {id}, which wares.json lacks.");
-
-                    var form = uint.Parse(entry.Form, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-                    list.Add(new Ware(id, form, category, ReadPrice(shop, entry, stocks.Prices), entry.Weight));
-                }
+                    list.Add(ReadWare(shop, category, id, wares, stocks));
             }
 
             shops[shop] = new TraderShop(shop, list);
         }
 
-        var unsold = stocks.Prices.Keys.Where(id => !shops.Values.Any(shop => shop.Find(id) is not null)).ToList();
+        var unsold = stocks.Prices.Keys.Concat(stocks.Custom.Keys).Distinct().Where(id => !shops.Values.Any(shop => shop.Find(id) is not null)).ToList();
         if (unsold.Count > 0)
-            throw new InvalidOperationException($"stocks.json prices {string.Join(", ", unsold)}, which no shop sells.");
+            throw new InvalidOperationException($"stocks.json prices or makes {string.Join(", ", unsold)}, which no shop sells.");
 
         return new WareCatalog(shops);
+    }
+
+    private static Ware ReadWare(string shop, string category, string id, Dictionary<string, WareEntry> wares, StockFile stocks)
+    {
+        if (stocks.Custom.TryGetValue(id, out var custom))
+        {
+            return stocks.Prices.TryGetValue(id, out var price) && price > 0
+                ? new Ware(id, 0, custom.Item, category, price, custom.Weight)
+                : throw new InvalidOperationException($"Shop {shop} sells the custom {id} without a price above 0 in stocks.json.");
+        }
+
+        if (!wares.TryGetValue(id, out var entry))
+            throw new InvalidOperationException($"Shop {shop} sells {id}, which wares.json lacks.");
+
+        var form = uint.Parse(entry.Form, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        return new Ware(id, form, null, category, ReadPrice(shop, entry, stocks.Prices), entry.Weight);
     }
 
     private static int ReadPrice(string shop, WareEntry entry, Dictionary<string, int> prices)

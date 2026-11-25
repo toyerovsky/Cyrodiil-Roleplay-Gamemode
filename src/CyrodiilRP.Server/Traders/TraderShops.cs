@@ -8,6 +8,7 @@ using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
 using CyrodiilRP.Server.Talk;
+using Microsoft.Extensions.Logging;
 using OblivionMP.SDK.Common.Archetypes;
 using OblivionMP.SDK.Common.Archetypes.Mixins;
 using OblivionMP.SDK.Serverside.Items;
@@ -31,10 +32,12 @@ internal sealed partial class TraderShops(
     Wallet wallet,
     IEntities entities,
     Inventories inventories,
+    ICustomItems customItems,
     RpChat chat,
     Guides guides,
     Audit audit,
-    Timers timers) : ITalkTarget
+    Timers timers,
+    ILogger logger) : ITalkTarget
 {
     private const string BuyAction = "economy.trader_buy";
     private const string WatchJob = "traders.watch";
@@ -110,6 +113,13 @@ internal sealed partial class TraderShops(
             return;
         }
 
+        if (!TryFindItem(ware, out var item))
+        {
+            logger.LogError("Trader ware {Ware} is the custom item {Key}, which no mod defines.", ware.Id, ware.CustomKey);
+            Answer(player, TraderText.Failed, false);
+            return;
+        }
+
         var price = ware.Price * count;
         if (!wallet.TryCount(player.Id, out var gold) || gold < price || !wallet.TryTake(player.Id, price))
         {
@@ -124,10 +134,19 @@ internal sealed partial class TraderShops(
             return;
         }
 
-        inventories.Add(EntityHandle.Of(main).As<Equipment>(), new InventoryEntry(new FormId(ware.FormId), count, 0));
+        inventories.Add(EntityHandle.Of(main).As<Equipment>(), new InventoryEntry(item, count, 0));
         audit.Log(BuyAction, player.Ref, null, new BuyDetails(open.Spot.Id, ware.Id, count, price));
         Answer(player, TraderText.Bought(price), true);
         SendState(player, open);
+    }
+
+    private bool TryFindItem(Ware ware, out NetworkFormId item)
+    {
+        if (ware.CustomKey is { } key)
+            return customItems.TryGet(key, out item);
+
+        item = new FormId(ware.FormId);
+        return true;
     }
 
     private void OnLeftWindow(PlayerId id)

@@ -8,18 +8,18 @@ const MOST_PIECES = 20;
 const ANSWER_MS = 50;
 
 // The game's values of a few wares of every kind, priced as the server prices them: 140 %, rounded up. The torch, which the
-// game values at nothing, has its own price in stocks.json.
+// game values at nothing, and the fishing rod, the mode's own, have their own prices in stocks.json.
 const VALUES = {
   Breadloaf: 1, Apple: 1, CheeseWheel: 1, Ham: 1, Sweetroll: 1, DrinkAle: 5, DrinkMead: 2, DrinkWine2TamikaGood: 8,
   LowerShirt04: 1, LowerPants04: 1, MiddleShirt02: 2, PotionRestoreHealthW: 53, PotionCureDisease: 140, Lockpick: 3,
   RepairHammer: 10, MortarPestle: 25, WeapIronDagger: 6, WeapIronLongsword: 20, WeapIronBow: 11, Arrow1Iron: 1, FurCuirass: 15,
   LeatherBoots: 10, IronShield: 45, Book1CheapGuideImperialCity: 1, Book1CheapBriefHistoryoftheEmpirev1: 1,
 };
-const PRICES = { Torch02: 3 };
+const PRICES = { Torch02: 3, FishingRod: 25 };
 const CATEGORIES = {
   Breadloaf: "food", Apple: "food", CheeseWheel: "food", Ham: "food", Sweetroll: "food", DrinkAle: "drink", DrinkMead: "drink",
   DrinkWine2TamikaGood: "drink", LowerShirt04: "clothing", LowerPants04: "clothing", MiddleShirt02: "clothing",
-  PotionRestoreHealthW: "potions", PotionCureDisease: "potions", Torch02: "tools", Lockpick: "tools", RepairHammer: "tools",
+  PotionRestoreHealthW: "potions", PotionCureDisease: "potions", Torch02: "tools", FishingRod: "tools", Lockpick: "tools", RepairHammer: "tools",
   MortarPestle: "tools", WeapIronDagger: "weapons", WeapIronLongsword: "weapons", WeapIronBow: "weapons", Arrow1Iron: "weapons",
   FurCuirass: "armor", LeatherBoots: "armor", IronShield: "armor", Book1CheapGuideImperialCity: "books",
   Book1CheapBriefHistoryoftheEmpirev1: "books",

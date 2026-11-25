@@ -72,7 +72,10 @@ internal sealed partial class Anglers(
         if (_anglers.Contains(player) || !player.IsPlaying)
             return OptionState.Hidden;
 
-        return entities.TryLookup(player.Id, out Player entity) && entity.IsFrozen ? OptionState.Close(FishingText.Held) : OptionState.Open;
+        if (entities.TryLookup(player.Id, out Player entity) && entity.IsFrozen)
+            return OptionState.Close(FishingText.Held);
+
+        return items.CarriesRod(player) ? OptionState.Open : OptionState.Close(FishingText.NoRod);
     }
 
     private void Look(OnlinePlayer player)
@@ -131,6 +134,12 @@ internal sealed partial class Anglers(
             return;
         }
 
+        if (!items.CarriesRod(player))
+        {
+            chat.Notify(player, FishingText.NoRod);
+            return;
+        }
+
         entity.IsFrozen = true;
         main.Rotation = yaw;
         var angler = new Angler(player, area, stand, yaw, waterZ, new FishingLine(_random.NextDouble), Bait: null, FloatShown: null,
@@ -145,6 +154,12 @@ internal sealed partial class Anglers(
     {
         if (!online.TryGet(sender, out var player) || !_anglers.TryGet(player, out var angler) || angler.Line.Stage != FishingStage.Aim)
             return;
+
+        if (!items.CarriesRod(player))
+        {
+            End(player, FishingText.RodGone);
+            return;
+        }
 
         var reach = Vector2.Distance(new Vector2(point.X, point.Y), new Vector2(angler.Stand.X, angler.Stand.Y));
         if (!float.IsFinite(point.X) || !float.IsFinite(point.Y) || !float.IsFinite(point.Z)

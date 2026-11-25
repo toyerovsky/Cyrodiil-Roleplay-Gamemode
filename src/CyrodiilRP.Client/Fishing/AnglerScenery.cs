@@ -20,7 +20,6 @@ internal sealed partial class AnglerScenery(
     ISounds sounds,
     ILogger logger)
 {
-    private const string RodMesh = "/Game/Art/Equipment/staffs/SM_Staff01.SM_Staff01";
     private const string HandSocket = "Weapon_Socket";
     private const string FloatMesh = "/Game/Art/Environment/clutter/SM_quill01.SM_quill01";
     private const float FloatScale = 2f;
@@ -136,7 +135,7 @@ internal sealed partial class AnglerScenery(
         var rod = scene.Rod;
         if (rod is null)
         {
-            var placed = props.Place(new Prop(RodMesh, character.Position, Vector3.Zero, 1f), collides: false);
+            var placed = props.Place(new Prop(FishingGear.RodMesh, character.Position, Vector3.Zero, 1f), collides: false);
             if (props.AttachTo(placed, character, CharacterMesh.ThirdPerson, HandSocket, Vector3.Zero, Vector3.Zero))
                 rod = placed;
             else

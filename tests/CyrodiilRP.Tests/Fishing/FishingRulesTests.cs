@@ -1,5 +1,8 @@
+using System.Text.Json;
 using CyrodiilRP.Server.Admin;
 using CyrodiilRP.Server.Fishing;
+using CyrodiilRP.Server.Traders;
+using CyrodiilRP.Tests.Fakes;
 
 namespace CyrodiilRP.Tests.Fishing;
 
@@ -27,6 +30,18 @@ public sealed class FishingRulesTests
     {
         foreach (var find in FishingRules.Finds)
             Assert.NotNull(ItemCatalog.Shipped.FindByForm(find.Item.Value));
+    }
+
+    [Fact]
+    public void The_general_trader_sells_the_rod_the_fishing_makes()
+    {
+        var rod = WareCatalog.Shipped.FindShop("general")!.Wares.Single(ware => ware.CustomKey == FishingRules.RodKey);
+        var names = JsonSerializer.Deserialize<Dictionary<string, string>>(
+            File.ReadAllText(Path.Combine(Repository.Root, "locales", "en", "ui.wares.json")))!;
+
+        Assert.Equal(FishingRules.RodWeight, rod.Weight);
+        Assert.Equal(FishingRules.RodName, names[$"ui.wares.{rod.Id}"]);
+        Assert.NotNull(ItemCatalog.Shipped.FindByForm(FishingRules.RodBase.Value));
     }
 
     [Fact]

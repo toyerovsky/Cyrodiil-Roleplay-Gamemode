@@ -38,7 +38,7 @@ public sealed class WareCatalogTests
     {
         var shop = WareCatalog.Load(Wares, BuildStocks("""{ "camp": { "tools": ["Lockpick"], "food": ["Breadloaf"] } }""")).FindShop("camp")!;
 
-        Assert.Equal(new Ware("Lockpick", 0x0000000A, "tools", 5, 0f), shop.Find("Lockpick"));
+        Assert.Equal(new Ware("Lockpick", 0x0000000A, null, "tools", 5, 0f), shop.Find("Lockpick"));
         Assert.Equal(0x00033680u, shop.Find("Breadloaf")!.FormId);
         Assert.Null(shop.Find("Skooma"));
     }
@@ -73,6 +73,33 @@ public sealed class WareCatalogTests
     }
 
     [Fact]
+    public void A_custom_ware_is_sold_by_its_key_at_its_own_price_and_weight()
+    {
+        var stocks = BuildStocks("""{ "camp": { "tools": ["Rod"] } }""", """{ "Rod": 25 }""", """{ "Rod": { "item": "test.rod", "weight": 3 } }""");
+
+        var shop = WareCatalog.Load(Wares, stocks).FindShop("camp")!;
+
+        Assert.Equal(new Ware("Rod", 0, "test.rod", "tools", 25, 3f), shop.Find("Rod"));
+    }
+
+    [Fact]
+    public void A_custom_ware_without_a_price_or_that_no_shop_sells_is_a_mistake_in_the_files()
+    {
+        const string rod = """{ "Rod": { "item": "test.rod", "weight": 3 } }""";
+
+        Assert.Throws<InvalidOperationException>(() => WareCatalog.Load(Wares, BuildStocks("""{ "camp": { "tools": ["Rod"] } }""", "{}", rod)));
+        Assert.Throws<InvalidOperationException>(() => WareCatalog.Load(Wares, BuildStocks("""{ "camp": { "tools": ["Rod"] } }""", """{ "Rod": 0 }""", rod)));
+        Assert.Throws<InvalidOperationException>(() => WareCatalog.Load(Wares, BuildStocks("""{ "camp": { "tools": ["Lockpick"] } }""", """{ "Rod": 25 }""", rod)));
+    }
+
+    [Fact]
+    public void Stocks_without_their_custom_wares_are_a_mistake_in_the_files()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            WareCatalog.Load(Wares, """{ "prices": {}, "shops": { "camp": { "tools": ["Lockpick"] } } }"""));
+    }
+
+    [Fact]
     public void The_torch_is_sold_at_its_own_price()
     {
         Assert.Equal(TorchPrice, WareCatalog.Shipped.FindShop("general")!.Find("Torch02")!.Price);
@@ -96,5 +123,6 @@ public sealed class WareCatalogTests
             category => Assert.Contains($"\"ui.trader.category.{category}\"", names, StringComparison.Ordinal));
     }
 
-    private static string BuildStocks(string shops, string prices = "{}") => $$"""{ "prices": {{prices}}, "shops": {{shops}} }""";
+    private static string BuildStocks(string shops, string prices = "{}", string custom = "{}") =>
+        $$"""{ "prices": {{prices}}, "custom": {{custom}}, "shops": {{shops}} }""";
 }
