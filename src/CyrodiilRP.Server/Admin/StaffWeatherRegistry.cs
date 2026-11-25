@@ -5,7 +5,7 @@ namespace CyrodiilRP.Server.Admin;
 // The weather the staff last set in each area, held for HoldFor. The area's master client reports what its game shows
 // whenever that differs from the server's, and in the tick a new value reaches it, it reports the old one first and
 // only then takes the new. The server would apply that report over the staff's word.
-internal sealed class StaffSettingRegistry(IClock clock)
+internal sealed class StaffWeatherRegistry(IClock clock)
 {
     public static readonly TimeSpan HoldFor = TimeSpan.FromSeconds(5);
 

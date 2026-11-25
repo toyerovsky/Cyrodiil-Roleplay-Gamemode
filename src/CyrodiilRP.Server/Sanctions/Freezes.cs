@@ -7,6 +7,7 @@ using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Network;
 using CyrodiilRP.Server.Players;
+using Microsoft.Extensions.Logging;
 using OblivionMP.SDK.Common.Archetypes.Mixins;
 using ReadyM.SDK.Archetypes.Core;
 using ReadyM.SDK.Attributes;
@@ -28,7 +29,9 @@ internal sealed partial class Freezes(
     RpChat chat,
     Audit audit,
     Timers timers,
-    Fire fire)
+    Fire fire,
+    Callbacks callbacks,
+    ILogger logger)
 {
     // Stored with the character, so never renamed.
     public const string FreezeKey = "admin.freeze";
@@ -46,6 +49,9 @@ internal sealed partial class Freezes(
     // A player was just frozen by the staff.
     public event Action<OnlinePlayer>? Froze;
 
+    // The staff just let an online player go, whose character the game moves again.
+    public event Action<OnlinePlayer>? Thawed;
+
     public bool IsFrozen(OnlinePlayer player) => player.Character?.Conditions.ContainsKey(FreezeKey) == true;
 
     private void Start()
@@ -62,15 +68,20 @@ internal sealed partial class Freezes(
         if (player.Character?.Conditions.GetValueOrDefault(FreezeKey) is not { } freeze)
             return;
 
-        Stiffen(player, isFrozen: true);
+        // The property went with the last connection.
+        SetFrozen(player, isFrozen: true);
         rpc.SendFrozen(player.Id, chat.Translate(player, SanctionsText.FrozenNotice(freeze.Reason ?? string.Empty)));
     }
 
-    // The property goes with the connection, so Pin sets it again for a player who joined frozen.
-    private void Stiffen(OnlinePlayer player, bool isFrozen)
+    private void SetFrozen(OnlinePlayer player, bool isFrozen)
     {
-        if (entities.TryLookup(player.Id, out Player entity) && entity.IsFrozen != isFrozen)
-            entity.IsFrozen = isFrozen;
+        if (!entities.TryLookup(player.Id, out Player entity))
+        {
+            logger.LogError("[CyrodiilRP] {Player} is online but has no entity, so the game holds the character as it did.", player.Ref);
+            return;
+        }
+
+        entity.IsFrozen = isFrozen;
     }
 
     private void Freeze(CommandCall call)
@@ -86,8 +97,8 @@ internal sealed partial class Freezes(
 
         conditions.Apply(target, _freeze, null, call.Sender.Ref, reason);
         _hold.Release(target.Id);
-        Froze?.Invoke(target);
-        Stiffen(target, isFrozen: true);
+        callbacks.Raise("sanctions.froze", Froze, target);
+        SetFrozen(target, isFrozen: true);
         audit.Log(FreezeAction, call.Sender.Ref, target.Ref, new ReasonDetails(reason));
         rpc.SendFrozen(target.Id, chat.Translate(target, SanctionsText.FrozenNotice(reason)));
         chat.SendTo(target, ChatLineKind.Announcement, SanctionsText.FrozenNotice(reason));
@@ -116,7 +127,8 @@ internal sealed partial class Freezes(
         }
 
         _hold.Release(target.Id);
-        Stiffen(target, isFrozen: false);
+        SetFrozen(target, isFrozen: false);
+        callbacks.Raise("sanctions.thawed", Thawed, target);
         audit.Log(UnfreezeAction, call.Sender.Ref, target.Ref);
         rpc.SendThawed(target.Id);
         chat.SendTo(target, ChatLineKind.System, SanctionsText.UnfrozenNotice);
@@ -131,7 +143,6 @@ internal sealed partial class Freezes(
                 continue;
 
             _hold.Keep(player.Id);
-            Stiffen(player, isFrozen: true);
         }
     }
 

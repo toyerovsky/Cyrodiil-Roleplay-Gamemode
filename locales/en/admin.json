@@ -63,7 +63,7 @@
   "admin.cmd.step": "/astep [up|down] [metres] - move yourself a few metres the way you face, or straight up or down, through whatever stands there",
   "admin.cmd.fly": "/afly - fly as a camera nobody sees: you go where you look, through walls, and Shift hurries you. Off, you stay where the flight took you",
   "admin.cmd.item": "/aitem give|take <number> <item> [count] - an item by its name or editor id",
-  "admin.cmd.time": "/atime <hour> - the time of day in your area",
+  "admin.cmd.time": "/atime <hour> - the time of day, for the whole world",
   "admin.cmd.weather": "/aweather <weather> - the weather in your area",
   "admin.option.panel": "Staff panel",
   "admin.option.card": "Staff card"

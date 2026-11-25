@@ -17,9 +17,20 @@ public sealed class WheelTargetsTests
         var makingOne = CreatePlayer(withCharacter: false, playing: false);
         var notLoaded = new OnlinePlayer(default, Guid.NewGuid(), Now);
 
-        var targets = WheelTargets.Filter([playing, atTheWelcome, makingOne, notLoaded]).ToList();
+        var targets = WheelTargets.Filter([playing, atTheWelcome, makingOne, notLoaded], isHidden: _ => false).ToList();
 
         Assert.Same(playing, Assert.Single(targets));
+    }
+
+    [Fact]
+    public void A_hidden_player_cannot_be_picked()
+    {
+        var seen = CreatePlayer(withCharacter: true, playing: true);
+        var hidden = CreatePlayer(withCharacter: true, playing: true);
+
+        var targets = WheelTargets.Filter([seen, hidden], isHidden: player => player == hidden).ToList();
+
+        Assert.Same(seen, Assert.Single(targets));
     }
 
     private static OnlinePlayer CreatePlayer(bool withCharacter, bool playing) =>

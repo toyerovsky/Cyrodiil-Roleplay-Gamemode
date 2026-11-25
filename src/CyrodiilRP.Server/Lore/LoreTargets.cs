@@ -15,7 +15,7 @@ internal sealed partial class LoreTargets(OnlinePlayers online, Proximity proxim
     private const float CentimetresPerMetre = 100f;
 
     public OnlinePlayer? FindInFront(OnlinePlayer actor) =>
-        proximity.FindNearestInFront(actor.Id, WheelTargets.Filter(online.All).Select(p => p.Id), InteractionMenu.Reach, InteractionMenu.ConeDegrees) is { } id
+        proximity.FindNearestInFront(actor.Id, FindSeen().Select(p => p.Id), InteractionMenu.Reach, InteractionMenu.ConeDegrees) is { } id
         && online.TryGet(id, out var target)
             ? target
             : null;
@@ -27,7 +27,7 @@ internal sealed partial class LoreTargets(OnlinePlayers online, Proximity proxim
             return [];
 
         List<LoreNearby> found = [];
-        foreach (var other in WheelTargets.Filter(online.All))
+        foreach (var other in FindSeen())
         {
             if (other == actor || other.Character is null || !proximity.TryLocate(other.Id, out var otherArea, out var otherPosition) || otherArea != area)
                 continue;
@@ -41,4 +41,6 @@ internal sealed partial class LoreTargets(OnlinePlayers online, Proximity proxim
     }
 
     public static double RangeMetres => NearbyRange / CentimetresPerMetre;
+
+    private IEnumerable<OnlinePlayer> FindSeen() => WheelTargets.Filter(online.All, p => proximity.IsHidden(p.Id));
 }

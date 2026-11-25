@@ -46,7 +46,8 @@ internal sealed partial class InteractionMenu(
             return;
 
         OnlinePlayer? target = null;
-        if (proximity.FindNearestInFront(actor.Id, WheelTargets.Filter(online.All).Select(p => p.Id), Reach, ConeDegrees) is { } targetId)
+        var seen = WheelTargets.Filter(online.All, p => proximity.IsHidden(p.Id));
+        if (proximity.FindNearestInFront(actor.Id, seen.Select(p => p.Id), Reach, ConeDegrees) is { } targetId)
             online.TryGet(targetId, out target);
 
         if (FindNearestTarget(actor, target) is { } other)

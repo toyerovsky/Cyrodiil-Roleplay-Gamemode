@@ -87,8 +87,7 @@ internal sealed partial class TeleportCommands(CommandRegistry commands, IEntiti
             call.Reply(AdminText.TakenBack(target.Name));
     }
 
-    // The game gives the server no way to switch a character's collision off, so a wall is passed by a short teleport:
-    // ahead goes level and a little above the ground it lands on, up and down go to the very height.
+    // Ahead goes level and a little above the ground it lands on, up and down go to the very height.
     private void Step(CommandCall call)
     {
         if (!TryReadStep(call.Words, out var direction, out var metres))

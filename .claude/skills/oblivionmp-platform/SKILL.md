@@ -72,10 +72,9 @@ Each fact below was checked in this repo.
   a name by. Hiding is only what is drawn: the character still stands in the way and can be hit. The player's own game
   takes a character that ignores collision or is frozen out of the game's physics, and the client half moves it
   (`ILocalCharacter.MoveBy`) by where the player looks (`ICamera.Look`) and what the move keys or stick ask
-  (`IInput.MoveAxis`). Seen in the game: before SDK 1.1.0-rp.b04915cf `MoveAxis` was NaN for a frozen character
-  while a move key was held, and `MoveBy` throws on a move that is no number, which stops the frame for every client
-  mod. `/afly` is made of these (`Flights`, `Flight`). `ICamera.Set` puts the view at a point of the
-  mod's own and `Reset` gives it back. None of it seen in the game yet.
+  (`IInput.MoveAxis`). `MoveBy` throws on a move that is no number, and an exception out of one client service's
+  `Update` stops the frame for every client mod (seen in the game). `/afly` is made of these (`Flights`, `Flight`).
+  `ICamera.Set` puts the view at a point of the mod's own and `Reset` gives it back, neither seen in the game yet.
 - A character's attributes and skills are two mixins: `SkillAttributes` is what the owner's game has now, effects
   applied, and only read (`main.As<SkillAttributes>().TryGetEffective(...)`), `BaseSkillAttributes` the base, which
   the server writes (`SetBaseSkillAttribute`). A base skill's whole part is its level and its fraction the way to the
@@ -92,7 +91,7 @@ Each fact below was checked in this repo.
   also reports its own (`WeatherChangeEvent`, since SDK 1.1) whenever its game differs from the server's. In the tick a
   new value reaches it, it reports the old one first and takes the new one after, and the server would apply that
   report over the value set. So what the staff set is held for a moment: a Validate handler refuses a report of
-  another weather (`StaffSettingRegistry`). Not seen in the game yet.
+  another weather (`StaffWeatherRegistry`). Not seen in the game yet.
 - The clock is one for the whole world and the server's alone (`Time` on the `World` entity, SDK 1.1.0-rp.0f821c38):
   `TimeOfDayMinutes`, `GameDay`, and `Advance(TimeSpan)`, which only goes forward. No client reports a time. So
   `/atime` advances to the next time the hour comes, the next day's for one already gone by

@@ -30,7 +30,7 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
     // The weather at once, not on its way.
     private const float WholeTransition = 1f;
 
-    private readonly StaffSettingRegistry _settings = new(clock);
+    private readonly StaffWeatherRegistry _weathers = new(clock);
 
     private void Start()
     {
@@ -41,7 +41,7 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
     [EventHandler(Stage.Validate)]
     public void CheckWeather(in WeatherChangeEvent change, EventContext context)
     {
-        if (_settings.RefusesWeather(change.Area.AreaId.ToString(), change.WeatherFormId.Value))
+        if (_weathers.RefusesWeather(change.Area.AreaId.ToString(), change.WeatherFormId.Value))
             context.Cancel();
     }
 
@@ -72,7 +72,7 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
 
         area.SetWeatherFormId(new FormId(form));
         area.SetTransitionRatio(WholeTransition);
-        _settings.HoldWeather(area.AreaId.ToString(), form);
+        _weathers.HoldWeather(area.AreaId.ToString(), form);
         audit.Log(WeatherAction, call.Sender.Ref, details: new AreaDetails(area.AreaId.ToString(), call.Words[0]));
         call.Reply(AdminText.WeatherSet(area: area.AreaId.ToString(), weather: call.Words[0]));
     }

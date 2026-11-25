@@ -38,9 +38,10 @@ internal sealed partial class Flights(
     private void Start()
     {
         commands.AddStaff(StaffPermissions.Fly, AdminText.CmdFly, Toggle, needsCharacter: true);
-        online.Left += _flights.Forget;
+        online.Left += OnLeft;
         duty.Changed += OnDutyChanged;
         freezes.Froze += LandUnasked;
+        freezes.Thawed += _flights.Drop;
     }
 
     // The server applies every change of health, so a harm refused here is not taken. Healing passes.
@@ -55,9 +56,8 @@ internal sealed partial class Flights(
     private void Toggle(CommandCall call)
     {
         var flyer = call.Sender;
-        if (_flights.IsFlying(flyer))
+        if (TryLand(flyer))
         {
-            Land(flyer);
             call.Reply(AdminText.FlyOff);
             return;
         }
@@ -71,8 +71,7 @@ internal sealed partial class Flights(
         if (!teleports.TryLocate(call, flyer, out var from))
             return;
 
-        if (!entities.TryLookup(flyer.Id, out Player player))
-            throw new InvalidOperationException($"{flyer.Ref} is in the world and has no player entity.");
+        var player = FindEntity(flyer);
 
         // /aback returns to where the flight began, as from a teleport.
         teleports.KeepBefore(flyer, from);
@@ -84,6 +83,15 @@ internal sealed partial class Flights(
         call.Reply(AdminText.FlyOn);
     }
 
+    // The entity went with the player, so there is nothing to set back.
+    private void OnLeft(OnlinePlayer player)
+    {
+        if (_flights.IsFlying(player))
+            audit.Log(OffAction, player.Ref);
+
+        _flights.Forget(player);
+    }
+
     private void OnDutyChanged(OnlinePlayer player)
     {
         if (player.DutySince is null)
@@ -92,26 +100,29 @@ internal sealed partial class Flights(
 
     private void LandUnasked(OnlinePlayer player)
     {
-        if (!_flights.IsFlying(player))
-            return;
-
-        Land(player);
-        chat.Notify(player, AdminText.FlyOff);
+        if (TryLand(player))
+            chat.Notify(player, AdminText.FlyOff);
     }
 
-    // A flyer who left is not landed: their entity went with them.
-    private void Land(OnlinePlayer flyer)
+    // False for a player who was not flying.
+    private bool TryLand(OnlinePlayer flyer)
     {
-        _flights.Land(flyer);
-        if (entities.TryLookup(flyer.Id, out Player player))
-        {
-            player.IsHidden = false;
-            player.IgnoresCollision = false;
+        if (!_flights.IsFlying(flyer))
+            return false;
 
-            // A freeze that ended the flight keeps the character still.
-            player.IsFrozen = freezes.IsFrozen(flyer);
-        }
-
+        // A freeze that ended the flight keeps the character still, in the air too.
+        var isHeld = freezes.IsFrozen(flyer);
+        var player = FindEntity(flyer);
+        player.IsHidden = false;
+        player.IgnoresCollision = false;
+        player.IsFrozen = isHeld;
+        _flights.Land(flyer, isHeld);
         audit.Log(OffAction, flyer.Ref);
+        return true;
     }
+
+    private Player FindEntity(OnlinePlayer player) =>
+        entities.TryLookup(player.Id, out Player entity)
+            ? entity
+            : throw new InvalidOperationException($"{player.Ref} is online and has no player entity.");
 }

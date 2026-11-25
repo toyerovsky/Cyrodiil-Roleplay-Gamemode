@@ -67,7 +67,7 @@
   "admin.cmd.step": "/astep [up|down] [metry] - przenieś się o kilka metrów tam, gdzie patrzysz, albo prosto w górę lub w dół, przez wszystko, co stoi na drodze",
   "admin.cmd.fly": "/afly - lot kamerą, której nikt nie widzi: lecisz tam, gdzie patrzysz, przez ściany, a Shift przyspiesza. Po wyłączeniu zostajesz tam, dokąd zaprowadził lot",
   "admin.cmd.item": "/aitem give|take <numer> <przedmiot> [ilość] - przedmiot po nazwie albo editor id",
-  "admin.cmd.time": "/atime <godzina> - pora dnia w twoim obszarze",
+  "admin.cmd.time": "/atime <godzina> - pora dnia w całym świecie",
   "admin.cmd.weather": "/aweather <pogoda> - pogoda w twoim obszarze",
   "admin.option.panel": "Panel administracji",
   "admin.option.card": "Karta gracza"

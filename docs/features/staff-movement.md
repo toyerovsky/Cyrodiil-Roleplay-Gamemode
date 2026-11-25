@@ -16,8 +16,10 @@ short teleport. `/afly` is a flight: the staff member becomes a camera nobody se
   stops it or pulls it down. It goes where the flyer looks: the game's move keys or the stick carry it ahead, back
   and sideways, looking up and pushing ahead climbs, and with no push it hangs. Shift hurries it. With the chat, a
   window of the mode or a menu of the game open, it hangs.
-- A flyer takes no harm, and none for 15 seconds after the flight, which covers the fall from where it ended.
-- Nobody finds a flyer in front of them: the H wheel passes a hidden player over.
+- A flyer takes no harm, and none for 15 seconds after the flight, which covers the fall from where it ended. A flyer
+  the staff froze in the air hangs there unharmed, and the 15 seconds run from the unfreeze.
+- Nobody finds a flyer in front of them or around them: the H wheel and the lore card's Nearby pass a hidden player
+  over.
 - Turned off, the character is where the flight took it, seen again, and falls if it is in the air.
 - A flight ends with the duty, when the player leaves, and when the staff freeze the flyer. A frozen player does not
   take off.
@@ -38,19 +40,20 @@ short teleport. `/afly` is a flight: the staff member becomes a camera nobody se
   which the platform replicates to every client: `IsHidden`, `IgnoresCollision` and `IsFrozen`. Landing sets them
   back. The server does not move the flyer. `IsFrozen` is also what a freeze sets (`Sanctions/Freezes.cs`), so the two
   never hold at once: `Freezes.Froze` lands a flyer, and landing leaves a frozen one frozen.
+- **Who is not found**: `WheelTargets.Filter` leaves out a player whose `IsHidden` is set (`Proximity.IsHidden`).
 - **A flight in the flyer's game** (`Flight` in the client): for as long as its own player both ignores collision and
   is frozen, it moves the character once a frame by `FlightRules.FindStep`: the way the camera looks
   (`ICamera.Look`), the game's move input (`IInput.MoveAxis`), `FlightRules.Speed` or `HurriedSpeed` while Shift is
   held (`IInput.IsKeyDown`). The position replicates as a walk's does, so the server and the chat's ranges follow the
   flyer.
-- **The move input needs SDK 1.1.0-rp.b04915cf**: in the SDK before it `IInput.MoveAxis` was no number while a key
-  was held and the character was out of the game's movement (seen in the game).
 - **Names over heads** need nothing of their own: a hidden character's `Hidden` reads 1, which `Nameplates` already
   fades a name by.
-- **Harm** is refused in `Flights.CheckHarm` while `FlightRegistry.Spares` the struck player: in the air, and for
-  `FlightRegistry.LandingGrace` after landing.
+- **Harm** is refused in `Flights.CheckHarm` while `FlightRegistry.Spares` the struck player: in the air, held in
+  the air by the freeze that ended the flight, and for `FlightRegistry.LandingGrace` once the fall begins, at the
+  landing or at the unfreeze (`Freezes.Thawed`, `FlightRegistry.Drop`).
 - **The way back**: `Flights` keeps the spot the flight began at as the one `/aback` returns to (`Teleports.KeepBefore`).
-- **Audit**: a step is `admin.teleport` (`step Ahead 3 m`), a flight `admin.flight_start` and `admin.flight_end`.
+- **Audit**: a step is `admin.teleport` (`step Ahead 3 m`), a flight `admin.flight_start` and `admin.flight_end`,
+  the end also for a flyer who leaves.
 
 ## 5. Not checked in the game
 
@@ -61,4 +64,6 @@ see:
   is left, and that it rests when the keys are let go (by W, A, S and D read as keys the flight was seen to work);
 - whether every part of a hidden character goes, the first person arms and a drawn weapon above all;
 - how the game takes a landing in the air, and whether 15 seconds cover the fall from a great height;
+- a flyer frozen in the air and its fall after the unfreeze. One who leaves and rejoins while frozen there has no
+  grace for that fall;
 - what a door to another area, a mount and a death make of a flight.

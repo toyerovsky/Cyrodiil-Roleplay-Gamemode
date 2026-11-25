@@ -20,13 +20,19 @@ public sealed class FlightRulesTests
     }
 
     [Fact]
-    public void A_flyer_who_pushes_sideways_stays_level_and_one_who_pushes_back_goes_back()
+    public void A_flyer_who_pushes_sideways_stays_level()
     {
         var sideways = FlightRules.FindStep(LookingUp, ToTheRight, push: new Vector2(-1f, 0f), isHurried: false, Frame);
-        var back = FlightRules.FindStep(LookingUp, ToTheRight, push: new Vector2(0f, -1f), isHurried: false, Frame);
 
         AssertClose(-ToTheRight * (FlightRules.Speed * Frame), sideways);
         Assert.Equal(0f, sideways.Z);
+    }
+
+    [Fact]
+    public void A_flyer_who_pushes_back_goes_away_from_where_the_camera_looks()
+    {
+        var back = FlightRules.FindStep(LookingUp, ToTheRight, push: new Vector2(0f, -1f), isHurried: false, Frame);
+
         AssertClose(-LookingUp * (FlightRules.Speed * Frame), back);
     }
 
@@ -56,10 +62,12 @@ public sealed class FlightRulesTests
         AssertClose(LookingUp * (FlightRules.Speed * FlightRules.LongestStepSeconds), step);
     }
 
-    [Fact]
-    public void A_frame_of_no_time_moves_nobody()
+    [Theory]
+    [InlineData(0f)]
+    [InlineData(-0.5f)]
+    public void A_frame_of_no_time_or_less_moves_nobody(float seconds)
     {
-        Assert.Equal(Vector3.Zero, FlightRules.FindStep(LookingUp, ToTheRight, push: new Vector2(1f, 1f), isHurried: true, seconds: -0.5f));
+        Assert.Equal(Vector3.Zero, FlightRules.FindStep(LookingUp, ToTheRight, push: new Vector2(1f, 1f), isHurried: true, seconds));
     }
 
     private static void AssertClose(Vector3 expected, Vector3 actual) =>

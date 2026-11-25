@@ -3,51 +3,42 @@ using CyrodiilRP.Server.Players;
 
 namespace CyrodiilRP.Server.Admin;
 
-// Who flies, and who landed a moment ago: a flyer takes no harm, and none for LandingGrace after, which is the fall
-// from where the flight ended.
+// Who flies, and who a flight left in the air: a flyer takes no harm, and none for LandingGrace once the fall from
+// where the flight ended begins.
 internal sealed class FlightRegistry(IClock clock)
 {
     public static readonly TimeSpan LandingGrace = TimeSpan.FromSeconds(15);
 
-    private readonly HashSet<OnlinePlayer> _flying = [];
-    private readonly Dictionary<OnlinePlayer, DateTimeOffset> _landed = [];
+    private readonly Dictionary<OnlinePlayer, Flight> _flights = [];
 
-    public bool IsFlying(OnlinePlayer player) => _flying.Contains(player);
+    // SparedUntil: null for as long as the character does not fall, flying or held where the flight ended.
+    private sealed record Flight(bool IsFlying, DateTimeOffset? SparedUntil);
 
-    public void TakeOff(OnlinePlayer player)
+    public bool IsFlying(OnlinePlayer player) => _flights.GetValueOrDefault(player) is { IsFlying: true };
+
+    public void TakeOff(OnlinePlayer player) => _flights[player] = new Flight(IsFlying: true, SparedUntil: null);
+
+    // isHeld: the character stays where the flight ended, as under a freeze, so its fall begins with Drop.
+    public void Land(OnlinePlayer flyer, bool isHeld) =>
+        _flights[flyer] = new Flight(IsFlying: false, isHeld ? null : clock.UtcNow + LandingGrace);
+
+    public void Drop(OnlinePlayer player)
     {
-        _flying.Add(player);
-        _landed.Remove(player);
-    }
-
-    // False for a player who was not flying.
-    public bool Land(OnlinePlayer player)
-    {
-        if (!_flying.Remove(player))
-            return false;
-
-        _landed[player] = clock.UtcNow + LandingGrace;
-        return true;
+        if (_flights.GetValueOrDefault(player) is { IsFlying: false, SparedUntil: null })
+            Land(player, isHeld: false);
     }
 
     public bool Spares(OnlinePlayer player)
     {
-        if (_flying.Contains(player))
-            return true;
-
-        if (!_landed.TryGetValue(player, out var until))
+        if (!_flights.TryGetValue(player, out var flight))
             return false;
 
-        if (clock.UtcNow < until)
+        if (flight.SparedUntil is not { } until || clock.UtcNow < until)
             return true;
 
-        _landed.Remove(player);
+        _flights.Remove(player);
         return false;
     }
 
-    public void Forget(OnlinePlayer player)
-    {
-        _flying.Remove(player);
-        _landed.Remove(player);
-    }
+    public void Forget(OnlinePlayer player) => _flights.Remove(player);
 }

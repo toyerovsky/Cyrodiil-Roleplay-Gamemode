@@ -10,8 +10,7 @@ using ReadyM.SDK.Attributes;
 namespace CyrodiilRP.Client.Admin;
 
 // A staff member's flight (/afly). The server takes the character out of the game's physics, on the player's entity,
-// and this moves it where the camera looks for as long as the server holds it so. The game's move keys or stick
-// fly, Shift hurries.
+// and this moves it where the camera looks for as long as the server holds it so.
 [Service]
 internal sealed partial class Flight(
     IPlayers players,
