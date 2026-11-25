@@ -1,9 +1,9 @@
 namespace CyrodiilRP.Server.Fishing;
 
-// A fish that bites: the custom item it comes out as (its key and the name every player's game shows), what one is worth
-// and weighs as an item, its lengths, the weight a length brings, and its share of the fish caught.
+// A species: the custom item it comes out as (and its trophy), what one is worth and weighs as an item, its lengths and
+// the weight a length brings, the fishing level it bites from, the xp it gives, whether it is a rare one, and its fight.
 internal sealed record FishKind(
-    FishKindName Kind,
+    FishSpecies Species,
     string ItemKey,
     string ItemName,
     int Value,
@@ -11,8 +11,24 @@ internal sealed record FishKind(
     int ShortestCm,
     int LongestCm,
     double GramsPerCubicCm,
-    double Share)
+    int MinLevel,
+    int Xp,
+    bool Rare,
+    FishFight Fight)
 {
+    private const string TrophySuffix = ".trophy";
+    private const string TrophyPrefix = "Trophy ";
+    private const int TrophyTimes = 3;
+
+    public string TrophyKey => ItemKey + TrophySuffix;
+
+    public string TrophyName => TrophyPrefix + ItemName;
+
+    public int TrophyValue => Value * TrophyTimes;
+
+    // The page's painted icon.
+    public string Icon => Species.ToString().ToLowerInvariant();
+
     // A length's share of the kind's span, 0 the shortest and 1 the longest.
     public int LengthAt(double share) => (int)Math.Round(ShortestCm + (LongestCm - ShortestCm) * share);
 

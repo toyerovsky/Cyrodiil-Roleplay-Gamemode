@@ -68,31 +68,14 @@ internal static class FishingRules
     // A fish in the top share of its kind's lengths is a trophy.
     public const double TrophyFrom = 0.85;
 
-    // How far the rod casts, in centimetres.
+    // How far the rod casts, in centimetres, until the rod's grade decides it.
     public const float RodReach = 450f;
 
-    // The rod, which the fishing asks for in the pack: a custom item made as a copy of the game's oar, whose icon it
-    // keeps, shown on the ground as the staff the angler holds. The general trader sells it (stocks.json).
-    public const string RodKey = "fishing.rod";
-    public const string RodName = "Fishing Rod";
-    public static readonly FormId RodBase = new(0x00025102);
-    public const int RodValue = 10;
-    public const float RodWeight = 3f;
-
-    // The fish: a custom item each, made as a copy of Crab Meat, the game's food from the water, shown with the
-    // ambient fish's mesh and the fish scales' icon.
+    // The fish are custom items made as copies of Crab Meat, the game's food from the water, shown with the ambient
+    // fish's mesh and the fish scales' icon.
     public static readonly FormId FishBase = new(0x0003366C);
     public static readonly FormId FishIcon = new(0x00033692);
     public const string FishMesh = "/Game/Art/Creatures/Fish/SM_Fish.SM_Fish";
-
-    public static readonly IReadOnlyList<FishKind> Fish =
-    [
-        new(FishKindName.Perch, "fishing.perch", "Perch", Value: 2, Weight: 0.5f, ShortestCm: 14, LongestCm: 36, GramsPerCubicCm: 0.0128, Share: 0.34),
-        new(FishKindName.Trout, "fishing.trout", "Trout", Value: 3, Weight: 0.7f, ShortestCm: 20, LongestCm: 48, GramsPerCubicCm: 0.0104, Share: 0.26),
-        new(FishKindName.Carp, "fishing.carp", "Carp", Value: 3, Weight: 1.5f, ShortestCm: 25, LongestCm: 60, GramsPerCubicCm: 0.0150, Share: 0.20),
-        new(FishKindName.Pike, "fishing.pike", "Pike", Value: 5, Weight: 2f, ShortestCm: 40, LongestCm: 90, GramsPerCubicCm: 0.0075, Share: 0.12),
-        new(FishKindName.Eel, "fishing.eel", "Eel", Value: 4, Weight: 1f, ShortestCm: 40, LongestCm: 80, GramsPerCubicCm: 0.0016, Share: 0.08),
-    ];
 
     // What else comes up on the hook: the game's own items, one piece.
     public static readonly IReadOnlyList<FindKind> Finds =
@@ -113,7 +96,12 @@ internal static class FishingRules
     // A find for a roll under FindShare, spread over the finds by their shares; null for a fish.
     public static FindKind? FindOf(double roll) => roll < FindShare ? PickByShare(Finds, roll / FindShare, find => find.Share) : null;
 
-    public static FishKind FishOf(double roll) => PickByShare(Fish, roll, fish => fish.Share);
+    // Until the waters, the hour and the bait decide it: the species any angler catches, alike.
+    public static FishKind FishOf(double roll)
+    {
+        var anyone = FishCatalog.All.Where(fish => fish.MinLevel <= 1).ToList();
+        return PickByShare(anyone, roll, _ => 1.0);
+    }
 
     private static T PickByShare<T>(IReadOnlyList<T> kinds, double roll, Func<T, double> share)
     {

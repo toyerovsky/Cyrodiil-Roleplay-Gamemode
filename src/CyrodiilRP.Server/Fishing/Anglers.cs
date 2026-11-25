@@ -297,9 +297,10 @@ internal sealed partial class Anglers(
             var share = Math.Pow(_random.NextDouble(), FishingRules.SizeSkew);
             var length = fish.LengthAt(share);
             var grams = fish.GramsAt(length);
-            given = items.TryGive(player, fish);
-            outcome = new FishingOutcomeView(number, FishingOutcome.Caught, fish.ItemName, length, grams, share >= FishingRules.TrophyFrom);
-            chat.Notify(player, FishingText.Caught(fish.ItemName, length, grams));
+            var item = new FishItem(fish, Trophy: share >= FishingRules.TrophyFrom);
+            given = items.TryGive(player, item);
+            outcome = new FishingOutcomeView(number, FishingOutcome.Caught, item.Name, length, grams, item.Trophy);
+            chat.Notify(player, FishingText.Caught(item.Name, length, grams));
         }
 
         if (!given)
