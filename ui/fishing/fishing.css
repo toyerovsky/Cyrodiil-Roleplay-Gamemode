@@ -576,7 +576,7 @@
   top: 12%;
   width: min(380px, calc(100% - 96px));
   max-height: calc(100% - 24%);
-  padding: 26px 30px 22px;
+  padding: 26px 30px 32px;
   overflow: hidden;
   text-align: center;
 }
@@ -601,17 +601,18 @@
   overflow-wrap: anywhere;
 }
 
+/* The whole painted square, so a tall fin or tail never covers the lines under it. */
 .fishing-card__picture {
   display: grid;
   place-items: center;
-  width: 240px;
-  height: 150px;
-  margin: 0 auto;
+  width: 190px;
+  height: 190px;
+  margin: -6px auto 0;
 }
 
 .fishing-card__picture img {
-  width: 240px;
-  height: 240px;
+  width: 190px;
+  height: 190px;
   object-fit: contain;
   filter: drop-shadow(0 6px 6px rgba(43, 29, 14, 0.35));
 }
@@ -631,18 +632,19 @@
 }
 
 .fishing-card--lost .fishing-card__picture {
-  height: 120px;
+  width: 140px;
+  height: 140px;
 }
 
 .fishing-card--lost .fishing-card__picture img {
-  width: 150px;
-  height: 150px;
+  width: 140px;
+  height: 140px;
   filter: grayscale(1) contrast(0.8);
   opacity: 0.55;
 }
 
 .fishing-card__lost-name {
-  margin: -8px 0 0;
+  margin: 0;
   font-style: italic;
   font-size: 17px;
   color: var(--ink-soft);

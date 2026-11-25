@@ -128,8 +128,8 @@
 }
 
 .fisher__picture--large {
-  width: 150px;
-  height: 150px;
+  width: 112px;
+  height: 112px;
   filter: drop-shadow(0 4px 6px rgba(43, 29, 14, 0.35));
 }
 
@@ -184,9 +184,9 @@
   display: grid;
   align-content: start;
   justify-items: center;
-  gap: 6px;
+  gap: 4px;
   min-height: 0;
-  padding: 18px 16px;
+  padding: 14px 16px;
   overflow-y: auto;
   text-align: center;
   background: var(--ink-wash);
@@ -221,7 +221,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
 .fisher__step.rp-button {
@@ -237,7 +237,7 @@
 }
 
 .fisher__total {
-  margin: 8px 0 4px;
+  margin: 4px 0 2px;
   font-weight: 700;
   font-size: 19px;
 }
@@ -249,7 +249,7 @@
 
 .fisher__act {
   width: 100%;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .fisher__status {

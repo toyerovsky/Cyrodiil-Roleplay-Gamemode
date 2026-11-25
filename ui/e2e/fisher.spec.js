@@ -9,6 +9,12 @@ async function openFisher(page, scenario = "") {
   await expect(page.getByRole("region", { name: t("title") })).toBeVisible();
 }
 
+// The picked row's details and its buttons fit their pane, with nothing to scroll to.
+async function expectDetailWhole(page) {
+  const hidden = await page.locator(".fisher__detail").evaluate((detail) => detail.scrollHeight - detail.clientHeight);
+  expect(hidden, "the detail pane should show all it holds").toBeLessThanOrEqual(1);
+}
+
 const tab = (page, key) => page.getByRole("tab", { name: t(`tab.${key}`) });
 const rows = (page, key) => page.getByRole("listbox", { name: t(`list.${key}`) });
 
@@ -18,6 +24,7 @@ test("the catch is sold fish by fish and then whole, the purse following", async
   await expect(page.getByRole("option", { name: /Silverside Perch/ })).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("[data-purse]")).toHaveText("120 gold");
   await expectNoHorizontalOverflow(page, ".fisher__panel");
+  await expectDetailWhole(page);
   await screenshot(page, testInfo, "fisher-catch");
 
   await page.keyboard.press("Enter");
@@ -47,6 +54,7 @@ test("bait is bought from the keyboard: E to the shop, the arrows, a count and E
   await expect(tab(page, "shop")).toHaveAttribute("aria-selected", "true");
   await expect(rows(page, "shop")).toBeFocused();
   await expect(page.locator("[data-rod-facts]")).toHaveText("casts 7 m · line strength 100%");
+  await expectDetailWhole(page);
   await screenshot(page, testInfo, "fisher-shop-rod");
 
   await page.keyboard.press("End");
@@ -57,6 +65,7 @@ test("bait is bought from the keyboard: E to the shop, the arrows, a count and E
   for (let i = 0; i < 9; i++) await page.keyboard.press("+");
   await expect(page.locator(".fisher__amount")).toHaveText("10");
   await expect(page.locator(".fisher__total")).toHaveText("Total 10 gold");
+  await expectDetailWhole(page);
   await screenshot(page, testInfo, "fisher-shop-worms");
   await page.keyboard.press("Enter");
   await expect(page.locator(".fisher__status")).toHaveText("Bought Fishing Worms × 10 for 10 gold.");
@@ -73,6 +82,7 @@ test("a worn rod is mended, and a dear one cannot be", async ({ page }, testInfo
   await openFisher(page);
   await tab(page, "repair").click();
   await expect(page.locator(".fisher__detail")).toContainText("Mended as good as new for 4 gold.");
+  await expectDetailWhole(page);
   await screenshot(page, testInfo, "fisher-repair");
 
   await page.getByRole("button", { name: t("repair"), exact: true }).click();
@@ -119,6 +129,7 @@ test("a long catch scrolls in its list, the picked fish kept in sight", async ({
   await expect(page.getByRole("option", { name: /Trophy Emperor's Golden Carp/ })).toHaveAttribute("aria-selected", "true");
   await expect.poll(() => rows(page, "catch").evaluate((list) => list.scrollTop)).toBeGreaterThan(0);
   await expect(page.getByRole("option", { name: /Trophy Emperor's Golden Carp/ })).toBeInViewport();
+  await expectDetailWhole(page);
   await expectNoHorizontalOverflow(page, ".fisher__rows");
   await screenshot(page, testInfo, "fisher-many");
 });

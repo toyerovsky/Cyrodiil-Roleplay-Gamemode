@@ -4,6 +4,7 @@ const NEXT_MS = 300;
 const CHARGE_UP_MS = 1100;
 
 const ROD = { name: "Fishing Rod (Worn)", tier: "Basic", condition: "Worn", reachCm: 700 };
+const DAMAGED_ROD = { ...ROD, name: "Fishing Rod (Damaged)", condition: "Damaged" };
 const LINE = {
   stage: "Aim",
   nibbles: 0,
@@ -26,8 +27,8 @@ const lost = (kind, outcome = {}, line = {}) => resting({ kind, ...outcome }, li
 // #strain: leant with the run and reeling into it, the line in the red. #dive: a dive far out. #rest: a tired fish
 // close in, reeled. #slack: the line gone slack in a run. #monster: a monster on the master rod. #caught: a trophy pike.
 // #rare: an Emperor's golden carp, a record and a level reached. #found: a pearl. #lostearly, #lostnibble, #lostlate,
-// #snapped, #slipped, #runaway: each way a fish gets away, the last two costing the rod and the lure. #nobait: waiting
-// with no bait on a damaged rod.
+// #snapped, #slipped, #runaway: each way a fish gets away, #snapped and #runaway costing the rod and the lure.
+// #nobait: waiting with no bait on a damaged rod.
 const SCENARIOS = {
   "": { views: [LINE], anchor: [0.52, 0.47] },
   charging: { views: [LINE], anchor: [0.52, 0.47], charge: true },
@@ -63,12 +64,12 @@ const SCENARIOS = {
   lostnibble: { views: [lost("LostNibble")], anchor: null },
   lostlate: { views: [lost("LostLate")], anchor: null },
   snapped: {
-    views: [lost("LostSnapped", { species: "Pike", name: "Pike", rod: "Damaged", baitLost: true }, { bait: null })],
+    views: [lost("LostSnapped", { species: "Pike", name: "Pike", rod: "Damaged", baitLost: true }, { bait: null, rod: DAMAGED_ROD })],
     anchor: null,
   },
   slipped: { views: [lost("LostSlack", { species: "Trout", name: "Colovian Trout" })], anchor: null },
   runaway: { views: [lost("LostRunaway", { species: "Longfin", name: "Abecean Longfin", rod: "Broken", baitLost: true })], anchor: null },
-  nobait: { views: [{ ...LINE, stage: "Waiting", bait: null, rod: { ...ROD, name: "Fishing Rod (Damaged)", condition: "Damaged" } }], anchor: [0.5, 0.45] },
+  nobait: { views: [{ ...LINE, stage: "Waiting", bait: null, rod: DAMAGED_ROD }], anchor: [0.5, 0.45] },
 };
 
 export function pretendGame(readym) {

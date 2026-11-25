@@ -4,6 +4,7 @@ const t = readTexts("ui.fishing");
 const CHARGE_UP_MS = 1100;
 const NIBBLE_SHOWN_MS = 800;
 const CARD_SHOWN_MS = 6000;
+// A card's fade in or out, whose frames the paused clock gives too.
 const LEAVE_MS = 1500;
 // What shows behind the page in the game: a sunlit lake and a night sky, the hardest backgrounds for its text.
 const SCENES = {
@@ -40,8 +41,16 @@ async function openLine(page, scenario) {
   await expect(page.locator(".fishing__plate")).toBeVisible();
 }
 
-// Every part of the page lies wholly on the screen and none scrolls sideways.
+// Every part of the page lies wholly on the screen and none scrolls sideways, and the card's picture covers none of its
+// lines.
 async function expectWithinScreen(page) {
+  const picture = page.locator(".fishing-card__picture");
+  if ((await picture.count()) > 0) {
+    const bottom = await picture.evaluate((element) => (element.querySelector("img") ?? element).getBoundingClientRect().bottom);
+    const next = await picture.evaluate((element) => element.nextElementSibling?.getBoundingClientRect().top ?? Infinity);
+    expect(bottom, "the card's picture over its lines").toBeLessThanOrEqual(next + 1);
+  }
+
   const viewport = page.viewportSize();
   for (const part of [".fishing__plate", ".fishing-gear", ".fishing-card"]) {
     if ((await page.locator(part).count()) === 0) continue;
@@ -115,6 +124,8 @@ test("a whole bite from the cast to the catch, as the game tells it", async ({ p
     outcome: { number: 1, kind: "Caught", species: "GoldenCarp", name: "Emperor's Golden Carp", lengthCm: 88, grams: 11176, trophy: true, record: true, xp: 270, levelUp: 46, rare: true, rod: null, baitLost: false },
   });
   const card = page.locator("[data-card]");
+  await page.clock.runFor(LEAVE_MS);
+  await expect(card).toHaveCSS("opacity", "1");
   await expect(card.locator(".fishing-card__name")).toHaveText("Emperor's Golden Carp");
   await expect(card.locator("[data-badge]")).toHaveText([t("trophy"), t("record"), t("rare")]);
   await expect(card.locator("[data-level]")).toHaveText("Fishing level 46!");
@@ -125,7 +136,6 @@ test("a whole bite from the cast to the catch, as the game tells it", async ({ p
   await showLine(page, { stage: "Aim", outcome: { number: 1, kind: "Caught" } });
   await expect(page.locator(".fishing__title")).toHaveText(t("aim"));
   await expect(power).toHaveAttribute("aria-valuenow", "0");
-  // The card's own time, then its fade, whose frames the paused clock gives too.
   await page.clock.runFor(CARD_SHOWN_MS + LEAVE_MS);
   await expect(card).toHaveCount(0);
 
