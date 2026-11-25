@@ -95,6 +95,7 @@ public sealed class FishingConditionsTests
     [InlineData(FishingHours.DuskFrom, "Dusk")]
     [InlineData(FishingHours.NightFrom, "Night")]
     [InlineData(1439.9f, "Night")]
+    [InlineData(1440f, "Night")]
     public void The_hour_of_the_worlds_clock_is_a_part_of_the_day(float minutes, string part)
     {
         Assert.Equal(Enum.Parse<DayPart>(part), FishingHours.Of(minutes));
@@ -102,7 +103,7 @@ public sealed class FishingConditionsTests
 
     [Theory]
     [InlineData(-1f)]
-    [InlineData(1440f)]
+    [InlineData(1441f)]
     [InlineData(float.NaN)]
     public void A_time_of_day_outside_a_day_is_refused(float minutes)
     {

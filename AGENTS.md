@@ -47,8 +47,10 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   gold after a cooldown. Shown on the welcome screen, the F10 character tab and the staff's player card, where an
   administrator also sets the specialization, a stat's cap or its value (`/aspec`, `/acap`, `/astat`). See
   `docs/features/specializations.md`.
-- **Fishing:** "Fish" on the G wheel, in any water the rod reaches: cast, strike and land with Space, fish and finds
-  into the pack, seen by everyone near. See `docs/features/fishing.md`.
+- **Fishing:** "Fish" on the G wheel, in any water the rod reaches: cast with power, strike, and fight the fish with
+  Space and the rod's lean (A, D). The water, the hour, the weather and the bait (G wheel) decide the species, a skill
+  to 100 and each character's records grow with the catches, rods wear. Seen by everyone near. See
+  `docs/features/fishing.md`.
 - **Fisher:** a fisher NPC buys the catch, sells rods, baits and the lure and mends rods. Raw fish feed through Hunger
   and Thirst. See `docs/features/fisher.md`.
 - **Notice board:** a board the staff stand in the world, H opens its unsigned notices and lets anyone pin one. See

@@ -11,10 +11,11 @@ internal static class FishingHours
     public const float DuskFrom = 18 * MinutesInHour;
     public const float NightFrom = 21 * MinutesInHour;
 
+    // A day's end is midnight again: the clock's float can round up to it.
     public static DayPart Of(float timeOfDayMinutes)
     {
-        if (!(timeOfDayMinutes >= 0f && timeOfDayMinutes < MinutesInDay))
-            throw new ArgumentOutOfRangeException(nameof(timeOfDayMinutes), timeOfDayMinutes, "The time of day is minutes from midnight, under a day.");
+        if (!(timeOfDayMinutes >= 0f && timeOfDayMinutes <= MinutesInDay))
+            throw new ArgumentOutOfRangeException(nameof(timeOfDayMinutes), timeOfDayMinutes, "The time of day is minutes from midnight, a day at most.");
 
         return timeOfDayMinutes switch
         {
