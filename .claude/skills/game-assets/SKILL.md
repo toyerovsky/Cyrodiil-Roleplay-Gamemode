@@ -58,7 +58,7 @@ still see something (`AnglerScenery.HeldMeshOf`).
 ### Unreal, and the game's own engine
 
 The remaster runs `5.3.2-237883`, Unreal 5.3.2 changed by its makers, partly with 5.4's code. Assets cooked by the
-stock 5.3.2 must allow for that:
+stock 5.3.2 must allow for that. With the rules below the rods load and show in the game (seen 2026-11-26):
 
 - **Cook with each property saved by its name** (`BuildCookRun ... -VersionCookedContent`). The default cook saves
   properties by their place in the class, and the game's classes differ: its `FBodyInstance` holds
