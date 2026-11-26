@@ -116,6 +116,8 @@ own. The commands are in `DEVELOPMENT.md`. Before working in an area, read:
 - Texts for players and pages: [.claude/skills/game-ui/SKILL.md](.claude/skills/game-ui/SKILL.md).
 - Previewing pages without the game and Playwright: [.claude/skills/ui-playwright/SKILL.md](.claude/skills/ui-playwright/SKILL.md).
 - Integration with the platform: [.claude/skills/oblivionmp-platform/SKILL.md](.claude/skills/oblivionmp-platform/SKILL.md).
+- The game's meshes, effects and sounds, and models of the mode's own (Blender, Unreal, `~mods`):
+  [.claude/skills/game-assets/SKILL.md](.claude/skills/game-assets/SKILL.md).
 
 ### Mandatory verification of every new interface
 
