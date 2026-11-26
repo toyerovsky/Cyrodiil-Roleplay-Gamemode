@@ -135,9 +135,11 @@ lure, and mends rods.
 
 ## 5. Not checked in the game yet
 
-Seen in the game so far: the cast, the float, the fish round it and the fight, from a bank. The SDK blocks it stands
-on were checked there from a probe before they were built (`IWater`'s traces in a river and from a bridge, the
-projection, the splash and its sound). To check:
+Seen in the game so far (2026-11-26, Lake Rumare by the Imperial City): the cast, the float, the small fish round it,
+the fight, the catch held up with its card, chat line and level, the reel's ratchet and drag, and the plain rod loaded
+from the container put in `~mods` by hand, held at about 45 degrees while waiting. The SDK blocks it stands on were
+checked there from a probe before they were built (`IWater`'s traces in a river and from a bridge, the projection, the
+splash and its sound). To check:
 
 - the look for water from the bank, wading, from a pier and a bridge, in a lake, the sea and Bravil's canals;
 - the waters map at its places: Lake Rumare by the Imperial City, Niben Bay at Bravil, the sea at Anvil, a river, a
@@ -145,11 +147,11 @@ projection, the splash and its sound). To check:
 - the area's weather and the world's hour as the server reads them while fishing;
 - whether the mouse still turns the aim while the camera is the mode's, and that Space does not make the frozen
   character jump;
-- the mode's rods (whether the game loads the container the launcher copies), on the hand (offset and turn on `Weapon_Socket`)
-  for each grade, the cast, strike, fight and showing animations, and how others see them;
-- the float's flight, its bobbing and dips, the small fish round it (whether they show through the water), the fish
-  circling, biting, following the float, jumping, held up and swimming off, the splashes' size and sound, the reel's
-  ratchet and drag;
+- the mode's rods from the container the launcher copies, the reel and the guides under the rod and the hand on the
+  grip (`AnglerLooks.RodOffset`, `RodRotation`) for each grade, the cast, strike, fight and showing animations, and how
+  others see them;
+- the float's flight, its bobbing and dips, the fish circling, biting, following the float, jumping, held up and
+  swimming off, the splashes' size and sound, and the cameras of the cast, the bite and the catch;
 - the fight's feel: whether the numbers tuned by bots feel right in a player's hands, and whether the page and the
   splashes tell the runs in time;
 - the items: the fish's names, icon and mesh when dropped, the rods' names, icon and staff mesh, the baits as items;

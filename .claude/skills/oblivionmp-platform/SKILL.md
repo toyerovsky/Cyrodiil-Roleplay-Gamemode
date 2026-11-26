@@ -12,6 +12,9 @@ Each fact below was checked in this repo.
 ## A mod
 
 - `mods/<name>/manifest.json`, `client/` (handed to every player) and `server/` (stays on the server).
+- Every `.pak`, `.utoc` and `.ucas` anywhere in a mod's `client/` the launcher copies into the game's
+  `Content\Paks\~OblivionMp` when a player joins, before the game starts and mounts it, and that folder is cleared at the
+  next join. So the mode's own models ship as a container in its client half (`mod/paks`): see the game-assets skill.
 - The server loads every DLL of a mod's `server/` into the mod's own load context. An assembly the server or another mod
   already ships must not be in it: a second copy is refused, and a second `Microsoft.Extensions.Logging` would not be the
   host's. `pack.ps1` leaves them out.

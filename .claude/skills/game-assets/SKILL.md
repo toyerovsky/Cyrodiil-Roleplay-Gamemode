@@ -10,7 +10,7 @@ The client draws and plays the game's assets by path: `ILocalProps.Place` a stat
 not a `.bnk`). What the game lacks, the mode makes itself and ships as a container (`mod/paks`, Git LFS) in the mod's
 client half: the launcher copies every `.pak`, `.utoc` and `.ucas` of a server's mods into the game's
 `Content\Paks\~OblivionMp` as a player joins, before the game starts and mounts them, and clears the folder at the
-next join (`OblivionPakCopyStep` in the launcher).
+next join.
 
 ## Picking the game's own
 

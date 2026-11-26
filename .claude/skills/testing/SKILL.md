@@ -29,7 +29,8 @@ description: How to write and run the tests of Cyrodiil RP (C# xUnit with Postgr
   context hands back what it tracks, and the test passes for the wrong reason.
 - `Server/`: the packed mod (`out/mods/CyrodiilRP`) on a copy of the real server and a database of its own. It
   fails on any `[ERR]` or `[FTL]` line, the first seconds after start included. The newest `oblivion-server-*` folder is
-  used, or `OBLIVIONMP_SERVER`.
+  used, or `OBLIVIONMP_SERVER`. A Linux package (the build the dev server runs) has no `server.exe`: on Windows the two
+  smoke tests then fail at once with "has no server.exe", which says nothing about the change. They need a Windows build.
 - `Infrastructure/ShippedConfigTests` reads `src/CyrodiilRP.Server/config.json` as the server reads a mod's config:
   the smoke tests write a config of their own, so they never see the shipped one.
 - `Database/MigratorTests` runs the built migrator as a process, `Localization/TextsGeneratorTests` the texts generator

@@ -10,7 +10,9 @@ that branch's SDK is released nowhere. Its NuGet packages are in `.sdk/`, the so
 `Directory.Build.props` reads the version from them, so a clone builds and runs its tests with no server and no
 oblivion-mod checkout. They are kept in Git LFS: run `git lfs install` once before cloning, or `git lfs pull` in a clone
 made without it. A checkout from before the packages were tracked still holds the ones `pack.ps1` copied there: delete
-them with `git clean -f .sdk`.
+them with `git clean -f .sdk`. The mode's own models are in Git LFS too: `mod/paks` holds the container cooked from
+`design/models` with Unreal (`design/README.md`), since the server that builds the mod cannot run Unreal, and
+`pack.ps1` puts it into the mod's `client/paks`, which the launcher hands to every player's game.
 
 A server package from *rp-framework CI* carries the SDK it was built with in `sdk/`, and `pack.ps1` refuses a server
 built with another one than `.sdk/` holds, so the mods are deployed to what they were compiled against. To move to a
