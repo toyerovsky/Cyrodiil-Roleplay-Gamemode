@@ -21,6 +21,9 @@ public static partial class RpContracts
     [ServerToClient]
     public static partial void Notify(string text);
 
+    [ServerToClient]
+    public static partial void ZoneEntered(string text);
+
     // An action (/me) over the head of the player who did it, by their number (the raw value of their PlayerId), for this
     // long.
     [ServerToClient]

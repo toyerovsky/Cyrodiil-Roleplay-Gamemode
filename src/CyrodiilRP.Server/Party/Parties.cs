@@ -53,6 +53,8 @@ internal sealed partial class Parties(
     // What each member's panel shows now, so the watch sends only what changed.
     private readonly Dictionary<OnlinePlayer, IReadOnlyList<PartyMemberView>> _shown = [];
 
+    public IEnumerable<OnlinePlayer> MembersOf(OnlinePlayer player) => _book.Find(player)?.Members ?? [player];
+
     private void Start()
     {
         interactions.Add(new InteractionOption

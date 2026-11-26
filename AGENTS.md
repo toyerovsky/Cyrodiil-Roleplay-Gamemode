@@ -57,6 +57,8 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   `docs/features/notice-board.md`.
 - **Spawn:** the staff set it in the outside world (`/aspawn here`, a button in the panel), a new character goes
   there after closing the game's creator.
+- **Level zones:** configurable Tamriel cell polygons and world spaces, fixed level ranges or party-lowest scaling,
+  spawn offsets, damage gaps, native entry messages, `/zone` and staff `/azone`. See `docs/features/zones.md` for v1 limits.
 - **Feeding:** Feed on the H wheel opens a wheel of the foods the player carries, what the one in front needs most
   first; a pick gives them one through the Hunger and Thirst mod (`mods/HungerAndThirst`), and the feeding is said
   around as an action.

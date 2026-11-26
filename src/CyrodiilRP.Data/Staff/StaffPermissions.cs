@@ -14,6 +14,7 @@ public static class StaffPermissions
     public const string GoTo = "agoto";
     public const string Bring = "abring";
     public const string Position = "apos";
+    public const string Zone = "azone";
     public const string Teleport = "atp";
     public const string Back = "aback";
     public const string Step = "astep";
