@@ -15,7 +15,10 @@ const props = defineProps({
 const PERCENT = 100;
 
 const rod = computed(() => props.view.rod);
-const bait = computed(() => props.view.bait);
+// The bait chosen is on the hook while some is left; once it runs out the hook goes bare, and the corner names what ran
+// out.
+const bait = computed(() => (props.view.bait && props.view.bait.count > 0 ? props.view.bait : null));
+const ranOut = computed(() => (props.view.bait && props.view.bait.count === 0 ? props.view.bait : null));
 const skill = computed(() => props.view.skill);
 const reach = computed(() =>
   fill(props.t.reach, { metres: (rod.value.reachCm / PERCENT).toLocaleString(props.locale, { maximumFractionDigits: 1 }) }),
@@ -44,6 +47,7 @@ const progress = computed(() => (skill.value.xpNext > 0 ? Math.min(1, skill.valu
       <p class="fishing-gear__text">
         <span class="fishing-gear__name">{{ bait ? bait.name : t.bait_none }}</span>
         <span v-if="bait" class="fishing-gear__fact">{{ fill(t.bait_left, { count: bait.count.toLocaleString(locale) }) }}</span>
+        <span v-else-if="ranOut" class="fishing-gear__fact" data-bait-out>{{ fill(t.bait_out, { bait: ranOut.name }) }}</span>
         <span v-else class="fishing-gear__fact">{{ t.bait_none_hint }}</span>
       </p>
     </div>

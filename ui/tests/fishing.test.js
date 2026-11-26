@@ -271,6 +271,16 @@ describe("the fishing page", () => {
     expect(page.find('[data-gear="bait"] img').exists()).toBe(false);
   });
 
+  it("shows a bare hook, naming the bait that ran out, once none of it is left", async () => {
+    await show({ bait: { kind: "CrabMeat", name: "Crab Meat", count: 0 } });
+
+    const row = page.find('[data-gear="bait"]');
+    expect(row.find(".fishing-gear__name").text()).toBe(text("bait_none"));
+    expect(row.find("img").exists()).toBe(false);
+    expect(row.find("[data-bait-out]").text()).toBe(text("bait_out").replace("{bait}", "Crab Meat"));
+    expect(row.text()).not.toContain("0 left");
+  });
+
   it("goes when the fishing ends, the power with it", async () => {
     await show({});
     await game.emit("Charge", true, CHARGE_UP_MS);

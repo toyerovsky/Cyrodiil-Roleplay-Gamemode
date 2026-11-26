@@ -59,6 +59,7 @@
   "ui.fishing.bait_left": "zostało: {count}",
   "ui.fishing.bait_none": "Bez przynęty",
   "ui.fishing.bait_none_hint": "brania są rzadsze",
+  "ui.fishing.bait_out": "skończyła się przynęta ({bait}): brania są rzadsze",
   "ui.fishing.skill": "Wędkarstwo",
   "ui.fishing.level": "poziom {level}",
   "ui.fishing.xp_of": "{xp} / {next} pd",

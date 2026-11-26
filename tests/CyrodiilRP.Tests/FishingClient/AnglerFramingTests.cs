@@ -9,17 +9,19 @@ public sealed class AnglerFramingTests
     private const float WaterZ = -40f;
     private static readonly Vector3 Stand = new(0f, 0f, 0f);
 
-    [Fact]
-    public void At_the_bite_the_camera_comes_a_third_nearer_the_float_and_lower_looking_at_it()
+    [Theory]
+    [InlineData(700f)]
+    [InlineData(2200f)]
+    public void At_the_bite_the_camera_steps_toward_the_float_and_lower_looking_at_it_and_stays_behind_the_angler(float cast)
     {
-        var floatAt = new Vector3(700f, 0f, WaterZ);
+        var floatAt = new Vector3(cast, 0f, WaterZ);
         var shoulder = AnglerFraming.Shoulder(Stand, yaw: 0f, WaterZ, floatAt);
 
         var bite = AnglerFraming.Bite(shoulder, floatAt);
 
-        var nearer = Vector3.Lerp(shoulder.At, floatAt, AnglerFraming.BiteCloser);
-        Assert.Equal(nearer.X, bite.At.X, Tolerance);
-        Assert.Equal(nearer.Y, bite.At.Y, Tolerance);
+        var step = new Vector2(bite.At.X - shoulder.At.X, bite.At.Y - shoulder.At.Y);
+        Assert.Equal(AnglerFraming.BiteForward, step.Length(), Tolerance);
+        Assert.True(bite.At.X < Stand.X, "a long cast must not carry the camera past the angler");
         Assert.True(bite.At.Z < shoulder.At.Z);
         Assert.Equal(floatAt, bite.LookAt);
     }
@@ -50,7 +52,7 @@ public sealed class AnglerFramingTests
     }
 
     [Fact]
-    public void The_catch_is_seen_from_the_anglers_front_right_at_chest_height_looking_at_the_hand()
+    public void The_catch_is_seen_from_the_anglers_front_right_looking_between_the_hand_and_the_face()
     {
         const float yaw = 90f;
 
@@ -60,6 +62,9 @@ public sealed class AnglerFramingTests
         Assert.True(Vector3.Dot(way, FishingShot.Forward(yaw)) > 0f);
         Assert.True(Vector3.Dot(way, FishingShot.Right(yaw)) > 0f);
         Assert.Equal(Stand.Z + AnglerFraming.CatchUp, shot.At.Z, Tolerance);
-        Assert.Equal(AnglerFraming.HandAt(Stand, yaw), shot.LookAt);
+        var hand = AnglerFraming.HandAt(Stand, yaw);
+        Assert.Equal(hand.X, shot.LookAt.X, Tolerance);
+        Assert.Equal(hand.Y, shot.LookAt.Y, Tolerance);
+        Assert.InRange(shot.LookAt.Z, hand.Z, Stand.Z + AnglerFraming.CatchUp);
     }
 }

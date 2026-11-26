@@ -51,8 +51,12 @@ internal sealed partial class AnglerScenery(
             Forget(angler);
     }
 
-    // Where an angler's float is drawn now, in the air too, for the angler's camera and page.
+    // Where an angler's float is drawn now, in the air too, for the angler's page.
     public Vector3? FindFloat(int angler) => _anglers.TryGetValue(angler, out var scene) ? scene.Float?.Drawn : null;
+
+    // Where an angler's float is going: where it comes down while it flies, else where the server put it. The camera
+    // follows this, so it does not tip up after a float in the air.
+    public Vector3? FindFloatGoal(int angler) => _anglers.TryGetValue(angler, out var scene) ? scene.Float?.Target : null;
 
     public bool IsShowingCatch(int angler) => _anglers.TryGetValue(angler, out var scene) && scene.Show is not null;
 
@@ -204,7 +208,7 @@ internal sealed partial class AnglerScenery(
 
         var held = HeldRodOf(scene.Tier);
         var placed = props.Place(new Prop(held.Mesh, holder.Position, Vector3.Zero, AnglerLooks.RodScale), collides: false);
-        if (props.AttachTo(placed, holder, CharacterMesh.ThirdPerson, AnglerLooks.HandSocket, AnglerLooks.RodOffset, held.Rotation))
+        if (props.AttachTo(placed, holder, CharacterMesh.ThirdPerson, AnglerLooks.HandSocket, held.Offset, held.Rotation))
             return scene with { Rod = placed };
 
         props.Remove(placed);
@@ -222,8 +226,8 @@ internal sealed partial class AnglerScenery(
 
         var rod = AnglerLooks.RodOf(tier);
         var held = props.TryMeasure(rod, 1f, out _)
-            ? new HeldRod(rod, AnglerLooks.RodRotation)
-            : new HeldRod(FishingGear.StaffOf(tier), AnglerLooks.StaffRotation);
+            ? new HeldRod(rod, AnglerLooks.RodOffset, AnglerLooks.RodRotation)
+            : new HeldRod(FishingGear.StaffOf(tier), AnglerLooks.StaffOffset, AnglerLooks.StaffRotation);
         if (held.Mesh != rod)
             logger.LogInformation("This game has no {Mesh}, the mode's {Tier} fishing rod: a staff stands for it.", rod, tier);
         _heldRods[tier] = held;

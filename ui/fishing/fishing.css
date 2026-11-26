@@ -10,13 +10,22 @@
   height: 100%;
 }
 
-/* Low in the middle, over the game's compass. */
+/* Low, just over the game's bars, and right of the middle: the camera stands over the angler's right shoulder, so the
+   angler and the rod fill the left of the screen. It never reaches the gear plate in the lower right corner. */
+.fishing {
+  --fishing-plate-width: 560px;
+  --fishing-gear-width: 300px;
+  --fishing-edge: 28px;
+  --fishing-gap: 24px;
+}
+
 .fishing__plate {
   position: absolute;
-  left: 50%;
-  bottom: 150px;
-  width: min(640px, calc(100% - 48px));
-  padding: 16px 28px 14px;
+  left: min(calc(50% + 96px),
+    calc(100% - var(--fishing-edge) - var(--fishing-gear-width) - var(--fishing-gap) - var(--fishing-plate-width) / 2));
+  bottom: 72px;
+  width: min(var(--fishing-plate-width), calc(100% - 48px));
+  padding: 12px 22px 10px;
   text-align: center;
   transform: translateX(-50%);
   filter: drop-shadow(0 14px 24px var(--shadow-deep));
@@ -30,7 +39,7 @@
   margin: 0;
   font-family: var(--font-title);
   font-weight: 600;
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1.2;
   letter-spacing: 0.04em;
   color: var(--gold-light);
@@ -49,8 +58,8 @@
 }
 
 .fishing__hint {
-  margin: 6px 0 0;
-  font-size: 18px;
+  margin: 4px 0 0;
+  font-size: 16px;
   color: var(--night-text);
 }
 
@@ -64,7 +73,7 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  margin: 14px 0 0;
+  margin: 8px 0 0;
 }
 
 .fishing__power-end {
@@ -105,8 +114,8 @@
 /* The fight: two gauges, then what the fish feels like, the rod's lean and how far it is. */
 .fishing-fight {
   display: grid;
-  gap: 8px;
-  margin: 14px 0 0;
+  gap: 6px;
+  margin: 8px 0 0;
 }
 
 .fishing-fight__gauge {
@@ -287,9 +296,9 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px 18px;
-  margin: 14px 0 0;
-  padding: 10px 0 0;
+  gap: 6px 18px;
+  margin: 8px 0 0;
+  padding: 6px 0 0;
   border-top: 1px solid var(--night-line);
   list-style: none;
 }
@@ -348,11 +357,11 @@
 /* The gear and the skill, in the lower right corner. */
 .fishing-gear {
   position: absolute;
-  right: 28px;
+  right: var(--fishing-edge);
   bottom: 120px;
   display: grid;
   gap: 8px;
-  width: 300px;
+  width: var(--fishing-gear-width);
   padding: 12px 16px 10px;
   filter: drop-shadow(0 10px 18px var(--shadow-deep));
 }

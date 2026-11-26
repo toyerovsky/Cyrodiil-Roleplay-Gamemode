@@ -255,7 +255,7 @@ internal sealed partial class FishingOverlay(
 
         var self = me.PlayerId.RawValue;
         var floatAt = scenery.FindFloat(self);
-        Film(fishing, floatAt, scenery.IsShowingCatch(self), now);
+        Film(fishing, scenery.FindFloatGoal(self), scenery.IsShowingCatch(self), now);
         cues.Keep(_read, me.Position, now);
         _fishing = Anchor(fishing, Marked(fishing, floatAt, now));
     }

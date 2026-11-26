@@ -26,7 +26,9 @@ lure, and mends rods.
   in the corner when no water is in reach, while swimming, out of the world, while held still (a staff member's freeze
   or flight), or while the character's fishing is still being read as it starts playing.
 - **Held still.** While fishing the character stands where it began, facing the water, and the camera looks from over
-  its right shoulder. X stops the fishing at any stage (not E, which the game takes as activate), so does "Stop
+  its right shoulder, at where the float will come down while it flies, a step nearer and lower at the bite (the angler
+  and the rod stay in the shot), and from the front at the catch held up. The page's plate sits low and right of the
+  middle, clear of the angler. X stops the fishing at any stage (not E, which the game takes as activate), so does "Stop
   fishing" on the wheel, a staff member's freeze, or the character being moved more than 3 m away. W, A, S and D do
   not stop it. Stopping with a fish on the line cuts the line, at what a snap costs: the rod may wear, the lure goes.
 - **The cast.** The aim follows where the player looks, up to 60 degrees to either side. Holding Space swings a power

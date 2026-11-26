@@ -59,6 +59,7 @@
   "ui.fishing.bait_left": "{count} left",
   "ui.fishing.bait_none": "No bait",
   "ui.fishing.bait_none_hint": "bites come slower",
+  "ui.fishing.bait_out": "no {bait} left: bites come slower",
   "ui.fishing.skill": "Fishing",
   "ui.fishing.level": "level {level}",
   "ui.fishing.xp_of": "{xp} / {next} xp",

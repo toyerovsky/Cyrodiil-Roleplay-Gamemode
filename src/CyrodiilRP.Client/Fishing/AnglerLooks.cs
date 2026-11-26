@@ -18,10 +18,13 @@ internal static class AnglerLooks
         RodTier.Sturdy => "/Game/CyrodiilRP/Fishing/SM_FishingRod_Sturdy.SM_FishingRod_Sturdy",
         RodTier.Master => "/Game/CyrodiilRP/Fishing/SM_FishingRod_Master.SM_FishingRod_Master",
     };
-    public static readonly Vector3 RodOffset = Vector3.Zero;
+    // The hand closed on the bare rod ahead of the grip: the rod slides this far toward its tip (the mesh's -Y), so the
+    // hand holds the grip and the reel sits just behind it.
+    public static readonly Vector3 RodOffset = new(0f, -10f, 0f);
     // The rods are modelled with the reel and the guides under them, which the socket turns upward: half a turn about
-    // their length (pitch, the mesh's Y) hangs them under the rod again. A staff needs no turn.
+    // their length (pitch, the mesh's Y) hangs them under the rod again. A staff needs neither.
     public static readonly Vector3 RodRotation = new(180f, 0f, 0f);
+    public static readonly Vector3 StaffOffset = Vector3.Zero;
     public static readonly Vector3 StaffRotation = Vector3.Zero;
     public const float RodScale = 1f;
     public const float RodRetrySeconds = 1f;
