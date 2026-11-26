@@ -43,5 +43,8 @@ design/models/fishing-rods/unreal/build_pak.ps1 -Source <export dir> -Work <unre
 A rod lies along +Y in Blender, the hand at the origin, the tip where a staff's head is, so it hangs on the hand as the
 game's staves do. The container holds no material: the game's engine is Unreal 5.3.2 changed by its makers, and a
 material the stock engine cooks crashes it on load ("Bad export index"). The rods' material instances take the game's
-own `MI_T_BaseMaterial_FPSClippingFix`, which the project stands in for at its path and never ships. The client holds `/Game/CyrodiilRP/Fishing/SM_FishingRod_<Grade>` when the game has it, and the
+own `MI_T_BaseMaterial_FPSClippingFix`, which the project stands in for at its path and never ships. The cook saves
+each property with its name (`-VersionCookedContent`): the game's classes carry fields stock 5.3.2 lacks (three more
+in `FBodyInstance`, from 5.4), so properties saved by their place in the class, as a cook does by default, land on
+the wrong fields and crash it. The game's own mappings (`Mappings.usmap` of the research) show its classes' fields. The client holds `/Game/CyrodiilRP/Fishing/SM_FishingRod_<Grade>` when the game has it, and the
 grade's staff when not.

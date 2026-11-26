@@ -32,7 +32,10 @@ $sourceDir = (Resolve-Path $Source).Path -replace '\\', '/'
 & $editor $uproject -run=pythonscript "-script=$script $sourceDir" -unattended -nop4 -nosplash -stdout -FullStdOutLogOutput
 if ($LASTEXITCODE -ne 0) { throw "The import failed ($LASTEXITCODE)." }
 
-& $uat BuildCookRun "-project=$uproject" -noP4 -platform=Win64 -clientconfig=Shipping -cook -stage -pak -iostore -skipbuild -nocompileeditor -unattended -utf8output
+# Versioned: each property is saved with its name. The game's engine has fields stock 5.3.2 lacks (three more in
+# FBodyInstance, from 5.4), so properties saved by their place in the class, as a cook does by default, land on the
+# wrong fields and crash it ("Bad name index").
+& $uat BuildCookRun "-project=$uproject" -noP4 -platform=Win64 -clientconfig=Shipping -cook -stage -pak -iostore -skipbuild -nocompileeditor -unattended -utf8output -VersionCookedContent
 if ($LASTEXITCODE -ne 0) { throw "The cook failed ($LASTEXITCODE)." }
 
 $paks = Join-Path $project 'Saved\StagedBuilds\Windows\OblivionRemastered\Content\Paks'
