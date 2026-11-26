@@ -31,13 +31,15 @@ The mode's own meshes. `models/fishing-rods/make_rods.py` builds the three fishi
 into the two textures the game's base material takes (colour with the occlusion in it, and NNRM: the normal's X and Y
 as DirectX has them, roughness, metallic) and exports it as FBX, and `unreal/build_pak.ps1` imports them into an Unreal
 Engine 5.3.2 project named as the game (the remaster's engine) and cooks them into `CyrodiilRP_P.pak`, `.utoc` and
-`.ucas` for the game's `Content\Paks\~mods`:
+`.ucas`. They are kept in `mod/paks` (Git LFS, as the server cannot run Unreal), `pack.ps1` puts them into the mod's
+client half, and the launcher copies every `.pak`, `.utoc` and `.ucas` of a server's mods into the game's
+`Content\Paks\~OblivionMp` as a player joins, before the game starts and mounts them:
 
 ```powershell
 $blender = "C:\Program Files\Blender Foundation\Blender 4.2\blender.exe"
 & $blender -b --factory-startup -P design/models/fishing-rods/make_rods.py -- <dir> --no-render
 & $blender -b --factory-startup -P design/models/fishing-rods/export_rods.py -- <dir>/fishing_rods.blend <export dir>
-design/models/fishing-rods/unreal/build_pak.ps1 -Source <export dir> -Work <unreal dir> -Out <dir> -Engine "C:\Program Files\Epic Games\UE_5.3"
+design/models/fishing-rods/unreal/build_pak.ps1 -Source <export dir> -Work <unreal dir> -Out mod/paks -Engine "C:\Program Files\Epic Games\UE_5.3"
 ```
 
 A rod lies along +Y in Blender, the hand at the origin, the tip where a staff's head is, so it hangs on the hand as the

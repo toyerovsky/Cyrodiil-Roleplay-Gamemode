@@ -10,8 +10,8 @@ internal static class AnglerLooks
     // The right hand, where the game hangs a held prop.
     public const string HandSocket = "Weapon_Socket";
 
-    // The mode's own rods, from its container in the game's Content\Paks\~mods (design/models/fishing-rods): held at
-    // the grip, the tip where a staff's head is.
+    // The mode's own rods, from the mod's container (mod/paks, made in design/models/fishing-rods), which the launcher
+    // copies into the game's Content\Paks: held at the grip, the tip where a staff's head is.
     public static string RodOf(RodTier tier) => tier switch
     {
         RodTier.Basic => "/Game/CyrodiilRP/Fishing/SM_FishingRod_Basic.SM_FishingRod_Basic",

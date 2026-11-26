@@ -1,14 +1,16 @@
 ---
 name: game-assets
-description: What the mode draws and plays from Oblivion Remastered (meshes, effects, sounds, materials) and how it makes assets the game lacks (Blender, Unreal 5.3.2, a container in ~mods), with the crashes that taught each rule and how to diagnose the next one. Use before picking a game mesh, effect or sound for the client, before making or changing a model, texture or material of the mode's own, and when the game crashes on loading one.
+description: What the mode draws and plays from Oblivion Remastered (meshes, effects, sounds, materials) and how it makes assets the game lacks (Blender, Unreal 5.3.2, a container shipped with the mod), with the crashes that taught each rule and how to diagnose the next one. Use before picking a game mesh, effect or sound for the client, before making or changing a model, texture or material of the mode's own, and when the game crashes on loading one.
 ---
 
 # Game assets
 
 The client draws and plays the game's assets by path: `ILocalProps.Place` a static mesh (`/Game/...SM_X.SM_X`),
 `IVisualEffects.Play` a Niagara system, `ISounds.PlayAt` an `AkAudioEvent` asset (`/Game/WwiseAudio/<folder>/<event>.<event>`,
-not a `.bnk`). What the game lacks, the mode makes itself and ships as a container the game mounts from
-`Content\Paks\~mods`.
+not a `.bnk`). What the game lacks, the mode makes itself and ships as a container (`mod/paks`, Git LFS) in the mod's
+client half: the launcher copies every `.pak`, `.utoc` and `.ucas` of a server's mods into the game's
+`Content\Paks\~OblivionMp` as a player joins, before the game starts and mounts them, and clears the folder at the
+next join (`OblivionPakCopyStep` in the launcher).
 
 ## Picking the game's own
 
@@ -98,6 +100,9 @@ the game, to compare with the stock headers in `UE_5.3\Engine\Source\Runtime`.
 - The report: `%USERPROFILE%\Documents\My Games\Oblivion Remastered\Saved\Crashes\<newest>\CrashContext.runtime-xml`,
   its `ErrorMessage` names the package and the export. The client's log: the game's `Binaries\Win64\UE4SS.log`.
   `[ASSET] Asset not found in registry` there is harmless: the container brings no asset registry, the load goes on.
-- To take the mode's assets out, delete `CyrodiilRP_P.*` from `~mods`. The game mounts containers when it starts and
-  holds the files while it runs: a running game keeps the old one (and crashes again) until it is closed.
-- Players get the container only by hand so far: the SDK cannot ship a mod's files to them.
+- The game mounts containers when it starts and holds the files while it runs: a running game keeps the old one (and
+  crashes again) until it is closed. A container put in `Content\Paks\~mods` by hand, to try one before it ships,
+  goes out by deleting `CyrodiilRP_P.*` there; the launcher's copy in `~OblivionMp` comes back at every join until
+  `mod/paks` changes on the server.
+- A container is tried by hand in `~mods` first, and checked offline before that (above): once in `mod/paks` on the
+  server, it reaches every player who joins.

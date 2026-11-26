@@ -6,3 +6,4 @@
 *.glb binary
 *.esp binary
 .sdk/*.nupkg filter=lfs diff=lfs merge=lfs -text
+mod/paks/* filter=lfs diff=lfs merge=lfs -text

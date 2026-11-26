@@ -200,6 +200,9 @@ Copy-Item (Join-Path $root 'mod/manifest.json') $out
 $clientBuild = Join-Path $root "src/CyrodiilRP.Client/bin/$Configuration/net10.0"
 Copy-Item (Join-Path $clientBuild 'CyrodiilRP.Client.dll'), (Join-Path $clientBuild 'CyrodiilRP.Common.dll') $client
 Copy-Item (Join-Path $root 'ui/dist') (Join-Path $client 'web') -Recurse
+# The mode's own assets (design/models): the launcher copies every .pak, .utoc and .ucas of a server's mods into the
+# game's Content\Paks when a player joins, so the game mounts them as it starts.
+Copy-Item (Join-Path $root 'mod/paks') (Join-Path $client 'paks') -Recurse
 
 # The SDK and what it is built on come with the server, whether or not the server folder names each file.
 $sdkFamily = 'ReadyM.*', 'OblivionMp.*', 'Friflo.*', 'Yooni.*', 'LiteNetLib*', 'DryIoc*', 'Serilog*', 'Superpower*', 'Roleplay.HungerAndThirst.*', 'Roleplay.Emotes.*', 'Roleplay.Jobs.*'
