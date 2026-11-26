@@ -28,6 +28,7 @@ internal sealed partial class Architects(
     BuildingReferences references,
     RpChat chat,
     StaffRoles roles,
+    PlotRemovals removals,
     Audit audit,
     Timers timers,
     Fire fire,
@@ -38,6 +39,8 @@ internal sealed partial class Architects(
     private const string PlaceAction = "building.place";
     private const string MoveAction = "building.move";
     private const string RemoveAction = "building.remove";
+    private const string SignAction = "plot.sign";
+    private const string BreakAction = "building.break_apart";
     private const float CentimetresPerMetre = 100f;
 
     private readonly Dictionary<OnlinePlayer, ArchitectSession> _open = [];
@@ -56,6 +59,10 @@ internal sealed partial class Architects(
         var pieces = plots.Pieces.All;
         rpc.SendArchitectCatalogue(player.Id, pieces.Select(p => p.Key).ToArray(), pieces.Select(p => p.Asset).ToArray(),
             pieces.Select(p => p.Scale).ToArray());
+        var views = pieces.Select(p => new ArchitectPieceView(p.Key, p.Name, p.Category, p.Use, p.Kit)).ToList();
+        var parts = ArchitectPieceParts.Write(views, ArchitectPieceParts.MostBytes);
+        for (var index = 0; index < parts.Count; index++)
+            rpc.SendArchitectPieces(player.Id, parts[index], first: index == 0);
         SendState(player);
     }
 
@@ -68,6 +75,9 @@ internal sealed partial class Architects(
         rpc.ArchitectMarked += OnMarked;
         rpc.ArchitectLeft += OnLeft;
         rpc.ArchitectChose += OnChose;
+        rpc.ArchitectSignMoved += OnSignMoved;
+        rpc.ArchitectBrokeApart += OnBrokeApart;
+        rpc.ArchitectPlotRemoveAsked += OnPlotRemoveAsked;
         rpc.ArchitectNewPlotAsked += OnNewPlotAsked;
         online.Left += player => _open.Remove(player);
         plots.PlotRemoved += OnPlotRemoved;
@@ -80,7 +90,7 @@ internal sealed partial class Architects(
         if (!TryFindBuilding(id, out var player, out var plot))
             return;
 
-        if (!ArchitectRules.TryReadSpot(spot, out var position, out var yaw))
+        if (!ArchitectRules.TryReadPlacement(spot, out var position, out var rotation))
         {
             logger.LogWarning("[CyrodiilRP] {Player} sent a spot of {Count} numbers to place '{Piece}'.", player.Ref, spot.Length, key);
             Answer(player, BuildingText.Malformed, done: false);
@@ -93,6 +103,7 @@ internal sealed partial class Architects(
             return;
         }
 
+        var yaw = rotation.Y;
         if (Refuse(plot, piece, position, yaw) is { } refusal)
         {
             Answer(player, refusal, done: false);
@@ -112,7 +123,7 @@ internal sealed partial class Architects(
             PlotObjectRecord placed;
             try
             {
-                placed = await plots.AddObjectAsync(plot, piece, position, yaw, PlotObjectState.Built, refId, player.Ref);
+                placed = await plots.AddObjectAsync(plot, piece, position, rotation, PlotObjectState.Built, refId, player.Ref);
             }
             catch (Exception exception)
             {
@@ -309,6 +320,111 @@ internal sealed partial class Architects(
         }
     }
 
+    // A placed piece (a house) taken apart into its parts, every one of which has to be a mesh of the catalogue on the plot.
+    private void OnBrokeApart(PlayerId id, PieceBreak taken)
+    {
+        if (!TryFindBuilding(id, out var player, out var plot))
+            return;
+
+        if (!TryFindOnPlot(taken.Piece, plot, out var placed, out var whole))
+        {
+            Answer(player, BuildingText.Gone, done: false);
+            return;
+        }
+
+        if (!ArchitectRules.TryReadParts(taken, plots.Pieces, out var parts, out var verdict))
+        {
+            if (verdict == BreakVerdict.Malformed)
+                logger.LogWarning("[CyrodiilRP] {Player} sent {Parts} parts and {Count} numbers to take piece #{Piece} apart.", player.Ref,
+                    taken.Parts.Length, taken.Spots.Length, placed.Id);
+            Answer(player, Explain(verdict), done: false);
+            return;
+        }
+
+        if (whole.Object != PieceObject.Mesh || parts.Any(part => Refuse(plot, part.Piece, part.Position, part.Rotation.Y) is not null))
+        {
+            Answer(player, BuildingText.BreakOutside, done: false);
+            return;
+        }
+
+        fire.Run(BreakAction, async () =>
+        {
+            IReadOnlyList<PlotObjectRecord>? made;
+            try
+            {
+                made = await plots.BreakApartAsync(plot, placed, parts, player.Ref);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "[CyrodiilRP] {Player} could not take piece #{Piece} on plot #{Plot} apart.", player.Ref, placed.Id, plot.Id);
+                Answer(player, BuildingText.ChangeFailed, done: false);
+                return;
+            }
+
+            if (made is null)
+            {
+                Answer(player, BuildingText.Gone, done: false);
+                return;
+            }
+
+            audit.Log(BreakAction, player.Ref, null, new BreakDetails(placed.Id, plot.Id, whole.Key, made.Count));
+            Answer(player, BuildingText.BrokenApart(whole.Name, made.Count), done: true);
+            SendState(player);
+        });
+    }
+
+    private static Phrase Explain(BreakVerdict verdict) => verdict switch
+    {
+        BreakVerdict.Accepted => throw new ArgumentOutOfRangeException(nameof(verdict), verdict, "Accepted parts need no explaining."),
+        BreakVerdict.Malformed => BuildingText.Malformed,
+        BreakVerdict.TooMany => BuildingText.BreakTooMany(ArchitectRules.MostParts),
+        BreakVerdict.UnknownPart => BuildingText.UnknownPiece,
+    };
+
+    // The plot's front turned: its sign to another side, on the ground there.
+    private void OnSignMoved(PlayerId id, float[] spot)
+    {
+        if (!TryFindBuilding(id, out var player, out var plot))
+            return;
+
+        if (!ArchitectRules.TryReadSpot(spot, out var sign, out var yaw))
+        {
+            logger.LogWarning("[CyrodiilRP] {Player} sent a sign of {Count} numbers for plot #{Plot}.", player.Ref, spot.Length, plot.Id);
+            Answer(player, BuildingText.Malformed, done: false);
+            return;
+        }
+
+        if (!ArchitectRules.SignFits(plot.Box, sign))
+        {
+            Answer(player, BuildingText.SignFar, done: false);
+            return;
+        }
+
+        fire.Run(SignAction, async () =>
+        {
+            PlotRecord? signed;
+            try
+            {
+                signed = await plots.MoveSignAsync(plot, sign, yaw);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "[CyrodiilRP] {Player} could not move the sign of plot #{Plot}.", player.Ref, plot.Id);
+                Answer(player, BuildingText.ChangeFailed, done: false);
+                return;
+            }
+
+            if (signed is null)
+            {
+                Answer(player, BuildingText.PlotGone(plot.Id), done: false);
+                return;
+            }
+
+            audit.Log(SignAction, player.Ref, null, new SignDetails(plot.Id, sign.X, sign.Y, sign.Z, yaw));
+            Answer(player, BuildingText.SignMoved, done: true);
+        });
+    }
+
     // A plot from the list or the world (its id), or 0: back to choosing one.
     private void OnChose(PlayerId id, long plotId)
     {
@@ -380,13 +496,46 @@ internal sealed partial class Architects(
             _open.Remove(player);
     }
 
+    // Who builds on a plot taken away goes back to choosing one.
     private void OnPlotRemoved(PlotRecord plot)
     {
         foreach (var (player, session) in _open.ToList())
         {
-            if (session.Tool == ArchitectTool.Build && session.PlotId == plot.Id)
-                Close(player, BuildingText.ClosedGone);
+            if (session.Tool != ArchitectTool.Build || session.PlotId != plot.Id)
+                continue;
+
+            _open[player] = new ArchitectSession(ArchitectTool.Choose, 0);
+            SendState(player);
+            Answer(player, BuildingText.PlotGone(plot.Id), done: false);
         }
+    }
+
+    // A plot taken away from architect mode, once the page asked if it should be.
+    private void OnPlotRemoveAsked(PlayerId id, long plotId)
+    {
+        if (!online.TryGet(id, out var player) || !_open.ContainsKey(player))
+            return;
+
+        if (!roles.Allows(player, StaffPermissions.Plot))
+        {
+            Answer(player, BuildingText.NotYours, done: false);
+            return;
+        }
+
+        if (!plots.TryFindPlot(plotId, out var plot))
+        {
+            Answer(player, BuildingText.PlotGone(plotId), done: false);
+            return;
+        }
+
+        if (!proximity.TryLocate(player.Id, out var area, out var position) || area != plot.AreaId
+            || DistanceTo(plot, position) > BuildingRules.WalkAway)
+        {
+            Answer(player, BuildingText.PlotFar(plotId, BuildingRules.WalkAwayMetres), done: false);
+            return;
+        }
+
+        removals.Remove(player, plot, (text, done) => Answer(player, text, done));
     }
 
     private void Watch()
@@ -491,7 +640,7 @@ internal sealed partial class Architects(
             session.Tool,
             plotView,
             choices,
-            plots.Pieces.All.Select(p => new ArchitectPieceView(p.Key, p.Name, p.Category, p.Use)).ToList(),
+            settings.Kits.Select(kit => new ArchitectKitView(kit.Key, kit.Name)).ToList(),
             Enum.GetValues<PieceCategory>(),
             new ArchitectFormView(PlotKind.Residential, settings.PlotPrice, settings.PlotWeeklyTax, (int)MathF.Round(settings.PlotHeight / CentimetresPerMetre),
                 settings.MostTiles, ArchitectRules.MostGold, ArchitectRules.MostHeightMetres, BuildingGrid.TileCentimetres));
@@ -511,6 +660,10 @@ internal sealed partial class Architects(
                 (int)MathF.Round(DistanceTo(plot, position) / CentimetresPerMetre)))
             .ToList();
     }
+
+    private sealed record BreakDetails(long Piece, long Plot, string Key, int Parts);
+
+    private sealed record SignDetails(long Plot, float X, float Y, float Z, float Yaw);
 
     private sealed record PieceDetails(long Piece, long Plot, string Key, float X, float Y, float Z, float Yaw);
 

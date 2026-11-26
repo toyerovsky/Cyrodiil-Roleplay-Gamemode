@@ -96,10 +96,64 @@ public sealed class ArchitectRulesTests
     }
 
     [Fact]
+    public void A_placement_reads_its_yaw_and_a_tilted_one_its_pitch_and_roll_too()
+    {
+        Assert.True(ArchitectRules.TryReadPlacement([1f, 2f, 3f, 90f], out var position, out var level));
+        Assert.Equal(new Vector3(1f, 2f, 3f), position);
+        Assert.Equal(new Vector3(0f, 90f, 0f), level);
+
+        Assert.True(ArchitectRules.TryReadPlacement([1f, 2f, 3f, 90f, -90f, 45f], out _, out var tilted));
+        Assert.Equal(new Vector3(-90f, 90f, 45f), tilted);
+
+        Assert.False(ArchitectRules.TryReadPlacement([1f, 2f, 3f, 90f, 5f], out _, out _));
+        Assert.False(ArchitectRules.TryReadPlacement([1f, 2f, 3f, float.NaN], out _, out _));
+    }
+
+    [Fact]
+    public void A_piece_taken_apart_reads_as_catalogue_pieces_each_at_its_place_and_turn()
+    {
+        var pieces = new PieceRegistry(Settings.ListPieces());
+        var wall = KitSettings.KeyOf("SM_brumahouselower01_Wall_A");
+        var roof = KitSettings.KeyOf("SM_brumahouselower01_Roof_A");
+
+        Assert.True(ArchitectRules.TryReadParts(new PieceBreak(7, [wall, roof], [1f, 2f, 3f, 0f, 90f, 0f, 4f, 5f, 6f, 10f, 180f, 5f]), pieces,
+            out var parts, out var verdict));
+        Assert.Equal(BreakVerdict.Accepted, verdict);
+        Assert.Equal([wall, roof], parts.Select(part => part.Piece.Key));
+        Assert.Equal(new Vector3(4f, 5f, 6f), parts[1].Position);
+        Assert.Equal(new Vector3(10f, 180f, 5f), parts[1].Rotation);
+    }
+
+    [Fact]
+    public void Parts_of_a_count_unlike_their_numbers_too_many_or_unknown_are_refused()
+    {
+        var pieces = new PieceRegistry(Settings.ListPieces());
+        var wall = KitSettings.KeyOf("SM_brumahouselower01_Wall_A");
+        var spot = new float[ArchitectRules.PartLength];
+
+        Assert.False(ArchitectRules.TryReadParts(new PieceBreak(7, [wall], [1f, 2f]), pieces, out _, out var shortSpots));
+        Assert.Equal(BreakVerdict.Malformed, shortSpots);
+        Assert.False(ArchitectRules.TryReadParts(new PieceBreak(7, [], []), pieces, out _, out var none));
+        Assert.Equal(BreakVerdict.Malformed, none);
+        Assert.False(ArchitectRules.TryReadParts(new PieceBreak(7, [wall], [1f, 2f, float.NaN, 0f, 0f, 0f]), pieces, out _, out var notNumber));
+        Assert.Equal(BreakVerdict.Malformed, notNumber);
+
+        var many = Enumerable.Repeat(wall, ArchitectRules.MostParts + 1).ToArray();
+        Assert.False(ArchitectRules.TryReadParts(new PieceBreak(7, many, new float[many.Length * ArchitectRules.PartLength]), pieces, out _, out var tooMany));
+        Assert.Equal(BreakVerdict.TooMany, tooMany);
+
+        Assert.False(ArchitectRules.TryReadParts(new PieceBreak(7, ["kit.nothing_like_it"], spot), pieces, out _, out var unknown));
+        Assert.Equal(BreakVerdict.UnknownPart, unknown);
+        // The game's own bed is one object of the game, never a part
+        Assert.False(ArchitectRules.TryReadParts(new PieceBreak(7, ["furniture.bed"], spot), pieces, out _, out var furniture));
+        Assert.Equal(BreakVerdict.UnknownPart, furniture);
+    }
+
+    [Fact]
     public void A_piece_nobody_measured_is_judged_by_its_origin_and_a_measured_one_by_its_box()
     {
         var plot = new PlotBox(0, 0, 2, 2, 0f, 300f);
-        var unmeasured = new Piece("fence.post", "Fence post", PieceCategory.Fences, "/Game/Post.Post", 1f, PieceUse.Any, PieceObject.Mesh, 0, null);
+        var unmeasured = new Piece("fence.post", "Fence post", PieceCategory.Fences, "/Game/Post.Post", 1f, PieceUse.Any, PieceObject.Mesh, 0, null, string.Empty);
         var measured = unmeasured with { Bounds = new PieceBounds(new Vector3(-50f, -50f, 0f), new Vector3(50f, 50f, 100f)) };
         var nearEdge = new Vector3(10f, Tile, 0f);
 

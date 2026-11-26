@@ -1,0 +1,102 @@
+.plot {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 24px;
+  background: radial-gradient(ellipse at center, var(--backdrop-shade) 0%, var(--backdrop-edge) 100%);
+}
+
+.plot__panel.rp-panel {
+  display: grid;
+  gap: 4px;
+  width: min(620px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.plot__lead {
+  margin: 0 0 10px;
+  font-size: 16px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.plot__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin: 0 0 8px;
+}
+
+.plot__fact {
+  display: grid;
+  gap: 2px;
+  padding: 8px 12px;
+  text-align: center;
+  background: var(--ink-wash);
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+}
+
+.plot__fact dt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.plot__fact dd {
+  margin: 0;
+  font-weight: 700;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.plot__mark {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--gold);
+}
+
+.plot__dear {
+  color: var(--problem);
+}
+
+.plot__note {
+  margin: 0 0 4px;
+  padding: 6px 12px;
+  font-size: 15px;
+  color: var(--ink);
+  border-left: 3px solid var(--gold-dark);
+  background: var(--ink-wash);
+}
+
+.plot__status {
+  min-height: 40px;
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.plot__status--bought {
+  font-weight: 700;
+  color: var(--confirmed);
+}
+
+.plot__status--refused {
+  font-weight: 700;
+  color: var(--problem);
+}
+
+.plot__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}

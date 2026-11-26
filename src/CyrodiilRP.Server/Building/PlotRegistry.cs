@@ -19,6 +19,8 @@ internal sealed class PlotRegistry
     public PlotRecord? FindAt(AreaId area, float x, float y) =>
         _plots.Values.Where(p => p.AreaId == area && p.Box.Contains(x, y)).OrderBy(p => p.Id).FirstOrDefault();
 
+    public int CountOwnedBy(long characterId) => _plots.Values.Count(p => p.OwnerCharacterId == characterId);
+
     public bool Overlaps(AreaId area, PlotBox box) => _plots.Values.Any(p => p.AreaId == area && p.Box.Overlaps(box));
 
     // What was read at start. A plot made while the read was on its way is here already.
@@ -29,6 +31,16 @@ internal sealed class PlotRegistry
     }
 
     public void Add(PlotRecord plot) => _plots.Add(plot.Id, plot);
+
+    // A plot changed in place. False when it is gone.
+    public bool Replace(PlotRecord plot)
+    {
+        if (!_plots.ContainsKey(plot.Id))
+            return false;
+
+        _plots[plot.Id] = plot;
+        return true;
+    }
 
     public bool Remove(long id) => _plots.Remove(id);
 }

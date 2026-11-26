@@ -29,6 +29,22 @@ internal sealed partial class BuildingProps(ILocalProps props, PawnWatch pawn, R
 
     public IEnumerable<long> PlotIds => _plots.Keys;
 
+    // The asset the plots' signs stand as, null until the server sent the plots here.
+    public string? SignAsset { get; private set; }
+
+    // The highest id of the pieces here, so a piece placed after it is told from one that stood there already.
+    public long HighestPieceId => _pieces.Count == 0 ? 0 : _pieces.Keys.Max();
+
+    public bool TryFindSign(long plotId, out Vector3 position)
+    {
+        position = default;
+        if (!_plots.TryGetValue(plotId, out var plot))
+            return false;
+
+        position = plot.Sign.Position;
+        return true;
+    }
+
     public bool TryFindPlot(long id, out PlotBox box)
     {
         box = default;
@@ -69,12 +85,13 @@ internal sealed partial class BuildingProps(ILocalProps props, PawnWatch pawn, R
 
     public bool HoldsHandle(LocalPropHandle handle) => _pieces.Values.Any(piece => piece.Handle == handle);
 
-    // The piece of this asset standing at the spot, as the server stood it: the one just placed there.
-    public bool TryFindAt(string asset, Vector3 position, float within, out long id)
+    // A piece of this asset standing at the spot with an id above the one given, as the server stood it: the one just
+    // placed there, even over a copy of itself.
+    public bool TryFindAt(string asset, Vector3 position, float within, long above, out long id)
     {
         foreach (var (pieceId, piece) in _pieces)
         {
-            if (piece.Prop.Asset == asset && Vector3.Distance(piece.Prop.Position, position) <= within)
+            if (pieceId > above && piece.Prop.Asset == asset && Vector3.Distance(piece.Prop.Position, position) <= within)
             {
                 id = pieceId;
                 return true;
@@ -162,6 +179,7 @@ internal sealed partial class BuildingProps(ILocalProps props, PawnWatch pawn, R
 
     private void OnPlotsArrived(string signAsset, long[] ids, float[] numbers)
     {
+        SignAsset = signAsset;
         if (numbers.Length != ids.Length * NumbersPerPlot)
         {
             logger.LogError("[CyrodiilRP] The server sent {Count} numbers for {Plots} plots here, which is not {PerPlot} a plot.",

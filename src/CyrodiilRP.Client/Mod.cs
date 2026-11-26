@@ -45,6 +45,7 @@ internal sealed partial class Mod(IDependencyContainer services, ILogger logger)
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<BankOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<AuctionOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<StableOverlay>());
+        services.RegisterSingleton<ICefRpcHandler>(services.Resolve<PlotSaleOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<MentorOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<BoardOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<GamblingOverlay>());

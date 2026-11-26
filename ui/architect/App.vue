@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, reactive, ref, useId } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref, useId, watch } from "vue";
 import character from "../rp/art/icons/character.webp";
 import items from "../rp/art/icons/items.webp";
 import keys from "../rp/art/icons/keys.webp";
@@ -27,12 +27,15 @@ const CENTIMETRES_PER_METRE = 100;
 const NO_FIT = "None";
 
 // A category's medallion until the game has drawn the picture of its first piece.
-const MEDALLIONS = { Houses: world, Floors: world, Farm: items, Fences: keys, Furniture: character, Decoration: lore };
+const MEDALLIONS = { Houses: world, Kits: world, Floors: world, Farm: items, Fences: keys, Doors: keys, Furniture: character, Decoration: lore };
+const KITS = "Kits";
 
 const { t } = usePageTexts(props.bridge, "architect");
 
 // Architect mode as the server last sent it, null while it is closed.
 const view = ref(null);
+// The drawer's pieces: [{key, name, category, use, kit}], sent apart from the view as they are many.
+const pieces = ref([]);
 const looking = ref(false);
 const fit = ref(NO_FIT);
 const refused = ref(null);
@@ -45,6 +48,8 @@ const heightStep = ref(10);
 // A carried piece settles on what is under it (true) or stands on the plot's ground.
 const settle = ref(true);
 const category = ref(null);
+// The kit the Kits tab shows, null for the first.
+const kit = ref(null);
 const saving = ref(false);
 // What the form's check refused: {field, text}, the field being "price", "weeklyTax", "height" or "size".
 const problem = ref(null);
@@ -72,6 +77,9 @@ let hoverAt = null;
 let heightHeld = false;
 // The name of the piece Ctrl+C copied, empty for none.
 const copied = ref("");
+// The plot a Remove asks about: {id, pieces}, null while none.
+const removing = ref(null);
+const removeId = useId();
 
 const building = computed(() => view.value?.tool === "Build");
 const marking = computed(() => view.value?.tool === "Mark");
@@ -83,12 +91,17 @@ const shownCategory = computed({
 });
 const tabs = computed(() =>
   view.value.categories.map((name) => {
-    const first = view.value.pieces.find((piece) => piece.category === name);
+    const first = pieces.value.find((piece) => piece.category === name);
     return { id: name, label: t.value[`category.${name}`], medallion: (first && pictures[first.key]) || MEDALLIONS[name] || items };
   }),
 );
-const shownPieces = computed(() => view.value.pieces.filter((piece) => piece.category === shownCategory.value));
-const picked = computed(() => view.value?.pieces.find((piece) => piece.key === selected.value) ?? null);
+const shownKit = computed(() => kit.value ?? view.value?.kits?.[0]?.key ?? null);
+const shownPieces = computed(() =>
+  pieces.value.filter(
+    (piece) => piece.category === shownCategory.value && (shownCategory.value !== KITS || piece.kit === shownKit.value),
+  ),
+);
+const picked = computed(() => pieces.value.find((piece) => piece.key === selected.value) ?? null);
 const hasMark = computed(() => marked.value.width > 0 && marked.value.depth > 0);
 const markTooBig = computed(() => Math.max(marked.value.width, marked.value.depth) > view.value.form.mostTiles);
 
@@ -100,6 +113,7 @@ const heading = computed(() => {
 const choices = computed(() =>
   (view.value?.plots ?? []).map((plot) => ({
     id: plot.id,
+    pieces: plot.pieces,
     name: fill(t.value.plot, { id: plot.id }),
     facts: fill(t.value.choice_facts, {
       kind: t.value[`kind.${plot.kind}`],
@@ -329,6 +343,35 @@ function snapToFloor() {
   props.bridge.snapToFloor();
 }
 
+// The plot's front and its sign to the next side: the one marked, or the one built on with nothing picked.
+function turnFront() {
+  if (building.value && selected.value) return;
+  if (marking.value && !hasMark.value) return;
+  refused.value = null;
+  props.bridge.turnFront();
+}
+
+function breakApart() {
+  if (!selected.value) return;
+  refused.value = null;
+  props.bridge.breakApart();
+}
+
+function onBreakRefused(why) {
+  answer.value = { text: t.value[`break.${why}`], done: false };
+}
+
+function askRemove(plot) {
+  removing.value = { id: plot.id, pieces: plot.pieces };
+}
+
+function removePlot() {
+  if (!removing.value) return;
+  answer.value = null;
+  props.bridge.removePlot(removing.value.id);
+  removing.value = null;
+}
+
 function choose(plot) {
   answer.value = null;
   props.bridge.choose(plot);
@@ -444,7 +487,9 @@ function onLook(value) {
 // Esc lets go of one thing at a time: what the mouse carries, the catalogue, the piece picked, the plot marked, then the
 // mode.
 function onEscape() {
-  if (drag) {
+  if (removing.value) {
+    removing.value = null;
+  } else if (drag) {
     endDrag();
     props.bridge.cancel();
   } else if (catalogue.value && building.value) {
@@ -462,6 +507,7 @@ const KEYS = {
   KeyQ: (event) => turn(-1, event.shiftKey),
   KeyE: (event) => turn(1, event.shiftKey),
   KeyF: () => snapToFloor(),
+  KeyR: () => turnFront(),
   KeyX: () => deselect(),
   KeyG: () => props.bridge.step(),
   ArrowUp: (event) => (event.shiftKey ? raise(1, false) : nudge(1, 0)),
@@ -530,6 +576,11 @@ function onKeydown(event) {
     remove();
     return;
   }
+  if (marking.value && code === "KeyR") {
+    event.preventDefault();
+    turnFront();
+    return;
+  }
   const act = building.value ? KEYS[code] : null;
   if (act) {
     event.preventDefault();
@@ -537,8 +588,19 @@ function onKeydown(event) {
   }
 }
 
+watch(
+  () => (view.value && catalogue.value && building.value ? shownPieces.value.map((piece) => piece.key) : []),
+  (shown) => {
+    if (shown.length) props.bridge.showing(shown);
+  },
+);
+
+// The gizmo's height snaps to the step the panel picks.
+watch(heightStep, (centimetres) => props.bridge.setHeight(centimetres));
+
 onMounted(() => {
   props.bridge.onState(onState);
+  props.bridge.onPieces((part, first) => (pieces.value = first ? part : [...pieces.value, ...part]));
   props.bridge.onAnswer(onAnswer);
   props.bridge.onClosed(onClosed);
   props.bridge.onLook(onLook);
@@ -555,10 +617,12 @@ onMounted(() => {
   });
   props.bridge.onStep((value) => (step.value = value));
   props.bridge.onPicture((key, picture) => (pictures[key] = picture));
+  props.bridge.onBreakRefused(onBreakRefused);
   window.addEventListener("keydown", onKeydown);
   window.addEventListener("keyup", onKeyup);
   window.addEventListener("blur", onBlur);
   props.bridge.signalReady();
+  props.bridge.setHeight(heightStep.value);
 });
 
 onUnmounted(() => {
@@ -609,7 +673,12 @@ onUnmounted(() => {
             <p class="architect__plot-name">{{ choice.name }}</p>
             <p class="architect__plot-facts">{{ choice.facts }}</p>
           </div>
-          <RpButton :data-choose="choice.id" :aria-label="fill(t.build_on, { plot: choice.name })" @click="choose(choice.id)">{{ t.build }}</RpButton>
+          <div class="architect__choice-acts">
+            <RpButton :data-choose="choice.id" :aria-label="fill(t.build_on, { plot: choice.name })" @click="choose(choice.id)">{{ t.build }}</RpButton>
+            <RpButton :data-remove="choice.id" :aria-label="fill(t.remove_named, { plot: choice.name })" @click="askRemove(choice)">
+              {{ t.remove }}
+            </RpButton>
+          </div>
         </li>
       </ul>
       <p v-else class="architect__plot-facts" data-no-plots>{{ t.no_plots }}</p>
@@ -640,6 +709,13 @@ onUnmounted(() => {
             </RpChip>
           </div>
         </div>
+        <div class="architect__setting" role="group" :aria-label="t.plot_label">
+          <p class="architect__setting-name">{{ t.plot_label }}</p>
+          <div class="architect__choices">
+            <RpButton data-action="turn-front" :disabled="!!selected" @click="turnFront">{{ t.turn_front }}</RpButton>
+            <RpButton data-action="remove-plot" @click="askRemove(view.plot)">{{ t.remove_plot }}</RpButton>
+          </div>
+        </div>
         <div class="architect__setting" role="group" :aria-label="t.stand_label">
           <p class="architect__setting-name">{{ t.stand_label }}</p>
           <div class="architect__choices">
@@ -664,6 +740,7 @@ onUnmounted(() => {
         <RpButton data-action="lower" @click="raise(-1, false)">{{ t.lower }}</RpButton>
         <RpButton data-action="snap" @click="snapToFloor">{{ t.snap_to_floor }}</RpButton>
         <RpButton data-action="duplicate" @click="duplicate">{{ t.duplicate }}</RpButton>
+        <RpButton data-action="break-apart" @click="breakApart">{{ t.break_apart }}</RpButton>
         <RpButton data-action="remove" @click="remove">{{ t.remove }}</RpButton>
         <RpButton variant="primary" data-action="done" @click="deselect">{{ t.done }}</RpButton>
       </div>
@@ -672,6 +749,11 @@ onUnmounted(() => {
     <div v-if="building && catalogue" class="architect__catalogue" data-catalogue>
       <RpPanel class="architect__catalogue-panel" :title="t.drawer">
         <RpTabs v-model="shownCategory" :tabs="tabs" :label="t.drawer" :controls="panelId" />
+        <div v-if="shownCategory === KITS" class="architect__kits" role="group" :aria-label="t.kit_label" data-kits>
+          <RpChip v-for="each in view.kits" :key="each.key" :pressed="shownKit === each.key" :data-kit="each.key" @click="kit = each.key">
+            {{ each.name }}
+          </RpChip>
+        </div>
         <ul :id="panelId" class="architect__pieces" role="tabpanel" :aria-labelledby="makeTabId(panelId, shownCategory)">
           <li v-for="piece in shownPieces" :key="piece.key">
             <button type="button" class="architect__piece" :data-piece="piece.key" @pointerdown="onPieceDown(piece, $event)">
@@ -689,8 +771,19 @@ onUnmounted(() => {
       </RpPanel>
     </div>
 
+    <section v-if="removing" class="architect__confirm" role="alertdialog" :aria-labelledby="removeId" data-confirm>
+      <p :id="removeId" class="architect__question">{{ fill(t.remove_confirm, { id: removing.id, pieces: removing.pieces }) }}</p>
+      <div class="architect__confirm-acts">
+        <RpButton data-action="keep-plot" @click="removing = null">{{ t.remove_no }}</RpButton>
+        <RpButton variant="primary" data-action="confirm-remove" @click="removePlot">{{ t.remove_yes }}</RpButton>
+      </div>
+    </section>
+
     <RpPanel v-if="marking && hasMark" class="architect__form" :title="t.form" data-form>
       <p class="architect__size" data-size>{{ size }}</p>
+      <div class="architect__front">
+        <RpButton data-action="turn-front" @click="turnFront">{{ t.turn_front }}</RpButton>
+      </div>
       <form novalidate @submit.prevent="savePlot">
         <fieldset class="architect__kinds">
           <legend class="architect__label">{{ t.kind }}</legend>

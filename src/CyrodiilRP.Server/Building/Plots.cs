@@ -29,8 +29,12 @@ internal sealed partial class Plots(
     private const string AddObjectJob = "plots.add_object";
     private const string MoveObjectJob = "plots.move_object";
     private const string RemoveObjectJob = "plots.remove_object";
+    private const string MoveSignJob = "plots.move_sign";
+    private const string BreakApartJob = "plots.break_apart";
     private const string AreaChangedEvent = "plots.area_changed";
     private const string PlotRemovedEvent = "plots.plot_removed";
+    private const string LoadedEvent = "plots.loaded";
+    private const string BuyJob = "plots.buy";
 
     private readonly PlotRegistry _plots = new();
     private readonly PlotObjectRegistry _objects = new();
@@ -41,9 +45,12 @@ internal sealed partial class Plots(
 
     public event Action<PlotRecord>? PlotRemoved;
 
+    // The plots and their pieces were read from the database: the ref ids of the game's objects the pieces are.
+    public event Action<IReadOnlySet<uint>>? Loaded;
+
     public BuildingSettings Settings => config.Building;
 
-    public PieceRegistry Pieces => _pieces ??= new PieceRegistry(config.Building.Pieces);
+    public PieceRegistry Pieces => _pieces ??= new PieceRegistry(config.Building.ListPieces());
 
     public IReadOnlyCollection<PlotRecord> All => _plots.All;
 
@@ -60,6 +67,20 @@ internal sealed partial class Plots(
     public PlotRecord? FindAt(AreaId area, Vector3 position) => _plots.FindAt(area, position.X, position.Y);
 
     public bool Overlaps(AreaId area, PlotBox box) => _plots.Overlaps(area, box);
+
+    public int CountOwnedBy(long characterId) => _plots.CountOwnedBy(characterId);
+
+    // The plot written to the character if it is still for sale: false when another bought it first or it is gone.
+    public async Task<bool> BuyAsync(PlotRecord plot, long characterId)
+    {
+        var bought = await persistence.Writer.EnqueueAsync(BuyJob, (db, ct) => PlotBook.BuyAsync(db, plot.Id, characterId, ct));
+        if (!bought || !_plots.TryFind(plot.Id, out var current))
+            return false;
+
+        _plots.Replace(current with { OwnerCharacterId = characterId });
+        callbacks.Raise(AreaChangedEvent, AreaChanged, plot.AreaId);
+        return true;
+    }
 
     private void Start() => Load();
 
@@ -88,6 +109,8 @@ internal sealed partial class Plots(
         // Players who came while the database was not up see the plots of their area now.
         foreach (var area in plots.Select(p => new AreaId(p.Area)).Distinct())
             callbacks.Raise(AreaChangedEvent, AreaChanged, area);
+
+        callbacks.Raise(LoadedEvent, Loaded, _objects.ListRefIds());
     }
 
     public async Task<PlotRecord> AddPlotAsync(string area, PlotBox box, PlotKind kind, int price, int weeklyTax, Vector3 sign, float signYaw, string madeByRef)
@@ -118,6 +141,50 @@ internal sealed partial class Plots(
         return plot;
     }
 
+    // A piece taken apart into its parts, in one write: null when it was gone already, the parts placed otherwise.
+    public async Task<IReadOnlyList<PlotObjectRecord>?> BreakApartAsync(PlotRecord plot, PlotObjectRecord piece, IReadOnlyList<PiecePart> parts,
+        string placedByRef)
+    {
+        var now = clock.UtcNow;
+        var rows = parts.Select(part => new PlotObject
+        {
+            PlotId = plot.Id,
+            Piece = part.Piece.Key,
+            X = part.Position.X,
+            Y = part.Position.Y,
+            Z = part.Position.Z,
+            Pitch = part.Rotation.X,
+            Yaw = part.Rotation.Y,
+            Roll = part.Rotation.Z,
+            State = PlotObjectState.Built,
+            PlacedByRef = placedByRef,
+            PlacedAt = now,
+        }).ToList();
+        var replaced = await persistence.Writer.EnqueueAsync(BreakApartJob, (db, ct) => PlotBook.ReplaceObjectAsync(db, piece.Id, rows, ct));
+        if (!replaced)
+            return null;
+
+        _objects.Remove(piece.Id);
+        var placed = rows.Select(ToRecord).ToList();
+        foreach (var part in placed)
+            _objects.Put(part);
+        callbacks.Raise(AreaChangedEvent, AreaChanged, plot.AreaId);
+        return placed;
+    }
+
+    // Null when it was gone already.
+    public async Task<PlotRecord?> MoveSignAsync(PlotRecord plot, Vector3 sign, float yaw)
+    {
+        var moved = await persistence.Writer.EnqueueAsync(MoveSignJob, (db, ct) => PlotBook.MoveSignAsync(db, plot.Id, sign.X, sign.Y, sign.Z, yaw, ct));
+        if (!moved || !_plots.TryFind(plot.Id, out var current))
+            return null;
+
+        var signed = current with { SignPosition = sign, SignYaw = yaw };
+        _plots.Replace(signed);
+        callbacks.Raise(AreaChangedEvent, AreaChanged, plot.AreaId);
+        return signed;
+    }
+
     // Out of memory only once it is out of the database, its pieces with it. False when another removal took it first.
     public async Task<bool> RemovePlotAsync(PlotRecord plot)
     {
@@ -129,8 +196,9 @@ internal sealed partial class Plots(
         return removed;
     }
 
-    public async Task<PlotObjectRecord> AddObjectAsync(PlotRecord plot, Piece piece, Vector3 position, float yaw, PlotObjectState state, uint refId,
-        string placedByRef)
+    // Rotation: pitch, yaw and roll.
+    public async Task<PlotObjectRecord> AddObjectAsync(PlotRecord plot, Piece piece, Vector3 position, Vector3 rotation, PlotObjectState state,
+        uint refId, string placedByRef)
     {
         var row = new PlotObject
         {
@@ -139,7 +207,9 @@ internal sealed partial class Plots(
             X = position.X,
             Y = position.Y,
             Z = position.Z,
-            Yaw = yaw,
+            Pitch = rotation.X,
+            Yaw = rotation.Y,
+            Roll = rotation.Z,
             State = state,
             RefId = refId == 0 ? null : refId,
             PlacedByRef = placedByRef,

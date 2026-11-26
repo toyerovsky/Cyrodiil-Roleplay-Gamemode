@@ -552,9 +552,32 @@ public static partial class RpContracts
     [ClientToServer]
     public static partial void AskBuilding();
 
+    // A PlotSaleView as JSON: opens a plot's sign window or brings it up to date.
+    [ServerToClient]
+    public static partial void PlotSaleState(string json);
+
+    // What buying a plot came to, in the player's language, and whether it was bought.
+    [ServerToClient]
+    public static partial void PlotSaleAnswer(string text, bool bought);
+
+    [ServerToClient]
+    public static partial void PlotSaleClosed();
+
+    // Buy the plot whose sign window is open.
+    [ClientToServer]
+    public static partial void PlotSaleBuy();
+
+    [ClientToServer]
+    public static partial void PlotSaleClose();
+
     // The building catalogue as the architect's game needs it, sent as the mode opens: each piece's key, asset and scale.
     [ServerToClient]
     public static partial void ArchitectCatalogue(string[] keys, string[] assets, float[] scales);
+
+    // The drawer's pieces as a JSON array of ArchitectPieceView, sent as the mode opens in parts under a message's limit:
+    // the first part starts the list again, the others add to it.
+    [ServerToClient]
+    public static partial void ArchitectPieces(string json, bool first);
 
     // An ArchitectView as JSON: opens architect mode or brings it up to date. Plot: the plot it builds on, 0 while the
     // staff choose one or mark a new one. Tool: an ArchitectTool by name.
@@ -568,7 +591,11 @@ public static partial class RpContracts
     [ServerToClient]
     public static partial void ArchitectClosed();
 
-    // A piece of the catalogue, by its key, put down at x, y, z and the yaw.
+    // A plot taken away with every piece on it, by its id, once the staff member said so on the page.
+    [ClientToServer]
+    public static partial void ArchitectRemovePlot(long plot);
+
+    // A piece of the catalogue, by its key, put down at x, y, z and the yaw, then its pitch and roll when it stands tilted.
     [ClientToServer]
     public static partial void ArchitectPlace(string piece, float[] spot);
 
@@ -587,6 +614,15 @@ public static partial class RpContracts
     // and yaw, and the window's form as JSON (a PlotForm).
     [ClientToServer]
     public static partial void ArchitectMarkPlot(int[] tiles, float[] ground, string form);
+
+    // A piece on the plot taken apart into its parts: each part's catalogue key, and six numbers a part: x, y and z in
+    // centimetres, pitch, yaw and roll in degrees.
+    [ClientToServer]
+    public static partial void ArchitectBreakApart(long piece, string[] parts, float[] spots);
+
+    // The sign of the plot being built on, moved to x, y, z and the yaw: the plot's front turned.
+    [ClientToServer]
+    public static partial void ArchitectMoveSign(float[] sign);
 
     // A plot to build on, by its id, or 0 to choose another.
     [ClientToServer]

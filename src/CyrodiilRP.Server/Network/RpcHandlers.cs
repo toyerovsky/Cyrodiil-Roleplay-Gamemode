@@ -302,6 +302,16 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId, long>? ArchitectChose;
 
+    public event Action<PlayerId>? PlotSaleBought;
+
+    public event Action<PlayerId>? PlotSaleLeft;
+
+    public event Action<PlayerId, float[]>? ArchitectSignMoved;
+
+    public event Action<PlayerId, PieceBreak>? ArchitectBrokeApart;
+
+    public event Action<PlayerId, long>? ArchitectPlotRemoveAsked;
+
     public event Action<PlayerId>? ArchitectNewPlotAsked;
 
     partial void OnAskBuilding(RpcContext context) => callbacks.Raise("rpc.ask_building", BuildingAsked, context.Sender);
@@ -321,6 +331,19 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
         callbacks.Raise("rpc.architect_mark_plot", ArchitectMarked, context.Sender, new PlotMarking(tiles, ground, form));
 
     partial void OnArchitectClose(RpcContext context) => callbacks.Raise("rpc.architect_close", ArchitectLeft, context.Sender);
+
+    partial void OnArchitectRemovePlot(RpcContext context, long plot) =>
+        callbacks.Raise("rpc.architect_remove_plot", ArchitectPlotRemoveAsked, context.Sender, plot);
+
+    partial void OnArchitectBreakApart(RpcContext context, long piece, string[] parts, float[] spots) =>
+        callbacks.Raise("rpc.architect_break_apart", ArchitectBrokeApart, context.Sender, new PieceBreak(piece, parts, spots));
+
+    partial void OnArchitectMoveSign(RpcContext context, float[] sign) =>
+        callbacks.Raise("rpc.architect_move_sign", ArchitectSignMoved, context.Sender, sign);
+
+    partial void OnPlotSaleBuy(RpcContext context) => callbacks.Raise("rpc.plot_sale_buy", PlotSaleBought, context.Sender);
+
+    partial void OnPlotSaleClose(RpcContext context) => callbacks.Raise("rpc.plot_sale_close", PlotSaleLeft, context.Sender);
 
     partial void OnArchitectChoose(RpcContext context, long plot) => callbacks.Raise("rpc.architect_choose", ArchitectChose, context.Sender, plot);
 

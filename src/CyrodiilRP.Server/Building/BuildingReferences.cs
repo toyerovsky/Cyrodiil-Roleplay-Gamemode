@@ -9,17 +9,43 @@ using OblivionMP.SDK.Serverside.Spawners;
 using OblivionMP.SDK.Serverside.World;
 using ReadyM.Api.Idents;
 using ReadyM.Relay.Common.Oblivion;
+using ReadyM.Relay.Common.Oblivion.ECS.Values;
 using ReadyM.SDK.Archetypes.Core;
 using ReadyM.SDK.Attributes;
 using ReadyM.SDK.Server.Entities;
 
 namespace CyrodiilRP.Server.Building;
 
-// The pieces that are the game's own objects: furniture to sit on or sleep in and containers to open, made by the server
-// in the cell they stand in under a ref id of its own, and kept by that cell's save. Update thread only.
+// The pieces that are the game's own objects: furniture to sit on or sleep in, containers to open and doors to swing, made
+// by the server in the cell they stand in under a ref id of its own, and kept by that cell's save. Update thread only.
 [Service]
-internal sealed partial class BuildingReferences(IEntities entities, WorldRefs refs, ServerRefIds refIds, ILogger logger)
+internal sealed partial class BuildingReferences(IEntities entities, WorldRefs refs, ServerRefIds refIds, Plots plots, ILogger logger)
 {
+    private void Start() => plots.Loaded += SweepDoors;
+
+    private void Stop() => plots.Loaded -= SweepDoors;
+
+    // A door taken away before Delete knew doors stayed in its cell's save with no piece to hold it: a door the server made
+    // of a door the catalogue lists, that no piece holds, goes.
+    private void SweepDoors(IReadOnlySet<uint> held)
+    {
+        var doorForms = plots.Pieces.All.Where(piece => piece.Object == PieceObject.Door)
+            .Select(piece => (NetworkFormId)new FormId(piece.FormId))
+            .ToHashSet();
+        var loose = new List<Door>();
+        foreach (var door in entities.Query<Door>())
+        {
+            if (ServerRefIds.IsServerMade(door.RefId) && doorForms.Contains(door.BaseId) && !held.Contains(door.RefId))
+                loose.Add(door);
+        }
+
+        foreach (var door in loose)
+        {
+            logger.LogWarning("[CyrodiilRP] Door {RefId:X} was the building's, but no piece holds it any more: it is taken away.", door.RefId);
+            entities.Delete(door);
+        }
+    }
+
     // An entity's Rotation is the game's heading less 90 degrees, which is how a character's pawn faces. An object's actor
     // faces its heading itself (its mesh is the old model with Y flipped), so it stood a quarter turn off the preview of the
     // same blueprint: the object is given the piece's yaw less 90.
@@ -47,6 +73,13 @@ internal sealed partial class BuildingReferences(IEntities entities, WorldRefs r
                 container.BaseId = new FormId(piece.FormId);
                 container.Position = position;
                 container.Rotation = yaw + ObjectYawOffset;
+                break;
+            case PieceObject.Door:
+                var door = entities.Create<Door>(cell, cell.MasterClient);
+                door.RefId = refId;
+                door.BaseId = new FormId(piece.FormId);
+                door.Position = position;
+                door.Rotation = yaw + ObjectYawOffset;
                 break;
             case PieceObject.Mesh:
                 throw new ArgumentOutOfRangeException(nameof(piece), piece.Object, "A mesh is no object of the game's.");
@@ -80,7 +113,10 @@ internal sealed partial class BuildingReferences(IEntities entities, WorldRefs r
         if (entity.TryAs<Container>(out var container))
             return entities.Delete(container);
 
-        logger.LogError("[CyrodiilRP] Ref {RefId:X} of a piece is neither furniture nor a container, and stays.", refId);
+        if (entity.TryAs<Door>(out var door))
+            return entities.Delete(door);
+
+        logger.LogError("[CyrodiilRP] Ref {RefId:X} of a piece is no furniture, container or door, and stays.", refId);
         return false;
     }
 

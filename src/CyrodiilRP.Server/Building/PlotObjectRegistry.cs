@@ -23,6 +23,9 @@ internal sealed class PlotObjectRegistry
 
     public void Put(PlotObjectRecord piece) => _objects[piece.Id] = piece;
 
+    // The ref ids of the game's objects the pieces are.
+    public IReadOnlySet<uint> ListRefIds() => _objects.Values.Where(o => o.RefId != 0).Select(o => o.RefId).ToHashSet();
+
     public bool Remove(long id) => _objects.Remove(id);
 
     // Its pieces, which went with it.

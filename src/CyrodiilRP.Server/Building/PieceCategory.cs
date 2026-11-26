@@ -8,11 +8,16 @@ internal enum PieceCategory
 {
     Houses,
 
+    // The parts of the game's houses, by kit.
+    Kits,
+
     Floors,
 
     Farm,
 
     Fences,
+
+    Doors,
 
     Furniture,
 

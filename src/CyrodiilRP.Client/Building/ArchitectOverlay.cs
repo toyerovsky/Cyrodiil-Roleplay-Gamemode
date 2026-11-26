@@ -29,6 +29,7 @@ internal sealed partial class ArchitectOverlay(
     ILogger logger)
 {
     private const string PageName = "architect";
+    private const char KeySeparator = ',';
 
     private OverlayPage? _page;
 
@@ -37,6 +38,9 @@ internal sealed partial class ArchitectOverlay(
     private bool _looking;
 
     private string? _pending;
+
+    // The drawer's pieces as the server sent them, in parts, kept for a page that is not ready yet.
+    private readonly List<string> _pieces = [];
 
     private long _plot;
 
@@ -48,11 +52,13 @@ internal sealed partial class ArchitectOverlay(
     {
         rpc.ArchitectCatalogueArrived += world.SetCatalogue;
         rpc.ArchitectChanged += OnChanged;
+        rpc.ArchitectPiecesArrived += OnPiecesArrived;
         rpc.ArchitectAnswered += OnAnswered;
         rpc.ArchitectClosed += Close;
         rpc.PlotsArrived += OnPlotsArrived;
         world.FitChanged += OnFitChanged;
         world.Refused += OnRefused;
+        world.BreakRefused += OnBreakRefused;
         world.SelectionChanged += OnSelectionChanged;
         world.MarkChanged += OnMarkChanged;
         pictures.Drawn += OnPictureDrawn;
@@ -66,11 +72,13 @@ internal sealed partial class ArchitectOverlay(
     {
         rpc.ArchitectCatalogueArrived -= world.SetCatalogue;
         rpc.ArchitectChanged -= OnChanged;
+        rpc.ArchitectPiecesArrived -= OnPiecesArrived;
         rpc.ArchitectAnswered -= OnAnswered;
         rpc.ArchitectClosed -= Close;
         rpc.PlotsArrived -= OnPlotsArrived;
         world.FitChanged -= OnFitChanged;
         world.Refused -= OnRefused;
+        world.BreakRefused -= OnBreakRefused;
         world.SelectionChanged -= OnSelectionChanged;
         world.MarkChanged -= OnMarkChanged;
         pictures.Drawn -= OnPictureDrawn;
@@ -107,6 +115,15 @@ internal sealed partial class ArchitectOverlay(
 
         cef.SetVisible(opened.Viewport, true);
         SendState(opened.Browser, json);
+    }
+
+    private void OnPiecesArrived(string json, bool first)
+    {
+        if (first)
+            _pieces.Clear();
+        _pieces.Add(json);
+        if (Page.IsReady && Page.Opened is { } opened)
+            SendPieces(opened.Browser, json, first);
     }
 
     // The pictures are drawn while the page is up to show them.
@@ -187,6 +204,12 @@ internal sealed partial class ArchitectOverlay(
             SendRefused(opened.Browser, fit.ToString());
     }
 
+    private void OnBreakRefused(BreakRefusal why)
+    {
+        if (_open && Page.Opened is { } opened)
+            SendBreakRefused(opened.Browser, why.ToString());
+    }
+
     private void OnSelectionChanged(string piece)
     {
         if (_open && Page.Opened is { } opened)
@@ -204,6 +227,8 @@ internal sealed partial class ArchitectOverlay(
     {
         Page.MarkReady(browser);
         SendStep(browser, world.Step);
+        for (var index = 0; index < _pieces.Count; index++)
+            SendPieces(browser, _pieces[index], first: index == 0);
         foreach (var (piece, picture) in pictures.ListDrawn())
             SendPicture(browser, piece, picture);
         if (_pending is not { } json || Page.Opened is not { } opened)
@@ -241,6 +266,10 @@ internal sealed partial class ArchitectOverlay(
     [ReceiveFromCef]
     private void OnArchitectSetStep(BrowserHandle browser, int steps) => SendStep(browser, world.SetStep(steps));
 
+    // The panel's Height by, in centimetres.
+    [ReceiveFromCef]
+    private void OnArchitectSetHeight(BrowserHandle browser, int centimetres) => world.HeightStep = Math.Max(0, centimetres);
+
     // The panel's Stand on: what is under (true) or the plot's ground.
     [ReceiveFromCef]
     private void OnArchitectSetSettle(BrowserHandle browser, bool settle) => world.Settle = settle;
@@ -259,6 +288,10 @@ internal sealed partial class ArchitectOverlay(
     [ReceiveFromCef]
     private void OnArchitectNewPlot(BrowserHandle browser) => rpc.SendArchitectNewPlot();
 
+    // A plot to take away, by its id, once the page asked if it should be.
+    [ReceiveFromCef]
+    private void OnArchitectRemovePlot(BrowserHandle browser, long plot) => rpc.SendArchitectRemovePlot(plot);
+
     [ReceiveFromCef]
     private void OnArchitectCopy(BrowserHandle browser) => world.Copy();
 
@@ -268,6 +301,17 @@ internal sealed partial class ArchitectOverlay(
 
     [ReceiveFromCef]
     private void OnArchitectDuplicate(BrowserHandle browser) => world.Duplicate();
+
+    [ReceiveFromCef]
+    private void OnArchitectBreakApart(BrowserHandle browser) => world.BreakApart();
+
+    // The keys of the pieces the drawer shows now, joined by commas: their pictures are drawn first.
+    [ReceiveFromCef]
+    private void OnArchitectShowing(BrowserHandle browser, string keys) => pictures.Prefer(keys.Split(KeySeparator, StringSplitOptions.RemoveEmptyEntries));
+
+    // R or the button: the plot's front, and its sign, to the next side.
+    [ReceiveFromCef]
+    private void OnArchitectTurnFront(BrowserHandle browser) => world.TurnFront();
 
     [ReceiveFromCef]
     private void OnArchitectSnapToFloor(BrowserHandle browser) => world.SnapToFloor();
@@ -312,6 +356,10 @@ internal sealed partial class ArchitectOverlay(
     [SendToCef]
     private partial void SendState(BrowserHandle browser, string json);
 
+    // A part of the drawer's pieces, as the server sent it.
+    [SendToCef]
+    private partial void SendPieces(BrowserHandle browser, string json, bool first);
+
     [SendToCef]
     private partial void SendAnswer(BrowserHandle browser, string text, bool done);
 
@@ -326,6 +374,10 @@ internal sealed partial class ArchitectOverlay(
 
     [SendToCef]
     private partial void SendRefused(BrowserHandle browser, string fit);
+
+    // Why the picked piece cannot be taken apart: a BreakRefusal by name.
+    [SendToCef]
+    private partial void SendBreakRefused(BrowserHandle browser, string why);
 
     [SendToCef]
     private partial void SendSelected(BrowserHandle browser, string piece);

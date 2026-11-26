@@ -57,6 +57,12 @@ public sealed class PieceRegistryTests
         Assert.All(settings.Pieces, piece => Assert.StartsWith("/Game/Forms/worldobjects/", piece.Asset));
         Assert.Contains(settings.Pieces, piece => piece.Object == PieceObject.Furniture);
         Assert.Contains(settings.Pieces, piece => piece.Object == PieceObject.Container);
+        Assert.All(settings.Pieces.Where(piece => piece.Object == PieceObject.Door), door =>
+        {
+            Assert.Equal(PieceCategory.Doors, door.Category);
+            Assert.StartsWith("/Game/Forms/worldobjects/door/", door.Asset);
+            Assert.NotEqual(0u, door.ReadForm());
+        });
     }
 
     [Fact]

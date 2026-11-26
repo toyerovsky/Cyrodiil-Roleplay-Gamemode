@@ -51,6 +51,16 @@ internal sealed partial class PiecePictures(ILocalProps props, PawnWatch pawn, R
         }
     }
 
+    // The pieces the page shows now are drawn first, the rest after them.
+    public void Prefer(IReadOnlyCollection<string> keys)
+    {
+        var shown = new HashSet<string>(keys, StringComparer.Ordinal);
+        var waiting = _waiting.ToList();
+        _waiting.Clear();
+        foreach (var key in waiting.Where(shown.Contains).Concat(waiting.Where(key => !shown.Contains(key))))
+            _waiting.Enqueue(key);
+    }
+
     private void Update()
     {
         if (_drawing || !Wanted || !pawn.HasSettled(1f) || !_waiting.TryDequeue(out var key) || !_pieces.TryGetValue(key, out var subject))

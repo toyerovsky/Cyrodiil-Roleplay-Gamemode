@@ -13,4 +13,7 @@ internal enum ArchitectDrag
 
     // The corner of a new plot, from where the drag began.
     MarkPlot,
+
+    // The picked piece along one axis of the gizmo.
+    AxisMove,
 }

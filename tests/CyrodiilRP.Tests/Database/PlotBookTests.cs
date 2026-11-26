@@ -61,6 +61,34 @@ public sealed class PlotBookTests(PostgresFixture pg) : IClassFixture<PostgresFi
     }
 
     [Fact]
+    public async Task A_sign_moved_is_read_back_where_it_was_moved_and_a_gone_plot_says_so()
+    {
+        var plot = await AddPlotAsync();
+
+        Assert.True(await pg.RunAsync(db => PlotBook.MoveSignAsync(db, plot, 10f, 20f, 30f, 90f, default)));
+        var moved = Assert.Single(await pg.RunAsync(db => PlotBook.LoadPlotsAsync(db, default)), p => p.Id == plot);
+        Assert.Equal([10f, 20f, 30f, 90f], [moved.SignX, moved.SignY, moved.SignZ, moved.SignYaw]);
+
+        Assert.True(await pg.RunAsync(db => PlotBook.RemovePlotAsync(db, plot, default)));
+        Assert.False(await pg.RunAsync(db => PlotBook.MoveSignAsync(db, plot, 10f, 20f, 30f, 90f, default)));
+    }
+
+    [Fact]
+    public async Task A_plot_is_bought_once_and_neither_a_second_buyer_nor_a_gone_plot_gets_it()
+    {
+        var first = await Seeds.CreateCharacterAsync(pg.Factory);
+        var second = await Seeds.CreateCharacterAsync(pg.Factory);
+        var plot = await AddPlotAsync();
+
+        Assert.True(await pg.RunAsync(db => PlotBook.BuyAsync(db, plot, first.Id, default)));
+        Assert.False(await pg.RunAsync(db => PlotBook.BuyAsync(db, plot, second.Id, default)));
+        Assert.Equal(first.Id, await pg.RunAsync(db => db.Plots.Where(p => p.Id == plot).Select(p => p.OwnerCharacterId).SingleAsync()));
+
+        Assert.True(await pg.RunAsync(db => PlotBook.RemovePlotAsync(db, plot, default)));
+        Assert.False(await pg.RunAsync(db => PlotBook.BuyAsync(db, plot, second.Id, default)));
+    }
+
+    [Fact]
     public async Task A_moved_piece_is_read_back_where_it_was_moved()
     {
         var plot = await AddPlotAsync();
@@ -95,6 +123,34 @@ public sealed class PlotBookTests(PostgresFixture pg) : IClassFixture<PostgresFi
 
         Assert.Null(await pg.RunAsync(db => db.Plots.Where(p => p.Id == plot).Select(p => p.OwnerCharacterId).SingleAsync()));
     }
+
+    [Fact]
+    public async Task A_piece_taken_apart_gives_way_to_its_parts_and_a_gone_one_writes_nothing()
+    {
+        var plot = await AddPlotAsync();
+        var house = await AddPieceAsync(plot, "house.lower-1");
+
+        Assert.True(await pg.RunAsync(db => PlotBook.ReplaceObjectAsync(db, house, [Part(plot, "kit.wall_a", 5f), Part(plot, "kit.roof_a", 15f)], default)));
+        var read = await pg.RunAsync(db => PlotBook.LoadObjectsAsync(db, default));
+        Assert.DoesNotContain(read, o => o.Id == house);
+        var roof = Assert.Single(read, o => o.PlotId == plot && o.Piece == "kit.roof_a");
+        Assert.Equal([15f, 2f], [roof.Pitch, roof.Roll]);
+
+        Assert.False(await pg.RunAsync(db => PlotBook.ReplaceObjectAsync(db, house, [Part(plot, "kit.door_a", 0f)], default)));
+        Assert.DoesNotContain(await pg.RunAsync(db => PlotBook.LoadObjectsAsync(db, default)), o => o.Piece == "kit.door_a");
+    }
+
+    private static PlotObject Part(long plot, string piece, float pitch) => new()
+    {
+        PlotId = plot,
+        Piece = piece,
+        Pitch = pitch,
+        Yaw = 90f,
+        Roll = 2f,
+        State = PlotObjectState.Built,
+        PlacedByRef = "account:test",
+        PlacedAt = Now,
+    };
 
     [Fact]
     public async Task A_plot_has_a_size_and_gold_of_0_or_more_and_a_piece_has_a_key()

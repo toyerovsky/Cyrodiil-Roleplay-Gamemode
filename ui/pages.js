@@ -12,6 +12,7 @@ export const PAGES = [
   { name: "bank", title: "Bank", scenarios: ["", "empty", "rich"], game: "Bank/BankOverlay.cs" },
   { name: "auction", title: "Auction house", scenarios: ["", "empty", "poor", "full", "many", "long"], game: "Auction/AuctionOverlay.cs" },
   { name: "stable", title: "Stable", scenarios: ["", "owned", "poor"], game: "Stable/StableOverlay.cs" },
+  { name: "plot", title: "Plot sign", scenarios: ["", "poor", "yours", "taken", "many", "polish"], game: "Building/PlotSaleOverlay.cs" },
   { name: "mentor", title: "Mentor", scenarios: ["", "chosen", "wait", "registrar"], game: "Specializations/MentorOverlay.cs" },
   { name: "notices", title: "Notice board", scenarios: ["", "empty", "full", "limit", "wait"], game: "Notices/BoardOverlay.cs" },
   { name: "menu", title: "Player menu", scenarios: ["", "help", "account", "dice", "lore", "faction", "factionmember", "factionless"], game: "PlayerMenu/PlayerMenuOverlay.cs" },

@@ -6,7 +6,8 @@ namespace CyrodiilRP.Server;
 
 // A piece of the building catalogue: its key (kept with every piece placed, so never renamed), the name the drawer shows,
 // its place in the drawer, the game's form whose mesh it stands as, its scale and the plots it may stand on. Object and
-// Form: what it stands as, and for the game's own furniture or container the form's id in hex, such as 0x0002F18A.
+// Form: what it stands as, and for the game's own furniture or container the form's id in hex, such as 0x0002F18A. Kit: the
+// kit of house parts it belongs to (KitSettings), empty for none.
 internal sealed class PieceSettings
 {
     public string Key { get; set; } = string.Empty;
@@ -27,6 +28,8 @@ internal sealed class PieceSettings
     public PieceObject Object { get; set; } = PieceObject.Mesh;
 
     public string Form { get; set; } = string.Empty;
+
+    public string Kit { get; set; } = string.Empty;
 
     // The form's id, 0 when there is none or it is no hex number.
     public uint ReadForm()

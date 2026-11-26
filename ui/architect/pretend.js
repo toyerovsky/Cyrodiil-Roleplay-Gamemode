@@ -19,7 +19,12 @@ const FORM = {
   tileCentimetres: 182.857,
 };
 
-const CATEGORIES = ["Houses", "Floors", "Farm", "Fences", "Furniture", "Decoration"];
+const CATEGORIES = ["Houses", "Kits", "Floors", "Farm", "Fences", "Doors", "Furniture", "Decoration"];
+
+const KITS = [
+  { key: "bruma-lower", name: "Bruma house, lower" },
+  { key: "coastal-cottage-inside", name: "Coastal cottage, inside" },
+];
 
 const PIECES = [
   { key: "house.farmhouse-1", name: "Farmhouse", category: "Houses", use: "Residential" },
@@ -28,6 +33,10 @@ const PIECES = [
   { key: "house.lower-1", name: "Town house", category: "Houses", use: "Residential" },
   { key: "house.lower-2", name: "Town house, narrow", category: "Houses", use: "Residential" },
   { key: "house.tent-1", name: "Tent", category: "Houses", use: "Any" },
+  { key: "kit.brumahouselower01_wall_a", name: "Wall A (01)", category: "Kits", use: "Residential", kit: "bruma-lower" },
+  { key: "kit.brumahouselower01_wall_b", name: "Wall B (01)", category: "Kits", use: "Residential", kit: "bruma-lower" },
+  { key: "kit.brumahouselower01_roofsupports_a", name: "Roof supports A (01)", category: "Kits", use: "Residential", kit: "bruma-lower" },
+  { key: "kit.anvillchouse_balk_a_01", name: "Balk A 01", category: "Kits", use: "Residential", kit: "coastal-cottage-inside" },
   { key: "floor.brick-large", name: "Brick floor, large", category: "Floors", use: "Any" },
   { key: "floor.boardwalk", name: "Boardwalk", category: "Floors", use: "Any" },
   { key: "farm.stable", name: "Stable", category: "Farm", use: "Industrial" },
@@ -35,11 +44,16 @@ const PIECES = [
   { key: "farm.well", name: "Well", category: "Farm", use: "Any" },
   { key: "fence.rail", name: "Rail fence", category: "Fences", use: "Any" },
   { key: "fence.rail-end", name: "Rail fence end post", category: "Fences", use: "Any" },
+  { key: "door.coastal-cottage", name: "Coastal cottage door", category: "Doors", use: "Any" },
+  { key: "gate.farm", name: "Farm gate", category: "Doors", use: "Any" },
   { key: "furniture.bed", name: "Bed", category: "Furniture", use: "Any" },
   { key: "furniture.table", name: "Table", category: "Furniture", use: "Any" },
   { key: "furniture.chest", name: "Chest", category: "Furniture", use: "Any" },
   { key: "decoration.barrel", name: "Barrel", category: "Decoration", use: "Any" },
 ];
+
+// The pieces go to the page in two parts, as the server sends a big catalogue.
+const HALF = Math.ceil(PIECES.length / 2);
 
 const PLOT = { id: 3, kind: "Residential", width: 12, depth: 8, heightMetres: 15, price: 5000, weeklyTax: 100, pieces: 4 };
 const NEAR = [
@@ -55,9 +69,10 @@ const picture = (index) =>
       `<path d="M10 50 L32 18 L54 50 Z" fill="hsl(${(index * 47) % 360} 35% 55%)"/></svg>`,
   );
 
-const say = (key, args = {}) => building[key].replace(/\{(\w+)\}/g, (match, name) => (name in args ? String(args[name]) : match));
+// A plural text reads in its "other" form.
+const say = (key, args = {}) => (typeof building[key] === "object" ? building[key].other : building[key]).replace(/\{(\w+)\}/g, (match, name) => (name in args ? String(args[name]) : match));
 
-// #choose: /abuild off a plot, the plots near to choose from. #far: none near. #picked: the table on the plot is picked. #mark: the staff mark a new plot. #marked: one is marked, its form open.
+// #house: the town house on the plot is picked. #choose: /abuild off a plot, the plots near to choose from. #far: none near. #picked: the table on the plot is picked. #mark: the staff mark a new plot. #marked: one is marked, its form open.
 // #look: B gave the game the view. #polish: the page in Polish. #blank: no picture drawn yet.
 const SCENARIOS = {
   "": { tool: "Build" },
@@ -65,6 +80,7 @@ const SCENARIOS = {
   far: { tool: "Choose", far: true },
   blank: { tool: "Build", blank: true },
   picked: { tool: "Build", selected: "furniture.table" },
+  house: { tool: "Build", selected: "house.lower-1" },
   mark: { tool: "Mark" },
   marked: { tool: "Mark", marked: [12, 8] },
   look: { tool: "Build", look: true },
@@ -86,7 +102,7 @@ export function pretendGame(readym) {
     tool: state.tool,
     plot: state.plot,
     plots: state.tool === "Choose" && !scenario.far ? NEAR : [],
-    pieces: PIECES,
+    kits: KITS,
     categories: CATEGORIES,
     form: FORM,
   });
@@ -109,6 +125,8 @@ export function pretendGame(readym) {
       case "ArchitectReady":
         if (scenario.locale) readym.emit("Locale", scenario.locale);
         readym.emit("Step", STEPS[step]);
+        readym.emit("Pieces", JSON.stringify(PIECES.slice(0, HALF)), true);
+        readym.emit("Pieces", JSON.stringify(PIECES.slice(HALF)), false);
         readym.emit("State", JSON.stringify(view()));
         if (selected) readym.emit("Selected", selected);
         if (scenario.marked) readym.emit("Marked", ...scenario.marked);
@@ -186,6 +204,13 @@ export function pretendGame(readym) {
         send();
         break;
       }
+      case "ArchitectRemovePlot":
+        answer(say("building.plot_removed", { id: args[0], count: 4 }), true);
+        state.tool = "Choose";
+        state.plot = null;
+        selected = "";
+        send();
+        break;
       case "ArchitectNewPlot":
         state.tool = "Mark";
         state.plot = null;
@@ -198,6 +223,21 @@ export function pretendGame(readym) {
         state.plot.pieces += 1;
         answer(say("building.placed", { name: name(selected || "furniture.table") }), true);
         send();
+        break;
+      case "ArchitectBreakApart":
+        if (selected === "furniture.table") {
+          readym.emit("BreakRefused", "GameObject");
+          break;
+        }
+        answer(say("building.broken_apart", { name: name(selected), count: 8 }), true);
+        selected = "";
+        readym.emit("Selected", "");
+        break;
+      case "ArchitectShowing":
+      case "ArchitectSetHeight":
+        break;
+      case "ArchitectTurnFront":
+        if (state.tool === "Build") answer(say("building.sign_moved"), true);
         break;
       case "ArchitectSnapToFloor":
         answer(say("building.moved", { name: name(selected) }), true);

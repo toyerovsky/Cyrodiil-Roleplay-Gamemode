@@ -36,6 +36,31 @@ public static class PlotBook
         await db.PlotObjects.Where(o => o.Id == objectId)
             .ExecuteUpdateAsync(set => set.SetProperty(o => o.X, x).SetProperty(o => o.Y, y).SetProperty(o => o.Z, z).SetProperty(o => o.Yaw, yaw), ct) > 0;
 
+    // The piece goes and its parts come in one transaction: false, and nothing written, when it was gone already. The parts
+    // get their ids.
+    public static async Task<bool> ReplaceObjectAsync(CyrodiilContext db, long objectId, IReadOnlyList<PlotObject> parts, CancellationToken ct)
+    {
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        if (await db.PlotObjects.Where(o => o.Id == objectId).ExecuteDeleteAsync(ct) == 0)
+            return false;
+
+        db.PlotObjects.AddRange(parts);
+        await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+        return true;
+    }
+
+    // The plot written to the character while it is for sale: false when another owns it or it is gone.
+    public static async Task<bool> BuyAsync(CyrodiilContext db, long plotId, long characterId, CancellationToken ct) =>
+        await db.Plots.Where(p => p.Id == plotId && p.OwnerCharacterId == null)
+            .ExecuteUpdateAsync(set => set.SetProperty(p => p.OwnerCharacterId, characterId), ct) > 0;
+
+    // False when it was gone already.
+    public static async Task<bool> MoveSignAsync(CyrodiilContext db, long plotId, float x, float y, float z, float yaw, CancellationToken ct) =>
+        await db.Plots.Where(p => p.Id == plotId)
+            .ExecuteUpdateAsync(set => set.SetProperty(p => p.SignX, x).SetProperty(p => p.SignY, y).SetProperty(p => p.SignZ, z)
+                .SetProperty(p => p.SignYaw, yaw), ct) > 0;
+
     // False when it was gone already.
     public static async Task<bool> RemoveObjectAsync(CyrodiilContext db, long objectId, CancellationToken ct) =>
         await db.PlotObjects.Where(o => o.Id == objectId).ExecuteDeleteAsync(ct) > 0;

@@ -26,6 +26,22 @@ internal static class ArchitectRules
         return true;
     }
 
+    // A placement: x, y, z and the yaw, then the pitch and the roll when the piece stands tilted (a kit's mesh made lying
+    // down). Rotation is pitch, yaw and roll.
+    public static bool TryReadPlacement(float[] spot, out Vector3 position, out Vector3 rotation)
+    {
+        position = default;
+        rotation = default;
+        if (spot.Length is not (BuildingRules.SpotLength or TiltedSpotLength) || spot.Any(n => !float.IsFinite(n)))
+            return false;
+
+        position = new Vector3(spot[0], spot[1], spot[2]);
+        rotation = spot.Length == TiltedSpotLength ? new Vector3(spot[4], spot[3], spot[5]) : new Vector3(0f, spot[3], 0f);
+        return true;
+    }
+
+    public const int TiltedSpotLength = 6;
+
     public static bool TryReadBounds(float[] bounds, out Vector3 min, out Vector3 max)
     {
         min = max = default;
@@ -72,12 +88,54 @@ internal static class ArchitectRules
             || form.HeightMetres is < 1 or > MostHeightMetres)
             return plan with { Verdict = MarkingVerdict.FormInvalid };
 
+        return SignFits(box, sign) ? plan : plan with { Verdict = MarkingVerdict.SignFar };
+    }
+
+    // The most parts a piece may be taken apart into: a farmhouse of hundreds of roof tiles is not a kit.
+    public const int MostParts = 200;
+
+    // A part is its key, then x, y, z, pitch, yaw and roll.
+    public const int PartLength = 6;
+
+    public static bool TryReadParts(PieceBreak taken, PieceRegistry pieces, out List<PiecePart> parts, out BreakVerdict verdict)
+    {
+        parts = [];
+        if (taken.Parts.Length == 0 || taken.Spots.Length != taken.Parts.Length * PartLength || taken.Spots.Any(n => !float.IsFinite(n)))
+        {
+            verdict = BreakVerdict.Malformed;
+            return false;
+        }
+
+        if (taken.Parts.Length > MostParts)
+        {
+            verdict = BreakVerdict.TooMany;
+            return false;
+        }
+
+        for (var index = 0; index < taken.Parts.Length; index++)
+        {
+            if (!pieces.TryFind(taken.Parts[index], out var piece) || piece.Object != PieceObject.Mesh)
+            {
+                parts = [];
+                verdict = BreakVerdict.UnknownPart;
+                return false;
+            }
+
+            var at = index * PartLength;
+            parts.Add(new PiecePart(piece, new Vector3(taken.Spots[at], taken.Spots[at + 1], taken.Spots[at + 2]),
+                new Vector3(taken.Spots[at + 3], taken.Spots[at + 4], taken.Spots[at + 5])));
+        }
+
+        verdict = BreakVerdict.Accepted;
+        return true;
+    }
+
+    // A sign stands at the plot's edge, near the height of its ground.
+    public static bool SignFits(PlotBox box, Vector3 sign)
+    {
         var nearestX = Math.Clamp(sign.X, box.MinX, box.MaxX);
         var nearestY = Math.Clamp(sign.Y, box.MinY, box.MaxY);
         var fromEdge = new Vector2(sign.X - nearestX, sign.Y - nearestY).Length();
-        if (fromEdge > BuildingRules.SignReach || MathF.Abs(sign.Z - groundZ) > BuildingRules.GroundReach)
-            return plan with { Verdict = MarkingVerdict.SignFar };
-
-        return plan;
+        return fromEdge <= BuildingRules.SignReach && MathF.Abs(sign.Z - box.GroundZ) <= BuildingRules.GroundReach;
     }
 }

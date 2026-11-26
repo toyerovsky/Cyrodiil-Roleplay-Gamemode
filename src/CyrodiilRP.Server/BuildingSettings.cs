@@ -8,6 +8,7 @@ internal sealed class BuildingSettings
     private const string Static = "static";
     private const string FurnitureFolder = "furniture";
     private const string ContainerFolder = "container";
+    private const string DoorFolder = "door";
 
     // The longest side of a plot, in tiles of the building grid (BuildingGrid.TileCentimetres, 1.83 m).
     public int MostTiles { get; set; } = 64;
@@ -19,8 +20,12 @@ internal sealed class BuildingSettings
 
     public int PlotWeeklyTax { get; set; } = 100;
 
-    // The game's form whose mesh stands for a plot's sign: "sign02" (0x000255D7), a blank wooden sign.
-    public string SignAsset { get; set; } = "/Game/Forms/worldobjects/activator/sign02.sign02";
+    // How many plots a character may own at once.
+    public int PlotsPerCharacter { get; set; } = 1;
+
+    // The mesh a plot's sign stands as: the game's own for-sale sign (form SignForSale01). The mesh, not the form: the
+    // form comes with a skeletal mesh of it too (SK_signforsale01), and props stand only static meshes.
+    public string SignAsset { get; set; } = "/Game/Art/Environment/Architecture/chorrol/SM_signforsale01.SM_signforsale01";
 
     // The catalogue of the architect's drawer. A server that lists its own replaces this one whole.
     public List<PieceSettings> Pieces { get; set; } =
@@ -73,6 +78,25 @@ internal sealed class BuildingSettings
         Piece("fence.low", "Boarded fence, low", PieceCategory.Fences, "FenceMid01small", PieceUse.Any),
         Piece("fence.low-end", "Boarded fence end, low", PieceCategory.Fences, "FenceEnd01small", PieceUse.Any),
         Piece("fence.gate", "Fence gate", PieceCategory.Fences, "GateFence", PieceUse.Any),
+        // Doors the game animates where they stand. Each is one the game places only so, never as a door leading elsewhere,
+        // and the animated doors of the TesterPlayground plugin near Aleswell are among them
+        Door("door.coastal-cottage", "Coastal cottage door", "AnvilLCdoorAnim01", "0x00014891"),
+        Door("door.coastal-town", "Coastal town house door", "AnvilDoorMCAnim01", "0x000096C9"),
+        Door("door.coastal-fine", "Coastal fine door", "AnvilDoorUCAnim01", "0x000147BB"),
+        Door("door.chorrol", "Chorrol door", "ChorrolDoorMiddleAnim02", "0x00028E61"),
+        Door("door.imperial", "Imperial City door", "ICDoorAnim", "0x0003AD69"),
+        Door("door.palace", "Palace door", "ICPalaceAnimDoor01", "0x000B98A2"),
+        Door("door.tower", "Tower door", "CastleTowerDoor01Anim", "0x0002B9EB"),
+        Door("door.plain", "Plain wooden door", "doorfulllower", "0x0002318B"),
+        Door("door.bruma", "Bruma door", "BruDoorUpperFull02", "0x00049180"),
+        Door("door.reinforced", "Reinforced door", "SkDoorMiddleInt01", "0x0002EEDC"),
+        Door("door.leyawiin", "Leyawiin door", "LeyawiinMiddleDoorInt01", "0x0003E0EE"),
+        Door("door.cellar", "Cellar door", "Undgrddoorfull01", "0x000231F9"),
+        Door("door.ship", "Ship's door", "BoatDoorAnim01New", "0x00014B9A"),
+        Door("gate.farm", "Farm gate", "FenceGateAnimation", "0x0004E905"),
+        Door("gate.stick", "Stick fence gate", "RicketyFenceGate01", "0x0004EA55"),
+        Door("gate.wooden", "Wooden gate", "StoneWallGateDoor01", "0x0002595F"),
+        Door("gate.iron", "Iron gate", "StoneWallGateDoor02", "0x00026702"),
         Object("furniture.bed", "Bed", FurnitureFolder, "LCBed01R", PieceObject.Furniture, "0x0002F3F3"),
         Object("furniture.bed-double", "Double bed", FurnitureFolder, "MCDoubleBed01LR", PieceObject.Furniture, "0x0002ED01"),
         Object("furniture.chair", "Chair", FurnitureFolder, "LCChair01F", PieceObject.Furniture, "0x0002F18A"),
@@ -110,17 +134,32 @@ internal sealed class BuildingSettings
         Piece("decoration.tree-bench", "Bench round a tree", PieceCategory.Decoration, "AnvilTreeBench01", PieceUse.Any),
     ];
 
+    // The kits of the game's house parts, each mesh a piece of the Kits category. A server that lists its own replaces
+    // these whole.
+    public List<KitSettings> Kits { get; set; } = ShippedKits.All();
+
+    // The drawer's whole catalogue: the pieces, then every kit's parts.
+    public IEnumerable<PieceSettings> ListPieces() => Pieces.Concat(Kits.SelectMany(kit => kit.ToPieces()));
+
     // A server owner's mistake stops the mod at start rather than turning into a rule nobody meant.
     public void Check()
     {
-        if (MostTiles < 1 || PlotHeight <= 0f || PlotPrice < 0 || PlotWeeklyTax < 0)
-            throw new InvalidOperationException("building in config.json: mostTiles must be 1 or more, plotHeight above 0, plotPrice and plotWeeklyTax 0 or more.");
+        if (MostTiles < 1 || PlotHeight <= 0f || PlotPrice < 0 || PlotWeeklyTax < 0 || PlotsPerCharacter < 1)
+            throw new InvalidOperationException("building in config.json: mostTiles and plotsPerCharacter must be 1 or more, plotHeight above 0, plotPrice and plotWeeklyTax 0 or more.");
 
         if (string.IsNullOrWhiteSpace(SignAsset))
             throw new InvalidOperationException("building in config.json: signAsset must name the game's form or mesh a plot's sign stands as.");
 
+        var kits = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var kit in Kits)
+        {
+            if (string.IsNullOrWhiteSpace(kit.Key) || string.IsNullOrWhiteSpace(kit.Name) || !kits.Add(kit.Key) || kit.Meshes.Count == 0
+                || !Enum.IsDefined(kit.Use) || kit.Meshes.Any(mesh => !mesh.Contains('/') || mesh.EndsWith('/')))
+                throw new InvalidOperationException($"building.kits in config.json: every kit needs a unique key, a name, a use and meshes by their folder ('{kit.Key}').");
+        }
+
         var keys = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var piece in Pieces)
+        foreach (var piece in ListPieces())
         {
             if (string.IsNullOrWhiteSpace(piece.Key) || piece.Key.Length > PlotBook.MostPieceLength || !keys.Add(piece.Key))
                 throw new InvalidOperationException($"building.pieces in config.json: every key must be set, unique and at most {PlotBook.MostPieceLength} letters ('{piece.Key}').");
@@ -149,6 +188,19 @@ internal sealed class BuildingSettings
             Scale = 1f,
             Use = PieceUse.Any,
             Object = kind,
+            Form = id,
+        };
+
+    private static PieceSettings Door(string key, string name, string form, string id) =>
+        new()
+        {
+            Key = key,
+            Name = name,
+            Category = PieceCategory.Doors,
+            Asset = AssetOf(DoorFolder, form),
+            Scale = 1f,
+            Use = PieceUse.Any,
+            Object = PieceObject.Door,
             Form = id,
         };
 

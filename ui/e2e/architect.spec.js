@@ -92,6 +92,9 @@ test("the staff pick a piece, turn it with the keys, take it away and let go wit
 
   // Picked, the keys edit the piece: the view's keys and its line give way
   await expect(page.locator("[data-keys]")).toHaveText(t("edit_keys"));
+  // Copied while the game has nothing left to answer, so no answer comes over the copy's note
+  await page.keyboard.press("Control+c");
+  await expect(page.getByRole("status")).toHaveText(t("copied").replace("{name}", "Table"));
   await page.keyboard.press("q");
   await page.keyboard.press("Shift+E");
   await page.keyboard.down("z");
@@ -118,19 +121,16 @@ test("the staff pick a piece, turn it with the keys, take it away and let go wit
   expect(await readSent(page, "ArchitectRaise")).toEqual([[10], [10], [-10], [-10]]);
 
   await page.keyboard.press("f");
-  await picked.getByRole("button", { name: t("snap_to_floor") }).click();
-  expect((await readSent(page, "ArchitectSnapToFloor")).length).toBe(2);
-  // The game's answer to the fall comes before the copy's note, which would otherwise be replaced by it
-  await expect(page.getByRole("status")).toHaveText(server("moved").replace("{name}", "Table"));
+  expect((await readSent(page, "ArchitectSnapToFloor")).length).toBe(1);
   await page.keyboard.press("r");
   expect(await readSent(page, "ArchitectRaise")).toHaveLength(4);
 
-  await page.keyboard.press("Control+c");
-  await expect(page.getByRole("status")).toHaveText(t("copied").replace("{name}", "Table"));
   await page.keyboard.press("Control+d");
   await picked.getByRole("button", { name: t("duplicate") }).click();
   expect((await readSent(page, "ArchitectCopy")).length).toBe(1);
   expect((await readSent(page, "ArchitectDuplicate")).length).toBe(2);
+  await picked.getByRole("button", { name: t("snap_to_floor") }).click();
+  expect((await readSent(page, "ArchitectSnapToFloor")).length).toBe(2);
   // Ctrl+C neither opened the pieces nor C took Ctrl's place
   await expect(page.locator("[data-catalogue]")).toHaveCount(0);
 
@@ -175,10 +175,17 @@ test("the panel sets the grid, how far a turn goes and what a piece stands on", 
   await expect(panel.locator('[data-settle="ground"]')).toHaveAttribute("aria-pressed", "true");
   await panel.getByRole("button", { name: t("centimetres").replace("{centimetres}", "25") }).click();
   await expect(panel.locator('[data-height="25"]')).toHaveAttribute("aria-pressed", "true");
+  // The gizmo's height snaps to the step: the game hears the first one and every change
+  await expect.poll(() => readSent(page, "ArchitectSetHeight")).toEqual([[10], [25]]);
   await screenshot(page, testInfo, "architect-panel");
 
   await page.keyboard.press("e");
   await page.keyboard.press("Shift+Q");
+  // Nothing picked, R turns the plot's front, as its button does
+  await page.keyboard.press("r");
+  await panel.getByRole("button", { name: t("turn_front") }).click();
+  expect((await readSent(page, "ArchitectTurnFront")).length).toBe(2);
+  await expect(page.getByRole("status")).toHaveText(server("sign_moved"));
   expect(await readSent(page, "ArchitectSetStep")).toEqual([[4]]);
   expect(await readSent(page, "ArchitectSetSettle")).toEqual([[false]]);
   expect(await readSent(page, "ArchitectTurn")).toEqual([[90], [-1]]);
@@ -228,6 +235,33 @@ test("off a plot, /abuild lists the plots near to build on, a new plot to mark, 
   await expect(page.getByRole("status")).toHaveText(t("mark_hint"));
 });
 
+test("a plot is removed from the list or while building on it, only once the page asked, and Esc keeps it", async ({ page }, testInfo) => {
+  await page.goto("/architect/index.html#choose");
+  const list = page.getByRole("complementary", { name: t("choose_title") });
+  await list.getByRole("button", { name: t("remove_named").replace("{plot}", t("plot").replace("{id}", "7")) }).click();
+  const confirm = page.getByRole("alertdialog");
+  await expect(confirm).toContainText(t("remove_confirm").replace("{id}", "7").replace("{pieces}", "0"));
+  await screenshot(page, testInfo, "architect-remove-plot");
+  await page.keyboard.press("Escape");
+  await expect(confirm).toHaveCount(0);
+  expect(await readSent(page, "ArchitectRemovePlot")).toEqual([]);
+  expect(await readSent(page, "ArchitectLeave")).toEqual([]);
+
+  await list.getByRole("button", { name: t("build_on").replace("{plot}", t("plot").replace("{id}", "3")) }).click();
+  await expect(page.locator("[data-catalogue]")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("complementary", { name: t("panel") }).getByRole("button", { name: t("remove_plot") }).click();
+  await expect(confirm).toContainText(t("remove_confirm").replace("{id}", "3").replace("{pieces}", "4"));
+  await confirm.getByRole("button", { name: t("remove_no") }).click();
+  expect(await readSent(page, "ArchitectRemovePlot")).toEqual([]);
+
+  await page.getByRole("complementary", { name: t("panel") }).getByRole("button", { name: t("remove_plot") }).click();
+  await confirm.getByRole("button", { name: t("remove_yes") }).click();
+  expect(await readSent(page, "ArchitectRemovePlot")).toEqual([[3]]);
+  await expect(page.getByRole("status")).toHaveText(server("plot_removed").other.replace("{id}", "3").replace("{count}", "4"));
+  await expect(list).toBeVisible();
+});
+
 test("with no plot near, the list says so", async ({ page }, testInfo) => {
   await page.goto("/architect/index.html#far");
   await expect(page.locator("[data-no-plots]")).toHaveText(t("no_plots"));
@@ -246,6 +280,10 @@ test("the staff mark a new plot, a wrong price is refused, and the plot opens to
   const form = page.getByRole("region", { name: t("form") });
   await expect(form).toBeVisible();
   await expect(page.locator("[data-size]")).toHaveText("12 by 8 tiles, 21.9 m by 14.6 m");
+  // R and the form's button turn the front, the sign with it
+  await page.keyboard.press("r");
+  await form.getByRole("button", { name: t("turn_front") }).click();
+  expect((await readSent(page, "ArchitectTurnFront")).length).toBe(2);
 
   await form.getByRole("button", { name: t("kind.Industrial") }).click();
   await form.getByLabel(t("price")).fill("a lot");
@@ -306,6 +344,41 @@ test("WASD moves the view, the right mouse button turns it and the wheel brings 
   await expect.poll(() => readSent(page, "ArchitectZoom")).toEqual([[1], [-1]]);
   expect(await readSent(page, "ArchitectTurn")).toEqual([]);
   await screenshot(page, testInfo, "architect-view");
+});
+
+test("the Kits tab lists a kit's parts, another kit's on its chip, and the game hears what is shown", async ({ page }, testInfo) => {
+  await page.goto("/architect/index.html");
+  const catalogue = page.locator("[data-catalogue]");
+  await expect(catalogue).toBeVisible();
+  await catalogue.getByRole("tab", { name: t("category.Kits") }).click();
+  const kits = catalogue.getByRole("group", { name: t("kit_label") });
+  await expect(kits.locator('[data-kit="bruma-lower"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(catalogue.locator("[data-piece]")).toHaveCount(3);
+  await expect(catalogue.locator('[data-piece="kit.brumahouselower01_wall_a"]')).toContainText("Wall A (01)");
+  await screenshot(page, testInfo, "architect-kits");
+
+  await kits.getByRole("button", { name: "Coastal cottage, inside" }).click();
+  await expect(catalogue.locator("[data-piece]")).toHaveCount(1);
+  await expect.poll(async () => (await readSent(page, "ArchitectShowing")).at(-1)).toEqual(["kit.anvillchouse_balk_a_01"]);
+});
+
+test("a picked house breaks apart into its kit's parts", async ({ page }) => {
+  await page.goto("/architect/index.html#house");
+  await expect(page.locator("[data-catalogue]")).toBeVisible();
+  await page.keyboard.press("Escape");
+  const picked = page.locator("[data-picked]");
+  await picked.getByRole("button", { name: t("break_apart") }).click();
+  expect((await readSent(page, "ArchitectBreakApart")).length).toBe(1);
+  await expect(page.getByRole("status")).toHaveText(server("broken_apart").other.replace("{name}", "Town house").replace("{count}", "8"));
+  await expect(picked).toHaveCount(0);
+});
+
+test("the game's own furniture says it cannot be broken apart", async ({ page }) => {
+  await page.goto("/architect/index.html#picked");
+  await expect(page.locator("[data-catalogue]")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.locator("[data-picked]").getByRole("button", { name: t("break_apart") }).click();
+  await expect(page.getByRole("status")).toHaveText(t("break.GameObject"));
 });
 
 test("looking around leaves one line on screen and the keys to the game", async ({ page }, testInfo) => {

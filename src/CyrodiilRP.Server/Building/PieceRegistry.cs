@@ -15,7 +15,7 @@ internal sealed class PieceRegistry
 
     public PieceRegistry(IEnumerable<PieceSettings> settings)
     {
-        var pieces = settings.Select(s => new Piece(s.Key, s.Name, s.Category, s.Asset, s.Scale, s.Use, s.Object, s.ReadForm(), null)).ToList();
+        var pieces = settings.Select(s => new Piece(s.Key, s.Name, s.Category, s.Asset, s.Scale, s.Use, s.Object, s.ReadForm(), null, s.Kit)).ToList();
         _order = pieces.Select(p => p.Key).ToList();
         _pieces = pieces.ToDictionary(p => p.Key, StringComparer.Ordinal);
     }

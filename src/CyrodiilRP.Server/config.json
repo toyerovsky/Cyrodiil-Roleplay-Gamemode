@@ -97,6 +97,7 @@
     "plotHeight": 1500,
     "plotPrice": 5000,
     "plotWeeklyTax": 100,
-    "signAsset": "/Game/Forms/worldobjects/activator/sign02.sign02"
+    "plotsPerCharacter": 1,
+    "signAsset": "/Game/Art/Environment/Architecture/chorrol/SM_signforsale01.SM_signforsale01"
   }
 }

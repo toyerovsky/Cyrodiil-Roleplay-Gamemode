@@ -345,6 +345,14 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action<string, long, string>? ArchitectChanged;
 
+    public event Action<string>? PlotSaleChanged;
+
+    public event Action<string, bool>? PlotSaleAnswered;
+
+    public event Action? PlotSaleClosed;
+
+    public event Action<string, bool>? ArchitectPiecesArrived;
+
     public event Action<string, bool>? ArchitectAnswered;
 
     public event Action? ArchitectClosed;
@@ -357,6 +365,14 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnArchitectCatalogue(string[] keys, string[] assets, float[] scales) => ArchitectCatalogueArrived?.Invoke(keys, assets, scales);
 
     partial void OnArchitectState(string json, long plot, string tool) => ArchitectChanged?.Invoke(json, plot, tool);
+
+    partial void OnPlotSaleState(string json) => PlotSaleChanged?.Invoke(json);
+
+    partial void OnPlotSaleAnswer(string text, bool bought) => PlotSaleAnswered?.Invoke(text, bought);
+
+    partial void OnPlotSaleClosed() => PlotSaleClosed?.Invoke();
+
+    partial void OnArchitectPieces(string json, bool first) => ArchitectPiecesArrived?.Invoke(json, first);
 
     partial void OnArchitectAnswer(string text, bool done) => ArchitectAnswered?.Invoke(text, done);
 

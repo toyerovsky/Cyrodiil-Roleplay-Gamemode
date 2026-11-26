@@ -63,6 +63,12 @@ internal sealed partial class ArchitectCamera(ICamera camera, ILocalProps props,
 
     public bool IsActive => _active && !_paused;
 
+    // From the point looked at, in centimetres.
+    public float Distance => _distance;
+
+    // Where the view stands.
+    public Vector3 Position => _focus - new CameraLook(_pitch, _yaw).Forward * _distance;
+
     // Ahead on the ground, as the view looks.
     public Vector3 Ahead => new CameraLook(0f, _yaw).Ahead;
 

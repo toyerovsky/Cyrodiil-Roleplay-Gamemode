@@ -12,7 +12,8 @@ namespace CyrodiilRP.Client.Building;
 // comes from the line the game's camera casts through it (ILocalProps.TryTraceScreen). The server checks every change
 // again. Update thread only.
 [Service]
-internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps building, ArchitectCamera view, RpcHandlers rpc, ILogger logger)
+internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, BuildingProps building, ArchitectCamera view, RpcHandlers rpc,
+    ILogger logger)
 {
     // How far the mouse reaches into the world, in centimetres.
     private const float Reach = 20_000f;
@@ -20,13 +21,51 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
     // How high the outline of a plot being marked is drawn, in centimetres. The form sets the real height.
     private const float MarkHeight = 600f;
 
+    // A plot reaches down without end: its outline is drawn this far under its ground, in centimetres, so it shows below
+    // a dip in the land.
+    private const float ShownBelow = 5000f;
+
+    // The sign's footing is looked for from this far over the plot's ground, and as far under it.
+    private const float SignSearch = 3000f;
+
     private const float LineThickness = 4f;
+    private const float PlotLineThickness = 8f;
+
+    // A plot's sides, shaded so it shows from afar: how much of the green shows, and how thick a side is, in centimetres.
+    private const float PlotSideOpacity = 0.4f;
+    private const float PlotSideHalf = 1f;
+
+    // The gizmo over the picked piece: how high over its top, its arrows' length as a share of the view's distance and
+    // within limits, how thick, a head's half size, how solid, and how near the mouse a handle is grabbed, in shares of
+    // the screen.
+    private const float GizmoLift = 30f;
+    private const float GizmoShare = 0.12f;
+    private const float LeastGizmo = 80f;
+    private const float MostGizmo = 600f;
+    private const float GizmoHalf = 3f;
+    private const float GizmoHead = 10f;
+    private const float GizmoOpacity = 1f;
+    private const float GizmoReach = 0.02f;
+    private const float GizmoThickness = 2f;
+    private const float FreeView = 2000f;
+
+    private const float SignFacing = 180f;
+
+    // The game's own houses are built of forms under this path, whose parts teach how each kit mesh stands upright.
+    private const string FormsPath = "/Game/Forms/";
+
+    private const float DegreesPerRadian = 180f / MathF.PI;
 
     // How far an arrow moves the picked piece with the grid off, in centimetres.
     private const float FreeNudge = 10f;
 
-    // A duplicate stands half a tile from its piece.
-    private const float DuplicateSteps = 2f;
+    // The most parts a piece is taken apart into (ArchitectRules.MostParts on the server), and a part's numbers: x, y, z,
+    // pitch, yaw and roll.
+    private const int MostParts = 200;
+    private const int NumbersPerPart = 6;
+
+    // A part's scale this near 1 is whole.
+    private const float ScaleSlack = 0.01f;
 
     // How near the server's spot is to the one sent for the two to be one, in centimetres and degrees.
     private const float SameSpot = 1f;
@@ -48,6 +87,13 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
     private long _moving;
     private float _yaw;
     private float _raise;
+    // The carried piece's pitch and roll: what stands a kit's mesh upright, or the turn a piece already had.
+    private Vector2 _tilt;
+
+    // How each kit mesh stands upright, its pitch and roll, by its asset: as the catalogue's houses stand it. Learned
+    // once, when a mesh is first carried.
+    private readonly Dictionary<string, Vector2> _upright = new(StringComparer.OrdinalIgnoreCase);
+    private bool _uprightLearned;
     private int _stepIndex;
     private long _selected;
     // The piece picked by a click, carried only once the mouse moves with its button down.
@@ -64,8 +110,21 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
     private LocalPropHandle? _ghost;
     private LocalPropHandle? _ghostBox;
     private LocalPropHandle? _selectionBox;
-    private LocalPropHandle? _plotBox;
-    private readonly List<LocalPropHandle> _choiceBoxes = [];
+    private readonly List<PlotShape> _plotShape = [];
+    private readonly List<PlotShape> _choiceBoxes = [];
+    private readonly List<PlotShape> _markShape = [];
+    private readonly List<LocalPropHandle> _gizmo = [];
+
+    // Where the gizmo stands and how long its arrows are, while the picked piece shows one.
+    private Vector3 _gizmoOrigin;
+    private float _gizmoLength;
+
+    // An axis drag: the axis, where the piece stood, where the mouse went down, and how far a centimetre along the axis
+    // moves on the screen.
+    private Vector3 _axis;
+    private Vector3 _axisFrom;
+    private Vector2 _axisMouse;
+    private Vector2 _axisScreen;
 
     // Where the picked piece was last sent, until the server stands it there: held keys move it on from there.
     private PieceSpot? _expected;
@@ -74,6 +133,12 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
     // A piece sent to be placed, picked once the server stands it.
     private PieceSpot? _pickWhenPlaced;
     private string? _pickAsset;
+    private long _pickAbove;
+
+    // The plot being marked: the side its front and sign are at, and whether the staff turned it (or it faces the view).
+    private PlotEdge _markFront;
+    private bool _frontTurned;
+    private LocalPropHandle? _signGhost;
 
     public event Action<GhostFit>? FitChanged;
 
@@ -84,11 +149,17 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
     // A turn or a lift of the picked piece that would not fit.
     public event Action<GhostFit>? Refused;
 
+    // Why the picked piece could not be taken apart.
+    public event Action<BreakRefusal>? BreakRefused;
+
     // Steps of the grid a tile: 1, 2 or 4, or 0 for none.
     public int Step => Steps[_stepIndex];
 
     // A carried piece settles on what is under it, or stands on the plot's ground.
     public bool Settle { get; set; } = true;
+
+    // How far a step up or down goes, in centimetres, as the page's panel picks it: the gizmo's height snaps to it.
+    public int HeightStep { get; set; } = 10;
 
     public void SetCatalogue(string[] keys, string[] assets, float[] scales)
     {
@@ -124,7 +195,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
         Cancel();
         Deselect();
         ClearMark();
-        Remove(ref _plotBox);
+        RemoveShapes(_plotShape);
         RemoveChoices();
         _plotId = 0;
         _tool = ArchitectTool.Choose;
@@ -134,7 +205,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
     // Again after the server's plots came, so a plot whose size changed is drawn as it is. Choosing, every plot around.
     public void DrawPlot()
     {
-        Remove(ref _plotBox);
+        RemoveShapes(_plotShape);
         RemoveChoices();
         switch (_tool)
         {
@@ -142,7 +213,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
                 foreach (var id in building.PlotIds)
                 {
                     if (building.TryFindPlot(id, out var each))
-                        _choiceBoxes.Add(props.PlaceBox(Outline(each.Center, each.HalfSize, 0f, Colour.Plot)));
+                        DrawPlotShape(each, _choiceBoxes);
                 }
 
                 return;
@@ -150,19 +221,91 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
                 return;
             case ArchitectTool.Build:
                 if (building.TryFindPlot(_plotId, out var box))
-                    _plotBox = props.PlaceBox(Outline(box.Center, box.HalfSize, 0f, Colour.Plot));
+                    DrawPlotShape(box, _plotShape);
                 return;
             default:
                 throw new ArgumentOutOfRangeException(nameof(_tool), _tool, "Not an architect tool.");
         }
     }
 
-    private void RemoveChoices()
+    private void RemoveChoices() => RemoveShapes(_choiceBoxes);
+
+    private void RemoveAll(List<LocalPropHandle> handles)
     {
-        foreach (var box in _choiceBoxes)
-            props.Remove(box);
-        _choiceBoxes.Clear();
+        foreach (var handle in handles)
+            props.Remove(handle);
+        handles.Clear();
     }
+
+    // A plot's green outline and its sides shaded green, so a plot is found at a glance.
+    private void DrawPlotShape(PlotBox box, List<PlotShape> into)
+    {
+        var shape = new PlotShape(box, props.PlaceBox(PlotOutline(box)), [], NoSides);
+        into.Add(ShadeSides(shape));
+    }
+
+    private void RemoveShapes(List<PlotShape> shapes)
+    {
+        foreach (var shape in shapes)
+        {
+            props.Remove(shape.Outline);
+            foreach (var side in shape.Sides)
+                props.Remove(side);
+        }
+
+        shapes.Clear();
+    }
+
+    // Only the sides across the plot from the view are shaded, as if each showed only its inner face: the near ones would
+    // hide what is built behind them. From over the plot every side is across it.
+    private PlotShape ShadeSides(PlotShape shape)
+    {
+        var shown = view.IsActive ? SidesSeenFrom(shape.Box, view.Position) : AllSides;
+        if (shown == shape.Shown)
+            return shape;
+
+        foreach (var side in shape.Sides)
+            props.Remove(side);
+
+        var outline = PlotOutline(shape.Box);
+        var center = outline.Center;
+        var half = outline.HalfSize;
+        var sides = new List<LocalPropHandle>();
+        if ((shown & LowXSide) != 0)
+            sides.Add(Side(center with { X = shape.Box.MinX }, half with { X = PlotSideHalf }));
+        if ((shown & HighXSide) != 0)
+            sides.Add(Side(center with { X = shape.Box.MaxX }, half with { X = PlotSideHalf }));
+        if ((shown & LowYSide) != 0)
+            sides.Add(Side(center with { Y = shape.Box.MinY }, half with { Y = PlotSideHalf }));
+        if ((shown & HighYSide) != 0)
+            sides.Add(Side(center with { Y = shape.Box.MaxY }, half with { Y = PlotSideHalf }));
+        return shape with { Sides = sides, Shown = shown };
+
+        LocalPropHandle Side(Vector3 at, Vector3 size) =>
+            props.PlaceFill(new BoxFill(at, size, 0f, Colour.Plot.Red, Colour.Plot.Green, Colour.Plot.Blue, PlotSideOpacity));
+    }
+
+    // A side is across the plot when the view stands on the plot's side of it.
+    private static int SidesSeenFrom(PlotBox box, Vector3 from) =>
+        (from.X > box.MinX ? LowXSide : NoSides) | (from.X < box.MaxX ? HighXSide : NoSides)
+        | (from.Y > box.MinY ? LowYSide : NoSides) | (from.Y < box.MaxY ? HighYSide : NoSides);
+
+    private void ShadeAll(List<PlotShape> shapes)
+    {
+        for (var index = 0; index < shapes.Count; index++)
+            shapes[index] = ShadeSides(shapes[index]);
+    }
+
+    // A plot's sides, as bits of which are shaded.
+    private const int NoSides = 0;
+    private const int LowXSide = 1;
+    private const int HighXSide = 2;
+    private const int LowYSide = 4;
+    private const int HighYSide = 8;
+    private const int AllSides = LowXSide | HighXSide | LowYSide | HighYSide;
+
+    // A plot as drawn: its outline, the side fills shown, and which sides those are.
+    private sealed record PlotShape(PlotBox Box, LocalPropHandle Outline, IReadOnlyList<LocalPropHandle> Sides, int Shown);
 
     // The mouse went down: on a drawer's piece (its key), or on the world (empty).
     public void Grab(float x, float y, string piece)
@@ -180,6 +323,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
             _drag = ArchitectDrag.NewPiece;
             _carried = piece;
             _yaw = 0f;
+            _tilt = UprightOf(carried.Asset);
             _raise = 0f;
             Point(x, y);
             return;
@@ -191,6 +335,12 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
         if (_tool == ArchitectTool.Choose)
         {
             ChoosePlotAt(trace.Location);
+            return;
+        }
+
+        if (TryPickAxis(x, y, out var axis))
+        {
+            StartAxisDrag(axis, x, y);
             return;
         }
 
@@ -213,7 +363,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
         if (picked != 0 && building.TryFindPiece(picked, out var prop) && FindKey(prop.Asset) is { } key)
         {
             Select(picked, key);
-            _pending = new PendingMove(picked, key, prop.Rotation.Y);
+            _pending = new PendingMove(picked, key, prop.Rotation.Y, new Vector2(prop.Rotation.X, prop.Rotation.Z));
             return;
         }
 
@@ -239,10 +389,12 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
         _pending = null;
         Unhighlight();
         Remove(ref _selectionBox);
+        RemoveAll(_gizmo);
         _drag = ArchitectDrag.MovePiece;
         _carried = pending.Key;
         _moving = pending.Id;
         _yaw = pending.Yaw;
+        _tilt = pending.Tilt;
         _raise = 0f;
         building.Hide(pending.Id);
     }
@@ -265,10 +417,114 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
             case ArchitectDrag.MarkPlot:
                 AimMark(x, y);
                 return;
+            case ArchitectDrag.AxisMove:
+                AimAxis(x, y);
+                return;
             default:
                 throw new ArgumentOutOfRangeException(nameof(_drag), _drag, "Not an architect drag.");
         }
     }
+
+    // The gizmo's handle under the mouse, if any: the arrow whose line on the screen passes nearest.
+    private bool TryPickAxis(float x, float y, out Vector3 axis)
+    {
+        axis = default;
+        if (_gizmo.Count == 0)
+            return false;
+
+        var mouse = new Vector2(x, y);
+        var nearest = GizmoReach;
+        foreach (var each in Axes)
+        {
+            if (!camera.TryProject(_gizmoOrigin, out var from) || !camera.TryProject(_gizmoOrigin + each * _gizmoLength, out var to))
+                continue;
+
+            var distance = DistanceToSegment(mouse, from, to);
+            if (distance > nearest)
+                continue;
+
+            nearest = distance;
+            axis = each;
+        }
+
+        return axis != default;
+    }
+
+    private static float DistanceToSegment(Vector2 point, Vector2 from, Vector2 to)
+    {
+        var along = to - from;
+        var share = along.LengthSquared() > 0f ? Math.Clamp(Vector2.Dot(point - from, along) / along.LengthSquared(), 0f, 1f) : 0f;
+        return Vector2.Distance(point, from + along * share);
+    }
+
+    // The picked piece carried along one axis: the rest of it stays where it stood.
+    private void StartAxisDrag(Vector3 axis, float x, float y)
+    {
+        if (!TryFindSelected(out var prop) || FindKey(prop.Asset) is not { } key
+            || !camera.TryProject(_gizmoOrigin, out var from) || !camera.TryProject(_gizmoOrigin + axis * _gizmoLength, out var to))
+            return;
+
+        var screen = (to - from) / _gizmoLength;
+        if (screen.LengthSquared() <= float.Epsilon)
+            return;
+
+        _pending = null;
+        RemoveAll(_gizmo);
+        Unhighlight();
+        Remove(ref _selectionBox);
+        _drag = ArchitectDrag.AxisMove;
+        _carried = key;
+        _moving = _selected;
+        _yaw = prop.Rotation.Y;
+        _tilt = new Vector2(prop.Rotation.X, prop.Rotation.Z);
+        _raise = 0f;
+        _axis = axis;
+        _axisFrom = prop.Position;
+        _axisMouse = new Vector2(x, y);
+        _axisScreen = screen;
+        building.Hide(_moving);
+        ShowGhost(prop.Position);
+    }
+
+    // Along the axis as far as the mouse went along its line on the screen, snapped as the grid or the height step say.
+    private void AimAxis(float x, float y)
+    {
+        var moved = new Vector2(x, y) - _axisMouse;
+        var centimetres = Vector2.Dot(moved, _axisScreen) / _axisScreen.LengthSquared();
+        var at = _axisFrom + _axis * centimetres;
+        if (_axis.X != 0f && Step > 0)
+            at.X = BuildingGrid.Snap(at.X, Step);
+        if (_axis.Y != 0f && Step > 0)
+            at.Y = BuildingGrid.Snap(at.Y, Step);
+        if (_axis.Z != 0f && HeightStep > 0)
+        {
+            var ground = building.TryFindPlot(_plotId, out var plot) ? plot.GroundZ : 0f;
+            at.Z = ground + MathF.Round((at.Z - ground) / HeightStep) * HeightStep;
+        }
+
+        ShowGhost(at);
+    }
+
+    // Arrows along the world's axes from over the picked piece, red, green and blue, each with a head to grab.
+    private void DrawGizmo(Prop prop, PropBounds bounds)
+    {
+        RemoveAll(_gizmo);
+        var top = Vector3.Transform(bounds.Center, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, prop.Rotation.Y * MathF.PI / 180f));
+        _gizmoOrigin = prop.Position + new Vector3(top.X, top.Y, bounds.Max.Z + GizmoLift);
+        _gizmoLength = Math.Clamp((view.IsActive ? view.Distance : FreeView) * GizmoShare, LeastGizmo, MostGizmo);
+        foreach (var axis in Axes)
+        {
+            var colour = axis.X != 0f ? Colour.AxisX : axis.Y != 0f ? Colour.AxisY : Colour.AxisZ;
+            var shaft = new Vector3(GizmoHalf) + axis * (_gizmoLength / 2f - GizmoHalf);
+            var middle = _gizmoOrigin + axis * (_gizmoLength / 2f);
+            _gizmo.Add(props.PlaceFill(new BoxFill(middle, shaft, 0f, colour.Red, colour.Green, colour.Blue, GizmoOpacity)));
+            _gizmo.Add(props.PlaceBox(Outline(middle, shaft, 0f, colour) with { Thickness = GizmoThickness }));
+            _gizmo.Add(props.PlaceFill(new BoxFill(_gizmoOrigin + axis * _gizmoLength, new Vector3(GizmoHead), 0f, colour.Red, colour.Green,
+                colour.Blue, GizmoOpacity)));
+        }
+    }
+
+    private static readonly Vector3[] Axes = [Vector3.UnitX, Vector3.UnitY, Vector3.UnitZ];
 
     // The mouse went up over the world: what it carried goes there, if it fits.
     public void Drop(float x, float y)
@@ -287,10 +543,11 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
                 return;
             case ArchitectDrag.NewPiece:
                 if (_fit == GhostFit.Fits && _spot is { } spot && _carried is { } piece)
-                    Place(piece, spot, _yaw);
+                    Place(piece, spot, CarriedRotation);
                 Cancel();
                 return;
             case ArchitectDrag.MovePiece:
+            case ArchitectDrag.AxisMove:
                 if (_fit == GhostFit.Fits && _spot is { } moved)
                     rpc.SendArchitectMove(_moving, [moved.X, moved.Y, moved.Z, _yaw]);
                 Cancel();
@@ -306,7 +563,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
     // What the mouse carried goes back where it was, a piece out of the drawer back into it.
     public void Cancel()
     {
-        if (_drag == ArchitectDrag.MovePiece)
+        if (_drag is ArchitectDrag.MovePiece or ArchitectDrag.AxisMove)
             building.Show(_moving);
 
         _drag = ArchitectDrag.None;
@@ -423,7 +680,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
         if (!TryFindSelected(out var prop) || FindKey(prop.Asset) is not { } key)
             return false;
 
-        _copied = new CopiedPiece(key, prop.Rotation.Y);
+        _copied = new CopiedPiece(key, prop.Rotation);
         return true;
     }
 
@@ -437,36 +694,26 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
         Measure(piece);
         _drag = ArchitectDrag.NewPiece;
         _carried = copied.Key;
-        _yaw = copied.Yaw;
+        _yaw = copied.Rotation.Y;
+        _tilt = new Vector2(copied.Rotation.X, copied.Rotation.Z);
         _raise = 0f;
         Point(x, y);
         if (_fit == GhostFit.Fits && _spot is { } spot)
-            Place(copied.Key, spot, _yaw);
+            Place(copied.Key, spot, CarriedRotation);
         else
             Refused?.Invoke(_fit == GhostFit.None ? GhostFit.NoGround : _fit);
 
         Cancel();
     }
 
-    // A copy of the picked piece half a tile to its right as the camera looks, at its height and turn, picked once it
-    // stands.
+    // A copy of the picked piece where it stands, picked once it stands, to be moved off it with the keys: in place it
+    // fits wherever the piece does.
     public void Duplicate()
     {
-        if (_drag != ArchitectDrag.None || !TryFindSelected(out var prop) || FindKey(prop.Asset) is not { } key
-            || !_catalogue.TryGetValue(key, out var piece) || !TryFindGridAxes(out _, out var aside))
+        if (_drag != ArchitectDrag.None || !TryFindSelected(out var prop) || FindKey(prop.Asset) is not { } key)
             return;
 
-        Measure(piece);
-        var by = aside * (BuildingGrid.TileCentimetres / DuplicateSteps);
-        var to = prop.Position + new Vector3(by.X, by.Y, 0f);
-        var fit = Judge(_catalogue[key], to, prop.Rotation.Y);
-        if (fit != GhostFit.Fits)
-        {
-            Refused?.Invoke(fit);
-            return;
-        }
-
-        Place(key, to, prop.Rotation.Y);
+        Place(key, prop.Position, prop.Rotation);
     }
 
     // The picked piece let fall onto what is under it, or onto the plot's ground, as a carried piece settles. The game's
@@ -508,16 +755,83 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
         MoveSelected(prop, prop.Position with { Z = rest }, prop.Rotation.Y);
     }
 
+    // The picked piece taken apart into the meshes it is built of (ILocalProps.TryListParts), each a piece of a kit of the
+    // catalogue standing where it stood in it. The server takes the piece away and stands the parts in one write.
+    public void BreakApart()
+    {
+        if (_drag != ArchitectDrag.None || !TryFindSelected(out var prop))
+            return;
+
+        if (!building.TryFindHandle(_selected, out _))
+        {
+            BreakRefused?.Invoke(BreakRefusal.GameObject);
+            return;
+        }
+
+        if (!props.TryListParts(prop.Asset, out var parts) || parts.Count == 0)
+        {
+            BreakRefused?.Invoke(BreakRefusal.NoParts);
+            return;
+        }
+
+        if (parts.Count == 1)
+        {
+            BreakRefused?.Invoke(BreakRefusal.OnePart);
+            return;
+        }
+
+        if (parts.Count > MostParts)
+        {
+            BreakRefused?.Invoke(BreakRefusal.TooMany);
+            return;
+        }
+
+        // The game names a mesh in its own letter case, which need not be the catalogue's
+        var byAsset = _catalogue.Values.GroupBy(piece => piece.Asset, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+        var turn = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, prop.Rotation.Y * MathF.PI / 180f);
+        var keys = new List<string>(parts.Count);
+        var spots = new List<float>(parts.Count * NumbersPerPart);
+        foreach (var part in parts)
+        {
+            if (!IsWhole(part.Scale) || MathF.Abs(prop.Scale - 1f) > ScaleSlack)
+            {
+                BreakRefused?.Invoke(BreakRefusal.Stretched);
+                return;
+            }
+
+            if (!byAsset.TryGetValue(part.Mesh, out var piece))
+            {
+                logger.LogWarning("[CyrodiilRP] {Asset} cannot be taken apart: its part {Mesh} is in no kit of the catalogue.", prop.Asset, part.Mesh);
+                BreakRefused?.Invoke(BreakRefusal.NotInCatalogue);
+                return;
+            }
+
+            Measure(piece);
+            var at = prop.Position + Vector3.Transform(part.Position, turn);
+            keys.Add(piece.Key);
+            spots.AddRange([at.X, at.Y, at.Z, part.Rotation.X, part.Rotation.Y + prop.Rotation.Y, part.Rotation.Z]);
+        }
+
+        rpc.SendArchitectBreakApart(_selected, keys.ToArray(), spots.ToArray());
+        Deselect();
+    }
+
+    private static bool IsWhole(Vector3 scale) =>
+        MathF.Abs(scale.X - 1f) <= ScaleSlack && MathF.Abs(scale.Y - 1f) <= ScaleSlack && MathF.Abs(scale.Z - 1f) <= ScaleSlack;
+
     // The server refused the last change: the picked piece is where the server last stood it.
     public void ForgetExpected() => _expected = null;
 
-    private void Place(string key, Vector3 spot, float yaw)
+    // Rotation: pitch, yaw and roll.
+    private void Place(string key, Vector3 spot, Vector3 rotation)
     {
-        rpc.SendArchitectPlace(key, [spot.X, spot.Y, spot.Z, yaw]);
+        rpc.SendArchitectPlace(key, [spot.X, spot.Y, spot.Z, rotation.Y, rotation.X, rotation.Z]);
         if (_catalogue.TryGetValue(key, out var piece))
         {
-            _pickWhenPlaced = new PieceSpot(spot, yaw);
+            _pickWhenPlaced = new PieceSpot(spot, rotation.Y);
             _pickAsset = piece.Asset;
+            _pickAbove = building.HighestPieceId;
         }
     }
 
@@ -542,6 +856,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
         _pending = null;
         Unhighlight();
         Remove(ref _selectionBox);
+        RemoveAll(_gizmo);
         SelectionChanged?.Invoke(string.Empty);
     }
 
@@ -551,17 +866,18 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
         if (!_marking || _marked is not { } box)
             return false;
 
-        var center = box.Center;
-        var outward = new Vector2(_markStart.X - center.X, _markStart.Y - center.Y);
-        var signYaw = outward == Vector2.Zero ? 0f : MathF.Atan2(outward.Y, outward.X) * 180f / MathF.PI;
-        rpc.SendArchitectMarkPlot([box.FirstTileX, box.FirstTileY, box.Width, box.Depth], [box.GroundZ, _markStart.X, _markStart.Y, _markStart.Z, signYaw], form);
+        var sign = SignSpot(box, _markFront);
+        rpc.SendArchitectMarkPlot([box.FirstTileX, box.FirstTileY, box.Width, box.Depth],
+            [box.GroundZ, sign.X, sign.Y, sign.Z, SignYaw(_markFront)], form);
         return true;
     }
 
     public void ClearMark()
     {
         _marked = null;
-        Remove(ref _ghostBox);
+        _frontTurned = false;
+        Remove(ref _signGhost);
+        RemoveShapes(_markShape);
         MarkChanged?.Invoke(0, 0);
     }
 
@@ -570,6 +886,11 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
     {
         if (piece.Bounds is not null || !props.TryMeasure(piece.Asset, piece.Scale, out var bounds))
             return;
+
+        // A kit mesh stands tilted upright: its box is the one it fills standing so, which its yaw then turns
+        var tilt = UprightOf(piece.Asset);
+        if (tilt != Vector2.Zero)
+            bounds = Tilted(bounds, new Vector3(tilt.X, 0f, tilt.Y));
 
         _catalogue[piece.Key] = piece with { Bounds = bounds };
         rpc.SendArchitectMeasured(piece.Key, [bounds.Min.X, bounds.Min.Y, bounds.Min.Z, bounds.Max.X, bounds.Max.Y, bounds.Max.Z]);
@@ -627,7 +948,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
             return;
         }
 
-        var prop = new Prop(piece.Asset, position, new Vector3(0f, _yaw, 0f), piece.Scale);
+        var prop = new Prop(piece.Asset, position, CarriedRotation, piece.Scale);
         if (_ghost is { } ghost)
             props.Move(ghost, prop.Position, prop.Rotation);
         else
@@ -661,11 +982,74 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
         if (!props.TryTraceScreen(x, y, Reach, out var trace) || trace.Hit == ScreenHit.Nothing)
             return;
 
-        var box = PlotBox.Between(_markStart, trace.Location, MathF.Min(_markStart.Z, trace.Location.Z), MarkHeight);
+        // The land is seldom level: the plot's ground is halfway between where the drag began and where it is
+        var box = PlotBox.Between(_markStart, trace.Location, (_markStart.Z + trace.Location.Z) / 2f, MarkHeight);
         _marked = box;
-        Remove(ref _ghostBox);
-        _ghostBox = props.PlaceBox(Outline(box.Center, box.HalfSize, 0f, Colour.Plot));
+        if (!_frontTurned)
+            _markFront = PlotSigns.Facing(box, new Vector2(trace.Origin.X, trace.Origin.Y));
+        RemoveShapes(_markShape);
+        DrawPlotShape(box, _markShape);
+        DrawSignGhost();
         MarkChanged?.Invoke(box.Width, box.Depth);
+    }
+
+    // From under the ground (it reaches down without end) to its top.
+    private static BoxOutline PlotOutline(PlotBox box)
+    {
+        var bottom = box.GroundZ - ShownBelow;
+        var center = new Vector3((box.MinX + box.MaxX) / 2f, (box.MinY + box.MaxY) / 2f, (bottom + box.Top) / 2f);
+        var half = new Vector3((box.MaxX - box.MinX) / 2f, (box.MaxY - box.MinY) / 2f, (box.Top - bottom) / 2f);
+        return Outline(center, half, 0f, Colour.Plot) with { Thickness = PlotLineThickness };
+    }
+
+    // The way the sign is turned on a side: the for-sale mesh reads along its own -X, so it is turned back from the side's
+    // outward yaw to face out.
+    private static float SignYaw(PlotEdge edge) => PlotSigns.YawOf(edge) + SignFacing;
+
+    // The sign at the middle of the side, outside it, its lowest point on the land there: not on what stands on it. A
+    // mesh's origin need not be its foot (a hanging sign's is its hook), so its measured bottom is what stands on the land.
+    private Vector3 SignSpot(PlotBox box, PlotEdge edge)
+    {
+        var at = PlotSigns.SpotOn(box, edge);
+        var z = props.TryFindGround(at.X, at.Y, box.GroundZ + SignSearch, SignSearch * 2f, out var ground) ? ground : box.GroundZ;
+        var bottom = building.SignAsset is { } asset && props.TryMeasure(asset, 1f, out var bounds) ? bounds.Min.Z : 0f;
+        return new Vector3(at.X, at.Y, z - bottom);
+    }
+
+    private void DrawSignGhost()
+    {
+        Remove(ref _signGhost);
+        if (_marked is not { } box || building.SignAsset is not { } asset)
+            return;
+
+        var spot = SignSpot(box, _markFront);
+        _signGhost = props.Place(new Prop(asset, spot, new Vector3(0f, SignYaw(_markFront), 0f), 1f), collides: false);
+    }
+
+    // R: the plot being marked, or the one built on, gets its front and sign at the next side.
+    public void TurnFront()
+    {
+        if (_drag != ArchitectDrag.None)
+            return;
+
+        if (_marking)
+        {
+            if (_marked is null)
+                return;
+
+            _markFront = PlotSigns.Next(_markFront);
+            _frontTurned = true;
+            DrawSignGhost();
+            return;
+        }
+
+        if (_tool != ArchitectTool.Build || _selected != 0 || !building.TryFindPlot(_plotId, out var plot)
+            || !building.TryFindSign(_plotId, out var sign))
+            return;
+
+        var next = PlotSigns.Next(PlotSigns.EdgeOf(plot, new Vector2(sign.X, sign.Y)));
+        var spot = SignSpot(plot, next);
+        rpc.SendArchitectMoveSign([spot.X, spot.Y, spot.Z, SignYaw(next)]);
     }
 
     private void MoveSelected(Prop prop, Vector3 position, float yaw)
@@ -701,6 +1085,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
     private void DrawSelection()
     {
         Remove(ref _selectionBox);
+        RemoveAll(_gizmo);
         Unhighlight();
         if (building.TryFindHandle(_selected, out var handle))
         {
@@ -713,6 +1098,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
             return;
 
         _selectionBox = props.PlaceBox(PieceOutline(bounds, prop.Position, prop.Rotation.Y, Colour.Picked));
+        DrawGizmo(prop, bounds);
     }
 
     private void Unhighlight()
@@ -750,11 +1136,71 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
         handle = null;
     }
 
-    private sealed record PendingMove(long Id, string Key, float Yaw);
+    private sealed record PendingMove(long Id, string Key, float Yaw, Vector2 Tilt);
 
     private sealed record PieceSpot(Vector3 Position, float Yaw);
 
-    private sealed record CopiedPiece(string Key, float Yaw);
+    private sealed record CopiedPiece(string Key, Vector3 Rotation);
+
+    private Vector3 CarriedRotation => new(_tilt.X, _yaw, _tilt.Y);
+
+    private Vector2 UprightOf(string asset)
+    {
+        if (!_uprightLearned)
+            LearnUpright();
+
+        return _upright.GetValueOrDefault(asset);
+    }
+
+    // The pitch and roll each mesh has most often in the catalogue's houses: a kit made lying down is stood up by its
+    // house, and a part placed on its own stands so too.
+    private void LearnUpright()
+    {
+        _uprightLearned = true;
+        var seen = new Dictionary<string, Dictionary<Vector2, int>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var piece in _catalogue.Values.Where(piece => piece.Asset.StartsWith(FormsPath, StringComparison.Ordinal)))
+        {
+            if (!props.TryListParts(piece.Asset, out var parts) || parts.Count < 2)
+                continue;
+
+            foreach (var part in parts)
+            {
+                var tilt = new Vector2(MathF.Round(part.Rotation.X), MathF.Round(part.Rotation.Z));
+                var counts = seen.TryGetValue(part.Mesh, out var known) ? known : seen[part.Mesh] = [];
+                counts[tilt] = counts.GetValueOrDefault(tilt) + 1;
+            }
+        }
+
+        foreach (var (mesh, counts) in seen)
+        {
+            var most = counts.MaxBy(count => count.Value).Key;
+            if (most != Vector2.Zero)
+                _upright[mesh] = most;
+        }
+    }
+
+    // The box a mesh's box fills once turned by the rotator (pitch, yaw, roll), as the game's FRotationMatrix turns it.
+    private static PropBounds Tilted(PropBounds bounds, Vector3 rotator)
+    {
+        float sp = MathF.Sin(rotator.X / DegreesPerRadian), cp = MathF.Cos(rotator.X / DegreesPerRadian);
+        float sy = MathF.Sin(rotator.Y / DegreesPerRadian), cy = MathF.Cos(rotator.Y / DegreesPerRadian);
+        float sr = MathF.Sin(rotator.Z / DegreesPerRadian), cr = MathF.Cos(rotator.Z / DegreesPerRadian);
+        var x = new Vector3(cp * cy, cp * sy, sp);
+        var y = new Vector3(sr * sp * cy - cr * sy, sr * sp * sy + cr * cy, -sr * cp);
+        var z = new Vector3(-(cr * sp * cy + sr * sy), cy * sr - cr * sp * sy, cr * cp);
+        var min = new Vector3(float.MaxValue);
+        var max = new Vector3(float.MinValue);
+        foreach (var cx in new[] { bounds.Min.X, bounds.Max.X })
+        foreach (var cyy in new[] { bounds.Min.Y, bounds.Max.Y })
+        foreach (var cz in new[] { bounds.Min.Z, bounds.Max.Z })
+        {
+            var turned = x * cx + y * cyy + z * cz;
+            min = Vector3.Min(min, turned);
+            max = Vector3.Max(max, turned);
+        }
+
+        return new PropBounds(min, max);
+    }
 
     private void Start()
     {
@@ -770,6 +1216,9 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
 
     private void FollowView()
     {
+        ShadeAll(_plotShape);
+        ShadeAll(_choiceBoxes);
+        ShadeAll(_markShape);
         if (_drag != ArchitectDrag.None && _lastPoint is { } point)
             Point(point.X, point.Y);
     }
@@ -778,7 +1227,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
     // picked once it stands.
     private void RefreshSelection()
     {
-        if (_pickWhenPlaced is { } placed && _pickAsset is { } asset && building.TryFindAt(asset, placed.Position, SameSpot, out var id)
+        if (_pickWhenPlaced is { } placed && _pickAsset is { } asset && building.TryFindAt(asset, placed.Position, SameSpot, _pickAbove, out var id)
             && FindKey(asset) is { } key)
         {
             _pickWhenPlaced = null;
@@ -790,7 +1239,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
             }
         }
 
-        if (_selected == 0 || _drag == ArchitectDrag.MovePiece)
+        if (_selected == 0 || _drag is ArchitectDrag.MovePiece or ArchitectDrag.AxisMove)
             return;
 
         if (!building.TryFindPiece(_selected, out var prop))
@@ -808,7 +1257,10 @@ internal sealed partial class ArchitectWorld(ILocalProps props, BuildingProps bu
 
     private readonly record struct Colour(byte Red, byte Green, byte Blue)
     {
-        public static readonly Colour Plot = new(230, 190, 90);
+        public static readonly Colour Plot = new(70, 220, 110);
+        public static readonly Colour AxisX = new(255, 90, 80);
+        public static readonly Colour AxisY = new(100, 255, 120);
+        public static readonly Colour AxisZ = new(100, 170, 255);
         public static readonly Colour Fits = new(90, 210, 120);
         public static readonly Colour Refused = new(225, 70, 60);
         public static readonly Colour Picked = new(150, 255, 150);

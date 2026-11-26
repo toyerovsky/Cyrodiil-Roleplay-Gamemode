@@ -1,9 +1,7 @@
 using CyrodiilRP.Data.Staff;
 using CyrodiilRP.Server.Commands;
-using CyrodiilRP.Server.Infrastructure;
 using CyrodiilRP.Server.Localization;
 using CyrodiilRP.Server.Players;
-using Microsoft.Extensions.Logging;
 using ReadyM.SDK.Attributes;
 
 namespace CyrodiilRP.Server.Building;
@@ -16,12 +14,8 @@ internal sealed partial class BuildingCommands(
     Proximity proximity,
     Plots plots,
     Architects architects,
-    BuildingReferences references,
-    Audit audit,
-    Fire fire,
-    ILogger logger)
+    PlotRemovals removals)
 {
-    private const string RemoveAction = "plot.remove";
     private const string New = "new";
     private const string Remove = "remove";
     private const string List = "list";
@@ -102,33 +96,12 @@ internal sealed partial class BuildingCommands(
         if (FindStoodOn(call) is not { } plot)
             return;
 
-        var by = call.Sender;
-        var pieces = plots.CountOn(plot.Id);
-        var objects = plots.ListOn(plot.Id).Where(p => p.RefId != 0).Select(p => p.RefId).ToList();
-        fire.Run(RemoveAction, async () =>
+        removals.Remove(call.Sender, plot, (text, done) =>
         {
-            bool removed;
-            try
-            {
-                removed = await plots.RemovePlotAsync(plot);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "[CyrodiilRP] {Staff} could not take plot #{Plot} away.", by.Ref, plot.Id);
-                if (by.IsLive)
-                    call.Refuse(BuildingText.PlotRemoveFailed(plot.Id));
-
-                return;
-            }
-
-            if (removed)
-                audit.Log(RemoveAction, by.Ref, null, new PlotDetails(plot.Id, plot.Area, pieces));
-
-            foreach (var refId in objects.Where(refId => !references.Delete(refId)))
-                logger.LogWarning("[CyrodiilRP] Plot #{Plot} is gone, but its game object {RefId:X} was not in the world to take away.", plot.Id, refId);
-
-            if (by.IsLive)
-                call.Reply(BuildingText.PlotRemoved(plot.Id, pieces));
+            if (done)
+                call.Reply(text);
+            else
+                call.Refuse(text);
         });
     }
 
@@ -160,6 +133,4 @@ internal sealed partial class BuildingCommands(
         call.Refuse(BuildingText.NoPlotHere);
         return null;
     }
-
-    private sealed record PlotDetails(long Plot, string Area, int Pieces);
 }
