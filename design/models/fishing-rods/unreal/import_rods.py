@@ -22,8 +22,8 @@ ROOT = "/Game/CyrodiilRP"
 FISHING = ROOT + "/Fishing"
 GRADES = ("Basic", "Sturdy", "Master")
 CHUNK = 1
-# The rods are about 2.7 to 3.1 m long: anything else means the FBX came in at the wrong scale.
-SHORTEST_CM, LONGEST_CM = 250.0, 330.0
+# The rods are about 2.0 to 2.3 m long: anything else means the FBX came in at the wrong scale.
+SHORTEST_CM, LONGEST_CM = 180.0, 250.0
 # Centimetres a mesh's box may differ by from the one rods.json lists.
 BOX_NEAR_CM = 0.05
 
@@ -64,7 +64,7 @@ def mesh_options():
     data.generate_lightmap_u_vs = False
     data.auto_generate_collision = False
     data.normal_import_method = unreal.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS_AND_TANGENTS
-    # Blender writes metres with the FBX's unit saying so: without the conversion a 2.7 m rod comes in 2.7 cm long.
+    # Blender writes metres with the FBX's unit saying so: without the conversion a 2 m rod comes in 2 cm long.
     data.convert_scene_unit = True
     return ui
 

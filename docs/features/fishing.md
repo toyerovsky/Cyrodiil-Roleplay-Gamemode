@@ -35,10 +35,13 @@ lure, and mends rods.
   fishing" on the wheel, a staff member's freeze, or the character being moved more than 3 m away. W, A, S and D do
   not stop it. Stopping with a fish on the line cuts the line, at what a snap costs: the rod may wear, the lure goes.
 - **The cast.** The aim follows where the player looks, up to 60 degrees to either side. Holding Space swings a power
-  meter up in 1.1 s and down again; letting go casts as far as the power gives, from 1.5 m to the rod's reach, onto the
-  nearest open water at or before that point. The angler swings the rod and the float flies to the water. Five small
-  fish swim in from the open water and circle the float at 1 to 3 m, kept off the angler's bank; they flee when a fish
-  is hooked, the float leaves the water or the angler casts again.
+  meter up in 1.1 s and down again; letting go casts as far as the power gives, from 1.5 m to the rod's reach, onto
+  the nearest open water at or before that point. The farther from the angler the float lands, the bigger the fish and
+  the likelier a rare one, and the more line there is to take in: the plate says so. A cast within 3 m is a near one,
+  the plain rod's full reach brings what an even cast would, and 20 m, which only the master's rod reaches, is as far
+  as it counts. The angler swings the rod and the float flies
+  to the water. Five small fish swim in from the open water and circle the float at 1 to 3 m, kept off the angler's
+  bank; they flee when a fish is hooked, the float leaves the water or the angler casts again.
 - **The wait.** An untrained angler waits 5 to 20 s for a bite, less with skill, a better rod and a bait. About 3 s
   before the first nibble (or the bite) a fish shows under the water and circles the float. It may nibble up to five
   times: the float dips. A strike before the bite loses the fish ("Too soon", or "That was only a nibble" right after
@@ -54,15 +57,33 @@ lure, and mends rods.
   moment what each twitch came to. A float pulled in to the bank, or to 1.5 m, takes no more: cast again.
 - **The bite.** The float is pulled under with a splash and a ring closes over it. Space within the window strikes: 1 s,
   up to 1.3 s with skill. The press is the strike's: reeling starts with the next one.
-- **The fight.** The fish rests, runs to the left, to the right, or dives away, and turns every 1 to 3 s; the line
-  from the rod's tip, a page arrow, the float's drag and the splashes show which. The harder the line strains, the
-  further the rod bends, the nearer the camera comes and the narrower it sees; in the red it trembles and the line
-  creaks faster. A and D lean the rod: leaning against a run (D when it runs left,
-  A when it runs right) eases the line and tires the fish fast, leaning with it strains the line. Space held reels: cheap
-  while the fish rests, a heavy strain against a run. The line snaps at full tension, a line left slack for 2 s throws
-  the hook, and a fish three times the rod's reach out has run the line out. A fresh fish reeled close bolts away; a
-  tired one there is landed. Fish jump now and then. A plain rod and a quick hand land every species in 8 to 25 s; the
-  rare ones are much safer on a better rod.
+- **The fight.** The fish rests, runs to the left, to the right, or dives away, and turns every 0.8 to 3 s; the line
+  from the rod's tip, a page arrow, the float's drag and the splashes show which. Each has one answer, and the page
+  orders it with its key, on the plate and under the float: gold while it is still to be done, green while it is being
+  done, red while the player does what loses the fish.
+  - The fish rests: Space held reels it in. A line left slack for 2 s throws the hook.
+  - It runs to a side: Space let go, the rod leant against the run (D when it runs left, A when it runs right). That
+    holds the line well taut, tires the fish fastest and gives it no line. With the rod upright the fish takes line and
+    hardly tires. Leaning its way is the wrong way: the fish gets its strength back, takes line twice as fast and
+    strains the line, to the snap if it is strong for the rod. A lean held from the run before counts only after
+    the first third of a second, as the reel does.
+  - It dives away: Space let go. It takes line and tires against the drag.
+  - Reeling into a run or a dive forces the line: it takes in nothing, the fish does not tire, and the line snaps
+    within a second or two whatever the fish and the rod, sooner the stronger the fish is for the line. Each press of
+    Space into a run jerks the line besides, by almost a third of what it holds, so the second press in a run snaps
+    most lines. Space let go within the first third of a second of a run costs nothing, though the page and the
+    creak warn from its first moment. A line strained in a run eases only slowly while the fish runs.
+
+  The harder the line strains, the further the rod bends, the nearer the camera comes and the narrower it sees; in the
+  red, and whenever Space is held into a run, it creaks. A fish three times the rod's reach out has run the line out.
+  A fresh fish reeled close bolts away; a tired one there is landed. Fish jump now and then. A fight that lasts 3
+  minutes works the hook loose. From a cast two thirds of the rod's reach out, a hand that leans against every run
+  within half a second lands every species on any rod in 10 to 25 s; one that only reels at rest lands them too, the
+  strong ones a third to a half slower; one that holds a single lean the whole fight loses a third of the strong
+  fish on a plain rod; a slow hand needs a better rod for the strong fish; and holding Space or tapping it fast
+  without looking lands next to nothing. A slow blind rhythm still lands up to a third of the two weakest fish, the
+  betty and the perch, and half of them from the nearest casts. A fight from a short cast is shorter, as there is
+  less line to take in, and brings smaller fish.
 - **The catch.** The angler holds the fish up, seen by everyone near, and those in chat range read it as an action
   ("* Jan lands a pike, 74 cm.", the angler named as the reader knows them). The page shows a card: the species' painted
   icon, length, weight, trophy (the longest 15% of a species), a new personal record, the xp gained and a level reached;
@@ -112,24 +133,37 @@ lure, and mends rods.
   float landed, when Space went down and up and which way the rod leans (each at most once in 60 ms, a quicker change
   waiting its turn). A strike counts when the player's game heard it within the window after the bite and it reached the
   server within the window and 0.4 s.
-- **What bites** is picked as the line goes in (`CatchPicker`): a find in `FishingRules.FindShare` of the bites, else a
-  species weighted by its habitat (`FishHabitatCatalog`: its share of each water, a factor for the hour, the weather and
-  the bait) above its level, sized by the skill. `FishingSurroundings` reads the water from `WaterMap` (the shipped
-  `waters.json`: named waters as outlines in the server's centimetres, each with its surface's height; the first whose
-  outline holds the float and whose surface lies within 3 m of the float's is the water), the hour from the world's
-  `Time` and the weather from the area's `Weather` through `Admin/weathers.json`. Tamriel and the world spaces standing in
-  it (the cities, the Imperial City's districts, Kvatch) use the map; any other area is underground.
+- **What bites** is picked as the line goes in (`CatchPicker`): a find in `FishingRules.FindShare` of the bites, else
+  a species weighted by its habitat (`FishHabitatCatalog`: its share of each water, a factor for the hour, the weather
+  and the bait) above its level, sized by the skill. How far out the float lands (`FarCastRules`, 0 at 3 m or nearer
+  to 1 at 20 m or farther, no farther than the rod's own reach) multiplies a rare species' weight by 0.3 to 1.4 and
+  the skill's size skew by 1.4 to 0.8, both about 1 at the plain rod's 14 m, so a novice's trophies are about 6% of a
+  near cast's fish, 9% at 14 m and 11% at 20 m. `FishingSurroundings` reads the water
+  from `WaterMap` (the shipped `waters.json`: named waters as outlines in the server's centimetres, each with its
+  surface's height; the first whose outline holds the float and whose surface lies within 3 m of the float's is the
+  water), the hour from the world's `Time` and the weather from the area's `Weather` through `Admin/weathers.json`.
+  Tamriel and the world spaces standing in it (the cities, the Imperial City's districts, Kvatch) use the map; any
+  other area is underground.
 - **The fight** (`FishFightRules`). The fish's effort is its strength x its size (0.7 to 1.3) x (0.4 + 0.6 x its
   stamina). Its next pull comes every 1 to 3 s by species, resting likelier as it tires (15% fresh, 65% spent), a run a
   dive in 30%; a turn to a run may bring a jump (the species' jumpiness). The line's tension moves towards what the
-  moment asks for at 1 a second: in a run 0.15 + (0.35 sideways or 0.5 away, + 0.6 with the rod leaning the run's way,
-  + 1.2 reeling) x effort / the line's strength, + 0.2 reeling, x 0.7 leaning against the run; at rest 0.4 while reeling,
-  else it falls to nothing at 2 a second. The line's strength is the rod's (1, 1.25, 1.5, less worn) x the skill's
-  tolerance. Stamina falls 1 / the species' stamina seconds a second within tension 0.15 to 0.85, 0.3 of that outside,
-  1.8 times while the rod leans against the run. The reel brings the fish 160 cm a second at rest, a quarter of that
-  against a run; it runs away 130 x effort and aside 20 x effort a second, dragging the float up to 3 m to the side.
-  Snapped at tension 1, thrown off after 2 s at or below 0.05, run out past 3 x the rod's reach, landed within 1.5 m once
-  its stamina is down to 0.35. Bots in `tests/CyrodiilRP.Tests/Fishing/FishingFightTests.cs` hold these numbers.
+  moment asks for at 1 a second, and in a run falls towards it at 0.4, with the load being effort / the line's
+  strength: at rest 0.4 while reeling, else it falls to nothing at 2 a second; in a run with the reel let go 0.15 +
+  (0.35 sideways or 0.5 away, + 1 with the rod leaning the run's way) x load, or 0.5 + 0.2 x load (at most 0.7) with
+  the rod leaning against it; reeling into a run that has lasted 0.35 s, 1.3 + 0.9 x load, at most 2, which is past
+  the snap for every fish, and each press of the reel into such a run adds 0.3 at once. The line's strength is the
+  rod's (1, 1.25, 1.5, less worn) x the skill's tolerance. Stamina falls 1 / the species' stamina seconds a second
+  within tension 0.15 to 0.85 and 0.3 of that outside, times what the angler does: 1 reeled at rest or diving, 1.8
+  with the rod against the run, 0.3 in a run to a side nobody leans against, 0 while the line is forced; with the rod
+  leaning the run's way it rises 2.5 times that instead. The reel brings the fish 160 cm a second at rest and nothing
+  against a run; the fish runs away 130 x effort a second and aside 60 x effort, twice that with the rod leaning its
+  way and not at all against it, dragging the float up to 3 m to the side. A rod leans the run's way only once the
+  run has lasted 0.35 s. A fish hooked nearer than 1.75 m fights from there. Snapped at tension 1, thrown off once
+  the line lay at or below 0.05 for 2 s more than it lay tauter since or the fight has lasted 3 minutes, run out past
+  3 x the rod's reach, landed within 1.5 m once its stamina is down to 0.35. Bots in
+  `tests/CyrodiilRP.Tests/Fishing/FishingFightTests.cs` hold these numbers, with fish as big as their cast brings:
+  one that leans against every run, one that only reels at rest, one that leans one way throughout, one that holds
+  Space, three that tap it and one that touches nothing.
 - **Working the bait** (`FishingLine.Twitch`, `FishingRules.TwitchOf`). A twitch moves every time still to come: the
   bite, the nibbles and the fish's approach, by a share of the way to them or by a delay. With the fish at the float
   and the water calm it rolls the bait's chance: the bite comes in 0.3 to 0.8 s and no twitch is taken until it does,
@@ -142,9 +176,17 @@ lure, and mends rods.
 - **The line and the rod's bend** (`AnglerScenery`). The line is six straight pieces (the SDK's `ILocalProps.PlaceLine`,
   moved every frame) from the rod's tip to the float along `FishingLineShape`. The tip is where the hand's animation has
   the rod's prop this frame (`ILocalProps.TryLocate`, `PropPoint`), at the mesh's far end. The server tells the games
-  near how far the rod bends, 0 to 3, when that changes (`AnglerRod`, `FishFightRules.BendOf`: by the tension, held 0.03
-  past each edge), and each game hangs the rod's mesh of that bend (`SM_FishingRod_<Tier>_Bend1` to `3`), the straight
-  one where its container has none.
+  near how far the rod bends, 0 to 5, when that changes (`AnglerRod`, `FishFightRules.BendOf`: by the tension, from
+  0.15, 0.3, 0.45, 0.62 and 0.8, held 0.03 past each edge), and each game hangs the rod's mesh of that bend
+  (`SM_FishingRod_<Tier>_Bend1` to `5`), the next less bent where its container has none. So a rod reeling a resting
+  fish is bent a little, one leant against a run well, and a forced line bends it to the butt.
+- **Turning the reel** (`AnglerScenery.KeepPose`). The server tells the games near, with the rod's bend, whether
+  the angler has the reel going (`AnglerRod`). A fighting angler who does plays the mode's own animation,
+  `/Game/CyrodiilRP/Fishing/A_Fishing_Reel` (the fight's pose with the left hand turning the reel, made in
+  `design/models/fishing-anim`), where the game has it, and keeps the fight's pose where it has not. The animation
+  ships in no container yet: it has not been loaded in the game.
+- **The catch held up** (`AnglerScenery.KeepPose`). The look at the hand is 3.2 s long and plays at half speed, so it
+  runs the whole show: an angler with no animation playing stands with the arms spread.
 - **The camera in the fight** (`AnglerFraming.Strained`, `Shake`, `AnglerCamera`). The tension the page's view carries
   moves the fight's frame up to 90 cm toward what it looks at and narrows the view up to 10 degrees from the angle the
   player set in the game (`ICamera.FieldOfView`, read before the camera is set), 4 at the bite. In the red the camera
@@ -180,7 +222,7 @@ lure, and mends rods.
   in the mod's `mod/paks`, which the launcher copies into the game as a player joins) or, in a game without them, the
   game's staves, a kelp bladder for the float, the ambient fish's mesh, the staff's animations, the game's water effects (`IVisualEffects`) and sounds
   (`ISounds`). A find shows no fish. The angler alone hears the reel (`AnglerCues`): the lockpick's tumblers clicking as
-  its ratchet while reeling a resting fish and faster as its drag while a fish runs, and a rope straining in the red.
+  its ratchet while reeling a resting fish and faster as its drag while a fish takes line, and a rope straining in the red or while Space is held into a run.
 - Messages: `FishingLook`, `FishingSpot`, `FishingAim`, `FishingPage`, `FishingBite`, `FishingEnded`, `FishingCast`,
   `FishingSpace`, `FishingLean`, `FishingStop`, `FishingRelease`, `FishingTwitch`, `AnglerRod`, and the five above.
 
@@ -208,7 +250,16 @@ splash and its sound). To check:
   let go, and is the game's again after;
 - the line: that it leaves the rod at its tip for each grade and each bend, and for a staff, its thickness and colour
   by day and at night (it is drawn unlit), its hang while waiting and its straightness in a fight, from a pier too;
-- the bent rods: that each loads, bends toward the line, and swaps without a flicker as the tension crosses an edge;
+- the bent rods: that each of the five loads, bends toward the line, and swaps without a flicker as the tension
+  crosses an edge, and that the tip stays in the picture from a pier and on a wide screen now the rods are shorter;
+- the reeling animation, which no game has loaded yet: its container put in `~mods` by hand, that the game loads it
+  without a crash, that the left hand finds the reel on each grade of rod and keeps its circle where the pose is
+  played again, and how it looks on others;
+- the catch held up at half speed: that it reads as a slow look and no angler stands with the arms spread at any
+  point of the show;
+- the fight's orders: that the key under the float and on the plate is read in time, that letting Space go as a run
+  starts feels fair with the third of a second it is given, and how soon a forced line snaps on a small and a strong
+  fish;
 - working the bait: the float's hop, the plop and its ripples against the 3.5 s the water takes to calm, the fish
   taking the bait or bolting, that the float stops at the bank it is pulled toward, the small fish keeping to it, and
   whether the shares and chances feel worth the risk;

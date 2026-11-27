@@ -239,14 +239,15 @@ for grade in sorted({listed["grade"] for listed in MANIFEST.values()}):
         rods[name].location = (-0.08 * depth, 0, 0)
 
     # The whole family from the side, the hand on the left, the guides and the bend downward.
-    setup_render(2400, 900, 64)
+    setup_render(2400, 1100, 64)
     show([rods[name] for name in family])
-    camera((6.0, 1.1, -0.35), (0.0, 1.1, -0.35), ortho=3.3)
+    camera((6.0, 0.67, -0.42), (0.0, 0.67, -0.42), ortho=2.8)
     render(f"bend_{grade}.png")
 
     setup_render(1600, 1000, 64)
     tip = MANIFEST[family[0]]["tip_ring"][1] / -100
-    views = [("grip", straight, -0.25, 0.55), ("grip", most, -0.25, 0.55), ("middle", most, 0.9, 1.6), ("tip", most, tip - 0.5, tip)]
+    views = [("grip", straight, -0.25, 0.55), ("grip", most, -0.25, 0.55), ("middle", most, tip * 0.35, tip * 0.65),
+             ("tip", most, tip - 0.5, tip)]
     for part, rod, start, end in views:
         show([rod])
         target = stretch(rod, straight, start, end) + Vector(rod.location)

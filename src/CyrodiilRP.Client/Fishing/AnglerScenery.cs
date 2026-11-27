@@ -29,6 +29,8 @@ internal sealed partial class AnglerScenery(
     private readonly Dictionary<int, AnglerScene> _anglers = [];
     private readonly Dictionary<RodLook, HeldRod> _heldRods = [];
     private bool _castSplashTold;
+    // Set once this game played the fight's own pose where it could not play the mode's reeling one.
+    private bool _reelingMissing;
 
     private void Start()
     {
@@ -79,7 +81,7 @@ internal sealed partial class AnglerScenery(
 
         if (!_anglers.TryGetValue(angler, out var scene))
         {
-            _anglers[angler] = new AnglerScene(tier, Bend: 0, Rod: null, Held: null, RodRetryAt: 0f, AnglerPose.Holding, PoseSince: Time.Elapsed,
+            _anglers[angler] = new AnglerScene(tier, Bend: 0, Reeling: false, Rod: null, Held: null, RodRetryAt: 0f, AnglerPose.Holding, PoseSince: Time.Elapsed,
                 PosePlayed: false, PoseNextAt: 0f, Cast: null, Float: null, Line: null, Fish: null, Shoal: null, Show: null);
             return;
         }
@@ -88,7 +90,8 @@ internal sealed partial class AnglerScenery(
             _anglers[angler] = scene with { Tier = tier };
     }
 
-    private void OnRodBent(int angler, int bend)
+    // A fighting angler who takes up or lets go of the reel changes pose at once.
+    private void OnRodBent(int angler, int bend, bool reeling)
     {
         if (bend is < 0 or > FishingGear.MostBend)
         {
@@ -96,8 +99,12 @@ internal sealed partial class AnglerScenery(
             return;
         }
 
-        if (_anglers.TryGetValue(angler, out var scene))
-            _anglers[angler] = scene with { Bend = bend };
+        if (!_anglers.TryGetValue(angler, out var scene))
+            return;
+
+        var next = scene with { Bend = bend, Reeling = reeling };
+        var changesPose = reeling != scene.Reeling && scene.Pose == AnglerPose.Fighting && !_reelingMissing;
+        _anglers[angler] = changesPose ? next with { PoseNextAt = 0f } : next;
     }
 
     private void OnCast(int angler, Vector3 at)
@@ -242,8 +249,8 @@ internal sealed partial class AnglerScenery(
     }
 
     // The mode's rod of the grade, bent or straight, when this game has it in the mode's container. Without the bent
-    // one the straight one stands for it, and without that the game's staff. Asked once a grade and a bend, when a
-    // character is first drawn holding one, so there is a world to ask.
+    // one the next less bent stands for it, and without the straight one the game's staff. Asked once a grade and a
+    // bend, when a character is first drawn holding one, so there is a world to ask.
     private HeldRod HeldRodOf(RodTier tier, int bend)
     {
         var look = new RodLook(tier, bend);
@@ -261,8 +268,8 @@ internal sealed partial class AnglerScenery(
         if (props.TryMeasure(rod, 1f, out _))
             return new HeldRod(rod, AnglerLooks.RodOffset, AnglerLooks.RodRotation, AnglerLooks.RodTipOf(tier, bend));
 
-        logger.LogInformation("This game has no {Mesh}: the {Tier} fishing rod stays straight under the line.", rod, tier);
-        return HeldRodOf(tier, 0);
+        logger.LogInformation("This game has no {Mesh}: the {Tier} fishing rod bends less under the line.", rod, tier);
+        return HeldRodOf(tier, bend - 1);
     }
 
     // A staff lies along its mesh's Y, its head at the far end: the line leaves it there.
@@ -345,11 +352,25 @@ internal sealed partial class AnglerScenery(
         if (IsOnce(scene.Pose) && (scene.PosePlayed || now - scene.PoseSince > AnglerLooks.StalePoseSeconds))
             scene = scene with { Pose = After(scene.Pose), PoseSince = now, PosePlayed = false };
 
-        var animation = AnimationOf(scene.Pose);
+        var reeling = scene is { Pose: AnglerPose.Fighting, Reeling: true } && !_reelingMissing;
+        var rate = RateOf(scene.Pose);
         var isLocal = IsLocal(holder);
-        var played = isLocal ? animations.Play(animation, null, 1f) : animations.PlayOn(holder, animation, 1f);
+        if (reeling)
+        {
+            var reeled = isLocal ? animations.Play(AnglerLooks.Reeling, null, rate) : animations.PlayOn(holder, AnglerLooks.Reeling, rate);
+            if (reeled > 0f)
+                return scene with { PosePlayed = true, PoseNextAt = now + Math.Max(reeled - AnglerLooks.ReelOverlap, AnglerLooks.PoseShortest) };
+        }
+
+        var animation = AnimationOf(scene.Pose);
+        var played = isLocal ? animations.Play(animation, null, rate) : animations.PlayOn(holder, animation, rate);
         if (played <= 0f && isLocal)
             missing.Report(animation, "animation");
+        if (reeling && played > 0f)
+        {
+            _reelingMissing = true;
+            logger.LogInformation("This game has no {Animation}, the mode's reeling: an angler who reels keeps the fight's pose.", AnglerLooks.Reeling);
+        }
 
         var wait = played > 0f ? LastsFor(scene.Pose, played) : WaitAfterFailing(scene.Pose);
         return scene with { PosePlayed = true, PoseNextAt = now + wait };
@@ -702,13 +723,22 @@ internal sealed partial class AnglerScenery(
         AnglerPose.Showing => AnglerLooks.Showing,
     };
 
-    // The catch is held up for the show's time, however long its animation runs.
-    private static float LastsFor(AnglerPose pose, float played) => pose switch
+    private static float RateOf(AnglerPose pose) => pose switch
     {
-        AnglerPose.Showing => AnglerLooks.ShowSeconds,
-        AnglerPose.Holding or AnglerPose.Casting or AnglerPose.Striking or AnglerPose.Fighting =>
-            Math.Max(played - AnglerLooks.PoseOverlap, AnglerLooks.PoseShortest),
+        AnglerPose.Showing => AnglerLooks.ShowRate,
+        AnglerPose.Holding or AnglerPose.Casting or AnglerPose.Striking or AnglerPose.Fighting => 1f,
     };
+
+    // The next pose takes over before this one's animation ends, and the catch is held up no longer than the show.
+    private static float LastsFor(AnglerPose pose, float played)
+    {
+        var lasts = Math.Max(played - AnglerLooks.PoseOverlap, AnglerLooks.PoseShortest);
+        return pose switch
+        {
+            AnglerPose.Showing => Math.Min(lasts, AnglerLooks.ShowSeconds),
+            AnglerPose.Holding or AnglerPose.Casting or AnglerPose.Striking or AnglerPose.Fighting => lasts,
+        };
+    }
 
     private static float WaitAfterFailing(AnglerPose pose) => pose switch
     {

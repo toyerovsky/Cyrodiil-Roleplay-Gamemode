@@ -7,6 +7,11 @@ public sealed class CatchPickerTests
 {
     private const int Lowest = FishingSkillRules.LowestLevel;
     private const int Highest = FishingSkillRules.HighestLevel;
+    private const float Near = FarCastRules.NearAt;
+    private const float Far = FarCastRules.FarAt;
+
+    // A cast to where the far cast's size skew is 1: the skill's own skew sizes the fish.
+    private static readonly float Middling = Near + (Far - Near) * (float)((FarCastRules.SkewNear - 1) / (FarCastRules.SkewNear - FarCastRules.SkewFar));
 
     private static readonly FishingConditions DayInRumare = new(WaterKind.LakeRumare, DayPart.Day, WeatherKind.Clear);
 
@@ -31,7 +36,7 @@ public sealed class CatchPickerTests
         foreach (var hour in Enum.GetValues<DayPart>())
         foreach (var weather in Enum.GetValues<WeatherKind>())
         foreach (var bait in Enum.GetValues<BaitKind>())
-            Assert.NotEmpty(CatchPicker.Weigh(new FishingConditions(water, hour, weather), bait, Lowest));
+            Assert.NotEmpty(CatchPicker.Weigh(new FishingConditions(water, hour, weather), bait, Lowest, Middling));
     }
 
     [Theory]
@@ -44,7 +49,7 @@ public sealed class CatchPickerTests
     [InlineData("Underground", new[] { "Eel", "Catfish", "Slaughterfish" }, new[] { "Pike", "Longfin", "Seabass", "GoldenCarp" })]
     public void Each_water_yields_its_own_kinds_and_never_the_others(string water, string[] yields, string[] never)
     {
-        var species = CatchPicker.Weigh(new FishingConditions(Enum.Parse<WaterKind>(water), DayPart.Night, WeatherKind.Rain), BaitKind.Worms, Highest)
+        var species = CatchPicker.Weigh(new FishingConditions(Enum.Parse<WaterKind>(water), DayPart.Night, WeatherKind.Rain), BaitKind.Worms, Highest, Middling)
             .Select(weight => weight.Fish.Species.ToString())
             .ToList();
 
@@ -57,10 +62,10 @@ public sealed class CatchPickerTests
     {
         var golden = FishCatalog.Find(FishSpecies.GoldenCarp);
 
-        Assert.DoesNotContain(CatchPicker.Weigh(DayInRumare, BaitKind.Dough, golden.MinLevel - 1), weight => weight.Fish == golden);
-        Assert.Contains(CatchPicker.Weigh(DayInRumare, BaitKind.Dough, golden.MinLevel), weight => weight.Fish == golden);
+        Assert.DoesNotContain(CatchPicker.Weigh(DayInRumare, BaitKind.Dough, golden.MinLevel - 1, Middling), weight => weight.Fish == golden);
+        Assert.Contains(CatchPicker.Weigh(DayInRumare, BaitKind.Dough, golden.MinLevel, Middling), weight => weight.Fish == golden);
         foreach (var water in Enum.GetValues<WaterKind>().Where(water => water != WaterKind.LakeRumare))
-            Assert.DoesNotContain(CatchPicker.Weigh(DayInRumare with { Water = water }, BaitKind.Dough, Highest), weight => weight.Fish == golden);
+            Assert.DoesNotContain(CatchPicker.Weigh(DayInRumare with { Water = water }, BaitKind.Dough, Highest, Middling), weight => weight.Fish == golden);
     }
 
     [Fact]
@@ -68,7 +73,7 @@ public sealed class CatchPickerTests
     {
         foreach (var fish in FishCatalog.All.Where(fish => fish.MinLevel > Lowest))
         foreach (var water in Enum.GetValues<WaterKind>())
-            Assert.DoesNotContain(CatchPicker.Weigh(DayInRumare with { Water = water }, BaitKind.Worms, fish.MinLevel - 1), weight => weight.Fish == fish);
+            Assert.DoesNotContain(CatchPicker.Weigh(DayInRumare with { Water = water }, BaitKind.Worms, fish.MinLevel - 1, Middling), weight => weight.Fish == fish);
     }
 
     [Fact]
@@ -87,20 +92,80 @@ public sealed class CatchPickerTests
     [Fact]
     public void A_roll_under_the_find_share_brings_a_find_and_the_rest_a_sized_species()
     {
-        var find = CatchPicker.Pick(DayInRumare, BaitKind.Worms, Lowest, Rolls(0.0));
-        var fish = CatchPicker.Pick(DayInRumare, BaitKind.Worms, Lowest, Rolls(FishingRules.FindShare, 0.0, 0.5));
+        var find = CatchPicker.Pick(DayInRumare, BaitKind.Worms, Lowest, Middling, Rolls(0.0));
+        var fish = CatchPicker.Pick(DayInRumare, BaitKind.Worms, Lowest, Middling, Rolls(FishingRules.FindShare, 0.0, 0.5));
 
         Assert.Equal(new FindQuarry(FishingRules.Finds[0]), find);
         var caught = Assert.IsType<FishQuarry>(fish);
-        Assert.Equal(CatchPicker.Weigh(DayInRumare, BaitKind.Worms, Lowest)[0].Fish, caught.Fish);
-        Assert.Equal(Math.Pow(0.5, FishingSkillRules.SizeSkew(Lowest)), caught.Share);
+        Assert.Equal(CatchPicker.Weigh(DayInRumare, BaitKind.Worms, Lowest, Middling)[0].Fish, caught.Fish);
+        Assert.Equal(Math.Pow(0.5, FishingSkillRules.SizeSkew(Lowest)), caught.Share, 6);
+    }
+
+    [Fact]
+    public void A_far_cast_lands_bigger_fish_from_the_same_roll_than_a_near_one()
+    {
+        var near = (FishQuarry)CatchPicker.Pick(DayInRumare, BaitKind.Worms, Lowest, Near, Rolls(0.5, 0.0, 0.8));
+        var far = (FishQuarry)CatchPicker.Pick(DayInRumare, BaitKind.Worms, Lowest, Far, Rolls(0.5, 0.0, 0.8));
+
+        Assert.Equal(near.Fish, far.Fish);
+        Assert.Equal(Math.Pow(0.8, FishingSkillRules.SizeSkew(Lowest) * FarCastRules.SkewNear), near.Share, 6);
+        Assert.Equal(Math.Pow(0.8, FishingSkillRules.SizeSkew(Lowest) * FarCastRules.SkewFar), far.Share, 6);
+        Assert.True(far.LengthCm > near.LengthCm);
+    }
+
+    [Fact]
+    public void A_rare_fish_bites_likelier_the_farther_the_cast_and_the_others_keep_their_weights()
+    {
+        var night = new FishingConditions(WaterKind.Underground, DayPart.Night, WeatherKind.Clear);
+        var near = CatchPicker.Weigh(night, BaitKind.Worms, Highest, Near);
+        var far = CatchPicker.Weigh(night, BaitKind.Worms, Highest, Far);
+
+        Assert.Contains(near, weight => weight.Fish.Rare);
+        Assert.Contains(near, weight => !weight.Fish.Rare);
+        foreach (var close in near)
+        {
+            var farther = far.Single(weight => weight.Fish == close.Fish);
+            var grows = close.Fish.Rare ? FarCastRules.RareFar / FarCastRules.RareNear : 1;
+            Assert.Equal(close.Weight * grows, farther.Weight, 9);
+        }
+    }
+
+    [Theory]
+    [InlineData(0f, 0.0)]
+    [InlineData(Near, 0.0)]
+    [InlineData((Near + Far) / 2, 0.5)]
+    [InlineData(Far, 1.0)]
+    [InlineData(Far + 500f, 1.0)]
+    public void A_cast_is_as_far_as_it_lies_between_the_near_and_the_far_mark(float distanceCm, double share)
+    {
+        Assert.Equal(share, FarCastRules.FarShare(distanceCm), 6);
+        Assert.Equal(FarCastRules.SkewNear + (FarCastRules.SkewFar - FarCastRules.SkewNear) * share, FarCastRules.SizeSkew(distanceCm), 6);
+        Assert.Equal(FarCastRules.RareNear + (FarCastRules.RareFar - FarCastRules.RareNear) * share, FarCastRules.RareWeight(distanceCm), 6);
+    }
+
+    [Theory]
+    [InlineData(-1f)]
+    [InlineData(float.NaN)]
+    [InlineData(float.PositiveInfinity)]
+    public void A_cast_that_lands_nowhere_is_refused(float distanceCm)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => FarCastRules.FarShare(distanceCm));
+    }
+
+    [Fact]
+    public void Every_rod_reaches_past_the_near_mark_and_only_the_best_to_the_far_one()
+    {
+        Assert.All(RodCatalog.All, rod => Assert.True(rod.ReachCm > Near));
+        Assert.True(RodCatalog.Find(RodTier.Basic).ReachCm < Far);
+        Assert.True(RodCatalog.Find(RodTier.Sturdy).ReachCm < Far);
+        Assert.True(RodCatalog.Find(RodTier.Master).ReachCm >= Far);
     }
 
     [Fact]
     public void A_skilled_angler_lands_bigger_fish_from_the_same_roll()
     {
-        var novice = (FishQuarry)CatchPicker.Pick(DayInRumare, BaitKind.Worms, Lowest, Rolls(0.5, 0.0, 0.8));
-        var master = (FishQuarry)CatchPicker.Pick(DayInRumare, BaitKind.Worms, Highest, Rolls(0.5, 0.0, 0.8));
+        var novice = (FishQuarry)CatchPicker.Pick(DayInRumare, BaitKind.Worms, Lowest, Middling, Rolls(0.5, 0.0, 0.8));
+        var master = (FishQuarry)CatchPicker.Pick(DayInRumare, BaitKind.Worms, Highest, Middling, Rolls(0.5, 0.0, 0.8));
 
         Assert.True(master.LengthCm > novice.LengthCm);
         Assert.Equal(master.Share >= FishingRules.TrophyFrom, master.Trophy);
@@ -120,7 +185,7 @@ public sealed class CatchPickerTests
 
     private static double Share(FishingConditions conditions, FishSpecies species)
     {
-        var weights = CatchPicker.Weigh(conditions, BaitKind.Worms, Highest);
+        var weights = CatchPicker.Weigh(conditions, BaitKind.Worms, Highest, Middling);
         return weights.Single(weight => weight.Fish.Species == species).Weight / weights.Sum(weight => weight.Weight);
     }
 

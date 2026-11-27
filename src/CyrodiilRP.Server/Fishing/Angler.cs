@@ -8,7 +8,7 @@ namespace CyrodiilRP.Server.Fishing;
 // this cast and how many of the chosen bait the pack holds, what will bite, and what the games near them were last told.
 // Float is the float's resting point on the water, null while the line is in. FishShown: a fish was drawn for them and
 // not yet taken away. Held: the fish held up after a catch, until the next cast or until it is let go. Twitches and
-// Twitch: the twitches of this cast and what the last came to. Bend: how far the games near were told the rod bends.
+// Twitch: the twitches of this cast and what the last came to. Bend, Reels: how far the games near were told the rod bends, and whether the angler turns the reel.
 internal sealed record Angler(
     OnlinePlayer Player,
     AreaId Area,
@@ -32,4 +32,5 @@ internal sealed record Angler(
     int Twitches,
     TwitchResult Twitch,
     int Bend,
+    bool Reels,
     IReadOnlySet<PlayerId> Seers);

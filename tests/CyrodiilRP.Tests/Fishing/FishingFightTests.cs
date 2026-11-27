@@ -9,14 +9,17 @@ public sealed class FishingFightTests
 {
     private const int Fights = 40;
     private const long TickMs = 100;
-    private const long GiveUpAfterMs = 120_000;
+    private const long GiveUpAfterMs = 200_000;
     private const double CastShare = 2.0 / 3.0;
     private const long QuickHands = 300;
     private const long SlowHands = 800;
     private const double ShortestMedianSeconds = 7;
     private const double LongestMedianSeconds = 25;
-    private const double MostSnappedLanded = 0.25;
+    private const double MostForcedLanded = 0.1;
+    private const double MostLopsidedLanded = 0.8;
     private const double GoodRodLandsMore = 0.2;
+    private const double LeaningIsQuickerBy = 1.2;
+    private const long HumanHands = 550;
 
     private static readonly FishSpecies[] Strong = [FishSpecies.Pike, FishSpecies.Longfin, FishSpecies.Slaughterfish, FishSpecies.Catfish, FishSpecies.GoldenCarp];
 
@@ -49,18 +52,70 @@ public sealed class FishingFightTests
     {
         var results = FightMany(Enum.Parse<FishSpecies>(species), tier, Bot.Idle, QuickHands);
 
-        Assert.All(results, result => Assert.NotEqual(LineChange.Caught, result.End));
+        Assert.All(results, result => Assert.Equal(LineChange.LostSlack, result.End));
+    }
+
+    [Theory]
+    [MemberData(nameof(EverySpeciesWithEveryRod))]
+    public void A_player_who_holds_or_taps_space_without_looking_lands_next_to_nothing_whatever_the_fish_and_the_rod(string species, RodTier tier)
+    {
+        foreach (var bot in new[] { Bot.Reel, Bot.Tap, Bot.TapFast, Bot.TapSlow })
+        {
+            var results = FightMany(Enum.Parse<FishSpecies>(species), tier, bot, QuickHands);
+
+            Assert.True(LandedShare(results) <= MostForcedLanded, $"{bot}: {LandedShare(results):P0} landed.");
+            Assert.All(results, result => Assert.Contains(result.End, new[] { LineChange.Caught, LineChange.LostSnapped, LineChange.LostSlack }));
+        }
     }
 
     [Fact]
-    public void A_player_who_only_holds_space_snaps_the_strong_fish_on_a_plain_rod()
+    public void Leaning_against_the_runs_loses_no_strong_fish_that_reeling_at_rest_alone_would_land_in_a_humans_hands()
     {
         foreach (var species in Strong)
         {
-            var results = FightMany(species, RodTier.Basic, Bot.Reel, QuickHands);
+            foreach (var tier in Enum.GetValues<RodTier>())
+            {
+                var leaning = LandedShare(FightMany(species, tier, Bot.Good, HumanHands));
+                var plain = LandedShare(FightMany(species, tier, Bot.Plain, HumanHands));
 
-            Assert.True(LandedShare(results) <= MostSnappedLanded, $"{species}: {LandedShare(results):P0} landed.");
+                Assert.True(leaning >= plain, $"{species} on {tier}: {leaning:P0} leaning, {plain:P0} without.");
+            }
+        }
+    }
+
+    [Fact]
+    public void A_player_who_leans_one_way_the_whole_fight_loses_many_a_strong_fish_on_a_plain_rod()
+    {
+        foreach (var species in Strong)
+        {
+            var results = FightMany(species, RodTier.Basic, Bot.Lopsided, QuickHands);
+
+            Assert.True(LandedShare(results) <= MostLopsidedLanded, $"{species}: {LandedShare(results):P0} landed.");
             Assert.Contains(results, result => result.End == LineChange.LostSnapped);
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(EverySpeciesWithEveryRod))]
+    public void A_player_who_never_leans_the_rod_still_lands_the_fish(string species, RodTier tier)
+    {
+        var results = FightMany(Enum.Parse<FishSpecies>(species), tier, Bot.Plain, QuickHands);
+
+        Assert.All(results, result => Assert.Equal(LineChange.Caught, result.End));
+    }
+
+    [Fact]
+    public void Leaning_against_the_runs_lands_a_strong_fish_sooner_than_only_reeling_at_rest()
+    {
+        foreach (var species in Strong)
+        {
+            foreach (var tier in Enum.GetValues<RodTier>())
+            {
+                var leaning = Median(FightMany(species, tier, Bot.Good, QuickHands));
+                var plain = Median(FightMany(species, tier, Bot.Plain, QuickHands));
+
+                Assert.True(plain >= leaning * LeaningIsQuickerBy, $"{species} on {tier}: {leaning:F1} s leaning, {plain:F1} s without.");
+            }
         }
     }
 
@@ -86,9 +141,10 @@ public sealed class FishingFightTests
     {
         var level = fish.MinLevel;
         var line = new FishingLine(random.NextDouble);
-        var share = Math.Pow(random.NextDouble(), FishingSkillRules.SizeSkew(level));
+        var distance = (float)(rod.Rod.ReachCm * CastShare);
+        var share = Math.Pow(random.NextDouble(), FishingSkillRules.SizeSkew(level) * FarCastRules.SizeSkew(distance));
         line.Cast(0, new LineCast(fish.Fight, share, WaitFactor: 1, FishingRules.StrikeWindow, rod.Line * FishingSkillRules.LineTolerance(level),
-            rod.Rod.ReachCm, (float)(rod.Rod.ReachCm * CastShare), FishingReach.Nearest, FishingRules.TwitchOf(BaitKind.Worms)));
+            rod.Rod.ReachCm, distance, FishingReach.Nearest, FishingRules.TwitchOf(BaitKind.Worms)));
 
         var now = 0L;
         while (line.Stage != FishingStage.Bite)
@@ -118,7 +174,7 @@ public sealed class FishingFightTests
             Play(line, bot, seen, now);
         }
 
-        throw new Xunit.Sdk.XunitException($"A fight with a {fish.Species} went on for {GiveUpAfterMs} ms.");
+        throw new Xunit.Sdk.XunitException($"A fight with a {fish.Species} went on for {GiveUpAfterMs} ms, past the longest a fight lasts.");
     }
 
     // What the bot does about the pull it has seen.
@@ -126,9 +182,12 @@ public sealed class FishingFightTests
     {
         var reel = bot switch
         {
-            Bot.Good => seen == FishPull.Rest,
+            Bot.Good or Bot.Plain or Bot.Lopsided => seen == FishPull.Rest,
             Bot.Reel => true,
             Bot.Idle => false,
+            Bot.Tap => now / TickMs % 3 == 0,
+            Bot.TapFast => now / TickMs % 2 == 0,
+            Bot.TapSlow => now / TickMs % 15 < 3,
         };
         var lean = bot switch
         {
@@ -138,7 +197,8 @@ public sealed class FishingFightTests
                 FishPull.Right => -1,
                 FishPull.Away or FishPull.Rest => 0,
             },
-            Bot.Reel or Bot.Idle => 0,
+            Bot.Reel or Bot.Idle or Bot.Plain or Bot.Tap or Bot.TapFast or Bot.TapSlow => 0,
+            Bot.Lopsided => 1,
         };
 
         if (reel != line.Reeling)
@@ -169,6 +229,21 @@ public sealed class FishingFightTests
 
         // Touches nothing.
         Idle,
+
+        // Reels only while the fish rests and never leans the rod.
+        Plain,
+
+        // Reels only while the fish rests and leans the rod right the whole fight.
+        Lopsided,
+
+        // Presses Space for one tick in three the whole fight, looking at nothing.
+        Tap,
+
+        // The same every other tick.
+        TapFast,
+
+        // Holds Space for three ticks in fifteen, looking at nothing.
+        TapSlow,
     }
 
     private sealed record FightResult(LineChange End, double Seconds);

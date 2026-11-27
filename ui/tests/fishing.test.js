@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../fishing/App.vue";
 import { createBridge } from "../fishing/bridge.js";
+import { findOrder } from "../fishing/orders.js";
 import en from "../../locales/en/ui.fishing.json";
 import pl from "../../locales/pl/ui.fishing.json";
 import { mountPage } from "./readym.js";
@@ -38,6 +39,7 @@ describe("the fishing page", () => {
   const fight = (changes) => show({ stage: "Fight", bites: 1, fight: { ...FIGHT, ...changes } });
   const rest = (outcome, view = {}) => show({ stage: "Rest", bites: 1, outcome: { number: 1, ...NOTHING, ...outcome }, ...view });
   const title = () => page.find(".fishing__title").text();
+  const order = () => page.find(".fishing__order");
   const key = (id) => page.find(`[data-key="${id}"]`);
   const power = () => Number(page.find(".fishing__power-track").attributes("aria-valuenow"));
 
@@ -51,6 +53,7 @@ describe("the fishing page", () => {
     await game.emit("Anchor", 0.25, 0.5, true);
 
     expect(title()).toBe(text("aim"));
+    expect(page.find(".fishing__hint").text()).toBe(text("aim_hint"));
     expect(page.findAll(".fishing__power-end").map((end) => end.text())).toEqual(["1.5 m", "7 m"]);
     expect(power()).toBe(0);
     expect(key("cast").text()).toBe(`${text("key_space")}${text("keys.cast")}`);
@@ -156,21 +159,75 @@ describe("the fishing page", () => {
     expect(key("strike").classes()).toContain("fishing__key--wanted");
   });
 
-  it("names the fish's pull and the key that counters it", async () => {
-    for (const [pull, wanted] of [
-      ["Left", "right"],
-      ["Right", "left"],
-      ["Rest", "reel"],
+  it("names the fish's pull and orders the key that answers it, on the plate and under the float", async () => {
+    await game.emit("Anchor", 0.5, 0.45, true);
+    for (const [pull, wanted, cap] of [
+      ["Left", "right", "key_d"],
+      ["Right", "left", "key_a"],
+      ["Rest", "reel", "key_space"],
     ]) {
       await fight({ pull });
       expect(title()).toBe(text(`pull.${pull}`));
-      expect(page.find(".fishing__hint").text()).toBe(text(`counter.${pull}`));
+      expect(order().attributes("data-order")).toBe("do");
+      expect(order().text()).toBe(`${text(cap)}${text(`order.${pull}`)}`);
+      expect(page.find(".fishing__cue--do").text()).toBe(text(cap));
       expect(page.findAll(".fishing__key--wanted").map((each) => each.attributes("data-key"))).toEqual([wanted]);
     }
 
     await fight({ pull: "Away" });
     expect(title()).toBe(text("pull.Away"));
     expect(page.findAll(".fishing__key--wanted")).toHaveLength(0);
+  });
+
+  it("says so in green once the order is followed, and takes the key from under the float", async () => {
+    await game.emit("Anchor", 0.5, 0.45, true);
+    for (const [changes, said] of [
+      [{ pull: "Left", lean: 1 }, `${text("key_d")}${text("order.held")}`],
+      [{ pull: "Right", lean: -1 }, `${text("key_a")}${text("order.held")}`],
+      [{ pull: "Rest", reeling: true }, `${text("key_space")}${text("order.Rest.done")}`],
+      [{ pull: "Away" }, text("order.Away")],
+    ]) {
+      await fight(changes);
+      expect(order().attributes("data-order")).toBe("done");
+      expect(order().text()).toBe(said);
+      expect(page.find(".fishing__cue").exists()).toBe(false);
+    }
+  });
+
+  it("orders the reel let go in red while the player reels into a run, whatever the rod leans", async () => {
+    await game.emit("Anchor", 0.5, 0.45, true);
+    for (const changes of [
+      { pull: "Away", reeling: true },
+      { pull: "Left", lean: 1, reeling: true, tension: 0.3 },
+      { pull: "Right", lean: 0, reeling: true },
+    ]) {
+      await fight(changes);
+      expect(order().attributes("data-order")).toBe("wrong");
+      expect(order().classes()).toContain("fishing__order--let-go");
+      expect(order().text()).toBe(`${text("key_space")}${text("order.force")}`);
+      expect(page.find(".fishing__cue--wrong.fishing__cue--let-go").text()).toBe(text("key_space"));
+      expect(key("reel").classes()).toContain("fishing__key--strain");
+    }
+  });
+
+  it("orders the other key in red while the rod leans the way the fish runs", async () => {
+    await game.emit("Anchor", 0.5, 0.45, true);
+    for (const [changes, cap, said] of [
+      [{ pull: "Left", lean: -1 }, "key_d", "order.Left.wrong"],
+      [{ pull: "Right", lean: 1 }, "key_a", "order.Right.wrong"],
+    ]) {
+      await fight(changes);
+      expect(order().attributes("data-order")).toBe("wrong");
+      expect(order().classes()).not.toContain("fishing__order--let-go");
+      expect(order().text()).toBe(`${text(cap)}${text(said)}`);
+      expect(page.find(".fishing__cue--wrong").text()).toBe(text(cap));
+      expect(page.find(".fishing__cue--let-go").exists()).toBe(false);
+    }
+  });
+
+  it("refuses a pull it does not know, reeling or not", () => {
+    expect(() => findOrder({ pull: "Up", lean: 0, reeling: false })).toThrow(/Up/);
+    expect(() => findOrder({ pull: "Up", lean: 0, reeling: true })).toThrow(/Up/);
   });
 
   it("points the run's arrow beside the float the way the fish goes", async () => {
@@ -186,15 +243,13 @@ describe("the fishing page", () => {
     await fight({ pull: "Left", lean: 1 });
     expect(key("right").classes()).toContain("fishing__key--on");
     expect(page.find(".fishing-fight__lean--against").text()).toBe(text("lean.right"));
-    expect(page.find(".fishing__hint--done").exists()).toBe(true);
 
     await fight({ pull: "Left", lean: -1 });
     expect(key("left").classes()).toEqual(expect.arrayContaining(["fishing__key--on", "fishing__key--strain"]));
     expect(page.find(".fishing-fight__lean--with").text()).toBe(text("lean.left"));
-    expect(page.find(".fishing__hint--done").exists()).toBe(false);
   });
 
-  it("draws the line's tension against its red zone, and marks reeling into a run in the red", async () => {
+  it("draws the line's tension against its red zone, and says so while the player reels", async () => {
     await fight({ tension: 0.5, tensionWarn: 0.8 });
     const tension = page.find('[data-gauge="tension"]');
     expect(tension.find('[role="meter"]').attributes("aria-valuenow")).toBe("0.5");
@@ -217,14 +272,18 @@ describe("the fishing page", () => {
     expect(page.find(".fishing-fight__feel--monster").text()).toBe(text("feel.Monster"));
   });
 
-  it("warns of a slack line only while it is slack, and asks to reel", async () => {
-    await fight({ slack: 0 });
+  it("warns of a slack line only while it is slack on a resting fish, and asks to reel", async () => {
+    await fight({ pull: "Rest", slack: 0 });
     expect(page.find(".fishing-fight__slack").exists()).toBe(false);
 
-    await fight({ slack: 0.6, tension: 0.02 });
+    await fight({ pull: "Rest", slack: 0.6, tension: 0.02 });
     expect(page.find('[role="alert"]').text()).toBe(text("slack"));
     expect(page.find(".fishing-fight__slack-track span").attributes("style")).toContain("width: 60%");
     expect(key("reel").classes()).toContain("fishing__key--wanted");
+
+    await fight({ pull: "Left", slack: 0.6, tension: 0.02 });
+    expect(page.find(".fishing-fight__slack").exists()).toBe(false);
+    expect(key("reel").classes()).not.toContain("fishing__key--wanted");
   });
 
   it("shows a catch on its card: the painted fish, its size, the trophy, the record, the experience and the level", async () => {
@@ -397,7 +456,7 @@ describe("the fishing page's texts", () => {
   it("name every pull, feel, condition and wear the server sends", () => {
     const names = {
       pull: ["Rest", "Left", "Right", "Away"],
-      counter: ["Rest", "Left", "Right", "Away"],
+      order: ["Rest", "Rest.done", "Left", "Left.wrong", "Right", "Right.wrong", "held", "Away", "force"],
       feel: ["Small", "Fair", "Heavy", "Monster"],
       condition: ["Good", "Worn", "Damaged", "Broken"],
       rod_now: ["Worn", "Damaged", "Broken"],

@@ -3,7 +3,8 @@ import { computed } from "vue";
 import { fill } from "../shared/locale.js";
 
 // The fight as the server last told it: the line's tension against where it snaps, the fish's strength, how far it is,
-// how heavy it feels, which way the rod leans, and the slack that throws the hook.
+// how heavy it feels, which way the rod leans, and the slack that throws the hook. Slack is reeled in only while the
+// fish rests, so only then does the page ask for it.
 const props = defineProps({
   fight: { type: Object, required: true },
   t: { type: Object, required: true },
@@ -68,7 +69,7 @@ const lean = computed(() => {
       </span>
     </div>
 
-    <p v-if="fight.slack > 0" class="fishing-fight__slack" role="alert">
+    <p v-if="fight.slack > 0 && fight.pull === 'Rest'" class="fishing-fight__slack" role="alert">
       <span>{{ t.slack }}</span>
       <span class="fishing-fight__slack-track" aria-hidden="true"><span :style="{ width: share(fight.slack) }"></span></span>
     </p>

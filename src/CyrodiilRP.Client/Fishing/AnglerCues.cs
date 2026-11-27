@@ -6,8 +6,8 @@ using ReadyM.SDK.Attributes;
 namespace CyrodiilRP.Client.Fishing;
 
 // What the angler alone hears of the line, at the character: the reel's ratchet while the server has it reeling a
-// resting fish and its drag while a fish runs, the line straining in the red, and each catch or loss once. A rare catch
-// also glows in the hand.
+// resting fish and its drag while a fish takes line, the line straining in the red or reeled into a run, and each
+// catch or loss once. A rare catch also glows in the hand.
 [Service]
 internal sealed partial class AnglerCues(ISounds sounds, IVisualEffects effects)
 {
@@ -89,12 +89,19 @@ internal sealed partial class AnglerCues(ISounds sounds, IVisualEffects effects)
     {
         var fight = view is { Stage: LineStage.Fight, Fight: { } held } ? held : null;
         Reel(NoiseOf(fight), at, now);
-        if (fight is { TensionWarn: > 0f } line && line.Tension >= line.TensionWarn && now - _strainedAt >= StrainEvery(line))
+        if (fight is { TensionWarn: > 0f } line && (IsForced(line) || line.Tension >= line.TensionWarn) && now - _strainedAt >= StrainEvery(line))
         {
             sounds.PlayAt(StrainSound, at);
             _strainedAt = now;
         }
     }
+
+    // Reeling into a run, heard from its first moment, which the server still lets pass.
+    private static bool IsForced(AnglerFight line) => line.Reeling && line.Pull switch
+    {
+        LinePull.Left or LinePull.Right or LinePull.Away => true,
+        LinePull.Rest => false,
+    };
 
     public void End()
     {
@@ -104,8 +111,9 @@ internal sealed partial class AnglerCues(ISounds sounds, IVisualEffects effects)
         _strainedAt = float.NegativeInfinity;
     }
 
-    private static float StrainEvery(AnglerFight line) =>
-        StrainEverySeconds + (StrainEveryAtSnap - StrainEverySeconds) * AnglerFraming.RedShare(line.Tension, line.TensionWarn);
+    private static float StrainEvery(AnglerFight line) => IsForced(line)
+        ? StrainEveryAtSnap
+        : StrainEverySeconds + (StrainEveryAtSnap - StrainEverySeconds) * AnglerFraming.RedShare(line.Tension, line.TensionWarn);
 
     // A change of noise fades the last one out; the same noise is played again on its beat.
     private void Reel(ReelNoise noise, Vector3 at, float now)
@@ -121,9 +129,11 @@ internal sealed partial class AnglerCues(ISounds sounds, IVisualEffects effects)
         _reelPlayedAt = now;
     }
 
+    // A run the rod leans against takes no line.
     private static ReelNoise NoiseOf(AnglerFight? fight) => fight switch
     {
         null => ReelNoise.Silent,
+        { Pull: LinePull.Left, Lean: 1, Reeling: false } or { Pull: LinePull.Right, Lean: -1, Reeling: false } => ReelNoise.Silent,
         { Pull: LinePull.Left or LinePull.Right or LinePull.Away } => ReelNoise.Drag,
         { Pull: LinePull.Rest, Reeling: true } => ReelNoise.Ratchet,
         { Pull: LinePull.Rest, Reeling: false } => ReelNoise.Silent,

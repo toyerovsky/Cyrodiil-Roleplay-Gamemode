@@ -321,7 +321,7 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action<int, Vector3>? AnglerCasted;
 
-    public event Action<int, int>? AnglerRodBent;
+    public event Action<int, int, bool>? AnglerRodBent;
 
     public event Action<int, string, Vector3, float, int>? FishingFishMoved;
 
@@ -351,7 +351,7 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     partial void OnAnglerShown(int angler, bool fishing, string rod) => AnglerShown?.Invoke(angler, fishing, rod);
 
-    partial void OnAnglerRod(int angler, int bend) => AnglerRodBent?.Invoke(angler, bend);
+    partial void OnAnglerRod(int angler, int bend, bool reeling) => AnglerRodBent?.Invoke(angler, bend, reeling);
 
     partial void OnAnglerCast(int angler, float x, float y, float z) => AnglerCasted?.Invoke(angler, new Vector3(x, y, z));
 

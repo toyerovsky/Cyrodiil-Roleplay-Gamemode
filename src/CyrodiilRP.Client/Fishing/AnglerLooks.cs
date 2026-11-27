@@ -32,27 +32,33 @@ internal static class AnglerLooks
     {
         RodTier.Basic => bend switch
         {
-            0 => new Vector3(-0.28f, -230.4f, -4.6f),
-            1 => new Vector3(-0.28f, -227.81f, -27.85f),
-            2 => new Vector3(-0.28f, -220.76f, -54.05f),
-            3 => new Vector3(-0.28f, -207.77f, -81.82f),
-            _ => throw new ArgumentOutOfRangeException(nameof(bend), bend, "A rod bends 0 to 3."),
+            0 => new Vector3(0.28f, -160.4f, -3.63f),
+            1 => new Vector3(0.28f, -158.99f, -16.96f),
+            2 => new Vector3(0.28f, -155.28f, -32.53f),
+            3 => new Vector3(0.28f, -148.31f, -49.68f),
+            4 => new Vector3(0.28f, -137.22f, -67.34f),
+            5 => new Vector3(0.28f, -121.4f, -84.01f),
+            _ => throw new ArgumentOutOfRangeException(nameof(bend), bend, "A rod bends 0 to 5."),
         },
         RodTier.Sturdy => bend switch
         {
-            0 => new Vector3(0f, -245.4f, -2.5f),
-            1 => new Vector3(0f, -243.16f, -27.05f),
-            2 => new Vector3(0f, -236.28f, -54.83f),
-            3 => new Vector3(0f, -223.13f, -84.47f),
-            _ => throw new ArgumentOutOfRangeException(nameof(bend), bend, "A rod bends 0 to 3."),
+            0 => new Vector3(0f, -170.4f, -1.7f),
+            1 => new Vector3(0f, -169.29f, -15.67f),
+            2 => new Vector3(0f, -165.83f, -32.07f),
+            3 => new Vector3(0f, -159f, -50.24f),
+            4 => new Vector3(0f, -147.83f, -69.12f),
+            5 => new Vector3(0f, -131.6f, -87.12f),
+            _ => throw new ArgumentOutOfRangeException(nameof(bend), bend, "A rod bends 0 to 5."),
         },
         RodTier.Master => bend switch
         {
-            0 => new Vector3(0f, -260.4f, -2f),
-            1 => new Vector3(0f, -258.16f, -28.02f),
-            2 => new Vector3(0f, -251.02f, -57.51f),
-            3 => new Vector3(0f, -237.25f, -89f),
-            _ => throw new ArgumentOutOfRangeException(nameof(bend), bend, "A rod bends 0 to 3."),
+            0 => new Vector3(0f, -180.4f, -1.4f),
+            1 => new Vector3(0f, -179.29f, -16.16f),
+            2 => new Vector3(0f, -175.72f, -33.5f),
+            3 => new Vector3(0f, -168.6f, -52.74f),
+            4 => new Vector3(0f, -156.88f, -72.74f),
+            5 => new Vector3(0f, -139.81f, -91.87f),
+            _ => throw new ArgumentOutOfRangeException(nameof(bend), bend, "A rod bends 0 to 5."),
         },
     };
 
@@ -83,6 +89,11 @@ internal static class AnglerLooks
     public const string Striking = Animations + "Staff/Combat/Block/A_Humanoid_Staff_Block_Hit.A_Humanoid_Staff_Block_Hit";
     public const string Fighting = Animations + "Staff/Combat/Block/A_Humanoid_Staff_Block_Idle.A_Humanoid_Staff_Block_Idle";
     public const string Showing = Animations + "IdleAnims/A_Humanoid_OneHand_LookAt_Weapon.A_Humanoid_OneHand_LookAt_Weapon";
+
+    // The mode's own, from a container of its own (design/models/fishing-anim): the fight's pose with the left hand
+    // turning the reel, twice a second. Played again a whole number of turns in, so the hand stays on its circle.
+    public const string Reeling = "/Game/CyrodiilRP/Fishing/A_Fishing_Reel.A_Fishing_Reel";
+    public const float ReelOverlap = 0.5f;
 
     // A pose that loops is played again this long before it ends, or after the retry when it did not play.
     public const float PoseOverlap = 0.2f;
@@ -137,8 +148,12 @@ internal static class AnglerLooks
 
     public static readonly Vector3 ShowOffset = Vector3.Zero;
     public static readonly Vector3 ShowRotation = Vector3.Zero;
-    // The server ends the show sooner: at the next cast, or when the catch is let go.
-    public const float ShowSeconds = 6.5f;
+    // The look at the hand plays at ShowRate, so that it runs the whole show: seen in the game, an angler with no
+    // animation playing stands with the arms spread. The server ends the show sooner, at the next cast or when the
+    // catch is let go.
+    public const float ShowLookSeconds = 3.2f;
+    public const float ShowRate = 0.5f;
+    public const float ShowSeconds = ShowLookSeconds / ShowRate - PoseOverlap;
 
     private const string Effects = "/Game/Art/FX/";
     public const string Impact = Effects + "Weapons/NS_Impact_Water_01.NS_Impact_Water_01";

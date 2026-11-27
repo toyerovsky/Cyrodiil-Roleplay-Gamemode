@@ -101,12 +101,16 @@ test("a whole bite from the cast to the catch, as the game tells it", async ({ p
 
   await showLine(page, { stage: "Fight", bites: 1, fight: FIGHT });
   await expect(page.locator(".fishing__title")).toHaveText(t("pull.Left"));
-  await expect(page.locator(".fishing__hint")).toHaveText(t("counter.Left"));
+  await expect(page.locator('.fishing__order[data-order="do"]')).toHaveText(`${t("key_d")}${t("order.Left")}`);
+  await expect(page.locator(".fishing__cue--do")).toHaveText(t("key_d"));
   await expect(page.locator(".fishing__key--wanted")).toHaveAttribute("data-key", "right");
   await expect(page.locator(".fishing__run--left")).toBeVisible();
+  await expectWithinScreen(page);
+  await screenshot(page, testInfo, "fishing-run-lake");
 
   await showLine(page, { stage: "Fight", bites: 1, fight: { ...FIGHT, lean: 1 } });
-  await expect(page.locator(".fishing__hint--done")).toBeVisible();
+  await expect(page.locator('.fishing__order[data-order="done"]')).toHaveText(`${t("key_d")}${t("order.held")}`);
+  await expect(page.locator(".fishing__cue")).toHaveCount(0);
   await expect(page.locator(".fishing-fight__lean--against")).toHaveText(t("lean.right"));
   await expectWithinScreen(page);
   await screenshot(page, testInfo, "fishing-fight-lake");
@@ -116,6 +120,9 @@ test("a whole bite from the cast to the catch, as the game tells it", async ({ p
   await expect(page.locator('[data-gauge="tension"]')).toHaveClass(/fishing-fight__gauge--red/);
   await expect(page.locator('[data-key="right"]')).toHaveClass(/fishing__key--strain/);
   await expect(page.locator('[data-key="reel"]')).toHaveClass(/fishing__key--strain/);
+  await expect(page.locator('.fishing__order[data-order="wrong"]')).toHaveText(`${t("key_space")}${t("order.force")}`);
+  await expect(page.locator(".fishing__cue--wrong")).toHaveText(t("key_space"));
+  await expectWithinScreen(page);
   await screenshot(page, testInfo, "fishing-strain-night");
 
   await showLine(page, {
@@ -248,6 +255,7 @@ const SHOTS = [
   ["", "lake"],
   ["waiting", "night"],
   ["bite", "lake"],
+  ["wrongway", "lake"],
   ["dive", "lake"],
   ["rest", "night"],
   ["slack", "lake"],

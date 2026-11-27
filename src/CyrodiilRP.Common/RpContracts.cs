@@ -549,9 +549,10 @@ public static partial class RpContracts
     [ServerToClient]
     public static partial void AnglerShown(int angler, bool fishing, string rod);
 
-    // To everyone near an angler, the angler included: how far their rod bends under the line now, 0 straight to 3.
+    // To everyone near an angler, the angler included: how far their rod bends under the line now, 0 straight to
+    // FishingGear.MostBend, and whether they turn the reel.
     [ServerToClient]
-    public static partial void AnglerRod(int angler, int bend);
+    public static partial void AnglerRod(int angler, int bend, bool reeling);
 
     // To everyone near: the angler casts, and the float flies to this point on the water and lands there.
     [ServerToClient]

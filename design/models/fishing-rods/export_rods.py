@@ -153,7 +153,7 @@ def pack_nnrm(grade, normal, roughness, metallic):
 
 
 # The angle at the tip, in degrees, of each bent mesh.
-BENDS = {"Bend1": 12.0, "Bend2": 26.0, "Bend3": 42.0}
+BENDS = {"Bend1": 10.0, "Bend2": 22.0, "Bend3": 36.0, "Bend4": 52.0, "Bend5": 70.0}
 
 
 # Where a point of the straight rod lies once the blank bends. Beyond `start` the rod's axis (the Y axis) turns into an

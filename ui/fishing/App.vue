@@ -5,6 +5,7 @@ import CatchCard from "./CatchCard.vue";
 import { findPower, NEAREST_CAST_CM } from "./charge.js";
 import FightGauges from "./FightGauges.vue";
 import GearCorner from "./GearCorner.vue";
+import { findOrder } from "./orders.js";
 import { isCatch, isHeld, OUTCOME_TEXTS } from "./outcomes.js";
 import PullArrow from "./PullArrow.vue";
 
@@ -55,28 +56,17 @@ const title = computed(() => {
   }
 });
 
-// Whether the player does what the fish's pull asks for: reels while it rests, leans against a run, eases off a dive.
-const countered = computed(() => {
-  const line = fight.value;
-  if (!line) return false;
-  switch (line.pull) {
-    case "Rest":
-      return line.reeling;
-    case "Left":
-      return line.lean === 1;
-    case "Right":
-      return line.lean === -1;
-    case "Away":
-      return !line.reeling;
-    default:
-      return false;
-  }
+// The one thing to do about the fish now, with the key it is done with.
+const order = computed(() => {
+  if (!fight.value) return null;
+
+  const { state, key, letGo, text } = findOrder(fight.value);
+  return { state, letGo, cap: key ? t.value[`key_${key}`] : "", text: t.value[text] };
 });
 
 const hint = computed(() => {
-  if (stage.value === "Waiting") return t.value.waiting_hint;
-  if (fight.value) return t.value[`counter.${fight.value.pull}`];
-  return "";
+  if (stage.value === "Aim") return t.value.aim_hint;
+  return stage.value === "Waiting" ? t.value.waiting_hint : "";
 });
 
 const keys = computed(() => {
@@ -111,15 +101,14 @@ function listCatchKeys(ended) {
 }
 
 function listFightKeys(line) {
-  const red = line.tension >= line.tensionWarn;
   return [
     {
       id: "reel",
       cap: t.value.key_space,
       label: t.value["keys.reel"],
       on: line.reeling,
-      wanted: !line.reeling && (line.pull === "Rest" || line.slack > 0),
-      strain: line.reeling && line.pull !== "Rest" && red,
+      wanted: !line.reeling && line.pull === "Rest",
+      strain: line.reeling && line.pull !== "Rest",
     },
     {
       id: "left",
@@ -248,6 +237,13 @@ onUnmounted(() => {
       <span v-else class="fishing__ring"></span>
       <span v-if="stage === 'Waiting' && view.nibbles > 0" :key="view.nibbles" class="fishing__ripple"></span>
       <PullArrow v-if="fight && fight.pull !== 'Rest'" class="fishing__run" :class="`fishing__run--${fight.pull.toLowerCase()}`" :pull="fight.pull" />
+      <kbd
+        v-if="order && order.cap && order.state !== 'done'"
+        class="fishing__cue"
+        :class="[`fishing__cue--${order.state}`, { 'fishing__cue--let-go': order.letGo }]"
+      >
+        {{ order.cap }}
+      </kbd>
     </div>
 
     <Transition name="fishing-card">
@@ -261,7 +257,17 @@ onUnmounted(() => {
         <PullArrow v-if="fight" class="fishing__pull" :pull="fight.pull" />
         <span>{{ title }}</span>
       </p>
-      <p v-if="hint" class="fishing__hint" :class="{ 'fishing__hint--done': countered }">{{ hint }}</p>
+      <p
+        v-if="order"
+        class="fishing__order"
+        :class="[`fishing__order--${order.state}`, { 'fishing__order--let-go': order.letGo }]"
+        :data-order="order.state"
+        role="status"
+      >
+        <kbd v-if="order.cap">{{ order.cap }}</kbd>
+        <span>{{ order.text }}</span>
+      </p>
+      <p v-else-if="hint" class="fishing__hint">{{ hint }}</p>
 
       <div v-if="stage === 'Aim'" class="fishing__power">
         <span class="fishing__power-end">{{ nearest }}</span>

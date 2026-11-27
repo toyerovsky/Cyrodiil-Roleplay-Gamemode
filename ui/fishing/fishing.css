@@ -63,8 +63,81 @@
   color: var(--night-text);
 }
 
-.fishing__hint--done {
+/* What to do about the fish now: gold while it is still to be done, green while it is being done, red while the
+   player does what loses it. A key to let go is struck through. */
+.fishing__order {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 6px 0 0;
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.25;
+  color: var(--gold-light);
+}
+
+.fishing__order kbd,
+.fishing__cue {
+  flex: none;
+  min-width: 34px;
+  padding: 2px 10px;
+  border: 2px solid var(--gold-bright);
+  border-radius: var(--radius-small);
+  background: var(--gold-dark);
+  font-weight: 700;
+  font-size: 18px;
+  font-family: var(--font-body);
+  text-align: center;
+  color: #fff6e0;
+}
+
+.fishing__order--do kbd,
+.fishing__cue--do {
+  animation: fishing-wanted 500ms ease-in-out infinite alternate;
+}
+
+.fishing__order--done {
   color: var(--fishing-good);
+}
+
+.fishing__order--done kbd {
+  border-color: var(--fishing-good);
+  background: rgba(60, 110, 60, 0.6);
+}
+
+.fishing__order--wrong {
+  color: var(--fishing-danger);
+}
+
+.fishing__order--wrong kbd,
+.fishing__cue--wrong {
+  border-color: var(--fishing-danger);
+  background: rgba(143, 29, 20, 0.85);
+}
+
+.fishing__order--wrong kbd {
+  animation: fishing-wrong 260ms ease-in-out infinite alternate;
+}
+
+.fishing__order--let-go kbd,
+.fishing__cue--let-go {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+/* The key to hold, under the float where the eyes are. */
+.fishing__cue {
+  position: absolute;
+  left: 0;
+  top: 44px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  box-shadow: 0 0 10px var(--shadow-deep);
+}
+
+.fishing__cue--wrong {
+  animation: fishing-cue-wrong 260ms ease-in-out infinite alternate;
 }
 
 /* The cast's power, from the nearest cast to the rod's reach. */
@@ -769,5 +842,25 @@
 
   to {
     filter: brightness(1.35);
+  }
+}
+
+@keyframes fishing-wrong {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes fishing-cue-wrong {
+  from {
+    transform: translateX(-50%) scale(1);
+  }
+
+  to {
+    transform: translateX(-50%) scale(1.12);
   }
 }

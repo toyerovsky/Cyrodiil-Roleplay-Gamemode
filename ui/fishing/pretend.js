@@ -28,8 +28,9 @@ const lost = (kind, outcome = {}, line = {}) => resting({ kind, ...outcome }, li
 // "": the line is in, the cast would land at the mark. #charging: Space held, the power swings. #waiting, #nibble,
 // #bite: the float in calm water, a fish testing the bait, the strike's window. #twitch: the bait twitched, which drew
 // the fish, the water troubled for a while. #spooked: a twitch that made the fish bolt, the float pulled all the way in. #fight: a run to the left, the rod leant against it.
-// #strain: leant with the run and reeling into it, the line in the red. #dive: a dive far out. #rest: a tired fish
-// close in, reeled. #slack: the line gone slack in a run. #monster: a monster on the master rod. #caught: a trophy pike,
+// #strain: leant with the run and reeling into it, the line in the red. #wrongway: the rod leant the way the fish
+// runs. #dive: a dive far out. #rest: a tired fish
+// close in, reeled. #slack: the line gone slack on a resting fish. #monster: a monster on the master rod. #caught: a trophy pike,
 // which may be let go. #released: the pike let go. #rare: an Emperor's golden carp, a record and a level reached, which
 // may be let go. #found: a pearl. #lostearly, #lostnibble, #lostlate,
 // #snapped, #slipped, #runaway: each way a fish gets away, #snapped and #runaway costing the rod and the lure.
@@ -44,9 +45,10 @@ const SCENARIOS = {
   bite: { views: [{ ...LINE, stage: "Bite", nibbles: 2, bites: 1 }], anchor: [0.5, 0.45] },
   fight: { views: [fighting({})], anchor: [0.47, 0.46] },
   strain: { views: [fighting({ pull: "Right", lean: 1, reeling: true, tension: 0.88, stamina: 0.62, feel: "Heavy", distanceCm: 910 })], anchor: [0.56, 0.45] },
+  wrongway: { views: [fighting({ pull: "Left", lean: -1, tension: 0.66, stamina: 0.81, distanceCm: 720 })], anchor: [0.45, 0.46] },
   dive: { views: [fighting({ pull: "Away", lean: 0, tension: 0.55, stamina: 0.5, distanceCm: 1240 })], anchor: [0.5, 0.41] },
   rest: { views: [fighting({ pull: "Rest", lean: 0, reeling: true, tension: 0.3, stamina: 0.22, distanceCm: 210, feel: "Small" })], anchor: [0.49, 0.55] },
-  slack: { views: [fighting({ pull: "Left", lean: 0, tension: 0.03, slack: 0.6, stamina: 0.8 })], anchor: [0.44, 0.47] },
+  slack: { views: [fighting({ pull: "Rest", lean: 0, tension: 0.03, slack: 0.6, stamina: 0.8 })], anchor: [0.44, 0.47] },
   monster: {
     views: [
       fighting(

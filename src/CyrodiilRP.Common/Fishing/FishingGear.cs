@@ -5,7 +5,7 @@ namespace CyrodiilRP.Common.Fishing;
 public static class FishingGear
 {
     // A rod is shown straight (0) or bent up to this far under the line.
-    public const int MostBend = 3;
+    public const int MostBend = 5;
 
     public static string StaffOf(RodTier tier) => tier switch
     {

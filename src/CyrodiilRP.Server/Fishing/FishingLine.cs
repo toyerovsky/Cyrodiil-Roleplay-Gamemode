@@ -27,6 +27,9 @@ internal sealed class FishingLine(Func<double> roll)
     private bool _provoked;
     private long _lastTickMs;
     private long _nextPullAtMs;
+    private long _pullSinceMs;
+    private long _hookedAtMs;
+    private bool _reeled;
     private long _slackMs;
 
     public FishingStage Stage { get; private set; } = FishingStage.Aim;
@@ -48,8 +51,8 @@ internal sealed class FishingLine(Func<double> roll)
 
     public int Lean => _lean.Value;
 
-    // How near a slack line is to throwing the hook, 0 to 1.
-    public double SlackShare => Math.Min(1.0, (double)_slackMs / Ms(FishFightRules.SlackLoses));
+    // How near a line slack now is to throwing the hook, 0 to 1.
+    public double SlackShare => Tension <= FishFightRules.SlackFrom ? Math.Min(1.0, (double)_slackMs / Ms(FishFightRules.SlackLoses)) : 0;
 
     public TimeSpan StrikeWindow => _cast?.StrikeWindow ?? FishingRules.StrikeWindow;
 
@@ -196,12 +199,15 @@ internal sealed class FishingLine(Func<double> roll)
         Stage = FishingStage.Fight;
         Tension = FishFightRules.TensionAtHook;
         Stamina = 1;
-        DistanceCm = Current.DistanceCm;
+        DistanceCm = Math.Max(Current.DistanceCm, FishFightRules.HookedAtLeast);
         DriftCm = 0;
         Pull = FishPull.Rest;
         _reel.Reset(false);
+        _reeled = false;
+        _hookedAtMs = now;
         _lastTickMs = now;
         _nextPullAtMs = now;
+        _pullSinceMs = now;
         _slackMs = 0;
         return LineChange.Hooked;
     }
@@ -224,14 +230,19 @@ internal sealed class FishingLine(Func<double> roll)
             return LineChange.None;
 
         _lastTickMs = now;
+        if (now - _hookedAtMs > Ms(FishFightRules.LongestFight))
+            return Lose(now, LineChange.LostSlack);
+
         var turned = now >= _nextPullAtMs ? Turn(now, NextPull()) : LineChange.Fought;
         _reel.Settle(now);
         _lean.Settle(now);
+        Jolt(now);
         var pullBefore = Pull;
         var stepMs = Ms(FishFightRules.LongestStep);
         for (var left = elapsed; left > 0; left -= stepMs)
         {
-            var outcome = Step(now, Math.Min(left, stepMs));
+            var step = Math.Min(left, stepMs);
+            var outcome = Step(now, now - left + step, step);
             if (outcome != LineChange.None)
                 return outcome;
         }
@@ -239,7 +250,24 @@ internal sealed class FishingLine(Func<double> roll)
         return turned == LineChange.Fought && Pull != pullBefore ? LineChange.Turned : turned;
     }
 
-    private LineChange Step(long now, long stepMs)
+    // A press of the reel into a run jerks the line, so tapping the reel through a run strains it as holding does.
+    // Judged at the time of the press, which a late tick hears of only later.
+    private void Jolt(long now)
+    {
+        var pressed = Reeling && !_reeled;
+        _reeled = Reeling;
+        if (!pressed)
+            return;
+
+        var pressedAt = _reel.ChangedAtMs ?? throw new InvalidOperationException("A reel that reels was pressed at some time.");
+        if (IsForced(pressedAt))
+            Tension += FishFightRules.ForceJolt;
+    }
+
+    private bool IsForced(long at) => Reeling && Pull != FishPull.Rest && at - _pullSinceMs >= Ms(FishFightRules.ForceAfter);
+
+    // now: the tick's time, which an ending is told at. at: the time this step of it ends.
+    private LineChange Step(long now, long at, long stepMs)
     {
         var cast = Current;
         var seconds = stepMs / MsPerSecond;
@@ -247,28 +275,28 @@ internal sealed class FishingLine(Func<double> roll)
                      * (FishFightRules.EffortSpent + (1 - FishFightRules.EffortSpent) * Stamina);
         var running = Pull != FishPull.Rest;
         var against = IsAgainst();
-        var give = running || Reeling ? FishFightRules.Give : FishFightRules.SlackGive;
-        var target = TensionAsked(effort, running, against, cast.LineStrength);
-        Tension = Math.Max(0, Tension + (target - Tension) * Math.Min(1, give * seconds));
+        var with = IsWith() && at - _pullSinceMs >= Ms(FishFightRules.ForceAfter);
+        var forcing = IsForced(at);
+        var target = TensionAsked(effort / cast.LineStrength, running, forcing, against, with);
+        Tension = Math.Max(0, Tension + (target - Tension) * Math.Min(1, GiveTowards(target, running) * seconds));
         if (Tension >= FishFightRules.Snaps)
         {
             Tension = FishFightRules.Snaps;
             return Lose(now, LineChange.LostSnapped);
         }
 
-        _slackMs = Tension <= FishFightRules.SlackFrom ? _slackMs + stepMs : 0;
+        _slackMs = Tension <= FishFightRules.SlackFrom ? _slackMs + stepMs : Math.Max(0, _slackMs - stepMs);
         if (_slackMs >= Ms(FishFightRules.SlackLoses))
             return Lose(now, LineChange.LostSlack);
 
-        var tiring = Tension is >= FishFightRules.TiringFrom and <= FishFightRules.TiringTo ? 1 : FishFightRules.OutOfBandTires;
-        Stamina = Math.Max(0, Stamina - seconds / cast.Fight.StaminaSeconds * tiring * (against ? FishFightRules.AgainstTires : 1));
+        Stamina = Math.Clamp(Stamina - seconds / cast.Fight.StaminaSeconds * Tires(forcing, against, with), 0, 1);
 
-        if (Reeling)
-            DistanceCm -= FishFightRules.ReelSpeed * (running ? FishFightRules.ReelInRunShare : 1) * seconds;
+        if (Reeling && !running)
+            DistanceCm -= FishFightRules.ReelSpeed * seconds;
         DistanceCm += Pull switch
         {
             FishPull.Away => FishFightRules.AwaySpeed * effort * seconds,
-            FishPull.Left or FishPull.Right => FishFightRules.SideSpeed * effort * seconds,
+            FishPull.Left or FishPull.Right => SideSpeed(against, with) * effort * seconds,
             FishPull.Rest => 0,
         };
         Drift(seconds);
@@ -293,19 +321,62 @@ internal sealed class FishingLine(Func<double> roll)
         return LineChange.None;
     }
 
-    private double TensionAsked(double effort, bool running, bool against, double line)
+    // load: the fish's effort against the line's strength.
+    private double TensionAsked(double load, bool running, bool forcing, bool against, bool with)
     {
         if (!running)
             return Reeling ? FishFightRules.RestHold : 0;
 
-        var pulled = (Pull == FishPull.Away ? FishFightRules.RunAway : FishFightRules.RunSide) * effort;
-        if (IsWith())
-            pulled += FishFightRules.LeanWith * effort;
-        if (Reeling)
-            pulled += FishFightRules.ReelRun * effort;
+        if (forcing)
+            return Math.Min(FishFightRules.ForceMost, FishFightRules.ForceBase + FishFightRules.ForcePull * load);
 
-        var asked = FishFightRules.RunBase + (Reeling ? FishFightRules.ReelRunBase : 0) + pulled / line;
-        return against ? asked * FishFightRules.LeanAgainstShare : asked;
+        if (against)
+            return FishFightRules.WorkBase + FishFightRules.WorkPull * Math.Min(1, load);
+
+        var pulled = Pull switch
+        {
+            FishPull.Away => FishFightRules.RunAway,
+            FishPull.Left or FishPull.Right => FishFightRules.RunSide,
+            FishPull.Rest => throw new InvalidOperationException("A resting fish pulls nothing."),
+        };
+        return FishFightRules.RunBase + (pulled + (with ? FishFightRules.LeanWith : 0)) * load;
+    }
+
+    // A line strained in a run stays strained while the fish runs: the tension falls slower there than it rises.
+    private double GiveTowards(double target, bool running)
+    {
+        if (running)
+            return target < Tension ? FishFightRules.RunEases : FishFightRules.Give;
+
+        return Reeling ? FishFightRules.Give : FishFightRules.SlackGive;
+    }
+
+    // How fast the fish tires, in stamina seconds a second. Below 0 it gets its strength back.
+    private double Tires(bool forcing, bool against, bool with)
+    {
+        if (forcing)
+            return FishFightRules.ForcedTires;
+
+        if (with)
+            return FishFightRules.WithTires;
+
+        var taut = Tension is >= FishFightRules.TiringFrom and <= FishFightRules.TiringTo ? 1 : FishFightRules.OutOfBandTires;
+        if (against)
+            return taut * FishFightRules.AgainstTires;
+
+        return Pull switch
+        {
+            FishPull.Left or FishPull.Right => taut * FishFightRules.LooseTires,
+            FishPull.Away or FishPull.Rest => taut,
+        };
+    }
+
+    private static double SideSpeed(bool against, bool with)
+    {
+        if (against)
+            return 0;
+
+        return with ? FishFightRules.SideSpeed * FishFightRules.WithSpeed : FishFightRules.SideSpeed;
     }
 
     // Leaning against a run to the left is leaning right, and the other way round. A dive away has no side.
@@ -359,6 +430,8 @@ internal sealed class FishingLine(Func<double> roll)
     {
         var fight = Current.Fight;
         var turned = pull != Pull;
+        if (turned)
+            _pullSinceMs = now;
         Pull = pull;
         var jumped = pull != FishPull.Rest && roll() < fight.Jumpiness;
         _nextPullAtMs = now + (long)(MsPerSecond * (fight.ChangeSoonestSeconds + (fight.ChangeLatestSeconds - fight.ChangeSoonestSeconds) * roll()));

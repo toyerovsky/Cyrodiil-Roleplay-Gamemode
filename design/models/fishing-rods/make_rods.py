@@ -173,7 +173,7 @@ def cork(name):
     noise.inputs["Detail"].default_value = 4.0
     pits = nodes.new("ShaderNodeTexVoronoi")
     pits.inputs["Scale"].default_value = 260.0
-    # Object space, in metres: the generated space would stretch the grain along a 3 m rod.
+    # Object space, in metres: the generated space would stretch the grain along a 2 m rod.
     coords = nodes.new("ShaderNodeTexCoord")
     links.new(coords.outputs["Object"], noise.inputs["Vector"])
     links.new(coords.outputs["Object"], pits.inputs["Vector"])
@@ -258,7 +258,7 @@ def lathe(name, profile, material, segments=20, axis="Y", center=(0, 0, 0), bend
 
 
 # A long lathe in pieces of about `piece` metres, each ring at a cut shared by both pieces: a texture bake packs short
-# pieces far tighter than one 3 m strip.
+# pieces far tighter than one 2 m strip.
 def lathe_pieces(name, profile, material, piece=0.5, **options):
     parts, start = [], 0
     while start < len(profile) - 1:
@@ -397,11 +397,11 @@ def guides(prefix, blank, places, ring_material, foot_material, wrap_material, s
     return parts
 
 
-def line_points(blank, reel_top, places, sizes, tip):
+def line_points(blank, reel_top, places, sizes):
     points = [reel_top]
     for y, size in zip(places, sizes):
         points.append(blank.point(y, below=blank.radius(y) + size + 0.004))
-    points.append(blank.point(tip, below=0.0))
+    points.append(blank.point(blank.tip, below=0.0))
     return points
 
 
@@ -442,8 +442,8 @@ def reel_foot(prefix, blank, y, reel_center, material):
 def basic_rod():
     # A cut hazel pole, one piece and a little crooked, cord wound for the hand, an iron-bound wooden spool and bent
     # iron wire for guides.
-    blank = Blank(start=-0.40, tip=2.30, butt_radius=0.0165, tip_radius=0.0032, sag=0.05, wobble=0.004)
-    knots = [(0.55, 0.012, 0.0022), (1.15, 0.01, 0.0018), (1.7, 0.01, 0.0013)]
+    blank = Blank(start=-0.40, tip=1.60, butt_radius=0.0165, tip_radius=0.0032, sag=0.035, wobble=0.004)
+    knots = [(0.48, 0.012, 0.0022), (0.87, 0.01, 0.0018), (1.18, 0.01, 0.0013)]
     parts = lathe_pieces("basic_pole", blank.profile(90, knots), HAZEL, segments=18, bend=blank.bend)
     parts.append(lathe("basic_butt", [(-0.408, 0.0), (-0.408, 0.0135), (-0.403, 0.0162), (-0.398, 0.0166)], HAZEL, segments=18))
     grip = [(y, blank.radius(y) + 0.0022) for y in (-0.34, -0.33, 0.06, 0.07)]
@@ -456,24 +456,24 @@ def basic_rod():
     parts += reel_foot("basic_reelfoot", blank, reel_y, center, IRON)
     parts.append(lathe("basic_band0", [(reel_y - 0.045, blank.radius(reel_y) + 0.0016), (reel_y - 0.03, blank.radius(reel_y) + 0.0016)], IRON, segments=18, bend=blank.bend))
     parts.append(lathe("basic_band1", [(reel_y + 0.03, blank.radius(reel_y) + 0.0016), (reel_y + 0.045, blank.radius(reel_y) + 0.0016)], IRON, segments=18, bend=blank.bend))
-    places = [0.45, 0.95, 1.45, 1.9]
+    places = [0.33, 0.69, 1.02, 1.32]
     sizes = [0.0085, 0.007, 0.0055, 0.0045]
     parts += guides("basic", blank, places, IRON, IRON, CORD, sizes)
     parts.append(ring("basic_tiptop", blank.tip_ring, 0.0035, 0.0009, IRON))
-    parts += run_line("basic_runline", line_points(blank, center + Vector((0, 0.0, 0.040 * 0.72)), places, sizes, 2.30), 0.00045, LINE)
+    parts += run_line("basic_runline", line_points(blank, center + Vector((0, 0.0, 0.040 * 0.72)), places, sizes), 0.00045, LINE)
     return assemble("SM_FishingRod_Basic", parts, blank, bend_from=0.07)
 
 
 def sturdy_rod():
     # Turned ash in two pieces joined by an iron ferrule, a leather grip between iron caps, a walnut centrepin and
     # five iron guides whipped with green silk.
-    blank = Blank(start=-0.42, tip=2.45, butt_radius=0.0145, tip_radius=0.0028, sag=0.025)
+    blank = Blank(start=-0.42, tip=1.70, butt_radius=0.0145, tip_radius=0.0028, sag=0.017)
     parts = lathe_pieces("sturdy_blank", blank.profile(80), ASH, segments=20, bend=blank.bend)
     parts.append(lathe("sturdy_butt", [(-0.435, 0.0), (-0.435, 0.012), (-0.43, 0.0175), (-0.40, 0.0178), (-0.395, 0.0165)], BLACK_IRON, segments=24))
     grip_rows = [(-0.395, 0.0165), (-0.385, 0.0185), (-0.2, 0.0192), (-0.08, 0.0205), (0.05, 0.0185), (0.075, 0.0172)]
     parts.append(lathe("sturdy_grip", grip_rows, LEATHER, segments=24))
     parts.append(lathe("sturdy_cap", [(0.075, 0.0176), (0.09, 0.0176), (0.1, blank.radius(0.1) + 0.001)], BLACK_IRON, segments=24))
-    ferrule = 1.05
+    ferrule = 0.68
     parts.append(lathe("sturdy_ferrule", [(ferrule - 0.03, blank.radius(ferrule) + 0.0004), (ferrule - 0.025, blank.radius(ferrule) + 0.0024),
                                          (ferrule + 0.025, blank.radius(ferrule) + 0.0024), (ferrule + 0.03, blank.radius(ferrule) + 0.0004)],
                        BLACK_IRON, segments=20, bend=blank.bend))
@@ -481,18 +481,18 @@ def sturdy_rod():
     center = blank.point(reel_y, below=0.0185 + 0.05)
     parts += centrepin("sturdy_reel", center, 0.045, 0.028, WALNUT, BLACK_IRON, LINE, spokes=0, handle_material=BONE)
     parts += reel_foot("sturdy_reelfoot", blank, reel_y, center, BLACK_IRON)
-    places = [0.35, 0.75, 1.2, 1.6, 1.95, 2.22]
+    places = [0.25, 0.54, 0.82, 1.08, 1.31, 1.52]
     sizes = [0.0095, 0.008, 0.0068, 0.0057, 0.0048, 0.004]
     parts += guides("sturdy", blank, places, IRON, BLACK_IRON, SILK_GREEN, sizes)
     parts.append(ring("sturdy_tiptop", blank.tip_ring, 0.0033, 0.0009, IRON))
-    parts += run_line("sturdy_runline", line_points(blank, center + Vector((0, 0.0, 0.045 * 0.72)), places, sizes, 2.45), 0.00045, LINE)
+    parts += run_line("sturdy_runline", line_points(blank, center + Vector((0, 0.0, 0.045 * 0.72)), places, sizes), 0.00045, LINE)
     return assemble("SM_FishingRod_Sturdy", parts, blank, bend_from=0.10)
 
 
 def master_rod():
     # Ebony in three pieces with brass ferrules, a cork grip between brass collars with a turned brass butt, a brass
     # spoked centrepin and seven brass guides whipped with crimson silk.
-    blank = Blank(start=-0.43, tip=2.60, butt_radius=0.0135, tip_radius=0.0025, sag=0.02)
+    blank = Blank(start=-0.43, tip=1.80, butt_radius=0.0135, tip_radius=0.0025, sag=0.014)
     parts = lathe_pieces("master_blank", blank.profile(90), EBONY, segments=22, bend=blank.bend)
     parts.append(lathe("master_butt", [(-0.465, 0.0), (-0.465, 0.009), (-0.458, 0.0165), (-0.448, 0.0185), (-0.44, 0.0172),
                                       (-0.43, 0.019), (-0.42, 0.0178)], BRASS, segments=28))
@@ -502,7 +502,7 @@ def master_rod():
     parts.append(lathe("master_seat", [(-0.3, 0.0181), (-0.297, 0.0192), (-0.173, 0.0192), (-0.17, 0.0181)], BRASS, segments=28))
     parts.append(lathe("master_collar", [(0.07, 0.0178), (0.075, 0.019), (0.085, 0.019), (0.1, blank.radius(0.1) + 0.0012), (0.11, blank.radius(0.11) + 0.0006)],
                        BRASS, segments=28))
-    for ferrule in (0.78, 1.7):
+    for ferrule in (0.58, 1.225):
         r = blank.radius(ferrule)
         parts.append(lathe(f"master_ferrule{ferrule}", [(ferrule - 0.03, r + 0.0003), (ferrule - 0.026, r + 0.002), (ferrule - 0.004, r + 0.002),
                                                        (ferrule - 0.002, r + 0.0028), (ferrule + 0.002, r + 0.0028), (ferrule + 0.004, r + 0.002),
@@ -514,11 +514,11 @@ def master_rod():
     center = blank.point(reel_y, below=0.0192 + 0.054)
     parts += centrepin("master_reel", center, 0.048, 0.03, EBONY, BRASS, LINE, spokes=5, handle_material=BONE)
     parts += reel_foot("master_reelfoot", blank, reel_y, center, BRASS)
-    places = [0.3, 0.62, 0.98, 1.32, 1.62, 1.92, 2.2, 2.42]
+    places = [0.21, 0.46, 0.70, 0.92, 1.13, 1.32, 1.50, 1.66]
     sizes = [0.01, 0.0088, 0.0076, 0.0066, 0.0058, 0.005, 0.0044, 0.0039]
     parts += guides("master", blank, places, BRASS, BRASS, SILK_RED, sizes)
     parts.append(ring("master_tiptop", blank.tip_ring, 0.0032, 0.0009, BRASS))
-    parts += run_line("master_runline", line_points(blank, center + Vector((0, 0.0, 0.048 * 0.72)), places, sizes, 2.60), 0.00045, LINE)
+    parts += run_line("master_runline", line_points(blank, center + Vector((0, 0.0, 0.048 * 0.72)), places, sizes), 0.00045, LINE)
     return assemble("SM_FishingRod_Master", parts, blank, bend_from=0.11)
 
 
@@ -626,7 +626,7 @@ world((0.045, 0.05, 0.06), 0.4)
 # Overview: the three rods and the game's staff laid flat along +X, hands at one x, seen from above. Turned about their
 # own axis first, so the reels and guides lie beside the rods (+Y) instead of under them.
 FLAT = (0, math.pi / 2, -math.pi / 2)
-HAND_X = -1.05
+HAND_X = -0.65
 ROW = 0.25
 layout = []
 for index, rod in enumerate(rods):
@@ -648,7 +648,7 @@ labels = [label(t, (HAND_X + 0.05, 0.33 - i * ROW - 0.085, 0.06), 0.045) for i, 
 floor = backdrop(0.0, (0.07, 0.075, 0.085))
 lights = [area_light("key", (0.5, -1.0, 3.0), (0.3, 0, 0), 120, 3.0, (1.0, 0.95, 0.88)),
           area_light("fill", (-2.5, 1.5, 2.0), (0.3, 0, 0), 35, 3.0, (0.8, 0.88, 1.0))]
-camera("overview", (0.05, -0.05, 4.0), (0.05, -0.05, 0.0), ortho=3.6)
+camera("overview", (0.05, -0.05, 4.0), (0.05, -0.05, 0.0), ortho=2.8)
 scene.render.filepath = os.path.join(OUT, "rods_overview.png")
 bpy.ops.render.render(write_still=True)
 
@@ -672,6 +672,7 @@ for index, rod in enumerate(rods):
 for other in layout:
     other.hide_render = other is not rods[2]
 base = Vector(rods[2].location)
-camera("tip", base + Vector((2.25, 0.45, 0.25)), base + Vector((2.3, 0.0, 0.0)), lens=50)
+tip = rods[2]["tip"]
+camera("tip", base + Vector((tip - 0.2, 0.45, 0.25)), base + Vector((tip - 0.15, 0.0, 0.0)), lens=50)
 scene.render.filepath = os.path.join(OUT, "rods_tip_master.png")
 bpy.ops.render.render(write_still=True)

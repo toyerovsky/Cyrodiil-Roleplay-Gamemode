@@ -178,7 +178,7 @@ internal sealed partial class Anglers(
         main.Rotation = yaw;
         var angler = new Angler(player, area, stand, yaw, waterZ, new FishingLine(_random.NextDouble), rod, BaitKind.None, CountBait(player),
             Quarry: null, Float: null, FloatShown: null, FishShown: false, DipEndsAtMs: 0, NextThrashAtMs: 0, Nibbles: 0, Bites: 0, Outcome: null,
-            Held: null, Twitches: 0, TwitchResult.None, Bend: 0, Seers: new HashSet<PlayerId>());
+            Held: null, Twitches: 0, TwitchResult.None, Bend: 0, Reels: false, Seers: new HashSet<PlayerId>());
         rpc.SendFishingAim(player.Id, yaw, waterZ, rod.Rod.ReachCm);
         angler = SeeAround(angler);
         _anglers.Set(angler);
@@ -219,7 +219,8 @@ internal sealed partial class Anglers(
         var level = progress.Skill.Level;
         var conditions = surroundings.Read(area, point);
         var bait = PutOnBait(player, progress.Bait);
-        var quarry = CatchPicker.Pick(conditions, bait, level, _random.NextDouble);
+        // The rod's own reach at the most: the slack given to where the character stands buys no bigger fish.
+        var quarry = CatchPicker.Pick(conditions, bait, level, Math.Min(reach, rod.Rod.ReachCm), _random.NextDouble);
         var cast = new LineCast(quarry.Fight, quarry.SizeShare, CatchPicker.WaitFactor(level, rod.Rod, bait),
             FishingRules.StrikeWindow + FishingSkillRules.StrikeBonus(level), rod.Line * FishingSkillRules.LineTolerance(level), rod.Rod.ReachCm,
             reach, Math.Clamp(nearest, FishingReach.Nearest, Math.Max(FishingReach.Nearest, reach)), FishingRules.TwitchOf(bait));
@@ -669,8 +670,8 @@ internal sealed partial class Anglers(
         return angler with { FloatShown = at };
     }
 
-    // The games near are told how far the rod bends when that changes: by the line's tension in a fight, a little at
-    // the bite, straight otherwise.
+    // The games near are told how far the rod bends and whether the reel turns when either changes: the bend by the
+    // line's tension in a fight, a little at the bite, straight otherwise.
     private Angler ShowBend(Angler angler)
     {
         var bend = angler.Line.Stage switch
@@ -679,13 +680,14 @@ internal sealed partial class Anglers(
             FishingStage.Bite => 1,
             FishingStage.Aim or FishingStage.Waiting or FishingStage.Rest => 0,
         };
-        if (bend == angler.Bend)
+        var reels = angler.Line.Stage == FishingStage.Fight && angler.Line.Reeling;
+        if (bend == angler.Bend && reels == angler.Reels)
             return angler;
 
         foreach (var seer in angler.Seers)
-            rpc.SendAnglerRod(seer, angler.Player.Id.RawValue, bend);
+            rpc.SendAnglerRod(seer, angler.Player.Id.RawValue, bend, reels);
 
-        return angler with { Bend = bend };
+        return angler with { Bend = bend, Reels = reels };
     }
 
     // Riding on the water, dipped by a nibble, pulled under by the bite, and dragged about under the water by the fish:
@@ -733,8 +735,8 @@ internal sealed partial class Anglers(
         foreach (var seer in near.Except(angler.Seers))
         {
             rpc.SendAnglerShown(seer, id, true, angler.Rod.Rod.Tier.ToString());
-            if (angler.Bend > 0)
-                rpc.SendAnglerRod(seer, id, angler.Bend);
+            if (angler.Bend > 0 || angler.Reels)
+                rpc.SendAnglerRod(seer, id, angler.Bend, angler.Reels);
             if (angler.FloatShown is { } shown)
                 rpc.SendFishingFloat(seer, id, shown.X, shown.Y, shown.Z);
             if (fish is { } move && angler.Quarry is FishQuarry quarry && angler.Float is { } at)

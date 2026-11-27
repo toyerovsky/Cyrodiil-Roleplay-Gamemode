@@ -11,6 +11,9 @@ internal sealed class PacedInput<T>(T start) where T : struct, IEquatable<T>
 
     public T Value { get; private set; } = start;
 
+    // When the value last changed, null until it first does after a reset.
+    public long? ChangedAtMs => _changedAtMs;
+
     public void Reset(T value)
     {
         Value = value;
