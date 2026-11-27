@@ -26,6 +26,7 @@
   "fishing.bait.out": "Skończyła ci się przynęta ({bait}), więc zarzucasz goły haczyk.",
   "fishing.landed": "* {name} wyciąga {fish}, {length} cm.",
   "fishing.landed_trophy": "* {name} wyciąga {fish}, okaz na {length} cm!",
+  "fishing.released": "* {name} wypuszcza {fish} z powrotem do wody.",
   "fishing.catch.perch": "srebrzystego okonia",
   "fishing.catch.betty": "rzeczną bettę",
   "fishing.catch.spadetail": "cyrodiilskiego łopatoogona",

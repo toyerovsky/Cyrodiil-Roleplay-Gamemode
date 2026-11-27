@@ -22,7 +22,7 @@ description: How Cyrodiil RP shows anything to a player. Use before writing play
 | Gold put into the bank and taken out | the bank's window, `ui/bank`, an amount typed and checked as the server would | `Bankers`, the same topic with the banker |
 | Buying a horse | the stable's window, `ui/stable`, a question before one replaces the horse owned | `Stables`, the same topic with the stablemaster |
 | Lots between players, bid on or bought now, and collecting them | the auction house's window, `ui/auction`, four tabs, each request checked as the server would | `AuctionHouse`, the same topic with an auctioneer |
-| Selling the catch, buying rods and baits, mending rods | the fisher's window, `ui/fisher`, the painted icons of `ui/shared/fishing` | `FisherShops`, the same topic with a fisher |
+| Selling the catch, buying rods and baits, mending rods, the records of the longest fish | the fisher's window, `ui/fisher`, the painted icons of `ui/shared/fishing` | `FisherShops` and `FisherRecords`, the same topic with a fisher |
 | The notices of a board in the world, unsigned | the board's window, `ui/notices`, a notice typed and checked as the server would | `BoardWindows`, H in front of a board |
 | The player's own record, the commands, the keys | the player's menu, `ui/menu`, F10 or `/help` | `PlayerMenus` sends `MenuState` |
 | Throwing dice | the dice board, `ui/dice`, three.js, the server picks every number | `DiceBoards` sends `DiceState`, `Rolls` is the one place that rolls |

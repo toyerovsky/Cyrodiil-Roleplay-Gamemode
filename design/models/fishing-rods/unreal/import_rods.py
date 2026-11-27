@@ -1,24 +1,31 @@
 # Runs inside Unreal Editor 5.3 (the PythonScript commandlet): imports the rods export_rods.py made into
-# /Game/CyrodiilRP/Fishing, each with its two textures and a material instance of the game's own base material, and
-# labels /Game/CyrodiilRP for chunk 1, so the cook puts the mode's assets into a container of their own.
+# /Game/CyrodiilRP/Fishing, each with its two textures and a material instance of the game's own base material, which
+# the rod's bent meshes take too, and labels /Game/CyrodiilRP for chunk 1, so the cook puts the mode's assets into a
+# container of their own.
 # usage: UnrealEditor-Cmd.exe OblivionRemastered.uproject -run=pythonscript -script="import_rods.py SOURCE_DIR"
 #
 # The game runs Unreal 5.3.2 changed by its makers: a material cooked by the stock engine crashes it on load ("Bad
 # export index"). So the rods own no material. Their instances take the base material the game's staves use, which
 # this project stands in for with a stand-in at the same path, cooked only into chunk 0, which is never shipped: in the
 # game the reference finds the game's own.
+import json
 import os
 import sys
 
 import unreal
 
 SOURCE = os.path.abspath(sys.argv[1])
+# Every mesh export_rods.py made, straight and bent, with its grade and its box as Unreal should have it.
+with open(os.path.join(SOURCE, "rods.json")) as listing:
+    MESHES = json.load(listing)
 ROOT = "/Game/CyrodiilRP"
 FISHING = ROOT + "/Fishing"
 GRADES = ("Basic", "Sturdy", "Master")
 CHUNK = 1
 # The rods are about 2.7 to 3.1 m long: anything else means the FBX came in at the wrong scale.
 SHORTEST_CM, LONGEST_CM = 250.0, 330.0
+# Centimetres a mesh's box may differ by from the one rods.json lists.
+BOX_NEAR_CM = 0.05
 
 # The game's base material for held things and its parameters, as the staves' MIC_Staff01 names them.
 GAME_MATERIALS = "/Game/Materials/Template"
@@ -63,9 +70,8 @@ def mesh_options():
 
 
 def import_all():
-    jobs = []
+    jobs = [task(os.path.join(SOURCE, f"{name}.fbx"), FISHING, mesh_options()) for name in MESHES]
     for grade in GRADES:
-        jobs.append(task(os.path.join(SOURCE, f"SM_FishingRod_{grade}.fbx"), FISHING, mesh_options()))
         for kind in ("BaseColor", "NNRM"):
             jobs.append(task(os.path.join(SOURCE, f"T_FishingRod_{grade}_{kind}.png"), FISHING))
     tools.import_asset_tasks(jobs)
@@ -128,14 +134,19 @@ def instance(grade, parent):
     return made
 
 
-def dress(grade, made):
-    mesh = unreal.load_asset(f"{FISHING}/SM_FishingRod_{grade}")
+def dress(name, listed, made):
+    mesh = unreal.load_asset(f"{FISHING}/{name}")
     mesh.set_material(0, made)
     bounds = mesh.get_bounds()
     length = 2 * max(bounds.box_extent.x, bounds.box_extent.y, bounds.box_extent.z)
-    unreal.log(f"SM_FishingRod_{grade}: {length:.1f} cm long, box {bounds.box_extent}, origin {bounds.origin}")
-    if not SHORTEST_CM <= length <= LONGEST_CM:
-        raise RuntimeError(f"SM_FishingRod_{grade} came in {length:.1f} cm long, not {SHORTEST_CM} to {LONGEST_CM}: the FBX scale is off")
+    unreal.log(f"{name}: {length:.1f} cm long, box {bounds.box_extent}, origin {bounds.origin}")
+    if listed["bend"] == 0 and not SHORTEST_CM <= length <= LONGEST_CM:
+        raise RuntimeError(f"{name} came in {length:.1f} cm long, not {SHORTEST_CM} to {LONGEST_CM}: the FBX scale is off")
+    low = [bounds.origin.x - bounds.box_extent.x, bounds.origin.y - bounds.box_extent.y, bounds.origin.z - bounds.box_extent.z]
+    high = [bounds.origin.x + bounds.box_extent.x, bounds.origin.y + bounds.box_extent.y, bounds.origin.z + bounds.box_extent.z]
+    off = max(abs(found - wanted) for found, wanted in zip(low + high, listed["box_min"] + listed["box_max"]))
+    if off > BOX_NEAR_CM:
+        raise RuntimeError(f"{name} came in with the box {low} to {high}, {off:.3f} cm off the one rods.json lists")
     assets.save_loaded_asset(mesh)
 
 
@@ -158,7 +169,10 @@ def chunk_label():
 import_all()
 parent = stand_in()
 for grade in GRADES:
-    dress(grade, instance(grade, parent))
+    made = instance(grade, parent)
+    for name, listed in MESHES.items():
+        if listed["grade"] == grade:
+            dress(name, listed, made)
 chunk_label()
 assets.save_directory(ROOT, only_if_is_dirty=False, recursive=True)
 assets.save_directory(GAME_MATERIALS, only_if_is_dirty=False, recursive=True)

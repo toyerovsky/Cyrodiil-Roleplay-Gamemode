@@ -25,8 +25,25 @@ public static class AnglerFraming
     public const float HandRight = 25f;
     public const float HandUp = 120f;
 
-    public static CameraFrame Shoulder(Vector3 stand, float yaw, float waterZ, Vector3 lookAt) =>
-        new(FishingShot.CameraAt(stand, yaw, waterZ), lookAt);
+    // Just over the angler's head, clear of the body and what it carries: the camera is reached from here.
+    public const float OverHeadUp = 195f;
+
+    // The camera stops this far short of what stands in its way.
+    public const float ObstacleClear = 25f;
+
+    public static CameraFrame Shoulder(Vector3 stand, float yaw, float waterZ, Vector3 lookAt, CameraRung rung) =>
+        new(FishingShot.CameraAt(stand, yaw, waterZ, rung), lookAt);
+
+    public static Vector3 OverHead(Vector3 stand) => stand + new Vector3(0f, 0f, OverHeadUp);
+
+    // The point on the way from one point to an obstacle that keeps clear of it, the first point itself for one nearer
+    // than that.
+    public static Vector3 Before(Vector3 from, Vector3 obstacle)
+    {
+        var way = obstacle - from;
+        var length = way.Length();
+        return length <= ObstacleClear ? from : from + way * ((length - ObstacleClear) / length);
+    }
 
     public static CameraFrame Bite(CameraFrame shoulder, Vector3 floatAt)
     {
@@ -43,11 +60,46 @@ public static class AnglerFraming
     }
 
     // Over the shoulder turned to the float, so both stay in view as the fish drags it aside.
-    public static CameraFrame Fight(Vector3 stand, float yaw, float waterZ, Vector3 floatAt)
+    public static CameraFrame Fight(Vector3 stand, float yaw, float waterZ, Vector3 floatAt, CameraRung rung)
     {
         var toFloat = FishMotion.Heading(stand, floatAt, yaw);
         var chest = stand + new Vector3(0f, 0f, ChestUp);
-        return new CameraFrame(FishingShot.CameraAt(stand, toFloat, waterZ), Vector3.Lerp(chest, floatAt, FightLookShare));
+        return new CameraFrame(FishingShot.CameraAt(stand, toFloat, waterZ, rung), Vector3.Lerp(chest, floatAt, FightLookShare));
+    }
+
+    // The harder the line strains, the nearer the camera comes to what it looks at and the narrower it sees. Centimetres
+    // and degrees at a line about to snap.
+    public const float StrainPushIn = 90f;
+    public const float StrainNarrows = 10f;
+    public const float BiteNarrows = 4f;
+
+    // With the line in the red the camera trembles: this far at the most, to and fro this often a second.
+    public const float ShakeMost = 1.5f;
+    public const float ShakeHertz = 11f;
+    private const float ShakeUpFaster = 1.3f;
+
+    // No nearer what it looks at than half the way there.
+    public static CameraFrame Strained(CameraFrame frame, float tension)
+    {
+        var way = frame.LookAt - frame.At;
+        var length = way.Length();
+        var step = Math.Min(StrainPushIn * Math.Clamp(tension, 0f, 1f), length / 2f);
+        return length > 0f ? frame with { At = frame.At + way / length * step } : frame;
+    }
+
+    // How deep in the red the line is, 0 at where the red begins and 1 where it snaps.
+    public static float RedShare(float tension, float warn) =>
+        warn < 1f ? Math.Clamp((tension - warn) / (1f - warn), 0f, 1f) : 0f;
+
+    // Aside and up and down, each on a beat of its own.
+    public static Vector3 Shake(CameraFrame frame, float seconds, float strength)
+    {
+        var far = Math.Clamp(strength, 0f, 1f) * ShakeMost;
+        var way = frame.LookAt - frame.At;
+        var aside = new Vector3(way.Y, -way.X, 0f);
+        var side = aside.LengthSquared() > 0f ? Vector3.Normalize(aside) : Vector3.Zero;
+        var beat = seconds * MathF.Tau * ShakeHertz;
+        return side * (MathF.Sin(beat) * far) + new Vector3(0f, 0f, MathF.Sin(beat * ShakeUpFaster + 1f) * far);
     }
 
     public static CameraFrame Catch(Vector3 stand, float yaw)

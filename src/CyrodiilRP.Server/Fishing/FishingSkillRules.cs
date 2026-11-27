@@ -33,6 +33,9 @@ internal static class FishingSkillRules
     public const double FirstOfSpeciesXp = 1.5;
     public const int FindXp = 3;
 
+    // A fish let go gives this share of its catch's xp again, one at the least.
+    public const double ReleaseXpShare = 1.0 / 3;
+
     // Nothing more to reach at the highest level.
     public static int XpToNext(int level) => CheckLevel(level) >= HighestLevel ? 0 : XpBase + XpPerLevel * level;
 
@@ -46,6 +49,12 @@ internal static class FishingSkillRules
 
     public static int CatchXp(FishKind fish, double sizeShare, bool trophy, bool first) =>
         (int)Math.Round(fish.Xp * (SizeXpFrom + SizeXpSpan * sizeShare) * (trophy ? TrophyXp : 1) * (first ? FirstOfSpeciesXp : 1));
+
+    public static int ReleaseXp(int catchXp)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(catchXp);
+        return Math.Max(1, (int)Math.Round(catchXp * ReleaseXpShare));
+    }
 
     private static double Along(int level, double atLowest, double atHighest) =>
         atLowest + (atHighest - atLowest) * (CheckLevel(level) - LowestLevel) / (HighestLevel - LowestLevel);

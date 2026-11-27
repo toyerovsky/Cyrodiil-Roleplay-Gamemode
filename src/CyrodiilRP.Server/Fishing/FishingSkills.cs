@@ -56,6 +56,16 @@ internal sealed partial class FishingSkills(OnlinePlayers online, Persistence pe
         return gain;
     }
 
+    public CatchGain RecordRelease(OnlinePlayer player, int xp)
+    {
+        var progress = Require(player);
+        var gain = progress.JudgeRelease(xp);
+        var after = progress.AfterRelease(gain);
+        _progress.Set(player, after);
+        SaveProgress(after);
+        return gain;
+    }
+
     public void ChooseBait(OnlinePlayer player, BaitKind bait)
     {
         var after = Require(player) with { Bait = bait };

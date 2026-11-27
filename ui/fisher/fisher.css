@@ -1,4 +1,6 @@
 .fisher {
+  --row-mine: rgba(201, 162, 89, 0.3);
+
   display: grid;
   place-items: center;
   height: 100%;
@@ -272,4 +274,110 @@
 .fisher__footer {
   display: flex;
   justify-content: flex-end;
+}
+
+/* The records: the species to the left, the picked one's longest fish to the right, where a row needs the width. */
+.fisher__body--records {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+}
+
+/* The picked species' picture beside its name, so its five fish and the reader's own fit under them. */
+.fisher__detail--records {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 16px;
+}
+
+.fisher__detail--records > .fisher__picture--large {
+  width: 72px;
+  height: 72px;
+}
+
+.fisher__detail--records > .fisher__detail-name {
+  justify-self: start;
+  margin: 0;
+  text-align: left;
+}
+
+.fisher__detail--records > .fisher__records,
+.fisher__detail--records > .fisher__no-records {
+  grid-column: 1 / -1;
+}
+
+.fisher__best {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.fisher__row--none .fisher__name {
+  color: var(--ink-soft);
+}
+
+.fisher__no-records {
+  justify-self: start;
+  margin: 12px 8px 0;
+  font-style: italic;
+  font-size: 17px;
+  color: var(--ink-soft);
+}
+
+.fisher__records {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 16px;
+  text-align: left;
+}
+
+.fisher__records caption {
+  padding: 0 8px 6px;
+  font-size: 15px;
+  text-align: left;
+  color: var(--ink-soft);
+}
+
+.fisher__records th {
+  padding: 2px 8px 4px;
+  border-bottom: 1px solid var(--parchment-edge);
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  color: var(--ink-soft);
+}
+
+.fisher__records td {
+  padding: 6px 8px;
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+
+.fisher__records tbody tr + tr td {
+  border-top: 1px solid var(--row-hover);
+}
+
+.fisher__records .fisher__record-rank,
+.fisher__records .fisher__record-length,
+.fisher__records .fisher__record-weight {
+  text-align: right;
+}
+
+/* The name takes what the numbers leave, and a long one wraps inside it. */
+.fisher__records .fisher__record-name {
+  width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.fisher__record-name .fisher__tag {
+  margin-left: 2px;
+}
+
+/* The reader's own fish, on the board or under it. */
+.fisher__record--mine td {
+  font-weight: 700;
+  background: var(--row-mine);
+}
+
+.fisher__records tfoot td {
+  border-top: 2px solid var(--parchment-edge);
 }

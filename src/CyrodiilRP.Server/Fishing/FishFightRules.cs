@@ -1,3 +1,5 @@
+using CyrodiilRP.Common.Fishing;
+
 namespace CyrodiilRP.Server.Fishing;
 
 // The fight with a hooked fish. The tension moves towards what the moment asks for at Give a second, at SlackGive while
@@ -65,6 +67,25 @@ internal static class FishFightRules
 
     // The longest step the fight is worked out in, so a late tick does not jump over a snap.
     public static readonly TimeSpan LongestStep = TimeSpan.FromMilliseconds(100);
+
+    // How far the rod bends, 0 to 3, by the line's tension: straight on a slack line, to the butt in the red. A bend
+    // holds until the tension passed its edge by BendHolds, so it does not flutter on one.
+    public const int MostBend = FishingGear.MostBend;
+    public const double BendHolds = 0.03;
+    private static readonly double[] BendFrom = [TiringFrom, 0.45, TensionWarn];
+
+    public static int BendOf(double tension, int before)
+    {
+        var bend = 0;
+        for (var level = 1; level <= MostBend; level++)
+        {
+            var edge = BendFrom[level - 1] + (level <= before ? -BendHolds : BendHolds);
+            if (tension >= edge)
+                bend = level;
+        }
+
+        return bend;
+    }
 
     public static double SizeFactor(double sizeShare) => SizeFrom + SizeSpan * sizeShare;
 

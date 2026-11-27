@@ -4,13 +4,15 @@ import { makeTabId, RpButton, RpIcon, RpPanel, RpTabs } from "../rp/index.js";
 import { findPicture, findSpeciesPicture } from "../shared/fishing/pictures.js";
 import { fill, usePageTexts } from "../shared/locale.js";
 import { isComposing, isHeldPress, readCode } from "../shared/press.js";
+import RecordsTable from "./RecordsTable.vue";
+import { formatLength } from "./sizes.js";
 import { TABS } from "./tabs.js";
 
 const props = defineProps({ bridge: { type: Object, required: true } });
 
 const PERCENT = 100;
 const COUNTED = new Set(["Bait", "Lure"]);
-const EMPTY_PICTURES = Object.freeze({ catch: "perch", shop: "worms", repair: "rod" });
+const EMPTY_PICTURES = Object.freeze({ catch: "perch", shop: "worms", repair: "rod", records: "goldencarp" });
 const TAB_KEYS = Object.freeze({ KeyQ: -1, KeyE: 1 });
 
 const { locale, t } = usePageTexts(props.bridge, "fisher");
@@ -23,18 +25,27 @@ const tabList = useTemplateRef("tabList");
 // The window as the server last sent it (a FisherView). Null while no fisher's window is open.
 const view = ref(null);
 const tab = ref("catch");
-// The row picked in each tab, by its item or ware key.
-const picked = reactive({ catch: "", shop: "", repair: "" });
+// The row picked in each tab, by its item, ware or species key.
+const picked = reactive({ catch: "", shop: "", repair: "", records: "" });
 const count = ref(1);
 const answer = ref(null);
 const busy = ref(false);
+// The records board as the server last answered (a FisherRecordsView), null until it did. Reading: asked and not
+// answered yet. Unread: the last asking was refused.
+const board = ref(null);
+const reading = ref(false);
+const unread = ref(false);
+// The Records tab was reached from the keys with no list to take them yet: the list gets the focus when the board comes.
+let listAwaited = false;
 
 const current = computed(() => TABS.find((each) => each.id === tab.value));
 const tabs = computed(() => TABS.map((each) => ({ ...each, label: t.value[`tab.${each.id}`] })));
-const rows = computed(() => (view.value ? current.value.rows(view.value) : []));
+const rowsOf = (each, shown) => each.rows(shown, board.value);
+const rows = computed(() => (view.value ? rowsOf(current.value, view.value) : []));
 const keyOf = (row) => row[current.value.key];
 const selected = computed(() => rows.value.find((row) => keyOf(row) === picked[tab.value]) ?? null);
 const hint = computed(() => t.value[rows.value.length > 0 ? `hint.${tab.value}` : "hint.empty"]);
+const emptyText = computed(() => t.value[tab.value === "records" && unread.value ? "records.unread" : `empty.${tab.value}`]);
 const status = computed(() => (busy.value ? t.value.waiting : (answer.value?.text ?? hint.value)));
 
 const counted = computed(() => tab.value === "shop" && !!selected.value && COUNTED.has(selected.value.kind));
@@ -49,8 +60,9 @@ const showNumber = (number) => number.toLocaleString(locale.value);
 const showGold = (number) => fill(t.value.gold, { count: showNumber(number) });
 const showMetres = (cm) => (cm / PERCENT).toLocaleString(locale.value, { maximumFractionDigits: 1 });
 const showWeight = (row) => Number(row.weight.toFixed(1)).toLocaleString(locale.value);
-const isDear = (row) => tab.value !== "catch" && row.price > view.value.gold;
-const pictureOf = (row) => (tab.value === "catch" ? findSpeciesPicture(row.species) : findPicture(row.icon));
+const isDear = (row) => (tab.value === "shop" || tab.value === "repair") && row.price > view.value.gold;
+const pictureOf = (row) => ("species" in row ? findSpeciesPicture(row.species) : findPicture(row.icon));
+const showBest = (row) => (row.top.length > 0 ? formatLength(row.top[0].lengthCm, t.value, locale.value) : "");
 const optionId = (index) => `${listId}-${index}`;
 
 function select(row) {
@@ -67,24 +79,33 @@ function focusMain() {
 // A row sold or mended away hands its place to the one after it, so the keys go on down the list.
 function keepPicked(before) {
   for (const each of TABS) {
-    const now = each.rows(view.value);
+    const now = rowsOf(each, view.value);
     const key = picked[each.id];
     if (now.some((row) => row[each.key] === key)) continue;
-    const at = before ? Math.max(0, each.rows(before).findIndex((row) => row[each.key] === key)) : 0;
+    const at = before ? Math.max(0, rowsOf(each, before).findIndex((row) => row[each.key] === key)) : 0;
     picked[each.id] = now.length > 0 ? now[Math.min(at, now.length - 1)][each.key] : "";
   }
 }
 
+// A window that opens or closes starts from nothing: no answer, no deal on its way, no board.
+function forget() {
+  answer.value = null;
+  busy.value = false;
+  board.value = null;
+  reading.value = false;
+  unread.value = false;
+  listAwaited = false;
+}
+
 async function onState(next) {
   const before = view.value;
+  if (!before) forget();
   view.value = next;
   keepPicked(before);
   count.value = Math.min(count.value, most.value);
   await nextTick();
   if (!before) {
     tab.value = "catch";
-    answer.value = null;
-    busy.value = false;
     await nextTick();
     focusMain();
     return;
@@ -94,15 +115,39 @@ async function onState(next) {
   if (!focused || focused === document.body || focused.disabled || !focused.isConnected) focusMain();
 }
 
+// An answer with no deal on its way is the board's: it could not be read.
 function onAnswer(text, done) {
+  if (!busy.value && reading.value) {
+    reading.value = false;
+    unread.value = true;
+  }
+
   busy.value = false;
   answer.value = { text, done };
 }
 
+// One asking a visit to the tab, and none while one is on its way.
+function askRecords() {
+  if (reading.value) return;
+  reading.value = true;
+  unread.value = false;
+  props.bridge.askRecords();
+}
+
+async function onRecords(next) {
+  if (!view.value) return;
+  reading.value = false;
+  unread.value = false;
+  board.value = next;
+  keepPicked(view.value);
+  await nextTick();
+  if (tab.value === "records" && listAwaited) focusMain();
+  listAwaited = false;
+}
+
 function close() {
   view.value = null;
-  answer.value = null;
-  busy.value = false;
+  forget();
 }
 
 function leave() {
@@ -135,7 +180,7 @@ function act() {
   if (!row) return;
   if (tab.value === "catch") sellOne(row);
   else if (tab.value === "shop") buy();
-  else repair(row);
+  else if (tab.value === "repair") repair(row);
 }
 
 function changeCount(by) {
@@ -150,9 +195,12 @@ function turnTab(by) {
 watch(tab, async () => {
   count.value = 1;
   answer.value = null;
+  if (tab.value === "records" && view.value) askRecords();
   if (!selected.value && rows.value.length > 0) select(rows.value[0]);
   await nextTick();
-  if (!tabList.value?.$el.contains(document.activeElement)) focusMain();
+  const onTabs = tabList.value?.$el.contains(document.activeElement);
+  if (!onTabs) focusMain();
+  listAwaited = tab.value === "records" && !onTabs && rows.value.length === 0;
 });
 
 function moveTo(index) {
@@ -197,6 +245,7 @@ function onKeydown(event) {
 onMounted(() => {
   props.bridge.onState(onState);
   props.bridge.onAnswer(onAnswer);
+  props.bridge.onRecords(onRecords);
   props.bridge.onClosed(close);
   window.addEventListener("keydown", onKeydown);
   props.bridge.signalReady();
@@ -219,10 +268,10 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
       <div :id="panelId" class="fisher__content" role="tabpanel" :aria-labelledby="makeTabId(panelId, tab)" :data-tab="tab">
         <div v-if="rows.length === 0" class="fisher__empty" data-empty>
           <img class="fisher__picture fisher__picture--large fisher__picture--empty" :src="findPicture(EMPTY_PICTURES[tab])" alt="" />
-          <p>{{ t[`empty.${tab}`] }}</p>
+          <p>{{ emptyText }}</p>
         </div>
 
-        <div v-else class="fisher__body">
+        <div v-else class="fisher__body" :class="{ 'fisher__body--records': tab === 'records' }">
           <div class="fisher__side">
             <ul
               :id="listId"
@@ -241,7 +290,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                 :data-row="keyOf(row)"
                 role="option"
                 class="fisher__row"
-                :class="{ 'fisher__row--on': row === selected, 'fisher__row--dear': isDear(row) }"
+                :class="{ 'fisher__row--on': row === selected, 'fisher__row--dear': isDear(row), 'fisher__row--none': tab === 'records' && row.top.length === 0 }"
                 :aria-selected="row === selected"
                 @click="select(row)"
                 @dblclick="act"
@@ -253,7 +302,8 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                   <span v-if="tab === 'repair'" class="fisher__tag fisher__tag--worn" :class="`fisher__tag--${row.condition.toLowerCase()}`">{{ t[`condition.${row.condition}`] }}</span>
                 </span>
                 <span v-if="tab === 'catch'" class="fisher__count">{{ fill(t.carried, { count: showNumber(row.count) }) }}</span>
-                <span class="fisher__price">{{ showGold(row.price) }}</span>
+                <span v-if="tab === 'records'" class="fisher__best">{{ showBest(row) }}</span>
+                <span v-else class="fisher__price">{{ showGold(row.price) }}</span>
               </li>
             </ul>
 
@@ -270,7 +320,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             </RpButton>
           </div>
 
-          <section v-if="selected" class="fisher__detail" :aria-label="selected.name">
+          <section v-if="selected" class="fisher__detail" :class="{ 'fisher__detail--records': tab === 'records' }" :aria-label="selected.name">
             <img class="fisher__picture fisher__picture--large" :src="pictureOf(selected)" alt="" />
             <h2 class="fisher__detail-name">{{ selected.name }}</h2>
 
@@ -304,13 +354,15 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
               </RpButton>
             </template>
 
-            <template v-else>
+            <template v-else-if="tab === 'repair'">
               <p class="fisher__facts">{{ t[`condition.${selected.condition}`] }}</p>
               <p class="fisher__each" :class="{ 'fisher__total--dear': isDear(selected) }">{{ fill(t.repair_note, { gold: showGold(selected.price) }) }}</p>
               <RpButton class="fisher__act" variant="primary" :disabled="!canRepair(selected)" :aria-busy="busy" data-action="repair" @click="repair(selected)">
                 {{ isDear(selected) ? t.too_poor : t.repair }}
               </RpButton>
             </template>
+
+            <RecordsTable v-else :species="selected" :t="t" :locale="locale" />
           </section>
         </div>
       </div>

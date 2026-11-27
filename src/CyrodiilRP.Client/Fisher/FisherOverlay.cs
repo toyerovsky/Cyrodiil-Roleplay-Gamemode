@@ -21,6 +21,7 @@ internal sealed partial class FisherOverlay(CefHost cef, WebPages pages, PageInp
     {
         rpc.FisherChanged += Window.Deliver;
         rpc.FisherAnswered += OnAnswered;
+        rpc.FisherRecordsArrived += OnRecordsArrived;
         rpc.FisherClosed += Window.Close;
         locale.Changed += Window.ApplyLocale;
     }
@@ -29,6 +30,7 @@ internal sealed partial class FisherOverlay(CefHost cef, WebPages pages, PageInp
     {
         rpc.FisherChanged -= Window.Deliver;
         rpc.FisherAnswered -= OnAnswered;
+        rpc.FisherRecordsArrived -= OnRecordsArrived;
         rpc.FisherClosed -= Window.Close;
         locale.Changed -= Window.ApplyLocale;
         Window.Close();
@@ -38,6 +40,12 @@ internal sealed partial class FisherOverlay(CefHost cef, WebPages pages, PageInp
     {
         if (Window.ShownBrowser is { } browser)
             SendAnswer(browser, text, done);
+    }
+
+    private void OnRecordsArrived(string json)
+    {
+        if (Window.ShownBrowser is { } browser)
+            SendRecords(browser, json);
     }
 
     [ReceiveFromCef]
@@ -55,6 +63,9 @@ internal sealed partial class FisherOverlay(CefHost cef, WebPages pages, PageInp
     [ReceiveFromCef]
     private void OnFisherRepair(BrowserHandle browser, string item) => rpc.SendFisherRepair(item);
 
+    [ReceiveFromCef]
+    private void OnFisherAskRecords(BrowserHandle browser) => rpc.SendFisherAskRecords();
+
     // Esc or the close button on the page.
     [ReceiveFromCef]
     private void OnFisherClose(BrowserHandle browser)
@@ -71,6 +82,9 @@ internal sealed partial class FisherOverlay(CefHost cef, WebPages pages, PageInp
 
     [SendToCef]
     private partial void SendAnswer(BrowserHandle browser, string text, bool done);
+
+    [SendToCef]
+    private partial void SendRecords(BrowserHandle browser, string json);
 
     [SendToCef]
     private partial void SendClosed(BrowserHandle browser);

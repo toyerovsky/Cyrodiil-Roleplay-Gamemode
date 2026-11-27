@@ -29,21 +29,34 @@ guides' pictures stand on the right of each guide's card (`ui/guides/pictures.js
 The mode's own meshes. `models/fishing-rods/make_rods.py` builds the three fishing rods in Blender 4.2 from code
 (`fishing_rods.blend`, with previews unless given `--no-render`), `export_rods.py` bakes each on a UV map of its own
 into the two textures the game's base material takes (colour with the occlusion in it, and NNRM: the normal's X and Y
-as DirectX has them, roughness, metallic) and exports it as FBX, and `unreal/build_pak.ps1` imports them into an Unreal
-Engine 5.3.2 project named as the game (the remaster's engine) and cooks them into `CyrodiilRP_P.pak`, `.utoc` and
-`.ucas`. They are kept in `mod/paks` (Git LFS, as the server cannot run Unreal), `pack.ps1` puts them into the mod's
-client half, and the launcher copies every `.pak`, `.utoc` and `.ucas` of a server's mods into the game's
-`Content\Paks\~OblivionMp` as a player joins, before the game starts and mounts them:
+as DirectX has them, roughness, metallic) and exports it as FBX, with three bent meshes of it for a fish's pull,
+`check_export.py` reads the export back, measures it and renders previews, and `unreal/build_pak.ps1` imports the
+meshes into an Unreal Engine 5.3.2 project named as the game (the remaster's engine) and cooks them into
+`CyrodiilRP_P.pak`, `.utoc` and `.ucas`. They are kept in `mod/paks` (Git LFS, as the server cannot run Unreal),
+`pack.ps1` puts them into the mod's client half, and the launcher copies every `.pak`, `.utoc` and `.ucas` of a
+server's mods into the game's `Content\Paks\~OblivionMp` as a player joins, before the game starts and mounts them:
 
 ```powershell
 $blender = "C:\Program Files\Blender Foundation\Blender 4.2\blender.exe"
 & $blender -b --factory-startup -P design/models/fishing-rods/make_rods.py -- <dir> --no-render
 & $blender -b --factory-startup -P design/models/fishing-rods/export_rods.py -- <dir>/fishing_rods.blend <export dir>
-design/models/fishing-rods/unreal/build_pak.ps1 -Source <export dir> -Work <unreal dir> -Out mod/paks -Engine "C:\Program Files\Epic Games\UE_5.3"
+& $blender -b --factory-startup -P design/models/fishing-rods/check_export.py -- <export dir> <preview dir>
+design/models/fishing-rods/unreal/build_pak.ps1 -Source <export dir> -Work <unreal dir> -Out <pak dir> -Engine "C:\Program Files\Epic Games\UE_5.3"
 ```
 
+The container is built outside the repo and copied into `mod/paks` only once the offline check of the game-assets
+skill ("Checking a container without the game") has passed for every asset in it: from `mod/paks` it reaches every
+player who joins.
+
 A rod lies along +Y in Blender, the hand at the origin, the tip where a staff's head is, so it hangs on the hand as the
-game's staves do. The container holds no material: the game's engine is Unreal 5.3.2 changed by its makers, and a
+game's staves do. Its bent meshes, `SM_FishingRod_<Grade>_Bend1`, `_Bend2` and `_Bend3` (`BENDS` in `export_rods.py`:
+12, 26 and 42 degrees at the tip), are the baked rod with its blank turned into an arc of the same length toward the
+guides from the top of the grip on, so they keep its UVs, textures and material instance, and the grip, the butt and
+the reel stay where the hand holds them. `rods.json` in the export lists every mesh with its box and the centre of its
+tip ring, where the line leaves the rod, in Unreal's centimetres: `check_export.py` and the import both hold the
+meshes to it, and the client's constants come from it.
+
+The container holds no material: the game's engine is Unreal 5.3.2 changed by its makers, and a
 material the stock engine cooks crashes it on load ("Bad export index"). The rods' material instances take the game's
 own `MI_T_BaseMaterial_FPSClippingFix`, which the project stands in for at its path and never ships. The cook saves
 each property with its name (`-VersionCookedContent`): the game's classes carry fields stock 5.3.2 lacks (three more

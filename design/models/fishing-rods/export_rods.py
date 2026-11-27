@@ -1,8 +1,11 @@
 # Bakes each rod of fishing_rods.blend (made by make_rods.py) into one texture set on a UV map of its own and exports
 # it for Unreal: SM_FishingRod_<Grade>.fbx with one material slot, and the two textures the game's own base material
 # takes: T_FishingRod_<Grade>_BaseColor.png (colour, darkened by the ambient occlusion) and _NNRM.png (the normal's X
-# and Y as DirectX has them, green down, then roughness and metallic).
+# and Y as DirectX has them, green down, then roughness and metallic). Beside each go its bent meshes for a fish's pull,
+# SM_FishingRod_<Grade>_<Bend>.fbx, on the same UVs and so the same textures, and rods.json lists every mesh with its
+# tip ring and box as Unreal will have them.
 # usage: blender -b --factory-startup -P export_rods.py -- BLEND OUT_DIR [SIZE]
+import json
 import math
 import os
 import sys
@@ -149,17 +152,66 @@ def pack_nnrm(grade, normal, roughness, metallic):
     return nnrm
 
 
-def export(rod, grade):
+# The angle at the tip, in degrees, of each bent mesh.
+BENDS = {"Bend1": 12.0, "Bend2": 26.0, "Bend3": 42.0}
+
+
+# Where a point of the straight rod lies once the blank bends. Beyond `start` the rod's axis (the Y axis) turns into an
+# arc of its own length toward the guides (-Z), `angle` radians round at `tip`, and each cross section turns with it.
+def bent(point, start, tip, angle):
+    x, y, z = point
+    if y <= start:
+        return (x, y, z)
+    radius = (tip - start) / angle
+    turn = (y - start) / radius
+    return (x, start + (radius + z) * math.sin(turn), (radius + z) * math.cos(turn) - radius)
+
+
+# A copy of the baked rod, bent: the UVs and the material slot are the straight rod's.
+def bend(rod, name, degrees):
+    copy = rod.copy()
+    copy.data = rod.data.copy()
+    copy.name = copy.data.name = f"{rod.name}_{name}"
+    scene.collection.objects.link(copy)
+    if copy.data.has_custom_normals:
+        raise RuntimeError(f"{rod.name} has normals of its own, which moving its vertices would leave as they were")
+    start, tip, angle = rod["bend_from"], rod["tip"], math.radians(degrees)
+    for vertex in copy.data.vertices:
+        vertex.co = bent(vertex.co, start, tip, angle)
+    copy.data.update()
+    copy["tip_ring"] = bent(rod["tip_ring"], start, tip, angle)
+    copy["bend"] = degrees
+    return copy
+
+
+# Leaves the rod what Unreal takes: the bake's UV map and one material slot, named as the instance it will get.
+def strip(rod, grade):
     for layer in [layer for layer in rod.data.uv_layers if layer.name != BAKE_UV]:
         rod.data.uv_layers.remove(layer)
     rod.data.materials.clear()
     rod.data.materials.append(bpy.data.materials.new(f"MI_FishingRod_{grade}"))
+
+
+def export(rod):
     select_only(rod)
     path = os.path.join(OUT, f"{rod.name}.fbx")
     bpy.ops.export_scene.fbx(filepath=path, use_selection=True, object_types={"MESH"}, apply_unit_scale=True,
                              apply_scale_options="FBX_SCALE_UNITS", axis_forward="-Z", axis_up="Y", mesh_smooth_type="FACE",
                              use_tspace=True, use_mesh_modifiers=True, add_leaf_bones=False, bake_anim=False)
     print("SAVED", path)
+
+
+# Blender's metres as Unreal has them after the import: (x, -y, z) in centimetres.
+def unreal(point):
+    return [round(point[0] * 100, 4), round(-point[1] * 100, 4), round(point[2] * 100, 4)]
+
+
+def measured(rod, grade):
+    points = [unreal(vertex.co) for vertex in rod.data.vertices]
+    return {"grade": grade, "bend": rod.get("bend", 0.0), "bend_from": round(rod["bend_from"] * 100, 4),
+            "tip_ring": unreal(rod["tip_ring"]),
+            "box_min": [min(point[axis] for point in points) for axis in range(3)],
+            "box_max": [max(point[axis] for point in points) for axis in range(3)]}
 
 
 rods = sorted((obj for obj in scene.objects if obj.type == "MESH" and obj.name.startswith("SM_FishingRod_")), key=lambda o: o.name)
@@ -176,5 +228,12 @@ for rod in rods:
     occlusion = bake(rod, "AO", target(rod, f"ao_{grade}", False), 64)
     save(shade(color, occlusion), os.path.join(OUT, f"T_FishingRod_{grade}_BaseColor.png"))
     save(pack_nnrm(grade, normal, roughness, metallic), os.path.join(OUT, f"T_FishingRod_{grade}_NNRM.png"))
+manifest = {}
 for rod in rods:
-    export(rod, rod.name.removeprefix("SM_FishingRod_"))
+    grade = rod.name.removeprefix("SM_FishingRod_")
+    strip(rod, grade)
+    for mesh in [rod] + [bend(rod, name, degrees) for name, degrees in BENDS.items()]:
+        export(mesh)
+        manifest[mesh.name] = measured(mesh, grade)
+with open(os.path.join(OUT, "rods.json"), "wb") as listing:
+    listing.write(json.dumps(manifest, indent=2).encode())

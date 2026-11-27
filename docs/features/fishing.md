@@ -27,8 +27,11 @@ lure, and mends rods.
   or flight), or while the character's fishing is still being read as it starts playing.
 - **Held still.** While fishing the character stands where it began, facing the water, and the camera looks from over
   its right shoulder, at where the float will come down while it flies, a step nearer and lower at the bite (the angler
-  and the rod stay in the shot), and from the front at the catch held up. The page's plate sits low and right of the
-  middle, clear of the angler. X stops the fishing at any stage (not E, which the game takes as activate), so does "Stop
+  and the rod stay in the shot), and from the front at the catch held up. The camera stands over the angler's head
+  wherever they stand, on a bank or on a pier high above the water, moves nearer the water and higher when a deck, a
+  railing or a rock hides the float, and comes nearer the angler rather than stand in a wall. The game's view is held in
+  third person meanwhile, so the angler is seen whole, and is the player's own again when the fishing ends. The page's
+  plate sits low and right of the middle, clear of the angler. X stops the fishing at any stage (not E, which the game takes as activate), so does "Stop
   fishing" on the wheel, a staff member's freeze, or the character being moved more than 3 m away. W, A, S and D do
   not stop it. Stopping with a fish on the line cuts the line, at what a snap costs: the rod may wear, the lure goes.
 - **The cast.** The aim follows where the player looks, up to 60 degrees to either side. Holding Space swings a power
@@ -40,26 +43,41 @@ lure, and mends rods.
   before the first nibble (or the bite) a fish shows under the water and circles the float. It may nibble up to five
   times: the float dips. A strike before the bite loses the fish ("Too soon", or "That was only a nibble" right after
   one).
+- **Working the bait.** While waiting, once the float has landed, A or D twitches the bait: the float hops 25 cm
+  toward the angler with a plop and ripples. In calm water (3.5 s after the cast or the last twitch, when the ripples
+  are gone and the key on the plate lights up) a twitch draws the fish: what is left of the wait shortens by a fifth
+  with worms or crab meat, 15% with dough, a tenth on a bare hook and two fifths with the lure, never to under 1 s. In
+  water still troubled it puts them off: 2 s more. With a fish circling the float a twitch in calm water is a gamble:
+  the fish takes the bait within a second (45% with worms or crab meat, 40% with dough, 30% on a bare hook, 70% with
+  the lure), or bolts, and a whole new wait begins, with no fish back before the water is calm. In troubled water it
+  bolts for sure. A fish that goes for the bait is left to take it: another twitch does nothing. The plate says for a
+  moment what each twitch came to. A float pulled in to the bank, or to 1.5 m, takes no more: cast again.
 - **The bite.** The float is pulled under with a splash and a ring closes over it. Space within the window strikes: 1 s,
   up to 1.3 s with skill. The press is the strike's: reeling starts with the next one.
-- **The fight.** The fish rests, runs to the left, to the right, or dives away, and turns every 1 to 3 s; a page
-  arrow, the float's drag and the splashes show which. A and D lean the rod: leaning against a run (D when it runs left,
+- **The fight.** The fish rests, runs to the left, to the right, or dives away, and turns every 1 to 3 s; the line
+  from the rod's tip, a page arrow, the float's drag and the splashes show which. The harder the line strains, the
+  further the rod bends, the nearer the camera comes and the narrower it sees; in the red it trembles and the line
+  creaks faster. A and D lean the rod: leaning against a run (D when it runs left,
   A when it runs right) eases the line and tires the fish fast, leaning with it strains the line. Space held reels: cheap
   while the fish rests, a heavy strain against a run. The line snaps at full tension, a line left slack for 2 s throws
   the hook, and a fish three times the rod's reach out has run the line out. A fresh fish reeled close bolts away; a
   tired one there is landed. Fish jump now and then. A plain rod and a quick hand land every species in 8 to 25 s; the
   rare ones are much safer on a better rod.
-- **The catch.** The angler holds the fish up for about 3 s, seen by everyone near, and those in chat range read it as
-  an action ("* Jan lands a pike, 74 cm.", the angler named as the reader knows them). The page shows a card: the
-  species' painted icon, length, weight, trophy (the longest 15% of a species), a new personal record, the xp gained and
-  a level reached; a rare fish (slaughterfish, glass catfish, Emperor's golden carp) plays a fanfare. About one bite in
-  16 brings up a find instead: crab meat, scales or a pearl (a flawless one rarely). The catch goes into the pack, then
-  the line is in again after 3.5 s (1.5 s after a loss).
+- **The catch.** The angler holds the fish up, seen by everyone near, and those in chat range read it as an action
+  ("* Jan lands a pike, 74 cm.", the angler named as the reader knows them). The page shows a card: the species' painted
+  icon, length, weight, trophy (the longest 15% of a species), a new personal record, the xp gained and a level reached;
+  a rare fish (slaughterfish, glass catfish, Emperor's golden carp) plays a fanfare. About one bite in 16 brings up a
+  find instead: crab meat, scales or a pearl (a flawless one rarely). The catch goes into the pack. The line is in again
+  after 6 s, or at Space once the catch was shown for 1 s (1.5 s after a loss).
+- **Letting it go.** While a fish is held up, R lets it go: it leaves the pack and swims off, seen by everyone near and
+  read as an action ("* Jan lets a pike go, back into the water."), for a third of its catch's xp again, 1 at the least.
+  The catch stays counted and its record stands. The plate names the xp beside the key, and the card turns to "Let go"
+  with all the fish earned. Not for a find, and not for a fish that is no longer in the pack.
 - **Wear.** After each fight, landed or lost, the rod wears a step with a chance of 1 in 12 (plain), 18 (sturdy) or 26
   (master's), three times likelier when the line snapped, and a notice says so. A rod that broke with no other left ends
   the fishing.
 - **The skill.** Level 1 to 100, from the xp of every catch: the species' own, more for a bigger one, half again for a
-  trophy and half again the first time a species is caught; a find gives 3. From level 1 to 100 the wait for a bite
+  trophy and half again the first time a species is caught, a third more for a fish let go; a find gives 3. From level 1 to 100 the wait for a bite
   shortens to 0.6 of itself, fish grow (the size's share is a roll to the power 1.8 down to 0.9), the strike's window
   widens by 0.3 s and the line takes 15% more. Some species bite only from a level: trout, eel, histcarp and sea bass
   from 5, the longfin from 8, the pike from 10, the slaughterfish from 20, the glass catfish from 30, the Emperor's
@@ -70,8 +88,9 @@ lure, and mends rods.
   commons live everywhere they suit; the Rumare carp and the golden carp in Lake Rumare; the histcarp in Niben Bay and the
   southern rivers, best in the rain; the longfin and the sea bass at sea; eels and catfish at night and underground; the
   slaughterfish in deep water at night; the trout in rivers, lakes and streams at dawn.
-- **Seen by others.** Everyone within 60 m sees the angler hold the rod (its grade by the staff's mesh), the cast, the
-  float, the small fish round it, the fish circling, biting, on the line, jumping, held up or swimming off, and the
+- **Seen by others.** Everyone within 60 m sees the angler hold the rod (its grade by the staff's mesh), bent as far as
+  the line strains, the line from its tip to the float (hanging while it waits, taut with a fish on), the cast, the
+  float and its hops, the small fish round it, the fish circling, biting, on the line, jumping, held up or swimming off, and the
   splashes, and hears them.
 
 ## 3. Ways in
@@ -82,6 +101,7 @@ lure, and mends rods.
 | G wheel: Bait | a wheel of the baits carried and "No bait"; shown while any is carried | `Fishing/BaitWheel.cs` |
 | G wheel: Stop fishing | stops, as X does | `Fishing/Anglers.cs` |
 | Space, A, D, X | read every frame while fishing, under no page that holds the keyboard | `Client/Fishing/` |
+| R | a bind that takes the press before the game (its own key for the view), held only while a fish may be let go | `Client/Fishing/FishingOverlay.cs` |
 | The general trader: Fishing Rod | sells the plain rod | `Traders/stocks.json` |
 | The fisher, "Services" | sells the catch, buys rods, baits and the lure, mends rods | `Fisher/` |
 
@@ -110,6 +130,37 @@ lure, and mends rods.
   against a run; it runs away 130 x effort and aside 20 x effort a second, dragging the float up to 3 m to the side.
   Snapped at tension 1, thrown off after 2 s at or below 0.05, run out past 3 x the rod's reach, landed within 1.5 m once
   its stamina is down to 0.35. Bots in `tests/CyrodiilRP.Tests/Fishing/FishingFightTests.cs` hold these numbers.
+- **Working the bait** (`FishingLine.Twitch`, `FishingRules.TwitchOf`). A twitch moves every time still to come: the
+  bite, the nibbles and the fish's approach, by a share of the way to them or by a delay. With the fish at the float
+  and the water calm it rolls the bait's chance: the bite comes in 0.3 to 0.8 s and no twitch is taken until it does,
+  or the wait starts over as a fresh one, the fish shown again no sooner than 3.5 s later. A find has no fish to
+  provoke or scare. No twitch is taken in the 1.6 s the float may still fly, and twitches closer than 0.4 s are one. The
+  line keeps how far out the float lies, so the fight begins from where the twitches left it. The player's game sends
+  with the cast how near the angler the open water runs unbroken from where the float lands (`FishingCast`), and no
+  twitch pulls the float nearer. The view's `twitch` carries the count, the last result, how long until the water is
+  calm and whether the float is pulled all the way in.
+- **The line and the rod's bend** (`AnglerScenery`). The line is six straight pieces (the SDK's `ILocalProps.PlaceLine`,
+  moved every frame) from the rod's tip to the float along `FishingLineShape`. The tip is where the hand's animation has
+  the rod's prop this frame (`ILocalProps.TryLocate`, `PropPoint`), at the mesh's far end. The server tells the games
+  near how far the rod bends, 0 to 3, when that changes (`AnglerRod`, `FishFightRules.BendOf`: by the tension, held 0.03
+  past each edge), and each game hangs the rod's mesh of that bend (`SM_FishingRod_<Tier>_Bend1` to `3`), the straight
+  one where its container has none.
+- **The camera in the fight** (`AnglerFraming.Strained`, `Shake`, `AnglerCamera`). The tension the page's view carries
+  moves the fight's frame up to 90 cm toward what it looks at and narrows the view up to 10 degrees from the angle the
+  player set in the game (`ICamera.FieldOfView`, read before the camera is set), 4 at the bite. In the red the camera
+  trembles 1.5 cm at the most, added after the glide.
+- **The camera** (`Client/Fishing`). `AnglerFraming` (shared, tested) gives each shot's frame: the camera's height is
+  the higher of 3.4 m over the water and 2.5 m over the angler's feet. `FishingShot.CameraRungs` are the places over the
+  shoulder, the usual first and each next nearer the water and higher; `AnglerSight` looks five times a second for the
+  first rung that is reached from over the angler's head and sees what the camera looks at (the SDK's
+  `ICamera.FindObstacle`), moves to another only once it stayed the clear one for 0.4 s, and brings every frame nearer
+  the angler when something stands in the way to it. `AnglerCamera` glides there, and holds the game's view in third
+  person (`ICamera.LockView`) from the start until the camera has glided home.
+- **Letting a fish go** (`Anglers.OnReleaseAsked`). A fish landed into the pack is the angler's `HeldCatch` until the
+  next cast. `FishingRelease` takes it out of the pack, adds `FishingSkillRules.ReleaseXp` of the catch's xp
+  (`FishingSkills.RecordRelease`), shows the fish swim off from where it came out (`FishMove.Escaped`, the `Release`
+  splash), tells those in chat range, turns the outcome to `Released` under its own number and brings the next cast as
+  soon as after a loss (`FishingLine.EndShow`). The player's game ends the catch's show when the server moves the fish.
 - **The skill and the records** (`FishingSkills`, `FishingSkillRules`) are read when the character starts playing
   (`online.Playing`), on the database's writer, and written whole after each catch: `character_fishing` (level, xp, fish
   landed, bait) and `character_fish_records` (per species the best length and weight, how many, when), through
@@ -131,7 +182,7 @@ lure, and mends rods.
   (`ISounds`). A find shows no fish. The angler alone hears the reel (`AnglerCues`): the lockpick's tumblers clicking as
   its ratchet while reeling a resting fish and faster as its drag while a fish runs, and a rope straining in the red.
 - Messages: `FishingLook`, `FishingSpot`, `FishingAim`, `FishingPage`, `FishingBite`, `FishingEnded`, `FishingCast`,
-  `FishingSpace`, `FishingLean`, `FishingStop`, and the five above.
+  `FishingSpace`, `FishingLean`, `FishingStop`, `FishingRelease`, `FishingTwitch`, `AnglerRod`, and the five above.
 
 ## 5. Not checked in the game yet
 
@@ -147,6 +198,22 @@ splash and its sound). To check:
 - the area's weather and the world's hour as the server reads them while fishing;
 - whether the mouse still turns the aim while the camera is the mode's, and that Space does not make the frozen
   character jump;
+- the third person view held while fishing: begun in first person the angler is drawn whole, R (the game's key for the
+  view) changes nothing meanwhile, and the player's own view is back after the camera has glided home;
+- the camera from a pier and a bridge high over the water, at a railing, under a roof, by a wall and among trees: that
+  it stands over the deck, sees the float at a short and a long cast, does not sway between its places while the fish
+  drags the float, and is not pulled to the angler's head by what the character carries on its back;
+- letting a fish go: the fish leaving the hand, swimming off below the angler, the splash, the chat line, the card and
+  the xp, and Space casting again from a catch held up; that R reaches the mode and not the game while a fish may be
+  let go, and is the game's again after;
+- the line: that it leaves the rod at its tip for each grade and each bend, and for a staff, its thickness and colour
+  by day and at night (it is drawn unlit), its hang while waiting and its straightness in a fight, from a pier too;
+- the bent rods: that each loads, bends toward the line, and swaps without a flicker as the tension crosses an edge;
+- working the bait: the float's hop, the plop and its ripples against the 3.5 s the water takes to calm, the fish
+  taking the bait or bolting, that the float stops at the bank it is pulled toward, the small fish keeping to it, and
+  whether the shares and chances feel worth the risk;
+- the fight's camera: the push in, the narrower view and the tremble in the red, and that the view's angle is the
+  player's own again after the fishing;
 - the mode's rods from the container the launcher copies, the reel and the guides under the rod and the hand on the
   grip (`AnglerLooks.RodOffset`, `RodRotation`) for each grade, the cast, strike, fight and showing animations, and how
   others see them;
@@ -160,4 +227,3 @@ splash and its sound). To check:
 ## 6. Not done
 
 - The fish as food for Hunger and Thirst and the fisher are the economy part's; see their docs.
-- No leaderboard of the records yet: they are kept per character in the database.

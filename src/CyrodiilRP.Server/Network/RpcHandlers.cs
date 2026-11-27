@@ -261,11 +261,15 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId, FishingSpotReport>? FishingSpotReported;
 
-    public event Action<PlayerId, Vector3>? FishingCastMade;
+    public event Action<PlayerId, Vector3, float>? FishingCastMade;
 
     public event Action<PlayerId, bool, int>? FishingSpacePressed;
 
     public event Action<PlayerId>? FishingStopAsked;
+
+    public event Action<PlayerId>? FishingReleaseAsked;
+
+    public event Action<PlayerId>? FishingTwitched;
 
     public event Action<PlayerId, int>? FishingLeaned;
 
@@ -279,6 +283,8 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId>? FisherLeft;
 
+    public event Action<PlayerId>? FisherRecordsAsked;
+
     partial void OnGuideContinue(RpcContext context) => callbacks.Raise("rpc.guide_continue", GuideContinued, context.Sender);
 
     partial void OnGuideClose(RpcContext context, bool replaced) => callbacks.Raise("rpc.guide_close", GuideLeft, context.Sender, replaced);
@@ -290,13 +296,17 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnFishingSpot(RpcContext context, string verdict, float yaw, float waterZ) =>
         callbacks.Raise("rpc.fishing_spot", FishingSpotReported, context.Sender, new FishingSpotReport(verdict, yaw, waterZ));
 
-    partial void OnFishingCast(RpcContext context, float x, float y, float z) =>
-        callbacks.Raise("rpc.fishing_cast", FishingCastMade, context.Sender, new Vector3(x, y, z));
+    partial void OnFishingCast(RpcContext context, float x, float y, float z, float nearest) =>
+        callbacks.Raise("rpc.fishing_cast", FishingCastMade, context.Sender, new Vector3(x, y, z), nearest);
 
     partial void OnFishingSpace(RpcContext context, bool down, int reactionMs) =>
         callbacks.Raise("rpc.fishing_space", FishingSpacePressed, context.Sender, down, reactionMs);
 
     partial void OnFishingStop(RpcContext context) => callbacks.Raise("rpc.fishing_stop", FishingStopAsked, context.Sender);
+
+    partial void OnFishingRelease(RpcContext context) => callbacks.Raise("rpc.fishing_release", FishingReleaseAsked, context.Sender);
+
+    partial void OnFishingTwitch(RpcContext context) => callbacks.Raise("rpc.fishing_twitch", FishingTwitched, context.Sender);
 
     partial void OnFishingLean(RpcContext context, int lean) => callbacks.Raise("rpc.fishing_lean", FishingLeaned, context.Sender, lean);
 
@@ -309,6 +319,8 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnFisherRepair(RpcContext context, string item) => callbacks.Raise("rpc.fisher_repair", FisherRepaired, context.Sender, item);
 
     partial void OnFisherClose(RpcContext context) => callbacks.Raise("rpc.fisher_close", FisherLeft, context.Sender);
+
+    partial void OnFisherAskRecords(RpcContext context) => callbacks.Raise("rpc.fisher_ask_records", FisherRecordsAsked, context.Sender);
 
     public event Action<PlayerId>? BuildingAsked;
 

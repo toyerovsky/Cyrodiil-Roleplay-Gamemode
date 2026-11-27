@@ -9,6 +9,9 @@ public enum FishingSplashKind
     // A fish tests the bait.
     Nibble,
 
+    // The angler tugs the bait and the float hops.
+    Twitch,
+
     // A fish takes the bait.
     Bite,
 
@@ -23,4 +26,7 @@ public enum FishingSplashKind
 
     // The line snaps.
     Snap,
+
+    // A catch let go drops back into the water.
+    Release,
 }

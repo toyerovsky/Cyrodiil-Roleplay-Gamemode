@@ -53,7 +53,10 @@ still see something (`AnglerScenery.HeldMeshOf`).
 - Hide every other object while baking ambient occlusion: objects at the origin shade each other.
 - Preview lights: an area light's power over its distance, P / (pi d^2), is the irradiance in W/m2; keep it near
   daylight's 2 to 5. Ten times that bleaches every colour.
-- Check the export by importing the FBX back into an empty Blender with only the baked textures and rendering it.
+- Check the export by importing the FBX back into an empty Blender with only the baked textures and rendering it
+  (`check_export.py`).
+- A variant of a baked model (the bent rods) is the baked mesh with its vertices moved, not a model baked again: it
+  keeps the UVs, so it wears the same textures and material instance and the container grows by mesh data only.
 
 ### Unreal, and the game's own engine
 

@@ -13,13 +13,14 @@ const LINE = {
   bites: 0,
   strikeWindowMs: 1000,
   fight: null,
+  twitch: null,
   rod: { name: "Fishing Rod (Worn)", tier: "Basic", condition: "Worn", reachCm: 700 },
   bait: { kind: "Worms", name: "Fishing Worms", count: 12 },
   skill: { level: 7, xp: 40, xpNext: 62 },
   outcome: null,
 };
 const FIGHT = { tension: 0.42, tensionWarn: 0.8, stamina: 0.7, distanceCm: 640, pull: "Left", lean: 0, reeling: false, slack: 0, feel: "Fair" };
-const NOTHING = { species: null, name: null, lengthCm: 0, grams: 0, trophy: false, record: false, xp: 0, levelUp: null, rare: false, rod: null, baitLost: false };
+const NOTHING = { species: null, name: null, lengthCm: 0, grams: 0, trophy: false, record: false, xp: 0, levelUp: null, rare: false, rod: null, baitLost: false, releaseXp: 0 };
 const text = (key) => en[`ui.fishing.${key}`];
 
 describe("the fishing page", () => {
@@ -104,6 +105,46 @@ describe("the fishing page", () => {
 
     await vi.advanceTimersByTimeAsync(800);
     expect(title()).toBe(text("waiting"));
+  });
+
+  it("offers a twitch of the bait while waiting, lit once the water is calm", async () => {
+    const twitch = { count: 0, last: "None", calmInMs: 2000, spent: false };
+    await show({ stage: "Waiting", twitch });
+
+    expect(key("twitch").text()).toBe(`${text("key_twitch")}${text("keys.twitch")}`);
+    expect(key("twitch").classes()).not.toContain("fishing__key--wanted");
+
+    await vi.advanceTimersByTimeAsync(1999);
+    expect(key("twitch").classes()).not.toContain("fishing__key--wanted");
+    await vi.advanceTimersByTimeAsync(1);
+    expect(key("twitch").classes()).toContain("fishing__key--wanted");
+
+    await show({ stage: "Waiting", twitch: { ...twitch, calmInMs: 0 } });
+    expect(key("twitch").classes()).toContain("fishing__key--wanted");
+  });
+
+  it("says for a moment what each twitch came to, and troubles the water again", async () => {
+    const calm = { count: 0, last: "None", calmInMs: 0, spent: false };
+    await show({ stage: "Waiting", twitch: calm });
+    expect(title()).toBe(text("waiting"));
+
+    for (const [index, last] of ["Drew", "Troubled", "Provoked", "Spooked"].entries()) {
+      await show({ stage: "Waiting", twitch: { ...calm, count: index + 1, last, calmInMs: 3500 } });
+      expect(title()).toBe(text(`twitch.${last}`));
+      expect(key("twitch").classes()).not.toContain("fishing__key--wanted");
+    }
+
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(title()).toBe(text("waiting"));
+  });
+
+  it("offers no twitch once the float is pulled all the way in, and none outside the wait", async () => {
+    await show({ stage: "Waiting", twitch: { count: 3, last: "Drew", calmInMs: 0, spent: true } });
+    expect(key("twitch").exists()).toBe(false);
+    expect(key("stop").exists()).toBe(true);
+
+    await show({ stage: "Bite", bites: 1 });
+    expect(key("twitch").exists()).toBe(false);
   });
 
   it("rings the float at the bite for as long as the strike's window lasts, Space wanted", async () => {
@@ -204,6 +245,49 @@ describe("the fishing page", () => {
     expect(card.classes()).toContain("fishing-card--rare");
 
     await vi.advanceTimersByTimeAsync(CARD_SHOWN_MS);
+    expect(page.find("[data-card]").exists()).toBe(false);
+  });
+
+  it("offers the next cast on Space and the fish's release on R, with the xp it gives, while a fish is held up", async () => {
+    await rest({ kind: "Caught", species: "Pike", name: "Pike", lengthCm: 84, grams: 4446, xp: 1200, releaseXp: 1400 });
+
+    expect(page.findAll(".fishing__key").map((shown) => shown.attributes("data-key"))).toEqual(["next", "release", "stop"]);
+    expect(key("next").text()).toBe(`${text("key_space")}${text("keys.next")}`);
+    expect(key("release").text()).toBe(`${text("key_release")}let it go, +1,400 xp`);
+  });
+
+  it("offers no release for a find, a fish that cannot be let go or a loss", async () => {
+    await rest({ kind: "Found", name: "Pearl", xp: 3 });
+    expect(page.findAll(".fishing__key").map((shown) => shown.attributes("data-key"))).toEqual(["next", "stop"]);
+
+    await rest({ number: 2, kind: "Caught", species: "Pike", name: "Pike", lengthCm: 84, grams: 4446, xp: 31 });
+    expect(page.findAll(".fishing__key").map((shown) => shown.attributes("data-key"))).toEqual(["next", "stop"]);
+
+    await rest({ number: 3, kind: "LostSnapped", species: "Pike", name: "Pike" });
+    expect(page.findAll(".fishing__key").map((shown) => shown.attributes("data-key"))).toEqual(["stop"]);
+  });
+
+  it("turns the card of a fish let go, with all it earned, and offers neither key again", async () => {
+    await rest({ kind: "Caught", species: "Pike", name: "Pike", lengthCm: 84, grams: 4446, trophy: true, xp: 31, releaseXp: 10 });
+    vi.advanceTimersByTime(CARD_SHOWN_MS - 1000);
+    await rest({ kind: "Released", species: "Pike", name: "Pike", lengthCm: 84, grams: 4446, trophy: true, xp: 41, levelUp: 8 });
+
+    const card = page.find("[data-card]");
+    expect(title()).toBe(text("released"));
+    expect(card.attributes("data-kind")).toBe("Released");
+    expect(card.find(".fishing-card__eyebrow").text()).toBe(text("card.released"));
+    expect(card.find(".fishing-card__name").text()).toBe("Pike");
+    expect(card.find("[data-length]").text()).toBe("84 cm");
+    expect(card.find("[data-xp]").text()).toBe("+41 fishing experience");
+    expect(card.find("[data-level]").text()).toBe("Fishing level 8!");
+    expect(card.classes()).not.toContain("fishing-card--lost");
+    expect(page.findAll(".fishing__key").map((shown) => shown.attributes("data-key"))).toEqual(["stop"]);
+
+    vi.advanceTimersByTime(CARD_SHOWN_MS - 1);
+    await page.vm.$nextTick();
+    expect(page.find("[data-card]").exists()).toBe(true);
+    vi.advanceTimersByTime(1);
+    await page.vm.$nextTick();
     expect(page.find("[data-card]").exists()).toBe(false);
   });
 
@@ -317,6 +401,7 @@ describe("the fishing page's texts", () => {
       feel: ["Small", "Fair", "Heavy", "Monster"],
       condition: ["Good", "Worn", "Damaged", "Broken"],
       rod_now: ["Worn", "Damaged", "Broken"],
+      twitch: ["Drew", "Troubled", "Provoked", "Spooked"],
     };
     const missing = Object.entries(names).flatMap(([group, values]) => values.map((value) => `${group}.${value}`).filter((key) => !text(key)));
 

@@ -5,13 +5,14 @@ import CatchCard from "./CatchCard.vue";
 import { findPower, NEAREST_CAST_CM } from "./charge.js";
 import FightGauges from "./FightGauges.vue";
 import GearCorner from "./GearCorner.vue";
-import { isCatch, OUTCOME_TEXTS } from "./outcomes.js";
+import { isCatch, isHeld, OUTCOME_TEXTS } from "./outcomes.js";
 import PullArrow from "./PullArrow.vue";
 
 // Shown over the game, never taking the input: the server keeps every time and the game reads the keys.
 const props = defineProps({ bridge: { type: Object, required: true } });
 
 const NIBBLE_SHOWN_MS = 800;
+const TWITCH_SHOWN_MS = 1500;
 const CARD_SHOWN_MS = 6000;
 const PERCENT = 100;
 const MARKED = new Set(["Aim", "Waiting", "Bite", "Fight"]);
@@ -20,6 +21,9 @@ const { locale, t } = usePageTexts(props.bridge, "fishing");
 const view = ref(null);
 const anchor = ref(null);
 const nibbling = ref(false);
+// What the last twitch of the bait came to, for a moment, and whether the water is calm enough for the next.
+const twitched = ref(null);
+const calm = ref(false);
 const card = ref(null);
 const charging = ref(false);
 const power = ref(0);
@@ -38,7 +42,8 @@ const title = computed(() => {
     case "Aim":
       return t.value.aim;
     case "Waiting":
-      return nibbling.value ? t.value.nibble : t.value.waiting;
+      if (nibbling.value) return t.value.nibble;
+      return twitched.value ? t.value[`twitch.${twitched.value}`] : t.value.waiting;
     case "Bite":
       return t.value.bite;
     case "Fight":
@@ -79,14 +84,31 @@ const keys = computed(() => {
   switch (stage.value) {
     case "Aim":
       return [{ id: "cast", cap: t.value.key_space, label: t.value["keys.cast"], on: charging.value, wanted: !charging.value }, stop];
+    case "Waiting":
+      return view.value.twitch && !view.value.twitch.spent
+        ? [{ id: "twitch", cap: t.value.key_twitch, label: t.value["keys.twitch"], wanted: calm.value }, stop]
+        : [stop];
     case "Bite":
       return [{ id: "strike", cap: t.value.key_space, label: t.value["keys.strike"], wanted: true }, stop];
     case "Fight":
       return [...listFightKeys(fight.value), stop];
+    case "Rest":
+      return [...listCatchKeys(outcome.value), stop];
     default:
       return [stop];
   }
 });
+
+// While a catch is held up: Space casts again, and R lets a fish go for the xp the server names.
+function listCatchKeys(ended) {
+  if (!ended || !isHeld(ended.kind)) return [];
+
+  const next = { id: "next", cap: t.value.key_space, label: t.value["keys.next"] };
+  if (!(ended.releaseXp > 0)) return [next];
+
+  const xp = ended.releaseXp.toLocaleString(locale.value);
+  return [next, { id: "release", cap: t.value.key_release, label: fill(t.value["keys.release"], { xp }) }];
+}
 
 function listFightKeys(line) {
   const red = line.tension >= line.tensionWarn;
@@ -162,8 +184,21 @@ function onState(json) {
     later("nibble", NIBBLE_SHOWN_MS, () => (nibbling.value = false));
   }
 
+  // The server says with every view how long until the water is calm: the key lights up then.
+  const twitch = next.stage === "Waiting" ? next.twitch : null;
+  clearTimeout(timers.calm);
+  calm.value = !!twitch && twitch.calmInMs <= 0;
+  if (twitch && !calm.value) later("calm", twitch.calmInMs, () => (calm.value = true));
+  if (twitch && before?.stage === "Waiting" && twitch.count > (before.twitch?.count ?? 0)) {
+    twitched.value = twitch.last;
+    later("twitch", TWITCH_SHOWN_MS, () => (twitched.value = null));
+  } else if (!twitch) {
+    twitched.value = null;
+  }
+
+  // A fish let go keeps its number: its card stays and says so.
   const ended = next.outcome;
-  if (ended && ended.number !== before?.outcome?.number) {
+  if (ended && (ended.number !== before?.outcome?.number || ended.kind !== before?.outcome?.kind)) {
     card.value = ended;
     later("card", CARD_SHOWN_MS, () => (card.value = null));
   }
@@ -180,6 +215,8 @@ function onEnded() {
   anchor.value = null;
   card.value = null;
   nibbling.value = false;
+  twitched.value = null;
+  calm.value = false;
   charging.value = false;
   power.value = 0;
 }

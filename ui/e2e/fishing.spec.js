@@ -18,6 +18,7 @@ const LINE = {
   bites: 0,
   strikeWindowMs: 1000,
   fight: null,
+  twitch: null,
   rod: { name: "Fishing Rod", tier: "Basic", condition: "Good", reachCm: 700 },
   bait: { kind: "Worms", name: "Fishing Worms", count: 12 },
   skill: { level: 45, xp: 280, xpNext: 290 },
@@ -143,6 +144,78 @@ test("a whole bite from the cast to the catch, as the game tells it", async ({ p
   await expect(page.locator(".fishing")).toHaveCount(0);
 });
 
+test("the bait is twitched once the water is calm, and the page says what came of it", async ({ page }, testInfo) => {
+  const CALM_MS = 3500;
+  const TWITCH_SHOWN_MS = 1500;
+  await page.clock.install();
+  await openLine(page, "waiting");
+  await pauseClock(page);
+  await setScene(page, "lake");
+  const twitch = page.locator('[data-key="twitch"]');
+  await expect(page.locator(".fishing__title")).toHaveText(t("waiting"));
+  await expect(twitch).toHaveText(`${t("key_twitch")}${t("keys.twitch")}`);
+  await expect(twitch).toHaveClass(/fishing__key--wanted/);
+  await expectWithinScreen(page);
+  await screenshot(page, testInfo, "fishing-calm-lake");
+
+  await showLine(page, { stage: "Waiting", twitch: { count: 1, last: "Drew", calmInMs: CALM_MS, spent: false } });
+  await expect(page.locator(".fishing__title")).toHaveText(t("twitch.Drew"));
+  await expect(twitch).not.toHaveClass(/fishing__key--wanted/);
+  await expectWithinScreen(page);
+  await screenshot(page, testInfo, "fishing-twitched-lake");
+
+  await page.clock.runFor(TWITCH_SHOWN_MS);
+  await expect(page.locator(".fishing__title")).toHaveText(t("waiting"));
+  await expect(twitch).not.toHaveClass(/fishing__key--wanted/);
+  await page.clock.runFor(CALM_MS - TWITCH_SHOWN_MS);
+  await expect(twitch).toHaveClass(/fishing__key--wanted/);
+
+  await setScene(page, "night");
+  await showLine(page, { stage: "Waiting", twitch: { count: 2, last: "Spooked", calmInMs: CALM_MS, spent: true } });
+  await expect(page.locator(".fishing__title")).toHaveText(t("twitch.Spooked"));
+  await expect(twitch).toHaveCount(0);
+  await screenshot(page, testInfo, "fishing-spooked-night");
+});
+
+test("a fish held up is cast on from or let go, and its card says when it was", async ({ page }, testInfo) => {
+  await page.clock.install();
+  await openLine(page, "caught");
+  await pauseClock(page);
+  await setScene(page, "lake");
+  await page.clock.runFor(LEAVE_MS);
+  const card = page.locator("[data-card]");
+  await expect(card).toHaveCSS("opacity", "1");
+  await expect(page.locator(".fishing__title")).toHaveText(t("caught"));
+  await expect(card.locator(".fishing-card__eyebrow")).toHaveText(t("card.caught"));
+  await expect(page.locator(".fishing__key")).toHaveText([
+    `${t("key_space")}${t("keys.next")}`,
+    `${t("key_release")}let it go, +10 xp`,
+    `${t("key_stop")}${t("keys.stop")}`,
+  ]);
+  await expectWithinScreen(page);
+  await screenshot(page, testInfo, "fishing-held-lake");
+
+  await showLine(page, {
+    stage: "Rest",
+    bites: 1,
+    outcome: { number: 1, kind: "Released", species: "Pike", name: "Pike", lengthCm: 84, grams: 4446, trophy: true, record: false, xp: 41, levelUp: null, rare: false, rod: null, baitLost: false, releaseXp: 0 },
+  });
+  await expect(page.locator(".fishing__title")).toHaveText(t("released"));
+  await expect(card).toHaveCount(1);
+  await expect(card.locator(".fishing-card__eyebrow")).toHaveText(t("card.released"));
+  await expect(card.locator(".fishing-card__name")).toHaveText("Pike");
+  await expect(card.locator("[data-xp]")).toHaveText("+41 fishing experience");
+  await expect(page.locator(".fishing__key")).toHaveText([`${t("key_stop")}${t("keys.stop")}`]);
+  await setScene(page, "night");
+  await expectWithinScreen(page);
+  await screenshot(page, testInfo, "fishing-let-go-night");
+
+  await showLine(page, { stage: "Aim", outcome: { number: 1, kind: "Released" } });
+  await expect(page.locator(".fishing__title")).toHaveText(t("aim"));
+  await page.clock.runFor(CARD_SHOWN_MS + LEAVE_MS);
+  await expect(card).toHaveCount(0);
+});
+
 test("every way a fish gets away is named, with what it cost the gear", async ({ page }, testInfo) => {
   for (const [scenario, key] of [
     ["lostearly", "lost_early"],
@@ -180,6 +253,8 @@ const SHOTS = [
   ["slack", "lake"],
   ["monster", "night"],
   ["caught", "lake"],
+  ["released", "night"],
+  ["rare", "lake"],
   ["found", "night"],
   ["nobait", "lake"],
 ];

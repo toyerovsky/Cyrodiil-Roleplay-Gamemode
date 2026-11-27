@@ -13,6 +13,18 @@ internal enum LineChange
     // A fish only tested the bait.
     Nibble,
 
+    // A twitch of the bait in calm water: the fish come sooner.
+    Drew,
+
+    // A twitch in troubled water: the fish come later.
+    Troubled,
+
+    // A twitch with a fish at the float: it takes the bait in a moment.
+    Provoked,
+
+    // A twitch with a fish at the float: it bolts, and the wait starts over.
+    Spooked,
+
     Bite,
 
     // A strike in time: the fish is on the hook.

@@ -4,6 +4,9 @@ namespace CyrodiilRP.Common.Fishing;
 // ground and in the hand of a player whose game lacks the mode's own rods.
 public static class FishingGear
 {
+    // A rod is shown straight (0) or bent up to this far under the line.
+    public const int MostBend = 3;
+
     public static string StaffOf(RodTier tier) => tier switch
     {
         RodTier.Basic => "/Game/Art/Equipment/staffs/SM_Staff01.SM_Staff01",

@@ -26,6 +26,7 @@
   "fishing.bait.out": "You have no {bait} left, so you cast with a bare hook.",
   "fishing.landed": "* {name} lands {fish}, {length} cm.",
   "fishing.landed_trophy": "* {name} lands {fish}, a trophy of {length} cm!",
+  "fishing.released": "* {name} lets {fish} go, back into the water.",
   "fishing.catch.perch": "a silverside perch",
   "fishing.catch.betty": "a river betty",
   "fishing.catch.spadetail": "a Cyrodilic spadetail",

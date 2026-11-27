@@ -321,6 +321,8 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action<int, Vector3>? AnglerCasted;
 
+    public event Action<int, int>? AnglerRodBent;
+
     public event Action<int, string, Vector3, float, int>? FishingFishMoved;
 
     public event Action<string>? FisherChanged;
@@ -328,6 +330,8 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     public event Action<string, bool>? FisherAnswered;
 
     public event Action? FisherClosed;
+
+    public event Action<string>? FisherRecordsArrived;
 
     public event Action<int, Vector3>? FishingFloatMoved;
 
@@ -347,6 +351,8 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     partial void OnAnglerShown(int angler, bool fishing, string rod) => AnglerShown?.Invoke(angler, fishing, rod);
 
+    partial void OnAnglerRod(int angler, int bend) => AnglerRodBent?.Invoke(angler, bend);
+
     partial void OnAnglerCast(int angler, float x, float y, float z) => AnglerCasted?.Invoke(angler, new Vector3(x, y, z));
 
     partial void OnFishingFish(int angler, string move, float x, float y, float z, float yaw, int lengthCm) =>
@@ -357,6 +363,8 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
     partial void OnFisherAnswer(string text, bool done) => FisherAnswered?.Invoke(text, done);
 
     partial void OnFisherClosed() => FisherClosed?.Invoke();
+
+    partial void OnFisherRecords(string json) => FisherRecordsArrived?.Invoke(json);
 
     partial void OnFishingFloat(int angler, float x, float y, float z) => FishingFloatMoved?.Invoke(angler, new Vector3(x, y, z));
 

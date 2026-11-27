@@ -53,6 +53,8 @@ internal sealed partial class FisherShops(
         timers.RunEvery(WatchJob, WatchEvery, Watch);
     }
 
+    public bool HasOpen(OnlinePlayer player) => _open.ContainsKey(player);
+
     public bool TryTalk(OnlinePlayer actor, uint npcRefId)
     {
         if (npcs.FindByNpc(npcRefId) is not { Kind: TraderSpotKind.Fisher } spot)

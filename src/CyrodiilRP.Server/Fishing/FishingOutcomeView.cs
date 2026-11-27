@@ -3,7 +3,8 @@ namespace CyrodiilRP.Server.Fishing;
 // How a line ended. Number grows with each, so the page shows a new one even when it is like the last. Species and Name
 // for a fish caught or lost once hooked (Name as every game shows the item), length and weight for one caught. Record:
 // longer than the best of its species before. LevelUp: the level reached. Rod: the condition the rod wore down to.
-// BaitLost: the lure went with the line.
+// BaitLost: the lure went with the line. ReleaseXp: the xp letting the fish go would add while it may be let go, else 0.
+// A fish let go keeps its Number, and its Xp counts both.
 internal sealed record FishingOutcomeView(
     int Number,
     FishingOutcome Kind,
@@ -17,4 +18,5 @@ internal sealed record FishingOutcomeView(
     int? LevelUp,
     bool Rare,
     RodCondition? Rod,
-    bool BaitLost);
+    bool BaitLost,
+    int ReleaseXp);

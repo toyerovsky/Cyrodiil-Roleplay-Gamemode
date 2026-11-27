@@ -48,6 +48,52 @@ const REPAIRS = [
   { item: "fishing.rod.master.broken", icon: "rod-master", name: "Master Fishing Rod (Broken)", condition: "Broken", price: 203 },
 ];
 
+const DAY_MS = 86_400_000;
+const TODAY = Date.UTC(2026, 10, 27, 12);
+const READER = "Marius Caro";
+const landed = (rank, name, lengthCm, grams, daysAgo, mine = false) => ({ rank, name, lengthCm, grams, at: TODAY - daysAgo * DAY_MS, mine });
+const mine = (rank, lengthCm, grams, daysAgo) => landed(rank, READER, lengthCm, grams, daysAgo, true);
+const board = (tops) => ({
+  species: EVERY_SPECIES.map(([, species, name]) => ({ species, name, top: tops[species]?.top ?? [], own: tops[species]?.own ?? null })),
+});
+
+// The records of a young server. The reader holds a place among the perch and leads the carp, lies under the five among
+// the trout and the pike, and has no spadetail. Strangers are their race, one away is a stranger of no race, two perch
+// tie.
+const USUAL_RECORDS = board({
+  Perch: {
+    top: [landed(1, "Jauffre Valtieri", 35, 549, 9), mine(2, 34, 503, 2), landed(3, "Nord", 33, 460, 20), landed(3, "Dar-Ma", 33, 460, 4), landed(5, "Stranger", 31, 381, 1)],
+  },
+  Spadetail: { top: [landed(1, "Khajiit", 41, 841, 6), landed(2, "Jauffre Valtieri", 38, 669, 15)] },
+  Trout: {
+    top: [landed(1, "Dar-Ma", 54, 1858, 3), landed(2, "Bosmer", 51, 1565, 11), landed(3, "Jauffre Valtieri", 49, 1388, 30), landed(4, "Stranger", 47, 1225, 8), landed(5, "Nord", 46, 1149, 2)],
+    own: mine(12, 38, 647, 5),
+  },
+  Carp: { top: [mine(1, 66, 4974, 1), landed(2, "Dar-Ma", 61, 3927, 14), landed(3, "Imperial", 44, 1474, 7)] },
+  Pike: {
+    top: [landed(1, "Bosmer", 108, 10456, 12), landed(2, "Jauffre Valtieri", 101, 8552, 4), landed(3, "Dar-Ma", 97, 7575, 19), landed(4, "Orc", 95, 7116, 2), landed(5, "Stranger", 90, 6051, 25)],
+    own: mine(7, 74, 3363, 3),
+  },
+  Eel: { top: [landed(1, "Argonian", 82, 1406, 10)] },
+  Slaughterfish: { top: [landed(1, "Jauffre Valtieri", 104, 12823, 6)] },
+});
+
+// The records of a crowded server: five of every species, a name as long as a character's may be, and the reader on the
+// board of every third species and far under it in the others.
+const LONG_NAME = "Maximilianus-Aurelianus-Septimius-Corvus Vandersteen-Montclair-Albrechtsberger";
+const CROWD = ["Jauffre Valtieri", LONG_NAME, "Dunmer", "Dar-Ma", "Stranger"];
+const CROWDED_RECORDS = board(Object.fromEntries(EVERY_SPECIES.map(([, species], index) => {
+  const longest = 60 + index * 5;
+  const top = CROWD.map((name, place) => landed(place + 1, name, longest - place, (longest - place) * 110, place * 3 + index));
+  const listed = index % 3 === 0;
+  if (listed) top[2] = mine(3, longest - 2, (longest - 2) * 110, 1);
+  return [species, { top, own: listed ? null : mine(1204 + index, 21 + index, 870 + index, 40 + index) }];
+})));
+
+// The board the fisher answers with when the Records tab asks, null for one that cannot be read. #records: a crowded
+// server. #norecords: nobody has caught anything yet. #unread: the board cannot be read. Any other: a young server.
+const RECORDS = { records: CROWDED_RECORDS, norecords: board({}), unread: null };
+
 // The fisher with a catch of four kinds, the shop and three rods to mend, 120 gold. #empty: nothing to sell, nothing
 // for sale, nothing to mend. #poor: 3 gold. #many: every species and its trophy, a long list, more perch than one deal
 // takes.
@@ -64,7 +110,9 @@ const SCENARIOS = {
 };
 
 export function pretendGame(readym) {
-  const start = (SCENARIOS[location.hash.slice(1)] ?? SCENARIOS[""])();
+  const scenario = location.hash.slice(1);
+  const start = (SCENARIOS[scenario] ?? SCENARIOS[""])();
+  const records = scenario in RECORDS ? RECORDS[scenario] : USUAL_RECORDS;
   let gold = start.gold;
   let catches = start.catch.map((row) => ({ ...row }));
   let repairs = [...start.repairs];
@@ -87,6 +135,10 @@ export function pretendGame(readym) {
         break;
       case "FisherClose":
         setTimeout(() => readym.emit("Closed"), 0);
+        break;
+      case "FisherAskRecords":
+        if (records) later("Records", JSON.stringify(records));
+        else later("Answer", "The fisher cannot find the book of records just now. Ask again in a minute.", false);
         break;
       case "FisherSell":
         sell(...args);

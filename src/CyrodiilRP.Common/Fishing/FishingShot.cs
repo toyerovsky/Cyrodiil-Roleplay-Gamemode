@@ -8,10 +8,16 @@ public static class FishingShot
     private const float HalfTurn = 180f;
     private const float FullTurn = 360f;
 
-    // Over the angler's right shoulder, high enough to see the float over the reeds. Centimetres.
+    // Over the angler's right shoulder, high enough over the water to see the float over the reeds, and over the feet to
+    // look past the head of an angler who stands high above the water, as on a pier. Centimetres.
     public const float CameraBack = 220f;
     public const float CameraRight = 90f;
     public const float CameraUp = 340f;
+    public const float CameraOverFeet = 250f;
+
+    // Where the camera may stand, the usual place first. Each next one is nearer the water and higher, to see over the
+    // edge the angler stands at, and the last is ahead of the angler.
+    public static readonly IReadOnlyList<CameraRung> CameraRungs = [new(CameraBack, 0f), new(110f, 70f), new(10f, 140f), new(-90f, 140f)];
 
     // From the farthest the rod reaches to the nearest, a step of this many centimetres at a time.
     public const float CastStep = 50f;
@@ -35,10 +41,10 @@ public static class FishingShot
     public static float AimYaw(float facingYaw, float lookYaw) =>
         facingYaw + Math.Clamp(Turn(lookYaw - facingYaw), -FishingReach.AimDegrees, FishingReach.AimDegrees);
 
-    public static Vector3 CameraAt(Vector3 stand, float facingYaw, float waterZ)
+    public static Vector3 CameraAt(Vector3 stand, float facingYaw, float waterZ, CameraRung rung)
     {
-        var behind = stand - Forward(facingYaw) * CameraBack + Right(facingYaw) * CameraRight;
-        return behind with { Z = waterZ + CameraUp };
+        var behind = stand - Forward(facingYaw) * rung.Back + Right(facingYaw) * CameraRight;
+        return behind with { Z = Math.Max(waterZ + CameraUp, stand.Z + CameraOverFeet) + rung.Raise };
     }
 
     // The points a cast may land on along a yaw, from the farthest given down to the nearest.

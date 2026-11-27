@@ -93,4 +93,35 @@ public sealed class FishingSkillTests
         Assert.Empty(after.Records);
         Assert.Null(AnglerProgress.Fresh(CharacterId).JudgeFind().LevelUp);
     }
+
+    [Theory]
+    [InlineData(0, 1)]
+    [InlineData(1, 1)]
+    [InlineData(30, 10)]
+    [InlineData(270, 90)]
+    public void A_fish_let_go_gives_a_third_of_its_catchs_xp_again_and_one_at_the_least(int catchXp, int expected)
+    {
+        Assert.Equal(expected, FishingSkillRules.ReleaseXp(catchXp));
+        Assert.Throws<ArgumentOutOfRangeException>(() => FishingSkillRules.ReleaseXp(-1));
+    }
+
+    [Fact]
+    public void Letting_a_fish_go_adds_its_xp_and_keeps_the_catch_and_its_record()
+    {
+        var fish = new FishQuarry(Pike, Share: 0.5);
+        var fresh = AnglerProgress.Fresh(CharacterId) with { Skill = new FishingSkill(Pike.MinLevel, 0) };
+        var caught = fresh.AfterCatch(fish, fresh.Judge(fish), Now);
+        var toNext = caught.Skill.XpNext - caught.Skill.Xp;
+
+        var gain = caught.JudgeRelease(toNext);
+        var after = caught.AfterRelease(gain);
+
+        Assert.Equal(toNext, gain.Xp);
+        Assert.Equal(caught.Skill.Level + 1, gain.LevelUp);
+        Assert.False(gain.Record || gain.First);
+        Assert.Equal(new FishingSkill(caught.Skill.Level + 1, 0), after.Skill);
+        Assert.Equal(caught.Catches, after.Catches);
+        Assert.Equal(caught.Records, after.Records);
+        Assert.Null(caught.JudgeRelease(toNext - 1).LevelUp);
+    }
 }

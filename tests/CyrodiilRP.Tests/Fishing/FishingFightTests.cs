@@ -88,7 +88,7 @@ public sealed class FishingFightTests
         var line = new FishingLine(random.NextDouble);
         var share = Math.Pow(random.NextDouble(), FishingSkillRules.SizeSkew(level));
         line.Cast(0, new LineCast(fish.Fight, share, WaitFactor: 1, FishingRules.StrikeWindow, rod.Line * FishingSkillRules.LineTolerance(level),
-            rod.Rod.ReachCm, (float)(rod.Rod.ReachCm * CastShare)));
+            rod.Rod.ReachCm, (float)(rod.Rod.ReachCm * CastShare), FishingReach.Nearest, FishingRules.TwitchOf(BaitKind.Worms)));
 
         var now = 0L;
         while (line.Stage != FishingStage.Bite)

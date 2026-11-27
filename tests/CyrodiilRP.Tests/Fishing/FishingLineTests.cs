@@ -1,3 +1,4 @@
+using CyrodiilRP.Common.Fishing;
 using CyrodiilRP.Server.Fishing;
 
 namespace CyrodiilRP.Tests.Fishing;
@@ -23,6 +24,9 @@ public sealed class FishingLineTests
     private static readonly long Window = (long)FishingRules.StrikeWindow.TotalMilliseconds;
     private static readonly long Latency = (long)FishingRules.StrikeLatency.TotalMilliseconds;
     private static readonly long Soonest = (long)FishingRules.BiteSoonest.TotalMilliseconds;
+    private static readonly long Latest = (long)FishingRules.BiteWait(0.999).TotalMilliseconds;
+    private static readonly long Calm = (long)FishingRules.CalmAfter.TotalMilliseconds;
+    private static readonly BaitTwitch Worms = FishingRules.TwitchOf(BaitKind.Worms);
 
     // Turns only every 30 s, so a test sees one pull.
     private static readonly FishFight Steady = new(Strength: 0.5, StaminaSeconds: 10, ChangeSoonestSeconds: 30, ChangeLatestSeconds: 30, Jumpiness: 0.5, Runs: true);
@@ -280,17 +284,209 @@ public sealed class FishingLineTests
     [Fact]
     public void After_a_catch_the_angler_rests_while_showing_it_and_then_may_cast_again()
     {
-        var line = new FishingLine(Rolls(0.0, 0.0, RestRoll, LongestTurn));
-        line.Cast(CastAt, CastOf(Steady with { StaminaSeconds = SpentAtOnce }, waitFactor: 1) with { DistanceCm = (float)FishFightRules.LandWithin });
-        var biteAt = TickUntil(line, LineChange.Bite, CastAt, CastAt + Soonest);
-        line.Press(biteAt, reactionMs: 0);
-        var caughtAt = TickUntil(line, LineChange.Caught, biteAt, biteAt + 2_000);
+        var line = Caught(out var caughtAt);
         var rest = (long)FishingRules.NextCastAfterCatch.TotalMilliseconds;
 
         Assert.Equal(LineChange.None, line.Cast(caughtAt + 1, CastOf(Steady, waitFactor: 1)));
         Assert.Equal(LineChange.None, line.Tick(caughtAt + rest - 1));
         Assert.Equal(LineChange.Ready, line.Tick(caughtAt + rest));
         Assert.Equal(FishingStage.Aim, line.Stage);
+    }
+
+    [Fact]
+    public void A_press_while_the_catch_is_held_up_casts_again_once_it_was_shown_a_while()
+    {
+        var line = Caught(out var caughtAt);
+        var shown = (long)FishingRules.CatchShownAtLeast.TotalMilliseconds;
+
+        Assert.Equal(LineChange.None, line.Press(caughtAt + shown - 1, reactionMs: 0));
+        Assert.Equal(FishingStage.Rest, line.Stage);
+        Assert.Equal(LineChange.Ready, line.Press(caughtAt + shown, reactionMs: 0));
+        Assert.Equal(FishingStage.Aim, line.Stage);
+    }
+
+    [Fact]
+    public void A_press_after_a_loss_does_not_hurry_the_next_cast()
+    {
+        var line = new FishingLine(Rolls(0.0, 0.0));
+        line.Cast(CastAt, CastOf(Steady, waitFactor: 1));
+        var lostAt = CastAt + 1;
+        Assert.Equal(LineChange.LostEarly, line.Press(lostAt, reactionMs: 0));
+        var rest = (long)FishingRules.NextCastAfterLoss.TotalMilliseconds;
+
+        Assert.Equal(LineChange.None, line.Press(lostAt + rest - 1, reactionMs: 0));
+        Assert.Equal(FishingStage.Rest, line.Stage);
+        Assert.Equal(LineChange.Ready, line.Tick(lostAt + rest));
+    }
+
+    [Fact]
+    public void A_catch_let_go_brings_the_next_cast_as_soon_as_a_loss_does_and_no_press_hurries_it_then()
+    {
+        var line = Caught(out var caughtAt);
+        var letGoAt = caughtAt + 500;
+        var rest = (long)FishingRules.NextCastAfterLoss.TotalMilliseconds;
+
+        line.EndShow(letGoAt);
+
+        Assert.Equal(LineChange.None, line.Press(letGoAt + rest - 1, reactionMs: 0));
+        Assert.Equal(LineChange.None, line.Tick(letGoAt + rest - 1));
+        Assert.Equal(LineChange.Ready, line.Tick(letGoAt + rest));
+    }
+
+    [Fact]
+    public void Ending_a_show_that_is_not_on_changes_nothing()
+    {
+        var line = Hooked(out var hookedAt, Steady, RestRoll, LongestTurn);
+
+        line.EndShow(hookedAt);
+
+        Assert.Equal(FishingStage.Fight, line.Stage);
+    }
+
+    [Fact]
+    public void A_twitch_in_calm_water_brings_the_bite_sooner_by_the_baits_share_and_pulls_the_float_in()
+    {
+        var line = LongWait();
+        var calmAt = CastAt + Calm;
+        var biteAt = CastAt + Latest;
+        var sooner = calmAt + (long)((biteAt - calmAt) * (1 - Worms.Draw));
+
+        Assert.Equal(FishingRules.CalmAfter, line.CalmIn(CastAt));
+        Assert.Equal(LineChange.Drew, line.Twitch(calmAt));
+
+        Assert.Equal(Distance - FishingRules.TwitchPull, line.FloatDistanceCm);
+        Assert.Equal(FishingRules.CalmAfter, line.CalmIn(calmAt));
+        Assert.InRange(TickUntil(line, LineChange.Bite, calmAt, biteAt), sooner, sooner + TickMs);
+    }
+
+    [Fact]
+    public void A_twitch_in_troubled_water_puts_the_bite_off()
+    {
+        var line = LongWait();
+        var troubledAt = CastAt + Calm - 1;
+        var later = CastAt + Latest + (long)FishingRules.TroubledWaits.TotalMilliseconds;
+
+        Assert.Equal(LineChange.Troubled, line.Twitch(troubledAt));
+
+        Assert.InRange(TickUntil(line, LineChange.Bite, troubledAt, later + TickMs), later, later + TickMs);
+    }
+
+    [Fact]
+    public void No_twitch_moves_a_float_that_has_not_landed_yet()
+    {
+        var line = LongWait();
+        var landed = CastAt + (long)FishingRules.FloatLandsWithin.TotalMilliseconds;
+
+        Assert.Equal(LineChange.None, line.Twitch(landed - 1));
+        Assert.Equal(Distance, line.FloatDistanceCm);
+        Assert.Equal(LineChange.Troubled, line.Twitch(landed));
+    }
+
+    [Fact]
+    public void A_twitch_in_calm_water_with_a_fish_at_the_float_makes_it_take_the_bait_at_once_or_bolt()
+    {
+        var taken = LongWait(Worms.StrikeChance - 0.01, 0.0);
+        var shownAt = TickUntil(taken, LineChange.Approach, CastAt, CastAt + Latest);
+
+        Assert.Equal(LineChange.Provoked, taken.Twitch(shownAt));
+        var biteAt = TickUntil(taken, LineChange.Bite, shownAt, shownAt + (long)FishingRules.ProvokedLatest.TotalMilliseconds + TickMs);
+        Assert.InRange(biteAt - shownAt, (long)FishingRules.ProvokedSoonest.TotalMilliseconds, (long)FishingRules.ProvokedSoonest.TotalMilliseconds + TickMs);
+
+        var bolted = LongWait(Worms.StrikeChance, 0.0, 0.0);
+        shownAt = TickUntil(bolted, LineChange.Approach, CastAt, CastAt + Latest);
+
+        Assert.Equal(LineChange.Spooked, bolted.Twitch(shownAt));
+        var again = shownAt + Soonest;
+        var backAt = TickUntil(bolted, LineChange.Approach, shownAt, again);
+        Assert.InRange(backAt - shownAt, Calm, Calm + TickMs);
+        Assert.Equal(LineChange.None, bolted.Tick(again - 1));
+        Assert.Equal(LineChange.Bite, bolted.Tick(again));
+    }
+
+    [Fact]
+    public void A_twitch_in_troubled_water_with_a_fish_at_the_float_scares_it_whatever_the_bait()
+    {
+        // The two rolls are the new wait's: a gamble would have taken the first and won.
+        var line = LongWait(0.0, 0.0);
+        var drewAt = CastAt + Latest - (long)FishingRules.ApproachBefore.TotalMilliseconds - 1_000;
+        Assert.Equal(LineChange.Drew, line.Twitch(drewAt));
+        var shownAt = TickUntil(line, LineChange.Approach, drewAt, drewAt + Calm);
+
+        Assert.True(shownAt - drewAt < Calm);
+        Assert.Equal(LineChange.Spooked, line.Twitch(shownAt));
+    }
+
+    [Fact]
+    public void A_fish_provoked_is_left_to_take_the_bait()
+    {
+        var line = LongWait(Worms.StrikeChance - 0.01, 0.999);
+        var shownAt = TickUntil(line, LineChange.Approach, CastAt, CastAt + Latest);
+        Assert.Equal(LineChange.Provoked, line.Twitch(shownAt));
+        var pulled = line.FloatDistanceCm;
+
+        Assert.Equal(LineChange.None, line.Twitch(shownAt + (long)FishingRules.TwitchSoonest.TotalMilliseconds));
+
+        Assert.Equal(pulled, line.FloatDistanceCm);
+        TickUntil(line, LineChange.Bite, shownAt, shownAt + (long)FishingRules.ProvokedLatest.TotalMilliseconds + TickMs);
+    }
+
+    [Fact]
+    public void Twitches_too_close_together_are_one()
+    {
+        var line = LongWait();
+        var first = CastAt + Calm;
+        var soonest = (long)FishingRules.TwitchSoonest.TotalMilliseconds;
+        Assert.Equal(LineChange.Drew, line.Twitch(first));
+
+        Assert.Equal(LineChange.None, line.Twitch(first + soonest - 1));
+        Assert.Equal(Distance - FishingRules.TwitchPull, line.FloatDistanceCm);
+        Assert.Equal(LineChange.Troubled, line.Twitch(first + soonest));
+    }
+
+    [Fact]
+    public void A_float_pulled_as_near_as_the_open_water_runs_takes_no_more()
+    {
+        var line = new FishingLine(Rolls(0.999, 0.0));
+        line.Cast(CastAt, CastOf(Steady, waitFactor: 1) with { NearestCm = Distance - FishingRules.TwitchPull });
+
+        Assert.False(line.IsPulledIn);
+        Assert.Equal(LineChange.Drew, line.Twitch(CastAt + Calm));
+        Assert.True(line.IsPulledIn);
+        Assert.Equal(LineChange.None, line.Twitch(CastAt + 2 * Calm));
+        Assert.Equal(Distance - FishingRules.TwitchPull, line.FloatDistanceCm);
+    }
+
+    [Fact]
+    public void A_find_by_the_float_is_no_fish_to_provoke_or_scare()
+    {
+        var line = new FishingLine(Rolls(0.999, 0.0));
+        line.Cast(CastAt, CastOf(FishingRules.FindFight, waitFactor: 1));
+        var dueAt = TickUntil(line, LineChange.Approach, CastAt, CastAt + Latest);
+
+        Assert.Equal(LineChange.Drew, line.Twitch(dueAt));
+    }
+
+    [Fact]
+    public void Only_a_waiting_line_is_twitched()
+    {
+        var line = Hooked(out var hookedAt, Steady, RestRoll, LongestTurn);
+
+        Assert.Equal(LineChange.None, line.Twitch(hookedAt + 1));
+        Assert.Equal(LineChange.None, new FishingLine(Rolls()).Twitch(CastAt));
+    }
+
+    [Theory]
+    [InlineData(0.0, 0, 0)]
+    [InlineData(0.2, 0, 1)]
+    [InlineData(0.5, 1, 2)]
+    [InlineData(0.9, 2, 3)]
+    [InlineData(0.79, 3, 3)]
+    [InlineData(0.75, 3, 2)]
+    [InlineData(0.16, 0, 0)]
+    [InlineData(0.13, 1, 1)]
+    public void A_rod_bends_further_as_the_line_strains_and_holds_a_bend_just_past_its_edge(double tension, int before, int expected)
+    {
+        Assert.Equal(expected, FishFightRules.BendOf(tension, before));
     }
 
     [Fact]
@@ -314,9 +510,28 @@ public sealed class FishingLineTests
     }
 
     private static LineCast CastOf(FishFight fight, double waitFactor) =>
-        new(fight, SizeShare: 0.5, waitFactor, FishingRules.StrikeWindow, LineStrength: 1.0, Reach, Distance);
+        new(fight, SizeShare: 0.5, waitFactor, FishingRules.StrikeWindow, LineStrength: 1.0, Reach, Distance, FishingReach.Nearest, Worms);
+
+    // The longest wait for the bite and no nibbles: the fish shows three seconds before it. The rolls after are the
+    // twitches'.
+    private static FishingLine LongWait(params double[] twitchRolls)
+    {
+        var line = new FishingLine(Rolls([0.999, 0.0, .. twitchRolls]));
+        line.Cast(CastAt, CastOf(Steady, waitFactor: 1));
+        return line;
+    }
 
     // The quickest bite (roll 0), no nibbles.
+    private static FishingLine Caught(out long caughtAt)
+    {
+        var line = new FishingLine(Rolls(0.0, 0.0, RestRoll, LongestTurn));
+        line.Cast(CastAt, CastOf(Steady with { StaminaSeconds = SpentAtOnce }, waitFactor: 1) with { DistanceCm = (float)FishFightRules.LandWithin });
+        var biteAt = TickUntil(line, LineChange.Bite, CastAt, CastAt + Soonest);
+        line.Press(biteAt, reactionMs: 0);
+        caughtAt = TickUntil(line, LineChange.Caught, biteAt, biteAt + 2_000);
+        return line;
+    }
+
     private static FishingLine Bitten(out long biteAt, params double[] more)
     {
         var line = new FishingLine(Rolls([0.0, 0.0, .. more]));

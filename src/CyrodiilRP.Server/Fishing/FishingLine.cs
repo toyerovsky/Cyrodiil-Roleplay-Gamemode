@@ -1,3 +1,5 @@
+using CyrodiilRP.Common.Fishing;
+
 namespace CyrodiilRP.Server.Fishing;
 
 // One angler's line from the cast to the catch, on a clock in milliseconds the caller passes, every chance from the rolls
@@ -17,6 +19,12 @@ internal sealed class FishingLine(Func<double> roll)
     private long? _approachAtMs;
     private long? _lastNibbleMs;
     private long _readyAtMs;
+    private long _restFromMs;
+    private bool _showing;
+    private long _castAtMs;
+    private long _stirredAtMs;
+    private long? _twitchedAtMs;
+    private bool _provoked;
     private long _lastTickMs;
     private long _nextPullAtMs;
     private long _slackMs;
@@ -47,24 +55,69 @@ internal sealed class FishingLine(Func<double> roll)
 
     public FightFeel Feel => _cast is { } cast ? FishFightRules.FeelOf(cast.Fight.Strength, cast.SizeShare) : FightFeel.Small;
 
+    // How far out the float lies while the line waits: where it landed, less what the twitches pulled it in.
+    public double FloatDistanceCm => _cast?.DistanceCm ?? 0;
+
+    // Whether the float lies too near for another twitch to pull it in.
+    public bool IsPulledIn => _cast is { } cast && cast.DistanceCm - FishingRules.TwitchPull < cast.NearestCm;
+
+    // How long until the water is calm again after the cast or the last twitch.
+    public TimeSpan CalmIn(long now) =>
+        Stage == FishingStage.Waiting ? TimeSpan.FromMilliseconds(Math.Max(0, _stirredAtMs + Ms(FishingRules.CalmAfter) - now)) : TimeSpan.Zero;
+
     public LineChange Cast(long now, LineCast cast)
     {
         if (Stage != FishingStage.Aim)
             return LineChange.None;
 
-        if (!(cast.WaitFactor > 0 && cast.LineStrength > 0 && cast.ReachCm > 0 && cast.DistanceCm >= 0 && cast.SizeShare is >= 0 and <= 1))
+        if (!(cast.WaitFactor > 0 && cast.LineStrength > 0 && cast.ReachCm > 0 && cast.DistanceCm >= 0 && cast.SizeShare is >= 0 and <= 1
+              && cast.NearestCm >= FishingReach.Nearest))
             throw new ArgumentOutOfRangeException(nameof(cast), cast, "A cast waits, holds and reaches more than nothing.");
 
         _cast = cast;
         Stage = FishingStage.Waiting;
         _biteAtMs = now + (long)(Ms(FishingRules.BiteWait(roll())) * cast.WaitFactor);
-        _lastNibbleMs = null;
+        _castAtMs = now;
+        _stirredAtMs = now;
+        _twitchedAtMs = null;
+        _provoked = false;
         _reel.Reset(false);
         _lean.Reset(0);
-        ScheduleNibbles(now);
-        var first = _nibbles.TryPeek(out var nibble) ? nibble : _biteAtMs;
-        _approachAtMs = Math.Min(first, Math.Max(now + Ms(FishingRules.ApproachSoonest), first - Ms(FishingRules.ApproachBefore)));
+        ScheduleFish(now, FishingRules.ApproachSoonest);
         return LineChange.Cast;
+    }
+
+    // A tug on the bait while the line waits, once the float has landed, which pulls the float in. In calm water it
+    // draws the fish, in troubled water it puts them off. With a fish at the float it is a gamble in calm water, the
+    // fish takes the bait or bolts, and scares the fish for sure in troubled water. A fish already provoked is left to
+    // take the bait.
+    public LineChange Twitch(long now)
+    {
+        if (Stage != FishingStage.Waiting || _provoked || IsPulledIn || now - _castAtMs < Ms(FishingRules.FloatLandsWithin)
+            || (_twitchedAtMs is { } before && now - before < Ms(FishingRules.TwitchSoonest)))
+            return LineChange.None;
+
+        var cast = Current;
+        var calm = now - _stirredAtMs >= Ms(FishingRules.CalmAfter);
+        _stirredAtMs = now;
+        _twitchedAtMs = now;
+        _cast = cast with { DistanceCm = cast.DistanceCm - FishingRules.TwitchPull };
+        // A find comes up without a fish to provoke or scare.
+        if (_approachAtMs is null && cast.Fight.Runs)
+            return calm && roll() < cast.Twitch.StrikeChance ? Provoke(now) : Spook(now, cast);
+
+        if (!calm)
+        {
+            Shift(now, 1, Ms(FishingRules.TroubledWaits));
+            return LineChange.Troubled;
+        }
+
+        var left = _biteAtMs - now;
+        var kept = Math.Max(Ms(FishingRules.TwitchWaitAtLeast), (long)(left * (1 - cast.Twitch.Draw)));
+        if (kept < left)
+            Shift(now, (double)kept / left, 0);
+
+        return LineChange.Drew;
     }
 
     // The key went down. reactionMs: how long after the bite the player's game heard it, for a strike.
@@ -73,7 +126,8 @@ internal sealed class FishingLine(Func<double> roll)
         FishingStage.Waiting => Lose(now, SpookedByNibble(now) ? LineChange.LostNibble : LineChange.LostEarly),
         FishingStage.Bite => Strike(now, reactionMs),
         FishingStage.Fight => Hold(_reel, now, true),
-        FishingStage.Aim or FishingStage.Rest => LineChange.None,
+        FishingStage.Rest => CastAgain(now),
+        FishingStage.Aim => LineChange.None,
     };
 
     public LineChange Release(long now) => Stage == FishingStage.Fight ? Hold(_reel, now, false) : LineChange.None;
@@ -85,6 +139,16 @@ internal sealed class FishingLine(Func<double> roll)
             throw new ArgumentOutOfRangeException(nameof(lean), lean, "A rod leans -1, 0 or 1.");
 
         return Stage is FishingStage.Bite or FishingStage.Fight ? Hold(_lean, now, lean) : LineChange.None;
+    }
+
+    // The catch held up left the hand: the next cast comes as soon as after a loss.
+    public void EndShow(long now)
+    {
+        if (Stage != FishingStage.Rest || !_showing)
+            return;
+
+        _showing = false;
+        _readyAtMs = Math.Min(_readyAtMs, now + Ms(FishingRules.NextCastAfterLoss));
     }
 
     public LineChange Tick(long now) => Stage switch
@@ -108,6 +172,7 @@ internal sealed class FishingLine(Func<double> roll)
         {
             // The strike's moment counts from the bite as it was shown, a tick after it was due.
             Stage = FishingStage.Bite;
+            _provoked = false;
             _biteAtMs = now;
             return LineChange.Bite;
         }
@@ -140,6 +205,10 @@ internal sealed class FishingLine(Func<double> roll)
         _slackMs = 0;
         return LineChange.Hooked;
     }
+
+    // A press while the catch is held up, once it was shown a while, does not wait the show out.
+    private LineChange CastAgain(long now) =>
+        _showing && now - _restFromMs >= Ms(FishingRules.CatchShownAtLeast) ? Ready() : LineChange.None;
 
     private static LineChange Hold<T>(PacedInput<T> input, long now, T value) where T : struct, IEquatable<T>
     {
@@ -212,7 +281,7 @@ internal sealed class FishingLine(Func<double> roll)
 
         if (Stamina <= FishFightRules.LandTired)
         {
-            Rest(now, FishingRules.NextCastAfterCatch);
+            Rest(now, FishingRules.NextCastAfterCatch, showing: true);
             return LineChange.Caught;
         }
 
@@ -299,6 +368,47 @@ internal sealed class FishingLine(Func<double> roll)
         return turned ? LineChange.Turned : LineChange.Fought;
     }
 
+    private LineChange Provoke(long now)
+    {
+        _provoked = true;
+        _nibbles.Clear();
+        _biteAtMs = now + Ms(FishingRules.ProvokedBite(roll()));
+        return LineChange.Provoked;
+    }
+
+    // A whole new wait, and no fish back at the float before the water is calm again.
+    private LineChange Spook(long now, LineCast cast)
+    {
+        _biteAtMs = now + (long)(Ms(FishingRules.BiteWait(roll())) * cast.WaitFactor);
+        ScheduleFish(now, FishingRules.CalmAfter);
+        return LineChange.Spooked;
+    }
+
+    // Every time still to come moves: what is left of the way to it times the share, and later by the delay.
+    private void Shift(long now, double share, long delayMs)
+    {
+        long Moved(long at) => now + (long)((at - now) * share) + delayMs;
+
+        _biteAtMs = Moved(_biteAtMs);
+        if (_approachAtMs is { } approach)
+            _approachAtMs = Moved(approach);
+
+        var nibbles = _nibbles.Select(Moved).ToList();
+        _nibbles.Clear();
+        foreach (var nibble in nibbles)
+            _nibbles.Enqueue(nibble);
+    }
+
+    // The nibbles before the bite, and the fish that shows a while before the first of them or the bite, no sooner
+    // than the time given unless they come sooner themselves.
+    private void ScheduleFish(long now, TimeSpan showsSoonest)
+    {
+        _lastNibbleMs = null;
+        ScheduleNibbles(now);
+        var first = _nibbles.TryPeek(out var nibble) ? nibble : _biteAtMs;
+        _approachAtMs = Math.Min(first, Math.Max(now + Ms(showsSoonest), first - Ms(FishingRules.ApproachBefore)));
+    }
+
     private bool SpookedByNibble(long now) => _lastNibbleMs is { } nibble && now - nibble <= Ms(FishingRules.NibbleSpooks);
 
     // One in each equal part of the wait, so they never bunch up.
@@ -317,20 +427,24 @@ internal sealed class FishingLine(Func<double> roll)
 
     private LineChange Lose(long now, LineChange why)
     {
-        Rest(now, FishingRules.NextCastAfterLoss);
+        _provoked = false;
+        Rest(now, FishingRules.NextCastAfterLoss, showing: false);
         return why;
     }
 
-    private void Rest(long now, TimeSpan pause)
+    private void Rest(long now, TimeSpan pause, bool showing)
     {
         Stage = FishingStage.Rest;
         _reel.Reset(false);
+        _restFromMs = now;
+        _showing = showing;
         _readyAtMs = now + Ms(pause);
     }
 
     private LineChange Ready()
     {
         Stage = FishingStage.Aim;
+        _showing = false;
         Tension = 0;
         Stamina = 0;
         DistanceCm = 0;

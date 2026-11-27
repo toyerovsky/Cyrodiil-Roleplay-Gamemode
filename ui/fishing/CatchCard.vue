@@ -19,7 +19,7 @@ const caught = computed(() => isCatch(props.card.kind));
 const picture = computed(() => findSpeciesPicture(props.card.species));
 const eyebrow = computed(() => props.t[caught.value ? `card.${OUTCOME_TEXTS[props.card.kind]}` : "card.lost"]);
 const heading = computed(() => (caught.value ? props.card.name : props.t[OUTCOME_TEXTS[props.card.kind]]));
-const sized = computed(() => props.card.kind === "Caught" && props.card.lengthCm > 0);
+const sized = computed(() => (props.card.kind === "Caught" || props.card.kind === "Released") && props.card.lengthCm > 0);
 
 const length = computed(() => fill(props.t.length, { length: props.card.lengthCm.toLocaleString(props.locale) }));
 const weight = computed(() => {

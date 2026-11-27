@@ -31,9 +31,38 @@ public sealed class FishingShotTests
     {
         var stand = new Vector3(1000f, 2000f, 50f);
 
-        var camera = FishingShot.CameraAt(stand, facingYaw: 0f, waterZ: -40f);
+        var camera = FishingShot.CameraAt(stand, facingYaw: 0f, waterZ: -40f, FishingShot.CameraRungs[0]);
 
         AssertNear(new Vector3(1000f - FishingShot.CameraBack, 2000f + FishingShot.CameraRight, -40f + FishingShot.CameraUp), camera);
+    }
+
+    [Fact]
+    public void From_a_pier_high_above_the_water_the_camera_stands_over_the_anglers_head_not_under_the_deck()
+    {
+        const float waterZ = -40f;
+        var pier = new Vector3(1000f, 2000f, waterZ + 600f);
+
+        var camera = FishingShot.CameraAt(pier, facingYaw: 0f, waterZ, FishingShot.CameraRungs[0]);
+
+        AssertNear(new Vector3(1000f - FishingShot.CameraBack, 2000f + FishingShot.CameraRight, pier.Z + FishingShot.CameraOverFeet), camera);
+    }
+
+    [Fact]
+    public void Each_next_place_of_the_camera_is_nearer_the_water_and_higher_and_the_last_is_ahead_of_the_angler()
+    {
+        var stand = new Vector3(1000f, 2000f, 50f);
+        var rungs = FishingShot.CameraRungs;
+
+        Assert.Equal(new CameraRung(FishingShot.CameraBack, 0f), rungs[0]);
+        for (var index = 1; index < rungs.Count; index++)
+        {
+            var before = FishingShot.CameraAt(stand, facingYaw: 0f, waterZ: -40f, rungs[index - 1]);
+            var next = FishingShot.CameraAt(stand, facingYaw: 0f, waterZ: -40f, rungs[index]);
+            Assert.True(next.X > before.X, $"rung {index} is no nearer the water");
+            Assert.True(next.Z >= before.Z, $"rung {index} is lower");
+        }
+
+        Assert.True(FishingShot.CameraAt(stand, facingYaw: 0f, waterZ: -40f, rungs[^1]).X > stand.X);
     }
 
     [Fact]

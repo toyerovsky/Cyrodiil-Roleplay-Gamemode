@@ -51,8 +51,8 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   Space and the rod's lean (A, D). The water, the hour, the weather and the bait (G wheel) decide the species, a skill
   to 100 and each character's records grow with the catches, rods wear. Seen by everyone near. See
   `docs/features/fishing.md`.
-- **Fisher:** a fisher NPC buys the catch, sells rods, baits and the lure and mends rods. Raw fish feed through Hunger
-  and Thirst. See `docs/features/fisher.md`.
+- **Fisher:** a fisher NPC buys the catch, sells rods, baits and the lure, mends rods and shows the records: the
+  server's five longest fish of each species. Raw fish feed through Hunger and Thirst. See `docs/features/fisher.md`.
 - **Notice board:** a board the staff stand in the world, H opens its unsigned notices and lets anyone pin one. See
   `docs/features/notice-board.md`.
 - **Building:** the staff mark plots of land on a grid of 1.83 m tiles (`/aplot new`) and place, move and remove the

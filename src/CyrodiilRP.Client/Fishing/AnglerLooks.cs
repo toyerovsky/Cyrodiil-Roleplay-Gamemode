@@ -18,6 +18,54 @@ internal static class AnglerLooks
         RodTier.Sturdy => "/Game/CyrodiilRP/Fishing/SM_FishingRod_Sturdy.SM_FishingRod_Sturdy",
         RodTier.Master => "/Game/CyrodiilRP/Fishing/SM_FishingRod_Master.SM_FishingRod_Master",
     };
+
+    // The same rod with its blank bent toward its guides, 1 a little to FishingGear.MostBend the most.
+    public static string BentRodOf(RodTier tier, int bend)
+    {
+        var name = $"SM_FishingRod_{tier}_Bend{bend}";
+        return $"/Game/CyrodiilRP/Fishing/{name}.{name}";
+    }
+
+    // The centre of each rod's tip ring on its mesh, where the line leaves it, as export_rods.py writes them to
+    // rods.json: straight, then each bend.
+    public static Vector3 RodTipOf(RodTier tier, int bend) => tier switch
+    {
+        RodTier.Basic => bend switch
+        {
+            0 => new Vector3(-0.28f, -230.4f, -4.6f),
+            1 => new Vector3(-0.28f, -227.81f, -27.85f),
+            2 => new Vector3(-0.28f, -220.76f, -54.05f),
+            3 => new Vector3(-0.28f, -207.77f, -81.82f),
+            _ => throw new ArgumentOutOfRangeException(nameof(bend), bend, "A rod bends 0 to 3."),
+        },
+        RodTier.Sturdy => bend switch
+        {
+            0 => new Vector3(0f, -245.4f, -2.5f),
+            1 => new Vector3(0f, -243.16f, -27.05f),
+            2 => new Vector3(0f, -236.28f, -54.83f),
+            3 => new Vector3(0f, -223.13f, -84.47f),
+            _ => throw new ArgumentOutOfRangeException(nameof(bend), bend, "A rod bends 0 to 3."),
+        },
+        RodTier.Master => bend switch
+        {
+            0 => new Vector3(0f, -260.4f, -2f),
+            1 => new Vector3(0f, -258.16f, -28.02f),
+            2 => new Vector3(0f, -251.02f, -57.51f),
+            3 => new Vector3(0f, -237.25f, -89f),
+            _ => throw new ArgumentOutOfRangeException(nameof(bend), bend, "A rod bends 0 to 3."),
+        },
+    };
+
+    // The line from the rod's tip to the float: a pale grey, this thick, hanging this share of its length while the
+    // float flies, lies waiting, or a hooked fish leaves it slack. A taut line hangs none.
+    public const byte LineRed = 176;
+    public const byte LineGreen = 176;
+    public const byte LineBlue = 168;
+    public const float LineThickness = 0.8f;
+    public const float LineSagFlying = 0.03f;
+    public const float LineSagWaiting = 0.1f;
+    public const float LineSagSlack = 0.08f;
+    public const float LineSagGlide = 6f;
     // The hand closed on the bare rod ahead of the grip: the rod slides this far toward its tip (the mesh's -Y), so the
     // hand holds the grip and the reel sits just behind it.
     public static readonly Vector3 RodOffset = new(0f, -10f, 0f);
@@ -89,7 +137,8 @@ internal static class AnglerLooks
 
     public static readonly Vector3 ShowOffset = Vector3.Zero;
     public static readonly Vector3 ShowRotation = Vector3.Zero;
-    public const float ShowSeconds = 3f;
+    // The server ends the show sooner: at the next cast, or when the catch is let go.
+    public const float ShowSeconds = 6.5f;
 
     private const string Effects = "/Game/Art/FX/";
     public const string Impact = Effects + "Weapons/NS_Impact_Water_01.NS_Impact_Water_01";
@@ -107,12 +156,14 @@ internal static class AnglerLooks
     public const float RipplesScale = 0.5f;
     public const float RipplesSeconds = 3f;
     public const float NibbleScale = 1f;
+    public const float TwitchScale = 0.7f;
     public const float BiteScale = 1f;
     public const float ThrashScale = 0.8f;
     public const float JumpScale = 1f;
     public const float ReentryScale = 0.7f;
     public const float CatchScale = 1f;
     public const float SnapScale = 0.6f;
+    public const float ReleaseScale = 0.6f;
     public const float BubblesScale = 0.5f;
     public const float BubblesDepth = 30f;
     public const float BubblesSeconds = 1.5f;

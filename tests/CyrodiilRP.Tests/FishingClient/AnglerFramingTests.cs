@@ -8,6 +8,7 @@ public sealed class AnglerFramingTests
     private const float Tolerance = 0.01f;
     private const float WaterZ = -40f;
     private static readonly Vector3 Stand = new(0f, 0f, 0f);
+    private static readonly CameraRung Usual = FishingShot.CameraRungs[0];
 
     [Theory]
     [InlineData(700f)]
@@ -15,7 +16,7 @@ public sealed class AnglerFramingTests
     public void At_the_bite_the_camera_steps_toward_the_float_and_lower_looking_at_it_and_stays_behind_the_angler(float cast)
     {
         var floatAt = new Vector3(cast, 0f, WaterZ);
-        var shoulder = AnglerFraming.Shoulder(Stand, yaw: 0f, WaterZ, floatAt);
+        var shoulder = AnglerFraming.Shoulder(Stand, yaw: 0f, WaterZ, floatAt, Usual);
 
         var bite = AnglerFraming.Bite(shoulder, floatAt);
 
@@ -42,13 +43,82 @@ public sealed class AnglerFramingTests
     {
         var floatAt = new Vector3(600f, 300f, WaterZ);
 
-        var fight = AnglerFraming.Fight(Stand, yaw: 0f, WaterZ, floatAt);
+        var fight = AnglerFraming.Fight(Stand, yaw: 0f, WaterZ, floatAt, Usual);
 
         var toFloat = FishMotion.Heading(Stand, floatAt, otherwise: 0f);
-        Assert.Equal(FishingShot.CameraAt(Stand, toFloat, WaterZ), fight.At);
+        Assert.Equal(FishingShot.CameraAt(Stand, toFloat, WaterZ, Usual), fight.At);
         Assert.True(Vector3.Distance(fight.At, floatAt) > Vector3.Distance(Stand, floatAt));
         var chest = Stand + new Vector3(0f, 0f, AnglerFraming.ChestUp);
         Assert.True(Vector3.Distance(fight.LookAt, floatAt) < Vector3.Distance(fight.LookAt, chest));
+    }
+
+    [Fact]
+    public void From_a_pier_the_bite_and_the_fight_keep_the_camera_above_the_deck()
+    {
+        var pier = new Vector3(0f, 0f, WaterZ + 600f);
+        var floatAt = new Vector3(900f, 200f, WaterZ);
+
+        var bite = AnglerFraming.Bite(AnglerFraming.Shoulder(pier, yaw: 0f, WaterZ, floatAt, Usual), floatAt);
+        var fight = AnglerFraming.Fight(pier, yaw: 0f, WaterZ, floatAt, Usual);
+
+        Assert.True(bite.At.Z > pier.Z + AnglerFraming.ChestUp);
+        Assert.Equal(pier.Z + FishingShot.CameraOverFeet, fight.At.Z, Tolerance);
+    }
+
+    [Fact]
+    public void A_camera_with_something_in_its_way_stops_short_of_it_and_never_behind_where_it_is_reached_from()
+    {
+        var over = AnglerFraming.OverHead(Stand);
+        var wall = over + new Vector3(-100f, 0f, 0f);
+        var touching = over + new Vector3(-AnglerFraming.ObstacleClear / 2f, 0f, 0f);
+
+        var before = AnglerFraming.Before(over, wall);
+
+        Assert.Equal(over.X - 100f + AnglerFraming.ObstacleClear, before.X, Tolerance);
+        Assert.Equal(over.Y, before.Y, Tolerance);
+        Assert.Equal(over.Z, before.Z, Tolerance);
+        Assert.Equal(over, AnglerFraming.Before(over, touching));
+        Assert.Equal(over, AnglerFraming.Before(over, over));
+    }
+
+    [Fact]
+    public void A_straining_line_brings_the_camera_nearer_what_it_looks_at_and_no_nearer_than_half_the_way()
+    {
+        var frame = new CameraFrame(new Vector3(-300f, 0f, 300f), new Vector3(700f, 0f, 300f));
+
+        Assert.Equal(frame, AnglerFraming.Strained(frame, tension: 0f));
+        Assert.Equal(frame.At.X + AnglerFraming.StrainPushIn / 2f, AnglerFraming.Strained(frame, tension: 0.5f).At.X, Tolerance);
+        Assert.Equal(frame.At.X + AnglerFraming.StrainPushIn, AnglerFraming.Strained(frame, tension: 2f).At.X, Tolerance);
+        Assert.Equal(frame.LookAt, AnglerFraming.Strained(frame, tension: 1f).LookAt);
+        var near = new CameraFrame(new Vector3(0f, 0f, 0f), new Vector3(40f, 0f, 0f));
+        Assert.Equal(20f, AnglerFraming.Strained(near, tension: 1f).At.X, Tolerance);
+    }
+
+    [Theory]
+    [InlineData(0.5f, 0f)]
+    [InlineData(0.8f, 0f)]
+    [InlineData(0.9f, 0.5f)]
+    [InlineData(1f, 1f)]
+    [InlineData(1.2f, 1f)]
+    public void The_red_is_measured_from_where_it_begins_to_where_the_line_snaps(float tension, float expected)
+    {
+        Assert.Equal(expected, AnglerFraming.RedShare(tension, warn: 0.8f), Tolerance);
+        Assert.Equal(0f, AnglerFraming.RedShare(tension, warn: 1f));
+    }
+
+    [Fact]
+    public void The_camera_trembles_only_in_the_red_and_never_farther_than_its_most_each_way()
+    {
+        var frame = new CameraFrame(new Vector3(-300f, 0f, 300f), new Vector3(700f, 0f, 0f));
+
+        Assert.Equal(Vector3.Zero, AnglerFraming.Shake(frame, seconds: 1.234f, strength: 0f));
+        for (var seconds = 0f; seconds < 1f; seconds += 0.013f)
+        {
+            var shake = AnglerFraming.Shake(frame, seconds, strength: 1f);
+            Assert.InRange(Math.Abs(shake.Y), 0f, AnglerFraming.ShakeMost + Tolerance);
+            Assert.InRange(Math.Abs(shake.Z), 0f, AnglerFraming.ShakeMost + Tolerance);
+            Assert.Equal(0f, shake.X, Tolerance);
+        }
     }
 
     [Fact]

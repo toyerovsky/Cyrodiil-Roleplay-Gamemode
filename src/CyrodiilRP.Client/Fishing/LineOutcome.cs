@@ -5,6 +5,7 @@ internal enum LineOutcome
 {
     Caught,
     Found,
+    Released,
     LostEarly,
     LostNibble,
     LostLate,

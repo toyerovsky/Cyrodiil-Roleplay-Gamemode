@@ -338,6 +338,16 @@ def join(name, parts):
     return obj
 
 
+# Joined into one mesh, with what export_rods.py bends it by: where the blank leaves the grip, where it ends and the
+# centre of the tip ring, where the line leaves the rod.
+def assemble(name, parts, blank, bend_from):
+    rod = join(name, parts)
+    rod["bend_from"] = bend_from
+    rod["tip"] = blank.tip
+    rod["tip_ring"] = tuple(blank.tip_ring)
+    return rod
+
+
 # ---------------------------------------------------------------- rods
 
 class Blank:
@@ -346,6 +356,7 @@ class Blank:
         self.start, self.tip = start, tip
         self.butt_radius, self.tip_radius = butt_radius, tip_radius
         self.sag, self.wobble = sag, wobble
+        self.tip_ring = self.point(tip) + Vector((0, 0.004, 0))
 
     def radius(self, y):
         share = min(max((y - self.start) / (self.tip - self.start), 0.0), 1.0)
@@ -448,9 +459,9 @@ def basic_rod():
     places = [0.45, 0.95, 1.45, 1.9]
     sizes = [0.0085, 0.007, 0.0055, 0.0045]
     parts += guides("basic", blank, places, IRON, IRON, CORD, sizes)
-    parts.append(ring("basic_tiptop", blank.point(2.30, below=0.0) + Vector((0, 0.004, 0)), 0.0035, 0.0009, IRON))
+    parts.append(ring("basic_tiptop", blank.tip_ring, 0.0035, 0.0009, IRON))
     parts += run_line("basic_runline", line_points(blank, center + Vector((0, 0.0, 0.040 * 0.72)), places, sizes, 2.30), 0.00045, LINE)
-    return join("SM_FishingRod_Basic", parts)
+    return assemble("SM_FishingRod_Basic", parts, blank, bend_from=0.07)
 
 
 def sturdy_rod():
@@ -473,9 +484,9 @@ def sturdy_rod():
     places = [0.35, 0.75, 1.2, 1.6, 1.95, 2.22]
     sizes = [0.0095, 0.008, 0.0068, 0.0057, 0.0048, 0.004]
     parts += guides("sturdy", blank, places, IRON, BLACK_IRON, SILK_GREEN, sizes)
-    parts.append(ring("sturdy_tiptop", blank.point(2.45, below=0.0) + Vector((0, 0.004, 0)), 0.0033, 0.0009, IRON))
+    parts.append(ring("sturdy_tiptop", blank.tip_ring, 0.0033, 0.0009, IRON))
     parts += run_line("sturdy_runline", line_points(blank, center + Vector((0, 0.0, 0.045 * 0.72)), places, sizes, 2.45), 0.00045, LINE)
-    return join("SM_FishingRod_Sturdy", parts)
+    return assemble("SM_FishingRod_Sturdy", parts, blank, bend_from=0.10)
 
 
 def master_rod():
@@ -506,9 +517,9 @@ def master_rod():
     places = [0.3, 0.62, 0.98, 1.32, 1.62, 1.92, 2.2, 2.42]
     sizes = [0.01, 0.0088, 0.0076, 0.0066, 0.0058, 0.005, 0.0044, 0.0039]
     parts += guides("master", blank, places, BRASS, BRASS, SILK_RED, sizes)
-    parts.append(ring("master_tiptop", blank.point(2.60, below=0.0) + Vector((0, 0.004, 0)), 0.0032, 0.0009, BRASS))
+    parts.append(ring("master_tiptop", blank.tip_ring, 0.0032, 0.0009, BRASS))
     parts += run_line("master_runline", line_points(blank, center + Vector((0, 0.0, 0.048 * 0.72)), places, sizes, 2.60), 0.00045, LINE)
-    return join("SM_FishingRod_Master", parts)
+    return assemble("SM_FishingRod_Master", parts, blank, bend_from=0.11)
 
 
 rods = [basic_rod(), sturdy_rod(), master_rod()]

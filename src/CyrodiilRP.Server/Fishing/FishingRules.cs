@@ -21,6 +21,21 @@ internal static class FishingRules
     // A strike this soon after a nibble is the nibble's fault, not an early strike.
     public static readonly TimeSpan NibbleSpooks = TimeSpan.FromSeconds(1);
 
+    // A twitch of the bait pulls the float this far in. Centimetres.
+    public const float TwitchPull = 25f;
+    // The float has landed by then: no twitch sooner after the cast.
+    public static readonly TimeSpan FloatLandsWithin = TimeSpan.FromSeconds(1.6);
+    // Twitches closer together than this are one.
+    public static readonly TimeSpan TwitchSoonest = TimeSpan.FromMilliseconds(400);
+    // The water is calm again this long after the cast or the last twitch.
+    public static readonly TimeSpan CalmAfter = TimeSpan.FromSeconds(3.5);
+    // A twitch in calm water never shortens the wait to under this, and one in troubled water adds to it.
+    public static readonly TimeSpan TwitchWaitAtLeast = TimeSpan.FromSeconds(1);
+    public static readonly TimeSpan TroubledWaits = TimeSpan.FromSeconds(2);
+    // A fish a twitch provoked takes the bait within these.
+    public static readonly TimeSpan ProvokedSoonest = TimeSpan.FromSeconds(0.3);
+    public static readonly TimeSpan ProvokedLatest = TimeSpan.FromSeconds(0.8);
+
     // The player's own reaction to the bite, as their game measured it, before the skill lengthens it.
     public static readonly TimeSpan StrikeWindow = TimeSpan.FromSeconds(1);
     // How much later than the window an honest strike may still reach the server: the way there and back.
@@ -29,8 +44,10 @@ internal static class FishingRules
     // Nobody reels or leans faster than this: quicker changes wait their turn.
     public static readonly TimeSpan InputSoonest = TimeSpan.FromMilliseconds(60);
 
-    // After a catch the angler holds it up for everyone near to see.
-    public static readonly TimeSpan NextCastAfterCatch = TimeSpan.FromSeconds(3.5);
+    // After a catch the angler holds it up for everyone near to see, and may let it go. Space casts again sooner, once
+    // the catch was shown this long: the key was held to reel a moment ago.
+    public static readonly TimeSpan NextCastAfterCatch = TimeSpan.FromSeconds(6);
+    public static readonly TimeSpan CatchShownAtLeast = TimeSpan.FromSeconds(1);
     public static readonly TimeSpan NextCastAfterLoss = TimeSpan.FromSeconds(1.5);
 
     public static readonly TimeSpan Tick = TimeSpan.FromMilliseconds(100);
@@ -93,6 +110,18 @@ internal static class FishingRules
     public static readonly FishFight FindFight = new(Strength: 0.1, StaminaSeconds: 2, ChangeSoonestSeconds: 1.5, ChangeLatestSeconds: 2.5, Jumpiness: 0, Runs: false);
 
     public static TimeSpan BiteWait(double roll) => BiteSoonest + (BiteLatest - BiteSoonest) * roll;
+
+    public static TimeSpan ProvokedBite(double roll) => ProvokedSoonest + (ProvokedLatest - ProvokedSoonest) * roll;
+
+    // The lure is made to be worked, a bare hook draws little.
+    public static BaitTwitch TwitchOf(BaitKind bait) => bait switch
+    {
+        BaitKind.None => new BaitTwitch(Draw: 0.10, StrikeChance: 0.30),
+        BaitKind.Worms => new BaitTwitch(Draw: 0.20, StrikeChance: 0.45),
+        BaitKind.Dough => new BaitTwitch(Draw: 0.15, StrikeChance: 0.40),
+        BaitKind.CrabMeat => new BaitTwitch(Draw: 0.20, StrikeChance: 0.45),
+        BaitKind.Lure => new BaitTwitch(Draw: 0.40, StrikeChance: 0.70),
+    };
 
     public static TimeSpan ThrashWait(double roll) => ThrashSoonest + (ThrashLatest - ThrashSoonest) * roll;
 

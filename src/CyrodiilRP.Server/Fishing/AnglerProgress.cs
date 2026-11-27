@@ -28,5 +28,10 @@ internal sealed record AnglerProgress(long CharacterId, FishingSkill Skill, int 
 
     public AnglerProgress AfterFind(CatchGain gain) => this with { Skill = Skill.Gain(gain.Xp) };
 
+    // The catch stays counted and its record stands: only the xp grows.
+    public CatchGain JudgeRelease(int xp) => new(xp, LevelReached(xp), Record: false, First: false);
+
+    public AnglerProgress AfterRelease(CatchGain gain) => this with { Skill = Skill.Gain(gain.Xp) };
+
     private int? LevelReached(int xp) => Skill.Gain(xp).Level is var level && level > Skill.Level ? level : null;
 }

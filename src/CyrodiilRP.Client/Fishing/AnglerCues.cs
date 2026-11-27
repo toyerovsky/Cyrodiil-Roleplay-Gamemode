@@ -1,4 +1,5 @@
 using System.Numerics;
+using CyrodiilRP.Common.Fishing;
 using OblivionMP.SDK;
 using ReadyM.SDK.Attributes;
 
@@ -26,7 +27,9 @@ internal sealed partial class AnglerCues(ISounds sounds, IVisualEffects effects)
     private const float GlowScale = 0.5f;
     private const float GlowSeconds = 3f;
     private const float ReelFadeSeconds = 0.15f;
+    // The line creaks this often as its red begins, and this often about to snap.
     private const float StrainEverySeconds = 1.2f;
+    private const float StrainEveryAtSnap = 0.45f;
 
     private SoundHandle? _reel;
     private ReelNoise _reelNoise = ReelNoise.Silent;
@@ -34,8 +37,14 @@ internal sealed partial class AnglerCues(ISounds sounds, IVisualEffects effects)
     private float _strainedAt = float.NegativeInfinity;
     // The last outcome heard, or null until the first view of this fishing says where the count stands.
     private int? _heard;
+    // The level the last outcome heard brought, if any: letting the catch go may bring one after.
+    private int? _heardLevel;
 
-    public void Begin(AnglerView? view) => _heard = view is null ? null : view.Outcome?.Number ?? 0;
+    public void Begin(AnglerView? view)
+    {
+        _heard = view is null ? null : view.Outcome?.Number ?? 0;
+        _heardLevel = view?.Outcome?.LevelUp;
+    }
 
     // Each outcome once: one already there when the fishing began is not heard again.
     public void Hear(AnglerView view, Vector3 at, Vector3 hand)
@@ -43,13 +52,27 @@ internal sealed partial class AnglerCues(ISounds sounds, IVisualEffects effects)
         if (_heard is not { } heard)
         {
             _heard = view.Outcome?.Number ?? 0;
+            _heardLevel = view.Outcome?.LevelUp;
             return;
         }
 
-        if (view.Outcome is not { } outcome || outcome.Number <= heard)
+        if (view.Outcome is not { } outcome)
             return;
 
+        if (outcome.Number <= heard)
+        {
+            // The same catch again, let go: it may have reached a level the catch itself did not.
+            if (outcome.Number == heard && outcome.LevelUp is { } level && level != _heardLevel)
+            {
+                _heardLevel = level;
+                sounds.PlayAt(LevelSound, at);
+            }
+
+            return;
+        }
+
         _heard = outcome.Number;
+        _heardLevel = outcome.LevelUp;
         if (SoundOf(outcome.Kind) is { } sound)
             sounds.PlayAt(sound, at);
         if (outcome.Rare)
@@ -66,7 +89,7 @@ internal sealed partial class AnglerCues(ISounds sounds, IVisualEffects effects)
     {
         var fight = view is { Stage: LineStage.Fight, Fight: { } held } ? held : null;
         Reel(NoiseOf(fight), at, now);
-        if (fight is { TensionWarn: > 0f } line && line.Tension >= line.TensionWarn && now - _strainedAt >= StrainEverySeconds)
+        if (fight is { TensionWarn: > 0f } line && line.Tension >= line.TensionWarn && now - _strainedAt >= StrainEvery(line))
         {
             sounds.PlayAt(StrainSound, at);
             _strainedAt = now;
@@ -77,8 +100,12 @@ internal sealed partial class AnglerCues(ISounds sounds, IVisualEffects effects)
     {
         Reel(ReelNoise.Silent, Vector3.Zero, float.NegativeInfinity);
         _heard = null;
+        _heardLevel = null;
         _strainedAt = float.NegativeInfinity;
     }
+
+    private static float StrainEvery(AnglerFight line) =>
+        StrainEverySeconds + (StrainEveryAtSnap - StrainEverySeconds) * AnglerFraming.RedShare(line.Tension, line.TensionWarn);
 
     // A change of noise fades the last one out; the same noise is played again on its beat.
     private void Reel(ReelNoise noise, Vector3 at, float now)
@@ -120,6 +147,7 @@ internal sealed partial class AnglerCues(ISounds sounds, IVisualEffects effects)
     {
         LineOutcome.Caught or LineOutcome.Found => CatchSound,
         LineOutcome.LostSnapped => SnapSound,
-        LineOutcome.LostEarly or LineOutcome.LostNibble or LineOutcome.LostLate or LineOutcome.LostSlack or LineOutcome.LostRunaway => null,
+        LineOutcome.Released or LineOutcome.LostEarly or LineOutcome.LostNibble or LineOutcome.LostLate or LineOutcome.LostSlack
+            or LineOutcome.LostRunaway => null,
     };
 }

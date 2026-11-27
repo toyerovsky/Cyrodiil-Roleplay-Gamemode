@@ -8,9 +8,10 @@ using ReadyM.SDK.Attributes;
 
 namespace CyrodiilRP.Client.Fishing;
 
-// Every angler this player sees, themselves included: the rod of its grade in the hand and the staff's poses, the cast's
-// swing and the float's flight, the float bobbing on the water, the fish under it and the small fish round it, the catch
-// held up, and the splashes seen and heard here. The game has no fishing rod: its staves stand for one.
+// Every angler this player sees, themselves included: the rod of its grade in the hand, bent under the line, and the
+// staff's poses, the cast's swing and the float's flight, the float bobbing on the water and the line to it, the fish
+// under it and the small fish round it, the catch held up, and the splashes seen and heard here. The game has no fishing
+// rod: its staves stand for one.
 [Service]
 internal sealed partial class AnglerScenery(
     RpcHandlers rpc,
@@ -26,13 +27,14 @@ internal sealed partial class AnglerScenery(
     private const float Afloat = 0f;
 
     private readonly Dictionary<int, AnglerScene> _anglers = [];
-    private readonly Dictionary<RodTier, HeldRod> _heldRods = [];
+    private readonly Dictionary<RodLook, HeldRod> _heldRods = [];
     private bool _castSplashTold;
 
     private void Start()
     {
         rpc.AnglerShown += OnShown;
         rpc.AnglerCasted += OnCast;
+        rpc.AnglerRodBent += OnRodBent;
         rpc.FishingFloatMoved += OnFloatMoved;
         rpc.FishingFloatGone += OnFloatGone;
         rpc.FishingFishMoved += OnFishMoved;
@@ -43,6 +45,7 @@ internal sealed partial class AnglerScenery(
     {
         rpc.AnglerShown -= OnShown;
         rpc.AnglerCasted -= OnCast;
+        rpc.AnglerRodBent -= OnRodBent;
         rpc.FishingFloatMoved -= OnFloatMoved;
         rpc.FishingFloatGone -= OnFloatGone;
         rpc.FishingFishMoved -= OnFishMoved;
@@ -76,13 +79,25 @@ internal sealed partial class AnglerScenery(
 
         if (!_anglers.TryGetValue(angler, out var scene))
         {
-            _anglers[angler] = new AnglerScene(tier, Rod: null, RodRetryAt: 0f, AnglerPose.Holding, PoseSince: Time.Elapsed,
-                PosePlayed: false, PoseNextAt: 0f, Cast: null, Float: null, Fish: null, Shoal: null, Show: null);
+            _anglers[angler] = new AnglerScene(tier, Bend: 0, Rod: null, Held: null, RodRetryAt: 0f, AnglerPose.Holding, PoseSince: Time.Elapsed,
+                PosePlayed: false, PoseNextAt: 0f, Cast: null, Float: null, Line: null, Fish: null, Shoal: null, Show: null);
             return;
         }
 
         if (scene.Tier != tier)
-            _anglers[angler] = RemoveRod(scene) with { Tier = tier };
+            _anglers[angler] = scene with { Tier = tier };
+    }
+
+    private void OnRodBent(int angler, int bend)
+    {
+        if (bend is < 0 or > FishingGear.MostBend)
+        {
+            logger.LogWarning("The server bent a rod {Bend}, which is no way this game bends one.", bend);
+            return;
+        }
+
+        if (_anglers.TryGetValue(angler, out var scene))
+            _anglers[angler] = scene with { Bend = bend };
     }
 
     private void OnCast(int angler, Vector3 at)
@@ -110,7 +125,9 @@ internal sealed partial class AnglerScenery(
         if (scene.Float is { } bobber)
         {
             var drawn = Vector3.Distance(bobber.Drawn, at) < AnglerLooks.FloatJumps ? bobber.Drawn : at;
-            _anglers[angler] = scene with { Float = bobber with { Drawn = drawn, Target = at } };
+            // The small fish keep to a float that was pulled in.
+            var shoal = scene.Shoal is { FleeingSince: null } circling ? circling with { Center = at with { Z = circling.Center.Z } } : scene.Shoal;
+            _anglers[angler] = scene with { Float = bobber with { Drawn = drawn, Target = at }, Shoal = shoal };
             return;
         }
 
@@ -144,8 +161,8 @@ internal sealed partial class AnglerScenery(
             FishMove.Hooked => Pose(Scatter(Swim(scene, FishSwim.Following, at, yaw, lengthCm, now, Under(at)), now), AnglerPose.Striking, now),
             FishMove.Jump => Swim(scene, FishSwim.Jumping, at, yaw, lengthCm, now, Under(at)),
             FishMove.Landed => Land(RemoveFish(scene), angler, lengthCm, now),
-            FishMove.Escaped => Unbrace(Swim(scene, FishSwim.Leaving, at, yaw, lengthCm, now, Under(at)), now),
-            FishMove.Gone => Unbrace(RemoveFish(scene), now),
+            FishMove.Escaped => Unbrace(Swim(Unshow(scene, now), FishSwim.Leaving, at, yaw, lengthCm, now, Under(at)), now),
+            FishMove.Gone => Unbrace(RemoveFish(Unshow(scene, now)), now),
         };
     }
 
@@ -161,11 +178,13 @@ internal sealed partial class AnglerScenery(
         {
             FishingSplashKind.Cast => null,
             FishingSplashKind.Nibble => new SplashLook(AnglerLooks.Plop, AnglerLooks.NibbleScale, AnglerLooks.SplashSound, Ripples: true),
+            FishingSplashKind.Twitch => new SplashLook(AnglerLooks.Plop, AnglerLooks.TwitchScale, AnglerLooks.SplashSound, Ripples: true),
             FishingSplashKind.Bite => new SplashLook(AnglerLooks.Impact, AnglerLooks.BiteScale, AnglerLooks.SplashSound, Ripples: true),
             FishingSplashKind.Thrash => new SplashLook(AnglerLooks.SplashMedium, AnglerLooks.ThrashScale, AnglerLooks.ThrashSound, Ripples: false),
             FishingSplashKind.Jump => new SplashLook(AnglerLooks.SplashLarge, AnglerLooks.JumpScale, AnglerLooks.SplashSound, Ripples: false),
             FishingSplashKind.Catch => new SplashLook(AnglerLooks.SplashHuge, AnglerLooks.CatchScale, AnglerLooks.SplashSound, Ripples: true),
             FishingSplashKind.Snap => new SplashLook(AnglerLooks.SplashSmall, AnglerLooks.SnapScale, AnglerLooks.SplashSound, Ripples: false),
+            FishingSplashKind.Release => new SplashLook(AnglerLooks.SplashSmall, AnglerLooks.ReleaseScale, AnglerLooks.SplashSound, Ripples: true),
         };
         if (look is null)
         {
@@ -192,6 +211,7 @@ internal sealed partial class AnglerScenery(
             next = KeepPose(next, character, now);
             next = Fly(next, now);
             next = Bob(next, angler, now, seconds);
+            next = DrawLine(next, seconds);
             next = SwimOn(next, now, seconds);
             next = SwimShoal(next, now, seconds);
             next = EndShow(next, now);
@@ -200,16 +220,20 @@ internal sealed partial class AnglerScenery(
         }
     }
 
-    // The rod goes on the hand once the character is drawn here, and not while a catch is held up.
+    // The rod of the grade and the bend goes on the hand once the character is drawn here, and not while a catch is held
+    // up. Another one takes the hand before the last leaves it, so the hand is never empty between them.
     private AnglerScene KeepRod(AnglerScene scene, MainCharacter? character, float now)
     {
-        if (scene.Rod is not null || scene.Show is not null || character is not { } holder || now < scene.RodRetryAt)
+        if (scene.Show is not null || character is not { } holder)
             return scene;
 
-        var held = HeldRodOf(scene.Tier);
+        var held = HeldRodOf(scene.Tier, scene.Bend);
+        if ((scene.Rod is not null && scene.Held?.Mesh == held.Mesh) || now < scene.RodRetryAt)
+            return scene;
+
         var placed = props.Place(new Prop(held.Mesh, holder.Position, Vector3.Zero, AnglerLooks.RodScale), collides: false);
         if (props.AttachTo(placed, holder, CharacterMesh.ThirdPerson, AnglerLooks.HandSocket, held.Offset, held.Rotation))
-            return scene with { Rod = placed };
+            return RemoveRod(scene) with { Rod = placed, Held = held };
 
         props.Remove(placed);
         if (IsLocal(holder))
@@ -217,21 +241,98 @@ internal sealed partial class AnglerScenery(
         return scene with { RodRetryAt = now + AnglerLooks.RodRetrySeconds };
     }
 
-    // The mode's rod of the grade when this game has the mode's container, else the game's staff for it. Asked once a
-    // grade, when a character is first drawn holding one, so there is a world to ask.
-    private HeldRod HeldRodOf(RodTier tier)
+    // The mode's rod of the grade, bent or straight, when this game has it in the mode's container. Without the bent
+    // one the straight one stands for it, and without that the game's staff. Asked once a grade and a bend, when a
+    // character is first drawn holding one, so there is a world to ask.
+    private HeldRod HeldRodOf(RodTier tier, int bend)
     {
-        if (_heldRods.TryGetValue(tier, out var known))
+        var look = new RodLook(tier, bend);
+        if (_heldRods.TryGetValue(look, out var known))
             return known;
 
-        var rod = AnglerLooks.RodOf(tier);
-        var held = props.TryMeasure(rod, 1f, out _)
-            ? new HeldRod(rod, AnglerLooks.RodOffset, AnglerLooks.RodRotation)
-            : new HeldRod(FishingGear.StaffOf(tier), AnglerLooks.StaffOffset, AnglerLooks.StaffRotation);
-        if (held.Mesh != rod)
-            logger.LogInformation("This game has no {Mesh}, the mode's {Tier} fishing rod: a staff stands for it.", rod, tier);
-        _heldRods[tier] = held;
+        var held = bend > 0 ? FindBentRod(tier, bend) : FindStraightRod(tier);
+        _heldRods[look] = held;
         return held;
+    }
+
+    private HeldRod FindBentRod(RodTier tier, int bend)
+    {
+        var rod = AnglerLooks.BentRodOf(tier, bend);
+        if (props.TryMeasure(rod, 1f, out _))
+            return new HeldRod(rod, AnglerLooks.RodOffset, AnglerLooks.RodRotation, AnglerLooks.RodTipOf(tier, bend));
+
+        logger.LogInformation("This game has no {Mesh}: the {Tier} fishing rod stays straight under the line.", rod, tier);
+        return HeldRodOf(tier, 0);
+    }
+
+    // A staff lies along its mesh's Y, its head at the far end: the line leaves it there.
+    private HeldRod FindStraightRod(RodTier tier)
+    {
+        var rod = AnglerLooks.RodOf(tier);
+        if (props.TryMeasure(rod, 1f, out _))
+            return new HeldRod(rod, AnglerLooks.RodOffset, AnglerLooks.RodRotation, AnglerLooks.RodTipOf(tier, 0));
+
+        logger.LogInformation("This game has no {Mesh}, the mode's {Tier} fishing rod: a staff stands for it.", rod, tier);
+        var staff = FishingGear.StaffOf(tier);
+        var tip = props.TryMeasure(staff, 1f, out var staffBounds) ? new Vector3(0f, staffBounds.Min.Y, 0f) : Vector3.Zero;
+        return new HeldRod(staff, AnglerLooks.StaffOffset, AnglerLooks.StaffRotation, tip);
+    }
+
+    // The line runs from the rod's tip, where the hand's animation has it this frame, to the float where it is shown.
+    private AnglerScene DrawLine(AnglerScene scene, float seconds)
+    {
+        if (scene.Float is not { } bobber || scene.Rod is not { } rod || scene.Held is not { } held || !props.TryLocate(rod, out var at, out var turned))
+            return RemoveLine(scene);
+
+        var tip = PropPoint.At(at, turned, held.Tip);
+        var end = bobber.Shown;
+        var line = scene.Line ?? PlaceLine(tip, end, SagOf(scene));
+        var sag = FishingGlide.Toward(line.Sag, SagOf(scene), AnglerLooks.LineSagGlide, seconds);
+        for (var index = 0; index < line.Pieces.Count; index++)
+        {
+            var from = FishingLineShape.PointAt(tip, end, sag, (float)index / line.Pieces.Count);
+            var to = FishingLineShape.PointAt(tip, end, sag, (index + 1f) / line.Pieces.Count);
+            props.MoveLine(line.Pieces[index], from, to);
+        }
+
+        return scene with { Line = line with { Sag = sag } };
+    }
+
+    private LineScene PlaceLine(Vector3 tip, Vector3 end, float sag)
+    {
+        var pieces = new LocalPropHandle[FishingLineShape.Pieces];
+        for (var index = 0; index < pieces.Length; index++)
+            pieces[index] = props.PlaceLine(new PropLine(tip, end, AnglerLooks.LineRed, AnglerLooks.LineGreen, AnglerLooks.LineBlue, AnglerLooks.LineThickness));
+
+        return new LineScene(pieces, sag);
+    }
+
+    // Taut while a fish pulls on it, hanging while the float flies or lies waiting, or the fish leaves it slack.
+    private static float SagOf(AnglerScene scene)
+    {
+        if (scene.Cast is not null)
+            return AnglerLooks.LineSagFlying;
+
+        if (scene.Fish is not { } fish)
+            return AnglerLooks.LineSagWaiting;
+
+        return fish.Swim switch
+        {
+            FishSwim.Circling or FishSwim.Darting or FishSwim.Leaving => AnglerLooks.LineSagWaiting,
+            FishSwim.Diving => 0f,
+            FishSwim.Following or FishSwim.Jumping => scene.Bend == 0 ? AnglerLooks.LineSagSlack : 0f,
+        };
+    }
+
+    private AnglerScene RemoveLine(AnglerScene scene)
+    {
+        if (scene.Line is { } line)
+        {
+            foreach (var piece in line.Pieces)
+                props.Remove(piece);
+        }
+
+        return scene with { Line = null };
     }
 
     // A pose that loops is played again before it ends. A move played once gives way to the next pose when it ends, or
@@ -267,15 +368,19 @@ internal sealed partial class AnglerScenery(
 
         if (share < 1f)
         {
-            props.Move(bobber.Prop, at + new Vector3(0f, 0f, AnglerLooks.FloatRaise), AnglerLooks.FloatRotation);
-            return scene with { Cast = cast with { Flying = true }, Float = bobber with { Drawn = at, Target = cast.To } };
+            var flying = at + new Vector3(0f, 0f, AnglerLooks.FloatRaise);
+            props.Move(bobber.Prop, flying, AnglerLooks.FloatRotation);
+            return scene with { Cast = cast with { Flying = true }, Float = bobber with { Drawn = at, Shown = flying, Target = cast.To } };
         }
 
         effects.Play(AnglerLooks.Impact, cast.To, Vector3.Zero, AnglerLooks.LandingScale, AnglerLooks.SplashSeconds);
         sounds.PlayAt(AnglerLooks.SplashSound, cast.To);
         effects.Stop(bobber.Ripples);
         var ripples = effects.Play(AnglerLooks.Ripples, cast.To, Vector3.Zero, AnglerLooks.RipplesScale, AnglerLooks.RipplesSeconds);
-        var landed = bobber with { Drawn = cast.To, Target = cast.To, Sunk = Afloat, NibbledAt = float.NegativeInfinity, Ripples = ripples };
+        var landed = bobber with
+        {
+            Drawn = cast.To, Shown = cast.To, Target = cast.To, Sunk = Afloat, NibbledAt = float.NegativeInfinity, Ripples = ripples,
+        };
         return Gather(scene with { Cast = null, Float = landed }, cast.From, cast.To, now);
     }
 
@@ -289,8 +394,9 @@ internal sealed partial class AnglerScenery(
         var sinking = scene.Fish is { } fish ? SinkOf(fish.Swim) : Afloat;
         var sunk = FishingGlide.Toward(bobber.Sunk, sinking, AnglerLooks.SinkGlide, seconds);
         var bob = FloatMotion.Bob(now + angler * AnglerLooks.BobPhaseSeconds) + FloatMotion.Dip(now - bobber.NibbledAt);
-        props.Move(bobber.Prop, drawn + new Vector3(0f, 0f, AnglerLooks.FloatRaise - sunk + bob), AnglerLooks.FloatRotation);
-        return scene with { Float = bobber with { Drawn = drawn, Sunk = sunk } };
+        var shown = drawn + new Vector3(0f, 0f, AnglerLooks.FloatRaise - sunk + bob);
+        props.Move(bobber.Prop, shown, AnglerLooks.FloatRotation);
+        return scene with { Float = bobber with { Drawn = drawn, Shown = shown, Sunk = sunk } };
     }
 
     private AnglerScene SwimOn(AnglerScene scene, float now, float seconds)
@@ -387,6 +493,18 @@ internal sealed partial class AnglerScenery(
         return scene with { Show = null };
     }
 
+    // The server took the catch out of the hand before the show's time was up.
+    private AnglerScene Unshow(AnglerScene scene, float now)
+    {
+        if (scene.Show is not { } show)
+            return scene;
+
+        if (show.Fish is { } held)
+            props.Remove(held);
+        var shown = scene with { Show = null };
+        return shown.Pose == AnglerPose.Showing ? Pose(shown, AnglerPose.Holding, now) : shown;
+    }
+
     // A new fish swims in along the yaw to circle the float.
     private AnglerScene Approach(AnglerScene scene, Vector3 at, float yaw, int lengthCm, float now) =>
         Swim(scene, FishSwim.Circling, at, yaw, lengthCm, now, Under(at - FishingShot.Forward(yaw) * AnglerLooks.ApproachFrom));
@@ -467,14 +585,14 @@ internal sealed partial class AnglerScenery(
     private FloatScene PlaceFloat(Vector3 at, Vector3 target)
     {
         var prop = props.Place(new Prop(AnglerLooks.FloatMesh, at, AnglerLooks.FloatRotation, AnglerLooks.FloatScale), collides: false);
-        return new FloatScene(prop, at, target, Sunk: Afloat, NibbledAt: float.NegativeInfinity, VisualEffectHandle.None);
+        return new FloatScene(prop, at, at, target, Sunk: Afloat, NibbledAt: float.NegativeInfinity, VisualEffectHandle.None);
     }
 
     private AnglerScene RemoveRod(AnglerScene scene)
     {
         if (scene.Rod is { } rod)
             props.Remove(rod);
-        return scene with { Rod = null };
+        return scene with { Rod = null, Held = null };
     }
 
     private AnglerScene RemoveFloat(AnglerScene scene)
@@ -501,7 +619,7 @@ internal sealed partial class AnglerScenery(
         if (!_anglers.Remove(angler, out var scene))
             return;
 
-        scene = RemoveShoal(RemoveFish(RemoveFloat(RemoveRod(scene))));
+        scene = RemoveShoal(RemoveFish(RemoveLine(RemoveFloat(RemoveRod(scene)))));
         if (scene.Show is { Fish: { } held })
             props.Remove(held);
         if (players.LocalMainCharacter is { } me && me.PlayerId.RawValue == angler)
@@ -600,4 +718,6 @@ internal sealed partial class AnglerScenery(
     };
 
     private sealed record SplashLook(string System, float Scale, string Sound, bool Ripples);
+
+    private readonly record struct RodLook(RodTier Tier, int Bend);
 }

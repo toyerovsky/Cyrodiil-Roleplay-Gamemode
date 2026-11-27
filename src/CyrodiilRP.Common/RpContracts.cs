@@ -520,9 +520,9 @@ public static partial class RpContracts
     public static partial void FishingEnded();
 
     // The float lands where the player aimed, as far as the cast's power took it, on the water: its point, in
-    // centimetres.
+    // centimetres, and how near the angler the open water runs from there, which is as near as a twitch may pull it.
     [ClientToServer]
-    public static partial void FishingCast(float x, float y, float z);
+    public static partial void FishingCast(float x, float y, float z, float nearest);
 
     // The space key went down or up: a strike carries how many milliseconds after FishingBite the player's game heard
     // it; on the line, held, it reels in.
@@ -536,10 +536,22 @@ public static partial class RpContracts
     [ClientToServer]
     public static partial void FishingStop();
 
+    // A or D while the line waits: a twitch of the bait.
+    [ClientToServer]
+    public static partial void FishingTwitch();
+
+    // R while the catch is held up: the fish goes back into the water for more of its xp.
+    [ClientToServer]
+    public static partial void FishingRelease();
+
     // To everyone near an angler (by their PlayerId's raw value), the angler included: they hold a rod now (a RodTier's
     // name), or not ("").
     [ServerToClient]
     public static partial void AnglerShown(int angler, bool fishing, string rod);
+
+    // To everyone near an angler, the angler included: how far their rod bends under the line now, 0 straight to 3.
+    [ServerToClient]
+    public static partial void AnglerRod(int angler, int bend);
 
     // To everyone near: the angler casts, and the float flies to this point on the water and lands there.
     [ServerToClient]
@@ -590,6 +602,14 @@ public static partial class RpContracts
 
     [ClientToServer]
     public static partial void FisherClose();
+
+    // Ask for the records board, as the player opens that part of the fisher's window.
+    [ClientToServer]
+    public static partial void FisherAskRecords();
+
+    // A FisherRecordsView as JSON: the records board, for the one who asked.
+    [ServerToClient]
+    public static partial void FisherRecords(string json);
 
     // The plots of the player's area: the asset their signs stand as, each plot's id, then ten numbers a plot: its first
     // tile x and y, width and depth in tiles, ground and height in centimetres, and its sign's x, y, z and yaw.
