@@ -10,8 +10,9 @@ const PREVIEW_ONLY = [
 ];
 const KB = 1024;
 // Every player downloads the pages with the mod: past this, something big came in unnoticed (a font's every subset).
-// The guides' eleven pictures take about 430 KB of it, the fishing's twenty painted ones about 290 KB.
-const MOST_BYTES = 2100 * KB;
+// The guides' eleven pictures take about 430 KB of it, the fishing's twenty painted ones about 290 KB, the architect page
+// about 26 KB.
+const MOST_BYTES = 2128 * KB;
 // The dice board apart (vite.config.js puts its files under dice/): three.js, the board, four dice and twelve sets of
 // their pictures, about 5.5 MB.
 const DICE = "dice";

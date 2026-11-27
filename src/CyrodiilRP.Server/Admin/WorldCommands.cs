@@ -54,7 +54,7 @@ internal sealed partial class WorldCommands(CommandRegistry commands, IEntities 
         }
 
         var world = FindWorld();
-        world.As<Time>().Advance(TimeSpan.FromMinutes(MinutesUntil(world.TimeOfDayMinutes, hour * MinutesInHour)));
+        world.As<GameTime>().Advance(TimeSpan.FromMinutes(MinutesUntil(world.TimeOfDayMinutes, hour * MinutesInHour)));
         audit.Log(TimeAction, call.Sender.Ref, details: new TimeDetails(call.Words[0]));
         call.Reply(AdminText.TimeSet(time: call.Words[0]));
     }

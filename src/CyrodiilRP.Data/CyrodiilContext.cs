@@ -58,6 +58,10 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<CharacterFishRecord> CharacterFishRecords => Set<CharacterFishRecord>();
 
+    public DbSet<Plot> Plots => Set<Plot>();
+
+    public DbSet<PlotObject> PlotObjects => Set<PlotObject>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -354,6 +358,31 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.HasKey(x => new { x.CharacterId, x.Species });
             entity.Property(x => x.Species).HasMaxLength(ColumnLengths.EnumName);
             entity.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Plot>(entity =>
+        {
+            entity.ToTable("plots", table =>
+            {
+                table.HasCheckConstraint("ck_plots_size", "width > 0 AND depth > 0 AND height > 0");
+                table.HasCheckConstraint("ck_plots_gold", "price >= 0 AND weekly_tax >= 0");
+            });
+            entity.Property(x => x.Area).HasMaxLength(ColumnLengths.WorldId);
+            entity.Property(x => x.Kind).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.Property(x => x.MadeByRef).HasMaxLength(ColumnLengths.Reference);
+            entity.HasIndex(x => x.Area);
+            entity.HasIndex(x => x.OwnerCharacterId);
+            entity.HasOne<Character>().WithMany().HasForeignKey(x => x.OwnerCharacterId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<PlotObject>(entity =>
+        {
+            entity.ToTable("plot_objects", table => table.HasCheckConstraint("ck_plot_objects_piece", "length(piece) > 0"));
+            entity.Property(x => x.Piece).HasMaxLength(ColumnLengths.PieceKey);
+            entity.Property(x => x.State).HasConversion<string>().HasMaxLength(ColumnLengths.EnumName);
+            entity.Property(x => x.PlacedByRef).HasMaxLength(ColumnLengths.Reference);
+            entity.HasIndex(x => x.PlotId);
+            entity.HasOne<Plot>().WithMany().HasForeignKey(x => x.PlotId).OnDelete(DeleteBehavior.Cascade);
         });
 
         SnakeCase.Apply(modelBuilder);

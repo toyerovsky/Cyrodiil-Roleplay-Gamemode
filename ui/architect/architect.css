@@ -1,0 +1,489 @@
+/* Over the whole screen: the game shows through, and the world layer under the plates takes the mouse for the game. */
+.architect {
+  position: fixed;
+  inset: 0;
+  font-family: var(--font-body);
+  color: var(--night-text);
+}
+
+.architect__world {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  cursor: crosshair;
+}
+
+/* The picked piece's gizmo, drawn by the page over everything the game shows, under the plates. The game finds which
+   arrow a press grabs; the page only lights the one it would. Red, green and blue as ArchitectWorld's axes were. */
+.architect__gizmo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.architect__arrow--x {
+  --axis: rgb(255 90 80);
+}
+
+.architect__arrow--y {
+  --axis: rgb(100 255 120);
+}
+
+.architect__arrow--z {
+  --axis: rgb(100 170 255);
+}
+
+.architect__shaft-edge {
+  stroke: rgb(0 0 0 / 60%);
+  stroke-width: 8px;
+  stroke-linecap: round;
+}
+
+.architect__shaft {
+  stroke: var(--axis);
+  stroke-width: 4px;
+  stroke-linecap: round;
+}
+
+.architect__head {
+  fill: var(--axis);
+  stroke: rgb(0 0 0 / 60%);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+}
+
+.architect__axis-label {
+  fill: var(--axis);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  paint-order: stroke;
+  stroke: rgb(0 0 0 / 75%);
+  stroke-width: 3px;
+}
+
+.architect__arrow.is-hot .architect__shaft {
+  stroke: #fff;
+  stroke-width: 6px;
+}
+
+.architect__arrow.is-hot .architect__shaft-edge {
+  stroke: var(--axis);
+  stroke-width: 11px;
+}
+
+.architect__arrow.is-hot .architect__head {
+  fill: #fff;
+  stroke: var(--axis);
+}
+
+.architect__gizmo-middle {
+  fill: #fff;
+  stroke: rgb(0 0 0 / 70%);
+  stroke-width: 2px;
+}
+
+/* The player's own view, while the game has the mouse: where middle mouse picks. */
+.architect__crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgb(255 255 255 / 85%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 60%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Every plate over the game is dark enough to read against a sunlit scene. */
+.architect__bar,
+.architect__picked {
+  position: absolute;
+  background: var(--night);
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius);
+  pointer-events: auto;
+}
+
+.architect__bar {
+  top: 16px;
+  left: 50%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 24px;
+  width: min(1100px, calc(100% - 32px));
+  padding: 12px 18px;
+  transform: translateX(-50%);
+}
+
+.architect__title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--gold-light);
+}
+
+.architect__facts,
+.architect__keys {
+  margin: 0;
+  font-size: 16px;
+  color: var(--night-muted);
+}
+
+.architect__keys {
+  grid-column: 1 / -1;
+}
+
+.architect__tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.architect__status {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  font-size: 18px;
+}
+
+.architect__status--done {
+  color: var(--gold-light);
+}
+
+.architect__status--refused {
+  color: var(--night-refusal);
+}
+
+/* The catalogue over the whole screen, as the game's own menus are: its tabs across the top, the pieces in rows. */
+.architect__catalogue {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: radial-gradient(ellipse at center, var(--backdrop-shade) 0%, var(--backdrop-edge) 100%);
+  pointer-events: auto;
+}
+
+.architect__catalogue-panel.rp-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(1500px, 100%);
+  height: min(960px, 100%);
+  overflow: hidden;
+}
+
+/* Nine tabs: each as wide as its name, and on a narrower screen without its medallion, so every name reads whole. */
+.architect__catalogue-panel .rp-tabs__tab {
+  flex: 1 1 auto;
+  padding: 0 14px;
+  gap: 6px;
+}
+
+@media (max-width: 1500px) {
+  .architect__catalogue-panel .rp-tabs__medallion {
+    display: none;
+  }
+}
+
+.architect__pieces {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  align-content: start;
+  gap: 14px;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.architect__piece {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  font-family: var(--font-body);
+  text-align: left;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--parchment-light), var(--parchment));
+  border: 1px solid var(--parchment-edge);
+  border-radius: var(--radius-small);
+  cursor: grab;
+  touch-action: none;
+  transition: box-shadow var(--duration-hover);
+}
+
+.architect__piece:hover,
+.architect__piece:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* The game's own drawing of the piece, or its frame while it is being drawn. */
+.architect__picture {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: var(--wood-deep);
+  border: 1px solid var(--ink-line);
+  border-radius: 2px;
+}
+
+.architect__picture--waiting {
+  background: linear-gradient(135deg, var(--wood), var(--wood-deep));
+}
+
+.architect__piece-name {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.architect__piece-use {
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.architect__catalogue-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.architect__catalogue-hint {
+  margin: 0;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+/* The control panel at the left: the grid, how far a turn goes, what a piece stands on. */
+.architect__panel {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 280px;
+  max-width: calc(100% - 32px);
+  padding: 14px 16px;
+  background: var(--night);
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius);
+  transform: translateY(-50%);
+  pointer-events: auto;
+}
+
+.architect__setting {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.architect__setting-name {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 16px;
+  color: var(--gold-light);
+}
+
+.architect__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* The picked piece's buttons stand at the bottom right. */
+.architect__picked {
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: min(560px, calc(100% - 32px));
+  padding: 12px 16px;
+}
+
+.architect__picked-name {
+  margin: 0;
+  font-size: 18px;
+  color: var(--gold-light);
+}
+
+/* The arrows in a cross: forward over back, left and right either side. */
+.architect__arrows {
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  grid-template-rows: repeat(2, 36px);
+  gap: 4px;
+  justify-content: center;
+}
+
+.architect__arrow.rp-button {
+  min-width: 0;
+  padding: 0;
+}
+
+.architect__arrow--up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.architect__arrow--left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.architect__arrow--down {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.architect__arrow--right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+/* The front's button on a row of its own, so the form's own buttons keep theirs. */
+.architect__front {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+/* The kit chips over the Kits tab's pieces. */
+.architect__kits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+/* Asks before a plot is taken away, over everything else, in the middle of the screen. */
+.architect__confirm {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 10;
+  display: grid;
+  gap: 12px;
+  width: min(440px, calc(100vw - 32px));
+  padding: 16px 18px;
+  border: 1px solid var(--night-line);
+  border-radius: var(--radius);
+  background: var(--night);
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+
+.architect__question {
+  margin: 0;
+  color: var(--gold-light);
+  font-weight: 700;
+}
+
+.architect__confirm-acts,
+.architect__choice-acts {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.architect__plot-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.architect__plot-choice {
+  display: grid;
+  gap: 6px;
+}
+
+.architect__plot-name {
+  margin: 0;
+  color: var(--gold-light);
+}
+
+.architect__plot-facts {
+  margin: 0;
+  font-size: 0.85em;
+  opacity: 0.85;
+}
+
+.architect__picked-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* The new plot's form, on parchment at the right, out of the way of the plot being marked. */
+.architect__form.rp-panel {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: min(440px, calc(100% - 32px));
+  max-height: calc(100% - 200px);
+  overflow-y: auto;
+  transform: translateY(-50%);
+  pointer-events: auto;
+}
+
+.architect__form form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.architect__size {
+  margin: 0 0 12px;
+  font-size: 18px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.architect__kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.architect__label {
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 0;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.architect__problem {
+  margin: 0;
+  font-size: 16px;
+  color: var(--problem);
+}
+
+.architect__form-acts {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+

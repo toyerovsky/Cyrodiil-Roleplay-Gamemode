@@ -44,4 +44,6 @@ public static class StaffPermissions
     public const string Specialization = "aspec";
     public const string Cap = "acap";
     public const string Stat = "astat";
+    public const string Plot = "aplot";
+    public const string Build = "abuild";
 }
