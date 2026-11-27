@@ -149,6 +149,8 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     partial void OnNotify(string text) => ShowNotice(text);
 
+    partial void OnZoneEntered(string text) => ui.ShowMessage(text, MessagePosition.Center, NoticeSeconds);
+
     partial void OnLocale(string locale) => LocaleChanged?.Invoke(locale);
 
     partial void OnStartNaming() => NamingStarted?.Invoke();

@@ -99,5 +99,276 @@
     "plotWeeklyTax": 100,
     "plotsPerCharacter": 1,
     "signAsset": "/Game/Art/Environment/Architecture/chorrol/SM_signforsale01.SM_signforsale01"
+  },
+
+  // Level zones on the Tamriel cell grid. First match wins.
+  "zones": {
+    "enabled": true,
+    "takenPerLevel": 0.08,
+    "maxTaken": 3.0,
+    "dealtPerLevel": 0.05,
+    "minDealt": 0.35,
+    "entries": [
+      {
+        "id": "imperial-city",
+        "name": {
+          "en": "Imperial City",
+          "pl": "Cesarskie Miasto"
+        },
+        "minLevel": 1,
+        "maxLevel": 5,
+        "mode": "Fixed",
+        "shapes": [
+          [
+            [-3, 7],
+            [15, 7],
+            [15, 19],
+            [-3, 19]
+          ]
+        ],
+        "areas": [
+          "ICArboretumDistrict",
+          "ICArenaDistrict",
+          "ICElvenGardensDistrict",
+          "ICImperialPalace",
+          "ICImperialPalaceMQ16",
+          "ICImperialPrisonDistrict",
+          "ICMarketDistrict",
+          "ICTalosPlazaDistrict",
+          "ICTempleDistrict",
+          "ICTempleDistrictMQ16",
+          "ICTheArcaneUniversity",
+          "TGTempleOfTheEmperorZero"
+        ]
+      },
+      {
+        "id": "blue-road",
+        "name": {
+          "en": "Road to Cheydinhal",
+          "pl": "Droga do Cheydinhal"
+        },
+        "minLevel": 1,
+        "maxLevel": 5,
+        "mode": "Fixed",
+        "shapes": [
+          [
+            [15, 13],
+            [20, 17],
+            [27, 20],
+            [31, 22],
+            [31, 25],
+            [26, 24],
+            [19, 21],
+            [15, 19]
+          ]
+        ],
+        "areas": []
+      },
+      {
+        "id": "cheydinhal",
+        "name": {
+          "en": "Cheydinhal",
+          "pl": "Cheydinhal"
+        },
+        "minLevel": 1,
+        "maxLevel": 10,
+        "mode": "Fixed",
+        "shapes": [
+          [
+            [15, 7],
+            [64, 7],
+            [64, 27],
+            [15, 27]
+          ],
+          [
+            [3, 19],
+            [15, 19],
+            [15, 27],
+            [3, 27]
+          ]
+        ],
+        "areas": [
+          "CheydinhalWorld"
+        ]
+      },
+      {
+        "id": "jerall",
+        "name": {
+          "en": "Jerall Mountains",
+          "pl": "Góry Jerall"
+        },
+        "minLevel": 15,
+        "maxLevel": 25,
+        "mode": "Fixed",
+        "shapes": [
+          [
+            [-64, 28],
+            [64, 28],
+            [64, 64],
+            [-64, 64]
+          ]
+        ],
+        "areas": [
+          "BrumaWorld"
+        ]
+      },
+      {
+        "id": "great-forest",
+        "name": {
+          "en": "Great Forest",
+          "pl": "Wielka Puszcza"
+        },
+        "minLevel": 20,
+        "maxLevel": 25,
+        "mode": "Fixed",
+        "shapes": [
+          [
+            [-30, 6],
+            [3, 6],
+            [3, 27],
+            [-30, 27]
+          ],
+          [
+            [-64, 6],
+            [-30, 6],
+            [-30, 27],
+            [-64, 27]
+          ]
+        ],
+        "areas": [
+          "ChorrolWorld"
+        ]
+      },
+      {
+        "id": "west-weald",
+        "name": {
+          "en": "West Weald",
+          "pl": "Zachodnia Knieja"
+        },
+        "minLevel": 25,
+        "maxLevel": 30,
+        "mode": "Fixed",
+        "shapes": [
+          [
+            [-30, -25],
+            [-3, -25],
+            [-3, 6],
+            [-30, 6]
+          ]
+        ],
+        "areas": [
+          "SkingradWorld"
+        ]
+      },
+      {
+        "id": "kvatch",
+        "name": {
+          "en": "Kvatch",
+          "pl": "Kvatch"
+        },
+        "minLevel": 30,
+        "maxLevel": 40,
+        "mode": "Fixed",
+        "shapes": [
+          [
+            [-44, -25],
+            [-30, -25],
+            [-30, 6],
+            [-44, 6]
+          ]
+        ],
+        "areas": []
+      },
+      {
+        "id": "gold-coast",
+        "name": {
+          "en": "Gold Coast",
+          "pl": "Złote Wybrzeże"
+        },
+        "minLevel": 40,
+        "maxLevel": 40,
+        "mode": "ScalesAbove",
+        "shapes": [
+          [
+            [-64, -25],
+            [-44, -25],
+            [-44, 6],
+            [-64, 6]
+          ]
+        ],
+        "areas": [
+          "AnvilWorld",
+          "AnvilCastleCourtyardWorld"
+        ]
+      },
+      {
+        "id": "nibenay",
+        "name": {
+          "en": "Nibenay Valley",
+          "pl": "Dolina Nibenay"
+        },
+        "minLevel": 10,
+        "maxLevel": 15,
+        "mode": "Fixed",
+        "shapes": [
+          [
+            [-3, -15],
+            [64, -15],
+            [64, 7],
+            [-3, 7]
+          ]
+        ],
+        "areas": [
+          "BravilWorld"
+        ]
+      },
+      {
+        "id": "blackwood",
+        "name": {
+          "en": "Blackwood",
+          "pl": "Czarny Las"
+        },
+        "minLevel": 15,
+        "maxLevel": 20,
+        "mode": "Fixed",
+        "shapes": [
+          [
+            [-3, -64],
+            [64, -64],
+            [64, -15],
+            [-3, -15]
+          ]
+        ],
+        "areas": [
+          "LeyawiinWorld"
+        ]
+      },
+      {
+        "id": "shivering-isles",
+        // World space names were not found in the repository or SDK. Fill areas after in-game testing.
+        "name": {
+          "en": "Shivering Isles",
+          "pl": "Drżące Wyspy"
+        },
+        "minLevel": 40,
+        "maxLevel": 40,
+        "mode": "ScalesAbove",
+        "shapes": [],
+        "areas": []
+      },
+      {
+        "id": "oblivion",
+        // Fill areas with verified Oblivion plane world space names after in-game testing.
+        "name": {
+          "en": "Oblivion gates",
+          "pl": "Bramy Otchłani"
+        },
+        "minLevel": 1,
+        "maxLevel": 1,
+        "mode": "PartyLowest",
+        "shapes": [],
+        "areas": []
+      }
+    ]
   }
 }

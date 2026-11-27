@@ -1,0 +1,11 @@
+{
+  "zones.cmd.zone": "/zone - show this area's level zone",
+  "zones.cmd.staff": "/azone - inspect the current cell, level zone and spawner offsets",
+  "zones.range": "{name}, levels {min}-{max}",
+  "zones.above": "{name}, levels {min}+",
+  "zones.party": "{name}, lowest party level",
+  "zones.none": "This cell has no level zone.",
+  "zones.not_in_world": "You have to be in the world to check a level zone.",
+  "zones.no_spawners": "none",
+  "zones.diagnostics": "Area: {area}. Cell: {kind} {x},{y}. Zone: {zone}. Cell level: {level}. Session level: {session}. Spawners (ref: offset): {offsets}."
+}
