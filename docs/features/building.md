@@ -15,7 +15,8 @@ everything they place stands finished at once. A player buys a plot for sale at 
   then a form asks its kind (Residential or Industrial), price and tax a week in gold, and its height in metres. Mark the
   plot saves it, stands its sign, and opens the plot to build on.
 - **How a plot shows**: a green outline and its sides shaded green at 40% (`ILocalProps.PlaceFill`, a box filled in a
-  translucent colour), the same on the plot built on, every plot while choosing, and the plot being marked. Only the
+  translucent colour), the same on the plot built on and every plot while choosing, and at 80% on the plot being marked,
+  so it shows well while it is made. Only the
   sides across the plot from the view are shaded, as if each showed only its inner face, so the near ones never hide
   what is built behind them; from over the plot all four are. They follow the view as it moves.
 - **Removing a plot**: Remove the plot in the panel while building on it, or Remove beside it in the list while
@@ -43,8 +44,10 @@ everything they place stands finished at once. A player buys a plot for sale at 
 - A click on a piece picks it and leaves it where it stands: the game outlines it and a green box marks it. It moves only
   once the mouse goes more than 6 px with the button down. The mouse wheel turns the piece the mouse carries, otherwise
   it brings the view nearer.
-- **The gizmo**: over a picked piece stand three arrows along the world's axes, red for X, green for Y, blue for up,
-  sized to the view. A drag on one carries the piece along that axis only, shown as a carried piece is (green where it
+- **The gizmo**: from the middle of a picked piece's box stand three arrows along the world's axes, red for X, green for
+  Y, blue for up, sized to the view. The page draws them over everything, at the points `ICamera.TryProject` gives each
+  frame (`ArchitectOverlay` sends them when they move), so nothing in the world hides them; the arrow a press would grab
+  lights up under the mouse. A drag on one carries the piece along that axis only, shown as a carried piece is (green where it
   fits): along X and Y it snaps to the grid, up and down to the panel's height step from the plot's ground.
 - **A picked piece** takes the keys: WASD or the arrows (keys or the buttons in its panel) move it along the ground, up
   being the axis of the grid nearest to where the camera looks, so it moves as the keys read on screen (10 cm steps with
@@ -58,6 +61,19 @@ everything they place stands finished at once. A player buys a plot for sale at 
   25 is 25 then 0. Heights count from the plot's ground, turns from 0 degrees, the arrows from the grid's lines, so a
   piece off the grid comes back onto it with one press (`BuildingGrid.StepToward`). G changes the grid the mouse snaps to: whole,
   half or quarter tiles, or none.
+- **Undo**: Ctrl+Z, or Undo in the panel, takes back the architect's newest change on the plot: a piece placed goes, a
+  piece moved goes back (moves of one piece in a row go back to where the first began), a piece removed stands again, a
+  house taken apart is whole again. The server keeps the last 20 changes of each architect (`ArchitectChangeRegistry`),
+  through a relog but not a restart, and a piece placed again stands as it stood, its fit not judged again. A removed
+  plot leaves nothing to undo, and removing a plot cannot be undone.
+- **Lights**: the Lights tab holds 16 of the game's lights (candles, candlesticks, a candelabra, floor candlesticks,
+  chandeliers, wall sconces, hanging lamps, a lamp post). A light piece is the light form's mesh (a light form's blueprint is the game's candle or lamp prefab, whose construction
+  script gives its mesh component the mesh the blueprint names in its StaticMesh default, which the SDK's props read), and every player's game
+  stands a point light where its flame is (`ILocalProps.PlaceLight`): near the top of what stands, in the middle of what
+  hangs. Its colour and how far it reaches come from the form's name (`CandleFat01Yellow256`: yellow, 256 of the game's
+  units), its brightness from its reach (`GameLights`, in `CyrodiilRP.Common`). A light casts shadows, so it stays inside
+  the walls round it. A chandelier is let fall like any piece: raise it to the ceiling (Z+W, or the plot's ground under
+  Stand on).
 - **Doors**: the Doors tab holds doors and gates the game animates where they stand (17: coastal, Chorrol, Imperial,
   Bruma, Skingrad and Leyawiin doors, a tower, cellar and ship's door, farm, stick, wooden and iron gates). Placed, each
   is the game's own door, made by the server as an SDK `Door` (its open or shut state is every player's), and it swings
@@ -79,8 +95,13 @@ everything they place stands finished at once. A player buys a plot for sale at 
   the player looked. WASD moves it over the ground, the right mouse button held turns it round and tilts it, the mouse
   wheel brings it nearer or further. It stays over the plot and up to 10 m past its edges (marking: within 120 m of
   where the player looked when it began). The character stands where it was.
-- **Looking around**: B gives the game back its camera, the mouse and the keys to walk, the page folded to one line, and
-  B brings architect mode and its view back.
+- **The player's own view**: B gives the game its camera back. With nothing picked or carried, the pieces shut and no
+  question asked, the game has the mouse and keys: the player walks and looks as ever, into a house, with a crosshair in
+  the middle of the screen and only the bar on the page. Middle mouse picks the piece at the crosshair and C opens the
+  pieces: the page then takes the mouse and keys to drag, turn and move it as over the plot, from where the player
+  stands, and gives them back once the piece is let go (X, Done or Esc). B goes back to the view over the plot.
+- **Hiding the interface**: L hides every panel, the gizmo and the catalogue, in either view: only the world is left on
+  the page, so a click still picks and places, and nothing hidden takes one. L or C brings it back.
 - **The panel** at the left: the grid (whole, half or quarter tiles, or none), how far Q and E turn (90, 45, 15 or 5
   degrees, Shift 1), how far a piece goes up and down (1, 5, 10, 25, 50 or 100 cm, Shift 1), and what a piece stands on
   (what is under it, or the plot's ground).
@@ -109,7 +130,7 @@ everything they place stands finished at once. A player buys a plot for sale at 
 | `/aplot new`, `remove`, `list` | Staff on duty: mark a plot, take the one stood on away, list them | `Building/BuildingCommands.cs` |
 | `/abuild` | Staff on duty: architect mode on the plot stood on, or the plots near to choose from | `Building/BuildingCommands.cs` |
 | The architect page | Catalogue (C), picking, the plot's form, Leave | `ui/architect`, `Building/ArchitectOverlay.cs` (client) |
-| B | Look around and back, only in architect mode | `Building/ArchitectOverlay.cs` (client) |
+| B, middle mouse, C | The player's own view and back; in it, pick the piece at the crosshair or open the pieces | `Building/ArchitectOverlay.cs` (client) |
 | H before a sign | Any player: the plot page, Buy | `Building/PlotSales.cs`, `ui/plot`, `Building/PlotSaleOverlay.cs` (client) |
 | WASD, right mouse button, wheel | Move, turn and bring the view nearer, in architect mode | `Building/ArchitectCamera.cs` (client) |
 
@@ -123,11 +144,16 @@ Both commands are an administrator's. Reading a sign is everyone's.
 - **In memory**: `Plots` keeps the plots (`PlotRegistry`), the pieces on them (`PlotObjectRegistry`) and the catalogue
   (`PieceRegistry`). Every change is written first and kept after.
 - **The pieces in the world**: each player's game stands the signs and pieces of the area its character is in as meshes
-  of its own, with collision (`Building/BuildingProps.cs`, server and client), as the notice boards do.
+  of its own, with collision (`Building/BuildingProps.cs`, server and client), as the notice boards do. A solid mesh
+  stood within moments of a load showed but blocked nothing (a player who joined walked through a house until a door
+  beside it opened), so the SDK stands one only once the character has been in the world 5 s after a load, and one
+  kept from before the load is stood again then.
 - **The view**: `Building/ArchitectCamera.cs` puts the SDK's `ICamera` at a distance from a point on the ground, looking
   down at it (`ICamera.Set`, a glide in and out, then set again each frame it moves), and gives the game's camera back
-  on leaving or B (`ICamera.Reset`). The page sends WASD as held, the right button's pixels and the wheel's notches.
-  The page holds the input meanwhile, so the character does not walk. A load takes the camera away: it is set again.
+  on leaving (`ICamera.Reset`). The page sends WASD as held, the right button's pixels and the wheel's notches, and
+  holds the input meanwhile, so the game's keys do nothing. In the player's own view the page says when it needs the
+  mouse and keys (`ArchitectWantsInput`), and the client holds or releases the input by it; the game's camera stays
+  where the player left it while they edit. A load takes the camera away: it is set again.
 - **The mouse in the world**: the page sends where the mouse is as a fraction of the screen. The client asks the SDK's
   `ILocalProps.TryTraceScreen` for the line the camera casts through that point and what it hits first: the ground, or a
   piece (`Building/ArchitectWorld.cs`). The piece carried is a mesh without collision, which the line passes through, and
@@ -190,8 +216,8 @@ Both commands are an administrator's. Reading a sign is everyone's.
 - The page gets the whole catalogue (about 560 pieces) with every change, about 70 KB.
 - A door placed once stood at another angle than the one shown while carried. It did not show again after architect
   mode was opened anew, and its cause is not known.
-- Not checked in the game yet: the plot page at a sign and buying, removing a door and the sweep of doors left behind,
-  the doors (that they swing for every player, and their turn), the shaded sides and the gizmo (the fill's colour and opacity are set under the names
+- Not checked in the game yet: the lights (their brightness, colour and where each sits on its mesh; the game's own flames are not drawn, and the log names what a light's blueprint has besides meshes as `Not drawn`), the plot page at a sign and buying, removing a door and the sweep of doors left behind,
+  the doors (that they swing for every player, and their turn), the gizmo as the page draws it over the game, the shaded sides (the fill's colour and opacity are set under the names
   the engine's own coloured materials use, `Color` and `GizmoColor` with its alpha, and `Opacity`, unchecked on the
   game's translucent debug material), the kits' parts and their pictures, breaking a house apart, the view (`ICamera.Set` has not run in the game anywhere yet), that the mouse finds the
   world through it, the glide back on leaving, the pieces as other players see them, the game's own furniture and

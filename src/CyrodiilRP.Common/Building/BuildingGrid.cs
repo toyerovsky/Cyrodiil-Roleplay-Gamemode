@@ -8,7 +8,8 @@ public static class BuildingGrid
 
     private const float UnitsPerCell = 4096f;
 
-    private const float CentimetresPerUnit = 100f / 70f;
+    // Centimetres in one of the game's units.
+    public const float CentimetresPerUnit = 100f / 70f;
 
     public const float TileCentimetres = UnitsPerCell / TilesPerCell * CentimetresPerUnit;
 

@@ -9,8 +9,8 @@ namespace CyrodiilRP.Client.Building;
 
 // Architect mode's view, in place of the game's camera (ICamera.Set): it looks down at a point on the ground from a
 // distance, which WASD moves, the right mouse button turns round and tilts and the wheel brings nearer. The point stays
-// over the plot, or near where marking began. Look around (B) gives the game its camera back until B again. Update
-// thread only.
+// over the plot, or near where marking began. The player's own view (B) gives the game its camera back until B again.
+// Update thread only.
 [Service]
 internal sealed partial class ArchitectCamera(ICamera camera, ILocalProps props, BuildingProps building, ILogger logger)
 {
@@ -48,7 +48,7 @@ internal sealed partial class ArchitectCamera(ICamera camera, ILocalProps props,
     private const float FallbackAhead = 1000f;
 
     private bool _active;
-    private bool _paused;
+    private bool _playerView;
     private long _plotId;
     private Vector3 _focus;
     private Vector3 _home;
@@ -61,7 +61,8 @@ internal sealed partial class ArchitectCamera(ICamera camera, ILocalProps props,
     // Raised after the view moved, so what the mouse carries follows it.
     public event Action? Moved;
 
-    public bool IsActive => _active && !_paused;
+    // The view over the plot is on, not the player's own.
+    public bool IsActive => _active && !_playerView;
 
     // From the point looked at, in centimetres.
     public float Distance => _distance;
@@ -84,6 +85,7 @@ internal sealed partial class ArchitectCamera(ICamera camera, ILocalProps props,
         }
 
         _plotId = plotId;
+        _playerView = false;
         _yaw = camera.Look?.Yaw ?? 0f;
         _pitch = StartPitch;
         _pan = Vector2.Zero;
@@ -106,7 +108,6 @@ internal sealed partial class ArchitectCamera(ICamera camera, ILocalProps props,
 
         _home = _focus;
         _active = true;
-        _paused = false;
         Place(GlideSeconds);
     }
 
@@ -116,20 +117,20 @@ internal sealed partial class ArchitectCamera(ICamera camera, ILocalProps props,
             return;
 
         _active = false;
-        _paused = false;
+        _playerView = false;
         _pan = Vector2.Zero;
         camera.Reset(GlideSeconds);
     }
 
-    // While the player looks around with the game's camera, and back.
-    public void Pause(bool paused)
+    // The game's own camera, where the player walks and looks as ever, and back to the view over the plot.
+    public void UsePlayerView(bool playerView)
     {
-        if (!_active || _paused == paused)
+        if (!_active || _playerView == playerView)
             return;
 
-        _paused = paused;
+        _playerView = playerView;
         _pan = Vector2.Zero;
-        if (paused)
+        if (playerView)
             camera.Reset(GlideSeconds);
         else
             Place(GlideSeconds);

@@ -31,22 +31,18 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
     private const float LineThickness = 4f;
     private const float PlotLineThickness = 8f;
 
-    // A plot's sides, shaded so it shows from afar: how much of the green shows, and how thick a side is, in centimetres.
+    // A plot's sides, shaded so it shows from afar: how much of the green shows, more on the plot being marked, and how
+    // thick a side is, in centimetres.
     private const float PlotSideOpacity = 0.4f;
+    private const float MarkSideOpacity = 0.8f;
     private const float PlotSideHalf = 1f;
 
-    // The gizmo over the picked piece: how high over its top, its arrows' length as a share of the view's distance and
-    // within limits, how thick, a head's half size, how solid, and how near the mouse a handle is grabbed, in shares of
-    // the screen.
-    private const float GizmoLift = 30f;
+    // The gizmo at the middle of the picked piece: its arrows' length as a share of the view's distance and within
+    // limits, and how near the mouse a handle is grabbed, in shares of the screen.
     private const float GizmoShare = 0.12f;
     private const float LeastGizmo = 80f;
     private const float MostGizmo = 600f;
-    private const float GizmoHalf = 3f;
-    private const float GizmoHead = 10f;
-    private const float GizmoOpacity = 1f;
     private const float GizmoReach = 0.02f;
-    private const float GizmoThickness = 2f;
     private const float FreeView = 2000f;
 
     private const float SignFacing = 180f;
@@ -113,11 +109,11 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
     private readonly List<PlotShape> _plotShape = [];
     private readonly List<PlotShape> _choiceBoxes = [];
     private readonly List<PlotShape> _markShape = [];
-    private readonly List<LocalPropHandle> _gizmo = [];
-
-    // Where the gizmo stands and how long its arrows are, while the picked piece shows one.
+    // Whether the picked piece shows the gizmo, where it stands and how long its arrows are. The page draws it.
+    private bool _gizmoShown;
     private Vector3 _gizmoOrigin;
-    private float _gizmoLength;
+
+    private float GizmoLength => Math.Clamp((view.IsActive ? view.Distance : FreeView) * GizmoShare, LeastGizmo, MostGizmo);
 
     // An axis drag: the axis, where the piece stood, where the mouse went down, and how far a centimetre along the axis
     // moves on the screen.
@@ -213,7 +209,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
                 foreach (var id in building.PlotIds)
                 {
                     if (building.TryFindPlot(id, out var each))
-                        DrawPlotShape(each, _choiceBoxes);
+                        DrawPlotShape(each, _choiceBoxes, PlotSideOpacity);
                 }
 
                 return;
@@ -221,7 +217,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
                 return;
             case ArchitectTool.Build:
                 if (building.TryFindPlot(_plotId, out var box))
-                    DrawPlotShape(box, _plotShape);
+                    DrawPlotShape(box, _plotShape, PlotSideOpacity);
                 return;
             default:
                 throw new ArgumentOutOfRangeException(nameof(_tool), _tool, "Not an architect tool.");
@@ -238,9 +234,9 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
     }
 
     // A plot's green outline and its sides shaded green, so a plot is found at a glance.
-    private void DrawPlotShape(PlotBox box, List<PlotShape> into)
+    private void DrawPlotShape(PlotBox box, List<PlotShape> into, float opacity)
     {
-        var shape = new PlotShape(box, props.PlaceBox(PlotOutline(box)), [], NoSides);
+        var shape = new PlotShape(box, props.PlaceBox(PlotOutline(box)), [], NoSides, opacity);
         into.Add(ShadeSides(shape));
     }
 
@@ -282,7 +278,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
         return shape with { Sides = sides, Shown = shown };
 
         LocalPropHandle Side(Vector3 at, Vector3 size) =>
-            props.PlaceFill(new BoxFill(at, size, 0f, Colour.Plot.Red, Colour.Plot.Green, Colour.Plot.Blue, PlotSideOpacity));
+            props.PlaceFill(new BoxFill(at, size, 0f, Colour.Plot.Red, Colour.Plot.Green, Colour.Plot.Blue, shape.Opacity));
     }
 
     // A side is across the plot when the view stands on the plot's side of it.
@@ -304,8 +300,8 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
     private const int HighYSide = 8;
     private const int AllSides = LowXSide | HighXSide | LowYSide | HighYSide;
 
-    // A plot as drawn: its outline, the side fills shown, and which sides those are.
-    private sealed record PlotShape(PlotBox Box, LocalPropHandle Outline, IReadOnlyList<LocalPropHandle> Sides, int Shown);
+    // A plot as drawn: its outline, the side fills shown, which sides those are, and how much of their green shows.
+    private sealed record PlotShape(PlotBox Box, LocalPropHandle Outline, IReadOnlyList<LocalPropHandle> Sides, int Shown, float Opacity);
 
     // The mouse went down: on a drawer's piece (its key), or on the world (empty).
     public void Grab(float x, float y, string piece)
@@ -329,18 +325,19 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
             return;
         }
 
+        // The gizmo's handles are drawn over everything, so they are grabbed before the world is looked at.
+        if (_tool != ArchitectTool.Choose && TryPickAxis(x, y, out var axis))
+        {
+            StartAxisDrag(axis, x, y);
+            return;
+        }
+
         if (!props.TryTraceScreen(x, y, Reach, out var trace) || trace.Hit == ScreenHit.Nothing)
             return;
 
         if (_tool == ArchitectTool.Choose)
         {
             ChoosePlotAt(trace.Location);
-            return;
-        }
-
-        if (TryPickAxis(x, y, out var axis))
-        {
-            StartAxisDrag(axis, x, y);
             return;
         }
 
@@ -370,6 +367,24 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
         Deselect();
     }
 
+    // The piece at the point (the crosshair, in the player's own view) picked, as a click picks it, nothing carried.
+    public void PickAt(float x, float y)
+    {
+        Cancel();
+        if (_tool != ArchitectTool.Build || !props.TryTraceScreen(x, y, Reach, out var trace))
+            return;
+
+        var picked = trace.Hit switch
+        {
+            ScreenHit.LocalProp => building.TryFindPiece(trace.Prop, out var mesh) ? mesh : 0,
+            ScreenHit.Reference => building.TryFindByReference(trace.RefId, out var reference) ? reference : 0,
+            ScreenHit.World or ScreenHit.Nothing => 0,
+            _ => throw new ArgumentOutOfRangeException(nameof(x), trace.Hit, "Not a screen hit."),
+        };
+        if (picked != 0 && building.TryFindPiece(picked, out var prop) && FindKey(prop.Asset) is { } key)
+            Select(picked, key);
+    }
+
     // A click on a plot's ground opens it to build on.
     private void ChoosePlotAt(Vector3 point)
     {
@@ -389,7 +404,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
         _pending = null;
         Unhighlight();
         Remove(ref _selectionBox);
-        RemoveAll(_gizmo);
+        _gizmoShown = false;
         _drag = ArchitectDrag.MovePiece;
         _carried = pending.Key;
         _moving = pending.Id;
@@ -429,14 +444,14 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
     private bool TryPickAxis(float x, float y, out Vector3 axis)
     {
         axis = default;
-        if (_gizmo.Count == 0)
+        if (!_gizmoShown)
             return false;
 
         var mouse = new Vector2(x, y);
         var nearest = GizmoReach;
         foreach (var each in Axes)
         {
-            if (!camera.TryProject(_gizmoOrigin, out var from) || !camera.TryProject(_gizmoOrigin + each * _gizmoLength, out var to))
+            if (!camera.TryProject(_gizmoOrigin, out var from) || !camera.TryProject(_gizmoOrigin + each * GizmoLength, out var to))
                 continue;
 
             var distance = DistanceToSegment(mouse, from, to);
@@ -461,15 +476,15 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
     private void StartAxisDrag(Vector3 axis, float x, float y)
     {
         if (!TryFindSelected(out var prop) || FindKey(prop.Asset) is not { } key
-            || !camera.TryProject(_gizmoOrigin, out var from) || !camera.TryProject(_gizmoOrigin + axis * _gizmoLength, out var to))
+            || !camera.TryProject(_gizmoOrigin, out var from) || !camera.TryProject(_gizmoOrigin + axis * GizmoLength, out var to))
             return;
 
-        var screen = (to - from) / _gizmoLength;
+        var screen = (to - from) / GizmoLength;
         if (screen.LengthSquared() <= float.Epsilon)
             return;
 
         _pending = null;
-        RemoveAll(_gizmo);
+        _gizmoShown = false;
         Unhighlight();
         Remove(ref _selectionBox);
         _drag = ArchitectDrag.AxisMove;
@@ -505,24 +520,25 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
         ShowGhost(at);
     }
 
-    // Arrows along the world's axes from over the picked piece, red, green and blue, each with a head to grab.
+    // Arrows along the world's axes from the middle of the picked piece's box.
     private void DrawGizmo(Prop prop, PropBounds bounds)
     {
-        RemoveAll(_gizmo);
-        var top = Vector3.Transform(bounds.Center, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, prop.Rotation.Y * MathF.PI / 180f));
-        _gizmoOrigin = prop.Position + new Vector3(top.X, top.Y, bounds.Max.Z + GizmoLift);
-        _gizmoLength = Math.Clamp((view.IsActive ? view.Distance : FreeView) * GizmoShare, LeastGizmo, MostGizmo);
-        foreach (var axis in Axes)
-        {
-            var colour = axis.X != 0f ? Colour.AxisX : axis.Y != 0f ? Colour.AxisY : Colour.AxisZ;
-            var shaft = new Vector3(GizmoHalf) + axis * (_gizmoLength / 2f - GizmoHalf);
-            var middle = _gizmoOrigin + axis * (_gizmoLength / 2f);
-            _gizmo.Add(props.PlaceFill(new BoxFill(middle, shaft, 0f, colour.Red, colour.Green, colour.Blue, GizmoOpacity)));
-            _gizmo.Add(props.PlaceBox(Outline(middle, shaft, 0f, colour) with { Thickness = GizmoThickness }));
-            _gizmo.Add(props.PlaceFill(new BoxFill(_gizmoOrigin + axis * _gizmoLength, new Vector3(GizmoHead), 0f, colour.Red, colour.Green,
-                colour.Blue, GizmoOpacity)));
-        }
+        _gizmoOrigin = prop.Position + Vector3.Transform(bounds.Center, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, prop.Rotation.Y * MathF.PI / 180f));
+        _gizmoShown = true;
     }
+
+    // Where the gizmo shows on the screen now: its middle and the tip of each arrow, a tip behind the view null.
+    public bool TryProjectGizmo(out GizmoOnScreen gizmo)
+    {
+        gizmo = default;
+        if (!_gizmoShown || !camera.TryProject(_gizmoOrigin, out var origin))
+            return false;
+
+        gizmo = new GizmoOnScreen(origin, ProjectTip(Vector3.UnitX), ProjectTip(Vector3.UnitY), ProjectTip(Vector3.UnitZ));
+        return true;
+    }
+
+    private Vector2? ProjectTip(Vector3 axis) => camera.TryProject(_gizmoOrigin + axis * GizmoLength, out var tip) ? tip : null;
 
     private static readonly Vector3[] Axes = [Vector3.UnitX, Vector3.UnitY, Vector3.UnitZ];
 
@@ -856,7 +872,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
         _pending = null;
         Unhighlight();
         Remove(ref _selectionBox);
-        RemoveAll(_gizmo);
+        _gizmoShown = false;
         SelectionChanged?.Invoke(string.Empty);
     }
 
@@ -988,7 +1004,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
         if (!_frontTurned)
             _markFront = PlotSigns.Facing(box, new Vector2(trace.Origin.X, trace.Origin.Y));
         RemoveShapes(_markShape);
-        DrawPlotShape(box, _markShape);
+        DrawPlotShape(box, _markShape, MarkSideOpacity);
         DrawSignGhost();
         MarkChanged?.Invoke(box.Width, box.Depth);
     }
@@ -1085,7 +1101,7 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
     private void DrawSelection()
     {
         Remove(ref _selectionBox);
-        RemoveAll(_gizmo);
+        _gizmoShown = false;
         Unhighlight();
         if (building.TryFindHandle(_selected, out var handle))
         {
@@ -1258,9 +1274,6 @@ internal sealed partial class ArchitectWorld(ILocalProps props, ICamera camera, 
     private readonly record struct Colour(byte Red, byte Green, byte Blue)
     {
         public static readonly Colour Plot = new(70, 220, 110);
-        public static readonly Colour AxisX = new(255, 90, 80);
-        public static readonly Colour AxisY = new(100, 255, 120);
-        public static readonly Colour AxisZ = new(100, 170, 255);
         public static readonly Colour Fits = new(90, 210, 120);
         public static readonly Colour Refused = new(225, 70, 60);
         public static readonly Colour Picked = new(150, 255, 150);

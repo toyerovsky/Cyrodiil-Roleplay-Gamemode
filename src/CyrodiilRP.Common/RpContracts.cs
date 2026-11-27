@@ -632,6 +632,10 @@ public static partial class RpContracts
     [ClientToServer]
     public static partial void ArchitectNewPlot();
 
+    // Ctrl+Z: the architect's newest change on the plot taken back.
+    [ClientToServer]
+    public static partial void ArchitectUndo();
+
     [ClientToServer]
     public static partial void ArchitectClose();
 }

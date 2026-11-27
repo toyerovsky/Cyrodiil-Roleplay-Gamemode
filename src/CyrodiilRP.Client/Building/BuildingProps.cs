@@ -10,7 +10,8 @@ namespace CyrodiilRP.Client.Building;
 // The plots' signs and the pieces on them in the character's area, as meshes this game alone stands: the server says
 // which, and only for the area the character is in. A mesh this game stands stays through a load, so after every new pawn
 // the server is asked again, and what it no longer lists comes down. A piece of furniture or a container is the game's own
-// object, which the game shows: it is only known here by its ref id. Architect mode hides a mesh while it is carried.
+// object, which the game shows: it is only known here by its ref id. Architect mode hides a mesh while it is carried. A
+// piece of the game's light forms stands a point light where its flame is (GameLights).
 [Service]
 internal sealed partial class BuildingProps(ILocalProps props, PawnWatch pawn, RpcHandlers rpc, ILogger logger)
 {
@@ -19,6 +20,9 @@ internal sealed partial class BuildingProps(ILocalProps props, PawnWatch pawn, R
 
     // A piece's x, y, z, pitch, yaw, roll and scale.
     private const int NumbersPerPiece = 7;
+
+    // A piece's light casts shadows, so it stays inside the walls it stands in.
+    private const bool LightShadows = true;
 
     private readonly Dictionary<long, StandingPlot> _plots = [];
 
@@ -126,24 +130,47 @@ internal sealed partial class BuildingProps(ILocalProps props, PawnWatch pawn, R
     // Taken down while architect mode carries it, so the line under the mouse passes through it.
     public void Hide(long id)
     {
-        if (!_pieces.TryGetValue(id, out var piece) || piece.Handle is not { } handle)
+        if (!_pieces.TryGetValue(id, out var piece) || piece.Handle is null)
             return;
 
-        props.Remove(handle);
-        _pieces[id] = piece with { Handle = null };
+        _pieces[id] = TakeDown(piece);
     }
 
     // Stood again where the server last said, after a carry.
     public void Show(long id)
     {
         if (_pieces.TryGetValue(id, out var piece) && piece.Handle is null && piece.RefId == 0)
-            _pieces[id] = piece with { Handle = props.Place(piece.Prop, collides: true) };
+            _pieces[id] = Stand(piece);
     }
 
     private sealed record StandingPlot(PlotBox Box, Prop Sign, LocalPropHandle Handle);
 
-    // Handle: null while architect mode carries it, and for the game's own object (RefId).
-    private sealed record StandingPiece(Prop Prop, LocalPropHandle? Handle, uint RefId);
+    // Handle: null while architect mode carries it, and for the game's own object (RefId). Light: the point light of a game
+    // light form, while it stands.
+    private sealed record StandingPiece(Prop Prop, LocalPropHandle? Handle, uint RefId, LocalPropHandle? Light);
+
+    private StandingPiece Stand(StandingPiece piece) =>
+        piece with { Handle = props.Place(piece.Prop, collides: true), Light = PlaceLight(piece.Prop) };
+
+    private StandingPiece TakeDown(StandingPiece piece)
+    {
+        if (piece.Handle is { } handle)
+            props.Remove(handle);
+        if (piece.Light is { } light)
+            props.Remove(light);
+        return piece with { Handle = null, Light = null };
+    }
+
+    private LocalPropHandle? PlaceLight(Prop prop)
+    {
+        if (!GameLights.TryRead(prop.Asset, out var light))
+            return null;
+
+        var flame = props.TryMeasure(prop.Asset, prop.Scale, out var bounds)
+            ? GameLights.FlameOf(light, prop.Position, prop.Rotation.Y, bounds.Min, bounds.Max)
+            : prop.Position;
+        return props.PlaceLight(new PropLight(flame, light.Red, light.Green, light.Blue, light.Candelas, light.Radius, LightShadows));
+    }
 
     private void Start()
     {
@@ -159,10 +186,7 @@ internal sealed partial class BuildingProps(ILocalProps props, PawnWatch pawn, R
             props.Remove(plot.Handle);
 
         foreach (var piece in _pieces.Values)
-        {
-            if (piece.Handle is { } handle)
-                props.Remove(handle);
-        }
+            TakeDown(piece);
 
         _plots.Clear();
         _pieces.Clear();
@@ -227,7 +251,7 @@ internal sealed partial class BuildingProps(ILocalProps props, PawnWatch pawn, R
             var at = index * NumbersPerPiece;
             var prop = new Prop(assets[index], new Vector3(numbers[at], numbers[at + 1], numbers[at + 2]),
                 new Vector3(numbers[at + 3], numbers[at + 4], numbers[at + 5]), numbers[at + 6]);
-            wanted[ids[index]] = new StandingPiece(prop, null, (uint)references[index]);
+            wanted[ids[index]] = new StandingPiece(prop, null, (uint)references[index], null);
         }
 
         foreach (var (id, piece) in _pieces.ToList())
@@ -235,14 +259,12 @@ internal sealed partial class BuildingProps(ILocalProps props, PawnWatch pawn, R
             if (wanted.TryGetValue(id, out var still) && still.Prop == piece.Prop && still.RefId == piece.RefId)
                 continue;
 
-            if (piece.Handle is { } handle)
-                props.Remove(handle);
-
+            TakeDown(piece);
             _pieces.Remove(id);
         }
 
         foreach (var (id, piece) in wanted.Where(pair => !_pieces.ContainsKey(pair.Key)))
-            _pieces[id] = piece.RefId == 0 ? piece with { Handle = props.Place(piece.Prop, collides: true) } : piece;
+            _pieces[id] = piece.RefId == 0 ? Stand(piece) : piece;
 
         Changed?.Invoke();
     }

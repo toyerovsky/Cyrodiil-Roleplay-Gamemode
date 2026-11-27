@@ -160,7 +160,7 @@ describe("the player's menu", () => {
     await game.emit("State", state());
     await page.find('[data-tab="keys"]').trigger("click");
     expect(selected()).toBe("keys");
-    expect(page.findAll(".menu__keycap").map((key) => key.text())).toEqual(["G", "H", "Y", "N", "K", "F10", "Home", "End", "Shift+End", "B", "Esc"]);
+    expect(page.findAll(".menu__keycap").map((key) => key.text())).toEqual(["G", "H", "Y", "N", "K", "F10", "Home", "End", "Shift+End", "B", "Mouse 3", "C", "L", "Esc"]);
   });
 
   it("shows the dice set and the last rolls, picks another set and opens the board", async () => {

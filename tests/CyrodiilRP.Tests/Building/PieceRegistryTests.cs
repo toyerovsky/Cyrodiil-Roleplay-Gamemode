@@ -1,4 +1,5 @@
 using System.Numerics;
+using CyrodiilRP.Common.Building;
 using CyrodiilRP.Data.Building;
 using CyrodiilRP.Server;
 using CyrodiilRP.Server.Building;
@@ -54,9 +55,15 @@ public sealed class PieceRegistryTests
 
         settings.Check();
 
-        Assert.All(settings.Pieces, piece => Assert.StartsWith("/Game/Forms/worldobjects/", piece.Asset));
+        Assert.All(settings.Pieces, piece => Assert.True(piece.Asset.StartsWith("/Game/Forms/worldobjects/", StringComparison.Ordinal)
+            || piece.Asset.StartsWith("/Game/Art/Environment/", StringComparison.Ordinal), piece.Asset));
         Assert.Contains(settings.Pieces, piece => piece.Object == PieceObject.Furniture);
         Assert.Contains(settings.Pieces, piece => piece.Object == PieceObject.Container);
+        Assert.All(settings.Pieces.Where(piece => piece.Category == PieceCategory.Lights), light =>
+        {
+            Assert.Equal(PieceObject.Mesh, light.Object);
+            Assert.True(GameLights.TryRead(light.Asset, out _), light.Asset);
+        });
         Assert.All(settings.Pieces.Where(piece => piece.Object == PieceObject.Door), door =>
         {
             Assert.Equal(PieceCategory.Doors, door.Category);

@@ -1,3 +1,5 @@
+using System.Numerics;
+using System.Text.Json;
 using CyrodiilRP.Client.Chat;
 using CyrodiilRP.Client.Pages;
 using CyrodiilRP.Common.Building;
@@ -12,8 +14,10 @@ namespace CyrodiilRP.Client.Building;
 
 // Architect mode's page, over the whole screen: the drawer, the plot's form and what the mouse does over the world, which
 // it hands to ArchitectWorld as points from 0 to 1 of the screen, and the keys and mouse that move ArchitectCamera's view.
-// The server's state opens it. While it holds the input the character stands still. B lets the game have the mouse, keys
-// and camera again to walk and look, the page folded to a line, and B brings it back.
+// The server's state opens it. B gives the game its camera back, the player's own view: with nothing picked or carried the
+// game has the mouse and keys to walk and look, middle mouse picks the piece under the crosshair and C opens the pieces,
+// and the page holds the input again while the player edits (it says so, ArchitectWantsInput). B goes back to the view
+// over the plot.
 [Service]
 internal sealed partial class ArchitectOverlay(
     CefHost cef,
@@ -31,11 +35,20 @@ internal sealed partial class ArchitectOverlay(
     private const string PageName = "architect";
     private const char KeySeparator = ',';
 
+    // The middle of the screen, where the game's crosshair is, in shares of it.
+    private const float Crosshair = 0.5f;
+
+    // How far a point of the gizmo moves, in shares of the screen, before the page draws it again: about a pixel.
+    private const float GizmoSlack = 0.0005f;
+
     private OverlayPage? _page;
 
     private bool _open;
 
-    private bool _looking;
+    private bool _playerView;
+
+    // What the page last said: it needs the mouse and keys (a piece picked or carried, the pieces open, a dialog).
+    private bool _pageWantsInput;
 
     private string? _pending;
 
@@ -45,6 +58,9 @@ internal sealed partial class ArchitectOverlay(
     private long _plot;
 
     private ArchitectTool _tool;
+
+    // The gizmo as the page last drew it, null for none.
+    private GizmoOnScreen? _shownGizmo;
 
     private OverlayPage Page => _page ??= new OverlayPage(pages, locale, PageName, WebPages.ArchitectLayer, SendLocale);
 
@@ -65,7 +81,10 @@ internal sealed partial class ArchitectOverlay(
         locale.Changed += Page.ApplyLocale;
 
         // Polled, as the mode's other keys, and only while architect mode is open.
-        input.RegisterKeyBind(Key.B, OnLookKey, KeySource.Polled);
+        input.RegisterKeyBind(Key.B, OnPlayerViewKey, KeySource.Polled);
+        input.RegisterKeyBind(Key.MIDDLE_MOUSE_BUTTON, OnPickKey, KeySource.Polled);
+        input.RegisterKeyBind(Key.C, () => WhilePlaying(opened => SendOpenCatalogue(opened.Browser)), KeySource.Polled);
+        input.RegisterKeyBind(Key.L, () => WhilePlaying(opened => SendToggleHidden(opened.Browser)), KeySource.Polled);
     }
 
     private void Stop()
@@ -110,8 +129,7 @@ internal sealed partial class ArchitectOverlay(
             return;
         }
 
-        if (!_looking)
-            Hold(opened);
+        Hold(opened);
 
         cef.SetVisible(opened.Viewport, true);
         SendState(opened.Browser, json);
@@ -126,8 +144,43 @@ internal sealed partial class ArchitectOverlay(
             SendPieces(opened.Browser, json, first);
     }
 
-    // The pictures are drawn while the page is up to show them.
-    private void Update() => pictures.Wanted = _open && !_looking;
+    // The pictures are drawn while the page is up to show them. The gizmo is drawn by the page, over everything, where
+    // the view shows it this frame.
+    private void Update()
+    {
+        pictures.Wanted = _open;
+        if (!_open || !Page.IsReady || Page.Opened is not { } opened)
+            return;
+
+        GizmoOnScreen? gizmo = world.TryProjectGizmo(out var projected) ? projected : null;
+        if (IsSame(gizmo, _shownGizmo))
+            return;
+
+        _shownGizmo = gizmo;
+        SendGizmo(opened.Browser, gizmo is { } shown
+            ? JsonSerializer.Serialize(new GizmoView(Numbers(shown.Origin), Numbers(shown.X), Numbers(shown.Y), Numbers(shown.Z)), GizmoJson.Default.GizmoView)
+            : string.Empty);
+    }
+
+    private static bool IsSame(GizmoOnScreen? one, GizmoOnScreen? other)
+    {
+        if (one is not { } a || other is not { } b)
+            return one is null && other is null;
+
+        return IsNear(a.Origin, b.Origin) && IsNear(a.X, b.X) && IsNear(a.Y, b.Y) && IsNear(a.Z, b.Z);
+    }
+
+    private static bool IsNear(Vector2? one, Vector2? other)
+    {
+        if (one is not { } a || other is not { } b)
+            return one is null && other is null;
+
+        return MathF.Abs(a.X - b.X) <= GizmoSlack && MathF.Abs(a.Y - b.Y) <= GizmoSlack;
+    }
+
+    private static float[] Numbers(Vector2 point) => [point.X, point.Y];
+
+    private static float[]? Numbers(Vector2? point) => point is { } at ? Numbers(at) : null;
 
     private void OnPictureDrawn(string piece, string picture)
     {
@@ -147,8 +200,10 @@ internal sealed partial class ArchitectOverlay(
             return;
 
         _open = false;
-        _looking = false;
+        _playerView = false;
+        _pageWantsInput = false;
         _pending = null;
+        _shownGizmo = null;
         _plot = 0;
         world.End();
         view.End();
@@ -167,20 +222,48 @@ internal sealed partial class ArchitectOverlay(
         rpc.SendArchitectClose();
     });
 
-    private void OnLookKey()
+    private void OnPlayerViewKey()
     {
         if (!_open || chat.IsOpen || Page.Opened is not { } opened || (pageInput.IsHeld && !pageInput.IsHeldBy(opened)))
             return;
 
         world.Cancel();
-        _looking = !_looking;
-        view.Pause(_looking);
-        if (_looking)
-            pageInput.Release(opened);
-        else
-            Hold(opened);
+        _playerView = !_playerView;
+        view.UsePlayerView(_playerView);
+        SendPlayerView(opened.Browser, _playerView);
+        ApplyInput(opened);
+    }
 
-        SendLook(opened.Browser, _looking);
+    // In the player's own view the page holds the input only while the player edits: otherwise the game has it.
+    private void ApplyInput(WebPage opened)
+    {
+        if (!_playerView || _pageWantsInput)
+        {
+            if (!pageInput.IsHeldBy(opened))
+                Hold(opened);
+            return;
+        }
+
+        if (pageInput.IsHeldBy(opened))
+            pageInput.Release(opened);
+    }
+
+    [ReceiveFromCef]
+    private void OnArchitectWantsInput(BrowserHandle browser, bool wants)
+    {
+        _pageWantsInput = wants;
+        if (_open && Page.Opened is { } opened)
+            ApplyInput(opened);
+    }
+
+    // Middle mouse in the player's own view: the piece under the crosshair is picked, and the page takes the mouse to edit it.
+    private void OnPickKey() => WhilePlaying(_ => world.PickAt(Crosshair, Crosshair));
+
+    // A key of the player's own view, only while the game has the input there.
+    private void WhilePlaying(Action<WebPage> act)
+    {
+        if (_open && _playerView && !chat.IsOpen && Page.Opened is { } opened && !pageInput.IsHeld)
+            act(opened);
     }
 
     private void OnAnswered(string text, bool done)
@@ -226,6 +309,7 @@ internal sealed partial class ArchitectOverlay(
     private void OnArchitectReady(BrowserHandle browser)
     {
         Page.MarkReady(browser);
+        _shownGizmo = null;
         SendStep(browser, world.Step);
         for (var index = 0; index < _pieces.Count; index++)
             SendPieces(browser, _pieces[index], first: index == 0);
@@ -235,8 +319,7 @@ internal sealed partial class ArchitectOverlay(
             return;
 
         _pending = null;
-        if (!_looking)
-            Hold(opened);
+        Hold(opened);
 
         cef.SetVisible(opened.Viewport, true);
         SendState(browser, json);
@@ -287,6 +370,10 @@ internal sealed partial class ArchitectOverlay(
 
     [ReceiveFromCef]
     private void OnArchitectNewPlot(BrowserHandle browser) => rpc.SendArchitectNewPlot();
+
+    // Ctrl+Z or Undo on the page: the server takes back the newest change on the plot.
+    [ReceiveFromCef]
+    private void OnArchitectUndo(BrowserHandle browser) => rpc.SendArchitectUndo();
 
     // A plot to take away, by its id, once the page asked if it should be.
     [ReceiveFromCef]
@@ -367,7 +454,13 @@ internal sealed partial class ArchitectOverlay(
     private partial void SendClosed(BrowserHandle browser);
 
     [SendToCef]
-    private partial void SendLook(BrowserHandle browser, bool looking);
+    private partial void SendPlayerView(BrowserHandle browser, bool playerView);
+
+    [SendToCef]
+    private partial void SendOpenCatalogue(BrowserHandle browser);
+
+    [SendToCef]
+    private partial void SendToggleHidden(BrowserHandle browser);
 
     [SendToCef]
     private partial void SendFit(BrowserHandle browser, string fit);
@@ -387,6 +480,10 @@ internal sealed partial class ArchitectOverlay(
 
     [SendToCef]
     private partial void SendStep(BrowserHandle browser, int step);
+
+    // The gizmo where the screen shows it, as GizmoView's JSON, or empty for none.
+    [SendToCef]
+    private partial void SendGizmo(BrowserHandle browser, string json);
 
     // A piece's picture, by its key, as a PNG data URL.
     [SendToCef]

@@ -13,10 +13,98 @@
   cursor: crosshair;
 }
 
+/* The picked piece's gizmo, drawn by the page over everything the game shows, under the plates. The game finds which
+   arrow a press grabs; the page only lights the one it would. Red, green and blue as ArchitectWorld's axes were. */
+.architect__gizmo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.architect__arrow--x {
+  --axis: rgb(255 90 80);
+}
+
+.architect__arrow--y {
+  --axis: rgb(100 255 120);
+}
+
+.architect__arrow--z {
+  --axis: rgb(100 170 255);
+}
+
+.architect__shaft-edge {
+  stroke: rgb(0 0 0 / 60%);
+  stroke-width: 8px;
+  stroke-linecap: round;
+}
+
+.architect__shaft {
+  stroke: var(--axis);
+  stroke-width: 4px;
+  stroke-linecap: round;
+}
+
+.architect__head {
+  fill: var(--axis);
+  stroke: rgb(0 0 0 / 60%);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+}
+
+.architect__axis-label {
+  fill: var(--axis);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  paint-order: stroke;
+  stroke: rgb(0 0 0 / 75%);
+  stroke-width: 3px;
+}
+
+.architect__arrow.is-hot .architect__shaft {
+  stroke: #fff;
+  stroke-width: 6px;
+}
+
+.architect__arrow.is-hot .architect__shaft-edge {
+  stroke: var(--axis);
+  stroke-width: 11px;
+}
+
+.architect__arrow.is-hot .architect__head {
+  fill: #fff;
+  stroke: var(--axis);
+}
+
+.architect__gizmo-middle {
+  fill: #fff;
+  stroke: rgb(0 0 0 / 70%);
+  stroke-width: 2px;
+}
+
+/* The player's own view, while the game has the mouse: where middle mouse picks. */
+.architect__crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgb(255 255 255 / 85%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 60%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
 /* Every plate over the game is dark enough to read against a sunlit scene. */
 .architect__bar,
-.architect__picked,
-.architect__looking {
+.architect__picked {
   position: absolute;
   background: var(--night);
   border: 1px solid var(--night-line);
@@ -92,6 +180,19 @@
   width: min(1500px, 100%);
   height: min(960px, 100%);
   overflow: hidden;
+}
+
+/* Nine tabs: each as wide as its name, and on a narrower screen without its medallion, so every name reads whole. */
+.architect__catalogue-panel .rp-tabs__tab {
+  flex: 1 1 auto;
+  padding: 0 14px;
+  gap: 6px;
+}
+
+@media (max-width: 1500px) {
+  .architect__catalogue-panel .rp-tabs__medallion {
+    display: none;
+  }
 }
 
 .architect__pieces {
@@ -386,17 +487,3 @@
   gap: 12px;
 }
 
-/* Looking around: one line at the top, and every click goes to the game. */
-.architect--looking {
-  pointer-events: none;
-}
-
-.architect__looking {
-  top: 16px;
-  left: 50%;
-  margin: 0;
-  padding: 10px 18px;
-  font-size: 18px;
-  transform: translateX(-50%);
-  pointer-events: none;
-}

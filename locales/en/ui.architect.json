@@ -4,6 +4,7 @@
   "ui.architect.plot_facts": "{kind}, {width} by {depth} tiles, {height} m high, pieces: {pieces}",
   "ui.architect.new_plot": "New plot",
   "ui.architect.category.Doors": "Doors",
+  "ui.architect.category.Lights": "Lights",
   "ui.architect.category.Kits": "Kits",
   "ui.architect.kit_label": "Kit",
   "ui.architect.break_apart": "Break apart",
@@ -19,6 +20,7 @@
   "ui.architect.remove_yes": "Remove it",
   "ui.architect.remove_no": "Keep it",
   "ui.architect.plot_label": "Plot",
+  "ui.architect.undo": "Undo (Ctrl+Z)",
   "ui.architect.turn_front": "Turn the front (R)",
   "ui.architect.choose_title": "Choose a plot",
   "ui.architect.choose_hint": "Click a plot on the ground, or one of the list, to build on it. New plot marks one.",
@@ -34,9 +36,9 @@
   "ui.architect.duplicate": "Duplicate",
   "ui.architect.edit_keys": "WASD or the arrows move the picked piece, Z+W and Z+S raise and lower it, Q and E turn it (Shift for small steps), F lets it fall to the floor, Ctrl+C copies, Ctrl+D duplicates it in place, Delete removes, X lets go.",
   "ui.architect.mark_hint": "Drag on the ground from one corner of the plot to the other. Its sign stands at the middle of the front, R turns the front to the next side.",
-  "ui.architect.build_hint": "Drag a piece from the pieces (C) onto the plot. Click a piece to pick it, drag it to move it.",
-  "ui.architect.view_keys": "WASD moves the view, the right mouse button turns it, the mouse wheel brings it nearer or further.",
-  "ui.architect.keys": "C opens the pieces. Click a piece to pick it, drag it to move it. Ctrl+V puts a copied piece down under the mouse. R turns the plot's front, G changes the grid, B looks around, Esc leaves.",
+  "ui.architect.build_hint": "Drag a piece from the pieces (C) onto the plot. Click a piece to pick it, drag it to move it. Ctrl+Z takes back the last change.",
+  "ui.architect.view_keys": "WASD moves the view, the right mouse button turns it, the mouse wheel brings it nearer or further. L hides the interface.",
+  "ui.architect.keys": "C opens the pieces. Click a piece to pick it, drag it to move it. Ctrl+V puts a copied piece down under the mouse, Ctrl+Z takes back the last change. R turns the plot's front, G changes the grid, B gives you your own view, Esc leaves.",
   "ui.architect.grid_1": "Whole tiles",
   "ui.architect.grid_2": "Half tiles",
   "ui.architect.grid_4": "Quarter tiles",
@@ -94,5 +96,5 @@
   "ui.architect.save": "Mark the plot",
   "ui.architect.saving": "Marking the plot...",
   "ui.architect.clear": "Mark again",
-  "ui.architect.looking": "Looking around. Press B to go back to architect mode."
+  "ui.architect.player_keys": "Your own view: walk and look as ever. Middle mouse picks the piece at the crosshair, C opens the pieces, L hides the interface, B goes back to the view over the plot."
 }

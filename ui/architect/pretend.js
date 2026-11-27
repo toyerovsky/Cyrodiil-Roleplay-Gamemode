@@ -6,6 +6,8 @@ const STEPS = [1, 2, 4, 0];
 const FIT_EDGE = 0.8;
 // A click left of this much of the screen picks the table.
 const PICK_EDGE = 0.5;
+// The picked table's gizmo as the game would project it: its middle and each arrow's tip, in shares of the screen.
+const GIZMO = { origin: [0.3, 0.6], x: [0.38, 0.64], y: [0.36, 0.53], z: [0.3, 0.48] };
 const TILES_A_SCREEN = 40;
 
 const FORM = {
@@ -19,7 +21,7 @@ const FORM = {
   tileCentimetres: 182.857,
 };
 
-const CATEGORIES = ["Houses", "Kits", "Floors", "Farm", "Fences", "Doors", "Furniture", "Decoration"];
+const CATEGORIES = ["Houses", "Kits", "Floors", "Farm", "Fences", "Doors", "Lights", "Furniture", "Decoration"];
 
 const KITS = [
   { key: "bruma-lower", name: "Bruma house, lower" },
@@ -46,6 +48,7 @@ const PIECES = [
   { key: "fence.rail-end", name: "Rail fence end post", category: "Fences", use: "Any" },
   { key: "door.coastal-cottage", name: "Coastal cottage door", category: "Doors", use: "Any" },
   { key: "gate.farm", name: "Farm gate", category: "Doors", use: "Any" },
+  { key: "light.chandelier", name: "Chandelier", category: "Lights", use: "Any" },
   { key: "furniture.bed", name: "Bed", category: "Furniture", use: "Any" },
   { key: "furniture.table", name: "Table", category: "Furniture", use: "Any" },
   { key: "furniture.chest", name: "Chest", category: "Furniture", use: "Any" },
@@ -73,7 +76,7 @@ const picture = (index) =>
 const say = (key, args = {}) => (typeof building[key] === "object" ? building[key].other : building[key]).replace(/\{(\w+)\}/g, (match, name) => (name in args ? String(args[name]) : match));
 
 // #house: the town house on the plot is picked. #choose: /abuild off a plot, the plots near to choose from. #far: none near. #picked: the table on the plot is picked. #mark: the staff mark a new plot. #marked: one is marked, its form open.
-// #look: B gave the game the view. #polish: the page in Polish. #blank: no picture drawn yet.
+// #player: B gave the player their own view. #polish: the page in Polish. #blank: no picture drawn yet.
 const SCENARIOS = {
   "": { tool: "Build" },
   choose: { tool: "Choose" },
@@ -83,7 +86,7 @@ const SCENARIOS = {
   house: { tool: "Build", selected: "house.lower-1" },
   mark: { tool: "Mark" },
   marked: { tool: "Mark", marked: [12, 8] },
-  look: { tool: "Build", look: true },
+  player: { tool: "Build", player: true },
   polish: { tool: "Build", locale: "pl" },
 };
 
@@ -118,6 +121,15 @@ export function pretendGame(readym) {
     readym.emit("Marked", width, depth);
   };
   const name = (key) => PIECES.find((piece) => piece.key === key)?.name ?? key;
+  // The picked piece and its gizmo, as the game would project it near the middle of the screen.
+  const pick = (key) => {
+    readym.emit("Selected", key);
+    readym.emit("Gizmo", key ? JSON.stringify(GIZMO) : "");
+  };
+
+  // The pretend game takes back one change, a table removed, then has nothing more to undo.
+  const scenarioUndos = 1;
+  let undone = 0;
 
   readym.onSend((message, args) => {
     const [x, y, piece] = args;
@@ -128,9 +140,9 @@ export function pretendGame(readym) {
         readym.emit("Pieces", JSON.stringify(PIECES.slice(0, HALF)), true);
         readym.emit("Pieces", JSON.stringify(PIECES.slice(HALF)), false);
         readym.emit("State", JSON.stringify(view()));
-        if (selected) readym.emit("Selected", selected);
+        if (selected) pick(selected);
         if (scenario.marked) readym.emit("Marked", ...scenario.marked);
-        if (scenario.look) readym.emit("Look", true);
+        if (scenario.player) readym.emit("PlayerView", true);
         if (!scenario.blank) PIECES.forEach((each, index) => readym.emit("Picture", each.key, picture(index)));
         break;
       case "ArchitectGrab":
@@ -144,13 +156,15 @@ export function pretendGame(readym) {
           // A click picks, the piece is carried once the mouse moves
           selected = x < PICK_EDGE ? "furniture.table" : "";
           pending = selected || null;
-          readym.emit("Selected", selected);
+          pick(selected);
         }
         break;
       case "ArchitectPoint":
         if (pending) {
           carried = pending;
           pending = null;
+          // The game takes the gizmo down while the picked piece is carried
+          readym.emit("Gizmo", "");
         }
         if (carried) fit(x);
         else if (markFrom) mark(x, y);
@@ -167,6 +181,7 @@ export function pretendGame(readym) {
         } else if (markFrom) {
           mark(x, y);
         }
+        if (carried && carried === selected) readym.emit("Gizmo", JSON.stringify(GIZMO));
         carried = null;
         pending = null;
         markFrom = null;
@@ -231,10 +246,20 @@ export function pretendGame(readym) {
         }
         answer(say("building.broken_apart", { name: name(selected), count: 8 }), true);
         selected = "";
-        readym.emit("Selected", "");
+        pick("");
         break;
       case "ArchitectShowing":
       case "ArchitectSetHeight":
+        break;
+      case "ArchitectUndo":
+        if (undone >= scenarioUndos) {
+          answer(say("building.undo_nothing"), false);
+          break;
+        }
+        undone += 1;
+        state.plot.pieces += 1;
+        answer(say("building.undone_remove", { name: "Table" }), true);
+        send();
         break;
       case "ArchitectTurnFront":
         if (state.tool === "Build") answer(say("building.sign_moved"), true);
@@ -245,13 +270,13 @@ export function pretendGame(readym) {
       case "ArchitectDelete":
         answer(say("building.removed", { name: name(selected) }), true);
         selected = "";
-        readym.emit("Selected", "");
+        pick("");
         state.plot.pieces -= 1;
         send();
         break;
       case "ArchitectDeselect":
         selected = "";
-        readym.emit("Selected", "");
+        pick("");
         break;
       case "ArchitectSavePlot": {
         const form = JSON.parse(args[0]);

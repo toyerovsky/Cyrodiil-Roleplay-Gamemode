@@ -4,6 +4,7 @@
   "ui.architect.plot_facts": "{kind}, {width} na {depth} pól, wysokość {height} m, elementy: {pieces}",
   "ui.architect.new_plot": "Nowa działka",
   "ui.architect.category.Doors": "Drzwi",
+  "ui.architect.category.Lights": "Światła",
   "ui.architect.category.Kits": "Zestawy",
   "ui.architect.kit_label": "Zestaw",
   "ui.architect.break_apart": "Rozbierz",
@@ -19,6 +20,7 @@
   "ui.architect.remove_yes": "Usuń",
   "ui.architect.remove_no": "Zostaw",
   "ui.architect.plot_label": "Działka",
+  "ui.architect.undo": "Cofnij (Ctrl+Z)",
   "ui.architect.turn_front": "Obróć front (R)",
   "ui.architect.choose_title": "Wybierz działkę",
   "ui.architect.choose_hint": "Kliknij działkę na ziemi albo na liście, żeby na niej budować. Nowa działka wyznacza nową.",
@@ -34,9 +36,9 @@
   "ui.architect.duplicate": "Powiel",
   "ui.architect.edit_keys": "WASD albo strzałki przesuwają wybrany element, Z+W i Z+S podnoszą i opuszczają, Q i E obracają (Shift dla małych kroków), F opuszcza na podłoże, Ctrl+C kopiuje, Ctrl+D powiela go w miejscu, Delete usuwa, X puszcza.",
   "ui.architect.mark_hint": "Przeciągnij po ziemi od jednego rogu działki do drugiego. Tabliczka stoi na środku frontu, R obraca front na kolejny bok.",
-  "ui.architect.build_hint": "Przeciągnij element z elementów (C) na działkę. Kliknij element, żeby go wybrać, przeciągnij, żeby go przesunąć.",
-  "ui.architect.view_keys": "WASD przesuwa widok, prawy przycisk myszy go obraca, kółko myszy przybliża i oddala.",
-  "ui.architect.keys": "C otwiera elementy. Kliknij element, żeby go wybrać, przeciągnij, żeby go przesunąć. Ctrl+V kładzie skopiowany element pod kursorem. R obraca front działki, G zmienia siatkę, B pozwala się rozejrzeć, Esc wychodzi.",
+  "ui.architect.build_hint": "Przeciągnij element z elementów (C) na działkę. Kliknij element, żeby go wybrać, przeciągnij, żeby go przesunąć. Ctrl+Z cofa ostatnią zmianę.",
+  "ui.architect.view_keys": "WASD przesuwa widok, prawy przycisk myszy go obraca, kółko myszy przybliża i oddala. L chowa interfejs.",
+  "ui.architect.keys": "C otwiera elementy. Kliknij element, żeby go wybrać, przeciągnij, żeby go przesunąć. Ctrl+V kładzie skopiowany element pod kursorem, Ctrl+Z cofa ostatnią zmianę. R obraca front działki, G zmienia siatkę, B daje ci twój własny widok, Esc wychodzi.",
   "ui.architect.grid_1": "Całe pola",
   "ui.architect.grid_2": "Pół pola",
   "ui.architect.grid_4": "Ćwierć pola",
@@ -94,5 +96,5 @@
   "ui.architect.save": "Wyznacz działkę",
   "ui.architect.saving": "Wyznaczanie działki...",
   "ui.architect.clear": "Wyznacz od nowa",
-  "ui.architect.looking": "Rozglądasz się. Naciśnij B, żeby wrócić do trybu architekta."
+  "ui.architect.player_keys": "Twój własny widok: chodzisz i rozglądasz się jak zwykle. Środkowy przycisk myszy wybiera element pod celownikiem, C otwiera elementy, L chowa interfejs, B wraca do widoku nad działką."
 }

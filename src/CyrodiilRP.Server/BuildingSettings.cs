@@ -9,6 +9,8 @@ internal sealed class BuildingSettings
     private const string FurnitureFolder = "furniture";
     private const string ContainerFolder = "container";
     private const string DoorFolder = "door";
+    private const string LightFolder = "light";
+    private const string ImperialBanner = "/Game/Art/Environment/Architecture/imperialcity/SM_icbanner01.SM_icbanner01";
 
     // The longest side of a plot, in tiles of the building grid (BuildingGrid.TileCentimetres, 1.83 m).
     public int MostTiles { get; set; } = 64;
@@ -78,6 +80,24 @@ internal sealed class BuildingSettings
         Piece("fence.low", "Boarded fence, low", PieceCategory.Fences, "FenceMid01small", PieceUse.Any),
         Piece("fence.low-end", "Boarded fence end, low", PieceCategory.Fences, "FenceEnd01small", PieceUse.Any),
         Piece("fence.gate", "Fence gate", PieceCategory.Fences, "GateFence", PieceUse.Any),
+        // The game's lights: each player's game stands a light where its flame is, its colour and reach read from the form's
+        // name (GameLights)
+        Light("light.candle", "Fat candle", "CandleFat01Yellow256"),
+        Light("light.candle-small", "Small candle", "CandleFat02Yellow128"),
+        Light("light.candlestick", "Candlestick", "Candlestick01Yellow128"),
+        Light("light.candelabra", "Candelabra", "Candelabra01Yellow256"),
+        Light("light.floor-candlestick", "Floor candlestick", "CandlestickFloor01Yellow512"),
+        Light("light.floor-candlestick-iron", "Iron floor candlestick", "CandlestickFloor02Orange384"),
+        Light("light.chandelier", "Chandelier", "Chandelier01Yellow512"),
+        Light("light.chandelier-iron", "Iron chandelier", "Chandelier02Orange512"),
+        Light("light.chandelier-grand", "Grand chandelier", "Chandelier03Yellow768"),
+        Light("light.sconce", "Wall sconce", "LampSconce01Yellow256"),
+        Light("light.sconce-tall", "Tall wall sconce", "LampSconce02Yellow400"),
+        Light("light.lamp-hanging", "Hanging iron lamp", "LightsIronLampHangingShort400"),
+        Light("light.lamp-hanging-long", "Long hanging lamp", "LightsIronLampHangingLong350"),
+        Light("light.lamp-outdoor", "Outdoor hanging lamp", "IronOutdoorLampHangingYellow300"),
+        Light("light.lamp-post", "Lamp post", "IronOutdoorLampPostYellow384"),
+        Light("light.anvil-lamp", "Coastal lamp", "AnvilLamp380"),
         // Doors the game animates where they stand. Each is one the game places only so, never as a door leading elsewhere,
         // and the animated doors of the TesterPlayground plugin near Aleswell are among them
         Door("door.coastal-cottage", "Coastal cottage door", "AnvilLCdoorAnim01", "0x00014891"),
@@ -130,7 +150,8 @@ internal sealed class BuildingSettings
         Piece("decoration.rug-coastal", "Coastal rug", PieceCategory.Decoration, "AnvilRugMid01", PieceUse.Any),
         Piece("decoration.painting", "Painting", PieceCategory.Decoration, "AnvilPicture01", PieceUse.Any),
         Piece("decoration.curtain", "Curtain", PieceCategory.Decoration, "AnvilCurtain01", PieceUse.Any),
-        Piece("decoration.banner", "Banner", PieceCategory.Decoration, "AnvilCastleBanner01NH", PieceUse.Any),
+        // The game's castle banners are cloth on a skeletal mesh, which a prop does not draw: the key keeps a static one
+        new() { Key = "decoration.banner", Name = "Banner", Category = PieceCategory.Decoration, Asset = ImperialBanner, Scale = 1f, Use = PieceUse.Any },
         Piece("decoration.tree-bench", "Bench round a tree", PieceCategory.Decoration, "AnvilTreeBench01", PieceUse.Any),
     ];
 
@@ -190,6 +211,9 @@ internal sealed class BuildingSettings
             Object = kind,
             Form = id,
         };
+
+    private static PieceSettings Light(string key, string name, string form) =>
+        new() { Key = key, Name = name, Category = PieceCategory.Lights, Asset = AssetOf(LightFolder, form), Scale = 1f, Use = PieceUse.Any };
 
     private static PieceSettings Door(string key, string name, string form, string id) =>
         new()

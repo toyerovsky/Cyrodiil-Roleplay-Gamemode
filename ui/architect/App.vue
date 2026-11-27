@@ -23,11 +23,18 @@ const RIGHT_BUTTON = 2;
 // WASD move the view while held, or the picked piece a step a press: forward and right.
 const PAN_KEYS = { KeyW: [1, 0], KeyS: [-1, 0], KeyA: [0, -1], KeyD: [0, 1] };
 const MIDDLE = 0.5;
+// The gizmo's arrows, as the game projects them: a handle shows as grabbed this near the mouse, in shares of the screen
+// (as ArchitectWorld.GizmoReach), and its head's length and half width in pixels.
+const GIZMO_REACH = 0.02;
+const GIZMO_AXES = ["x", "y", "z"];
+const HEAD_LENGTH = 14;
+const HEAD_HALF = 7;
+const LABEL_GAP = 12;
 const CENTIMETRES_PER_METRE = 100;
 const NO_FIT = "None";
 
 // A category's medallion until the game has drawn the picture of its first piece.
-const MEDALLIONS = { Houses: world, Kits: world, Floors: world, Farm: items, Fences: keys, Doors: keys, Furniture: character, Decoration: lore };
+const MEDALLIONS = { Houses: world, Kits: world, Floors: world, Farm: items, Fences: keys, Doors: keys, Lights: lore, Furniture: character, Decoration: lore };
 const KITS = "Kits";
 
 const { t } = usePageTexts(props.bridge, "architect");
@@ -36,7 +43,11 @@ const { t } = usePageTexts(props.bridge, "architect");
 const view = ref(null);
 // The drawer's pieces: [{key, name, category, use, kit}], sent apart from the view as they are many.
 const pieces = ref([]);
-const looking = ref(false);
+// The player's own view (B), and the interface hidden (L): then only the world takes the mouse.
+const playerView = ref(false);
+const hidden = ref(false);
+// The mouse is down on the world or on a piece of the catalogue.
+const dragging = ref(false);
 const fit = ref(NO_FIT);
 const refused = ref(null);
 const answer = ref(null);
@@ -59,6 +70,12 @@ const catalogue = ref(true);
 // Each piece's picture as the game drew it, a data URL by the piece's key.
 const pictures = reactive({});
 const panelId = useId();
+// The picked piece's gizmo where the game shows it: {origin, x, y, z}, each [x, y] in shares of the screen, a tip null
+// behind the view. Null for none.
+const gizmo = ref(null);
+// Where the mouse is over the world, in shares of the screen, and the window's size in pixels.
+const hover = ref(null);
+const screen = reactive({ width: window.innerWidth, height: window.innerHeight });
 
 // What the mouse carries: {piece}, the key of a drawer's piece or "" for a point of the world. Null when nothing.
 let drag = null;
@@ -82,6 +99,57 @@ const removing = ref(null);
 const removeId = useId();
 
 const building = computed(() => view.value?.tool === "Build");
+
+function distanceToSegment(point, from, to) {
+  const along = [to[0] - from[0], to[1] - from[1]];
+  const length = along[0] * along[0] + along[1] * along[1];
+  const share = length > 0 ? Math.min(1, Math.max(0, ((point[0] - from[0]) * along[0] + (point[1] - from[1]) * along[1]) / length)) : 0;
+  return Math.hypot(point[0] - from[0] - along[0] * share, point[1] - from[1] - along[1] * share);
+}
+
+// The handle the game grabs on a press here: the arrow whose line passes nearest the mouse.
+const hotAxis = computed(() => {
+  if (!gizmo.value || !hover.value) return null;
+  let nearest = GIZMO_REACH;
+  let hot = null;
+  for (const axis of GIZMO_AXES) {
+    const tip = gizmo.value[axis];
+    if (!tip) continue;
+    const distance = distanceToSegment(hover.value, gizmo.value.origin, tip);
+    if (distance <= nearest) {
+      nearest = distance;
+      hot = axis;
+    }
+  }
+  return hot;
+});
+
+// Each arrow in pixels: its shaft, its head and where its letter goes.
+const gizmoArrows = computed(() => {
+  if (!gizmo.value) return [];
+  const pixels = ([x, y]) => [x * screen.width, y * screen.height];
+  const origin = pixels(gizmo.value.origin);
+  return GIZMO_AXES.filter((axis) => gizmo.value[axis]).map((axis) => {
+    const tip = pixels(gizmo.value[axis]);
+    const length = Math.hypot(tip[0] - origin[0], tip[1] - origin[1]);
+    const along = length > 0 ? [(tip[0] - origin[0]) / length, (tip[1] - origin[1]) / length] : [0, 0];
+    const across = [-along[1], along[0]];
+    const neck = [tip[0] - along[0] * HEAD_LENGTH, tip[1] - along[1] * HEAD_LENGTH];
+    const head = [tip, [neck[0] + across[0] * HEAD_HALF, neck[1] + across[1] * HEAD_HALF], [neck[0] - across[0] * HEAD_HALF, neck[1] - across[1] * HEAD_HALF]];
+    return {
+      axis,
+      origin,
+      neck: length > HEAD_LENGTH ? neck : tip,
+      head: length > HEAD_LENGTH ? head.map((point) => point.join(",")).join(" ") : "",
+      label: [tip[0] + along[0] * LABEL_GAP, tip[1] + along[1] * LABEL_GAP],
+    };
+  });
+});
+
+function onResize() {
+  screen.width = window.innerWidth;
+  screen.height = window.innerHeight;
+}
 const marking = computed(() => view.value?.tool === "Mark");
 const choosing = computed(() => view.value?.tool === "Choose");
 const editing = computed(() => building.value && !!selected.value);
@@ -103,6 +171,13 @@ const shownPieces = computed(() =>
 );
 const picked = computed(() => pieces.value.find((piece) => piece.key === selected.value) ?? null);
 const hasMark = computed(() => marked.value.width > 0 && marked.value.depth > 0);
+
+// Choosing and marking go by the mouse, and so does a piece picked or carried, the pieces open or a question asked. In the
+// player's own view the game has the mouse and keys otherwise, to walk and look.
+const needsInput = computed(
+  () => !view.value || view.value.tool !== "Build" || !!selected.value || catalogue.value || dragging.value || !!removing.value,
+);
+const playing = computed(() => playerView.value && !needsInput.value);
 const markTooBig = computed(() => Math.max(marked.value.width, marked.value.depth) > view.value.form.mostTiles);
 
 const heading = computed(() => {
@@ -162,6 +237,7 @@ function pointOf(event) {
 
 function startDrag(piece, event) {
   drag = { piece };
+  dragging.value = true;
   downAt = { x: event.clientX, y: event.clientY };
   carrying = false;
   refused.value = null;
@@ -276,6 +352,7 @@ function onPointerUp(event) {
 
 function endDrag() {
   drag = null;
+  dragging.value = false;
   window.removeEventListener("pointermove", onPointerMove);
   window.removeEventListener("pointerup", onPointerUp);
   if (frame) cancelAnimationFrame(frame);
@@ -344,6 +421,12 @@ function snapToFloor() {
 }
 
 // The plot's front and its sign to the next side: the one marked, or the one built on with nothing picked.
+function undo() {
+  refused.value = null;
+  answer.value = null;
+  props.bridge.undo();
+}
+
 function turnFront() {
   if (building.value && selected.value) return;
   if (marking.value && !hasMark.value) return;
@@ -384,6 +467,7 @@ function newPlot() {
 
 function onWorldHover(event) {
   hoverAt = pointOf(event);
+  hover.value = hoverAt;
 }
 
 function deselect() {
@@ -439,6 +523,7 @@ function leave() {
 
 function toggleCatalogue() {
   if (drag) return;
+  hidden.value = false;
   catalogue.value = !catalogue.value;
 }
 
@@ -470,18 +555,19 @@ function onClosed() {
   endOrbit();
   panning.clear();
   view.value = null;
-  looking.value = false;
+  playerView.value = false;
+  hidden.value = false;
   answer.value = null;
   refused.value = null;
   fit.value = NO_FIT;
   selected.value = "";
 }
 
-function onLook(value) {
+function onPlayerView(value) {
   endDrag();
   endOrbit();
   stopPan();
-  looking.value = value;
+  playerView.value = value;
 }
 
 // Esc lets go of one thing at a time: what the mouse carries, the catalogue, the piece picked, the plot marked, then the
@@ -519,6 +605,7 @@ const KEYS = {
 
 // With Ctrl, while building.
 const CONTROL_KEYS = {
+  KeyZ: () => undo(),
   KeyC: () => copy(),
   KeyV: () => paste(),
   KeyD: () => duplicate(),
@@ -535,7 +622,7 @@ function moveByKey(code, event) {
 }
 
 function onKeydown(event) {
-  if (!view.value || looking.value || isComposing(event)) return;
+  if (!view.value || isComposing(event)) return;
   if (event.key === "Escape") {
     event.preventDefault();
     onEscape();
@@ -544,17 +631,23 @@ function onKeydown(event) {
   // A field of the plot's form keeps its letters and its Delete.
   if (event.target?.tagName === "INPUT") return;
   const code = readCode(event);
+  if (event.ctrlKey) {
+    const act = building.value ? CONTROL_KEYS[code] : null;
+    if (act) {
+      event.preventDefault();
+      // A held Ctrl+Z takes back one change, not as many as the key repeats
+      if (!event.repeat) act();
+    }
+    return;
+  }
   if (code === "KeyZ") {
     event.preventDefault();
     heightHeld = true;
     return;
   }
-  if (event.ctrlKey) {
-    const act = building.value ? CONTROL_KEYS[code] : null;
-    if (act) {
-      event.preventDefault();
-      act();
-    }
+  if (code === "KeyL") {
+    event.preventDefault();
+    if (!event.repeat) hidden.value = !hidden.value;
     return;
   }
   if (PAN_KEYS[code]) {
@@ -597,13 +690,19 @@ watch(
 
 // The gizmo's height snaps to the step the panel picks.
 watch(heightStep, (centimetres) => props.bridge.setHeight(centimetres));
+watch(needsInput, (wants) => props.bridge.wantInput(wants), { immediate: true });
 
 onMounted(() => {
   props.bridge.onState(onState);
   props.bridge.onPieces((part, first) => (pieces.value = first ? part : [...pieces.value, ...part]));
   props.bridge.onAnswer(onAnswer);
   props.bridge.onClosed(onClosed);
-  props.bridge.onLook(onLook);
+  props.bridge.onPlayerView(onPlayerView);
+  props.bridge.onOpenCatalogue(() => {
+    hidden.value = false;
+    catalogue.value = true;
+  });
+  props.bridge.onToggleHidden(() => (hidden.value = !hidden.value));
   props.bridge.onFit((value) => (fit.value = value));
   props.bridge.onRefused((value) => (refused.value = value));
   props.bridge.onSelected((key) => {
@@ -618,6 +717,8 @@ onMounted(() => {
   props.bridge.onStep((value) => (step.value = value));
   props.bridge.onPicture((key, picture) => (pictures[key] = picture));
   props.bridge.onBreakRefused(onBreakRefused);
+  props.bridge.onGizmo((value) => (gizmo.value = value));
+  window.addEventListener("resize", onResize);
   window.addEventListener("keydown", onKeydown);
   window.addEventListener("keyup", onKeyup);
   window.addEventListener("blur", onBlur);
@@ -626,6 +727,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  window.removeEventListener("resize", onResize);
   window.removeEventListener("keydown", onKeydown);
   window.removeEventListener("keyup", onKeyup);
   window.removeEventListener("blur", onBlur);
@@ -635,11 +737,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="view && looking" class="architect architect--looking">
-    <p class="architect__looking" role="status">{{ t.looking }}</p>
-  </div>
-
-  <div v-else-if="view" class="architect" :data-tool="view.tool">
+  <div v-if="view" class="architect" :data-tool="view.tool" :data-player-view="playerView || null" :data-playing="playing || null" :data-hidden="hidden || null">
     <div
       class="architect__world"
       data-world
@@ -648,6 +746,17 @@ onUnmounted(() => {
       @wheel="onWheel"
       @contextmenu="onContextMenu"
     />
+
+    <template v-if="!hidden">
+    <svg v-if="gizmoArrows.length" class="architect__gizmo" data-gizmo aria-hidden="true">
+      <g v-for="arrow in gizmoArrows" :key="arrow.axis" :class="['architect__arrow', `architect__arrow--${arrow.axis}`, { 'is-hot': hotAxis === arrow.axis }]" :data-axis="arrow.axis">
+        <line class="architect__shaft-edge" :x1="arrow.origin[0]" :y1="arrow.origin[1]" :x2="arrow.neck[0]" :y2="arrow.neck[1]" />
+        <line class="architect__shaft" :x1="arrow.origin[0]" :y1="arrow.origin[1]" :x2="arrow.neck[0]" :y2="arrow.neck[1]" />
+        <polygon v-if="arrow.head" class="architect__head" :points="arrow.head" />
+        <text class="architect__axis-label" :x="arrow.label[0]" :y="arrow.label[1]">{{ arrow.axis.toUpperCase() }}</text>
+      </g>
+      <circle class="architect__gizmo-middle" :cx="gizmoArrows[0].origin[0]" :cy="gizmoArrows[0].origin[1]" r="5" />
+    </svg>
 
     <header class="architect__bar">
       <div class="architect__heading">
@@ -661,11 +770,13 @@ onUnmounted(() => {
         <RpButton data-action="leave" @click="leave">{{ t.close }}</RpButton>
       </div>
       <p class="architect__status" :class="status.tone && `architect__status--${status.tone}`" role="status" data-status>{{ status.text }}</p>
-      <p class="architect__keys" data-keys>{{ editing ? t.edit_keys : t.view_keys }}</p>
+      <p class="architect__keys" data-keys>{{ editing ? t.edit_keys : playerView ? t.player_keys : t.view_keys }}</p>
       <p v-if="building && !editing" class="architect__keys">{{ t.keys }}</p>
     </header>
 
-    <aside v-if="choosing" class="architect__panel architect__choices-panel" :aria-label="t.choose_title" data-choices>
+    <span v-if="playing" class="architect__crosshair" aria-hidden="true" data-crosshair />
+
+    <aside v-if="choosing && !playing" class="architect__panel architect__choices-panel" :aria-label="t.choose_title" data-choices>
       <p class="architect__setting-name">{{ t.plots_near }}</p>
       <ul v-if="choices.length" class="architect__plot-list">
         <li v-for="choice in choices" :key="choice.id" class="architect__plot-choice">
@@ -684,7 +795,7 @@ onUnmounted(() => {
       <p v-else class="architect__plot-facts" data-no-plots>{{ t.no_plots }}</p>
     </aside>
 
-    <aside v-if="building" class="architect__panel" :aria-label="t.panel" data-panel>
+    <aside v-if="building && !playing" class="architect__panel" :aria-label="t.panel" data-panel>
         <div class="architect__setting" role="group" :aria-label="t.grid_label">
           <p class="architect__setting-name">{{ t.grid_label }}</p>
           <div class="architect__choices">
@@ -712,6 +823,7 @@ onUnmounted(() => {
         <div class="architect__setting" role="group" :aria-label="t.plot_label">
           <p class="architect__setting-name">{{ t.plot_label }}</p>
           <div class="architect__choices">
+            <RpButton data-action="undo" @click="undo">{{ t.undo }}</RpButton>
             <RpButton data-action="turn-front" :disabled="!!selected" @click="turnFront">{{ t.turn_front }}</RpButton>
             <RpButton data-action="remove-plot" @click="askRemove(view.plot)">{{ t.remove_plot }}</RpButton>
           </div>
@@ -809,5 +921,6 @@ onUnmounted(() => {
         </div>
       </form>
     </RpPanel>
+    </template>
   </div>
 </template>

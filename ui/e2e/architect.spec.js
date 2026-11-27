@@ -82,6 +82,15 @@ test("the staff pick a piece, turn it with the keys, take it away and let go wit
   await expect(picked).toContainText(t("picked").replace("{name}", "Table"));
   await screenshot(page, testInfo, "architect-picked");
 
+  // The gizmo shows over the world where the game projects it, and the arrow under the mouse lights up
+  const gizmo = page.locator("[data-gizmo]");
+  await expect(gizmo.locator("[data-axis]")).toHaveCount(3);
+  const handle = await at(page, 0.34, 0.62);
+  await page.mouse.move(handle.x, handle.y);
+  await expect(gizmo.locator('[data-axis="x"]')).toHaveClass(/is-hot/);
+  await expect(gizmo.locator('[data-axis="z"]')).not.toHaveClass(/is-hot/);
+  await screenshot(page, testInfo, "architect-gizmo");
+
   // A click only picks: a shake of the mouse under the drag's threshold sends no point, so the piece stays put
   await page.mouse.move(point.x, point.y);
   await page.mouse.down();
@@ -141,6 +150,20 @@ test("the staff pick a piece, turn it with the keys, take it away and let go wit
   await picked.getByRole("button", { name: t("remove") }).click();
   await expect(page.getByRole("status")).toHaveText(server("removed").replace("{name}", "Table"));
   await expect(picked).toHaveCount(0);
+  await expect(page.locator("[data-gizmo]")).toHaveCount(0);
+
+  // Ctrl+Z takes the removal back, a held one only once, and the button asks again when there is nothing left
+  await page.keyboard.down("Control");
+  await page.keyboard.down("z");
+  await page.keyboard.down("z");
+  await page.keyboard.up("z");
+  await page.keyboard.up("Control");
+  expect(await readSent(page, "ArchitectUndo")).toHaveLength(1);
+  await expect(page.getByRole("status")).toHaveText(server("undone_remove").replace("{name}", "Table"));
+  await screenshot(page, testInfo, "architect-undone");
+  await page.locator('[data-action="undo"]').click();
+  expect(await readSent(page, "ArchitectUndo")).toHaveLength(2);
+  await expect(page.getByRole("status")).toHaveText(server("undo_nothing"));
 
   // Nothing picked: Ctrl+V puts the copy under the mouse, and WASD move the view again
   const under = await at(page, 0.35, 0.55);
@@ -381,15 +404,50 @@ test("the game's own furniture says it cannot be broken apart", async ({ page })
   await expect(page.getByRole("status")).toHaveText(t("break.GameObject"));
 });
 
-test("looking around leaves one line on screen and the keys to the game", async ({ page }, testInfo) => {
-  await page.goto("/architect/index.html#look");
-  await expect(page.getByRole("status")).toHaveText(t("looking"));
-  await expect(page.locator("[data-catalogue]")).toHaveCount(0);
-  await screenshot(page, testInfo, "architect-look");
+test("in the player's own view the game has the mouse until something is picked or the pieces open, and L hides the rest", async ({ page }, testInfo) => {
+  await page.goto("/architect/index.html#player");
+  await expect(page.locator("[data-catalogue]")).toBeVisible();
+  // The pieces open hold the mouse for the page
   await page.keyboard.press("Escape");
-  await page.keyboard.press("q");
-  expect(await readSent(page, "ArchitectLeave")).toEqual([]);
-  expect(await readSent(page, "ArchitectTurn")).toEqual([]);
+  await expect(page.locator("[data-playing]")).toHaveCount(1);
+  await expect(page.locator("[data-crosshair]")).toBeVisible();
+  await expect(page.locator("[data-panel]")).toHaveCount(0);
+  await expect(page.locator("[data-keys]")).toHaveText(t("player_keys"));
+  expect((await readSent(page, "ArchitectWantsInput")).at(-1)).toEqual([false]);
+  await screenshot(page, testInfo, "architect-player");
+
+  // C from the game opens the pieces, and the page asks for the mouse again
+  await page.evaluate(() => window.__readym.emit("OpenCatalogue"));
+  await expect(page.locator("[data-catalogue]")).toBeVisible();
+  expect((await readSent(page, "ArchitectWantsInput")).at(-1)).toEqual([true]);
+  await page.keyboard.press("Escape");
+  expect((await readSent(page, "ArchitectWantsInput")).at(-1)).toEqual([false]);
+
+  // L from the game hides the bar too, and brings it back
+  await page.evaluate(() => window.__readym.emit("ToggleHidden"));
+  await expect(page.locator("[data-hidden]")).toHaveCount(1);
+  await expect(page.locator("header, aside, section, [data-catalogue], [data-gizmo], [data-crosshair]")).toHaveCount(0);
+  await page.evaluate(() => window.__readym.emit("ToggleHidden"));
+  await expect(page.locator("[data-keys]")).toBeVisible();
+});
+
+test("L hides the interface over the plot, a click on the world still builds, and L or C brings it back", async ({ page }, testInfo) => {
+  await page.goto("/architect/index.html");
+  await expect(page.locator("[data-catalogue]")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-catalogue]")).toHaveCount(0);
+  await page.keyboard.press("l");
+  await expect(page.locator("[data-hidden]")).toHaveCount(1);
+  await expect(page.locator("header, aside, section, [data-catalogue], [data-gizmo]")).toHaveCount(0);
+  const point = await at(page, 0.3, 0.4);
+  await page.mouse.click(point.x, point.y);
+  expect(await readSent(page, "ArchitectGrab")).toHaveLength(1);
+  await screenshot(page, testInfo, "architect-hidden");
+  await page.keyboard.press("l");
+  await expect(page.locator("[data-keys]")).toBeVisible();
+  await page.keyboard.press("l");
+  await page.keyboard.press("c");
+  await expect(page.locator("[data-catalogue]")).toBeVisible();
 });
 
 test("the page reads in Polish", async ({ page }, testInfo) => {

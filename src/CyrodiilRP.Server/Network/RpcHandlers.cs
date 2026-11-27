@@ -314,6 +314,8 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
 
     public event Action<PlayerId>? ArchitectNewPlotAsked;
 
+    public event Action<PlayerId>? ArchitectUndoAsked;
+
     partial void OnAskBuilding(RpcContext context) => callbacks.Raise("rpc.ask_building", BuildingAsked, context.Sender);
 
     partial void OnArchitectPlace(RpcContext context, string piece, float[] spot) =>
@@ -348,4 +350,6 @@ internal sealed partial class RpcHandlers(Callbacks callbacks)
     partial void OnArchitectChoose(RpcContext context, long plot) => callbacks.Raise("rpc.architect_choose", ArchitectChose, context.Sender, plot);
 
     partial void OnArchitectNewPlot(RpcContext context) => callbacks.Raise("rpc.architect_new_plot", ArchitectNewPlotAsked, context.Sender);
+
+    partial void OnArchitectUndo(RpcContext context) => callbacks.Raise("rpc.architect_undo", ArchitectUndoAsked, context.Sender);
 }

@@ -41,9 +41,15 @@ internal sealed partial class Architects(
     private const string RemoveAction = "building.remove";
     private const string SignAction = "plot.sign";
     private const string BreakAction = "building.break_apart";
+    private const string UndoAction = "building.undo";
     private const float CentimetresPerMetre = 100f;
 
     private readonly Dictionary<OnlinePlayer, ArchitectSession> _open = [];
+
+    private readonly ArchitectChangeRegistry _changes = new();
+
+    // The architects whose undo is still being written: a second one would take back the same change twice.
+    private readonly HashSet<OnlinePlayer> _undoing = [];
 
     public bool IsOpen(OnlinePlayer player) => _open.ContainsKey(player);
 
@@ -79,6 +85,7 @@ internal sealed partial class Architects(
         rpc.ArchitectBrokeApart += OnBrokeApart;
         rpc.ArchitectPlotRemoveAsked += OnPlotRemoveAsked;
         rpc.ArchitectNewPlotAsked += OnNewPlotAsked;
+        rpc.ArchitectUndoAsked += OnUndoAsked;
         online.Left += player => _open.Remove(player);
         plots.PlotRemoved += OnPlotRemoved;
         plots.AreaChanged += OnAreaChanged;
@@ -135,6 +142,7 @@ internal sealed partial class Architects(
             }
 
             audit.Log(PlaceAction, player.Ref, null, new PieceDetails(placed.Id, plot.Id, piece.Key, position.X, position.Y, position.Z, yaw));
+            _changes.Record(player.Ref, new ArchitectChange(ArchitectChangeKind.Placed, plot.Id, placed.Id, piece.Key, position, rotation, []));
             Answer(player, BuildingText.Placed(piece.Name), done: true);
             SendState(player);
         });
@@ -188,6 +196,7 @@ internal sealed partial class Architects(
                 logger.LogWarning("[CyrodiilRP] Piece #{Piece} moved, but its game object {RefId:X} is not in the world to move.", moved.Id, moved.RefId);
 
             audit.Log(MoveAction, player.Ref, null, new PieceDetails(placed.Id, plot.Id, piece.Key, position.X, position.Y, position.Z, yaw));
+            _changes.Record(player.Ref, new ArchitectChange(ArchitectChangeKind.Moved, plot.Id, placed.Id, piece.Key, placed.Position, placed.Rotation, []));
             Answer(player, BuildingText.Moved(piece.Name), done: true);
         });
     }
@@ -228,6 +237,7 @@ internal sealed partial class Architects(
 
             audit.Log(RemoveAction, player.Ref, null,
                 new PieceDetails(placed.Id, plot.Id, piece.Key, placed.Position.X, placed.Position.Y, placed.Position.Z, placed.Rotation.Y));
+            _changes.Record(player.Ref, new ArchitectChange(ArchitectChangeKind.Removed, plot.Id, placed.Id, piece.Key, placed.Position, placed.Rotation, []));
             Answer(player, BuildingText.Removed(piece.Name), done: true);
             SendState(player);
         });
@@ -368,9 +378,113 @@ internal sealed partial class Architects(
             }
 
             audit.Log(BreakAction, player.Ref, null, new BreakDetails(placed.Id, plot.Id, whole.Key, made.Count));
+            _changes.Record(player.Ref, new ArchitectChange(ArchitectChangeKind.BrokeApart, plot.Id, placed.Id, whole.Key, placed.Position,
+                placed.Rotation, made.Select(part => part.Id).ToList()));
             Answer(player, BuildingText.BrokenApart(whole.Name, made.Count), done: true);
             SendState(player);
         });
+    }
+
+    // Ctrl+Z: the newest change on the plot taken back. A piece placed again stands as it stood, the fit not judged again.
+    private void OnUndoAsked(PlayerId id)
+    {
+        if (!TryFindBuilding(id, out var player, out var plot) || _undoing.Contains(player))
+            return;
+
+        if (!_changes.TryTake(player.Ref, plot.Id, out var change))
+        {
+            Answer(player, BuildingText.UndoNothing, done: false);
+            return;
+        }
+
+        if (!plots.Pieces.TryFind(change.PieceKey, out var piece))
+        {
+            Answer(player, BuildingText.UnknownPiece, done: false);
+            return;
+        }
+
+        // The game's own object of a piece placed again is made first, as for any placing
+        var standsAgain = change.Kind is ArchitectChangeKind.Removed or ArchitectChangeKind.BrokeApart;
+        var refId = standsAgain && piece.Object != PieceObject.Mesh ? references.Create(piece, player, change.Position, change.Rotation.Y) : 0u;
+        if (standsAgain && piece.Object != PieceObject.Mesh && refId == 0)
+        {
+            Answer(player, BuildingText.NoCell, done: false);
+            return;
+        }
+
+        _undoing.Add(player);
+        fire.Run(UndoAction, async () =>
+        {
+            try
+            {
+                var answer = await UndoAsync(player, plot, change, piece, refId);
+                Answer(player, answer, done: true);
+                SendState(player);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "[CyrodiilRP] {Player} could not undo {Change} of piece #{Piece} on plot #{Plot}.", player.Ref, change.Kind,
+                    change.PieceId, plot.Id);
+                if (refId != 0)
+                    references.Delete(refId);
+                Answer(player, BuildingText.ChangeFailed, done: false);
+            }
+            finally
+            {
+                _undoing.Remove(player);
+            }
+        });
+    }
+
+    private async Task<Phrase> UndoAsync(OnlinePlayer player, PlotRecord plot, ArchitectChange change, Piece piece, uint refId)
+    {
+        switch (change.Kind)
+        {
+            case ArchitectChangeKind.Placed:
+                return await TakeAwayAsync(player, plot, change.PieceId) ? BuildingText.UndonePlace(piece.Name) : BuildingText.Gone;
+            case ArchitectChangeKind.Moved:
+                if (!TryFindOnPlot(change.PieceId, plot, out var moving, out _)
+                    || await plots.MoveObjectAsync(plot, moving, change.Position, change.Rotation.Y) is not { } moved)
+                    return BuildingText.Gone;
+
+                if (moved.RefId != 0 && !references.Move(moved.RefId, change.Position, change.Rotation.Y))
+                    logger.LogWarning("[CyrodiilRP] Piece #{Piece} moved back, but its game object {RefId:X} is not in the world to move.", moved.Id,
+                        moved.RefId);
+                audit.Log(MoveAction, player.Ref, null, new PieceDetails(moved.Id, plot.Id, piece.Key, change.Position.X, change.Position.Y,
+                    change.Position.Z, change.Rotation.Y));
+                return BuildingText.UndoneMove(piece.Name);
+            case ArchitectChangeKind.Removed:
+                await PlaceAgainAsync(player, plot, change, piece, refId);
+                return BuildingText.UndoneRemove(piece.Name);
+            case ArchitectChangeKind.BrokeApart:
+                foreach (var part in change.PartIds)
+                    await TakeAwayAsync(player, plot, part);
+                await PlaceAgainAsync(player, plot, change, piece, refId);
+                return BuildingText.UndoneBreak(piece.Name);
+            default:
+                throw new ArgumentOutOfRangeException(nameof(change), change.Kind, "Not a change an architect makes.");
+        }
+    }
+
+    // False when it was gone already.
+    private async Task<bool> TakeAwayAsync(OnlinePlayer player, PlotRecord plot, long pieceId)
+    {
+        if (!TryFindOnPlot(pieceId, plot, out var placed, out var piece) || !await plots.RemoveObjectAsync(plot, placed))
+            return false;
+
+        if (placed.RefId != 0 && !references.Delete(placed.RefId))
+            logger.LogWarning("[CyrodiilRP] Piece #{Piece} is gone, but its game object {RefId:X} was not in the world to take away.", placed.Id, placed.RefId);
+        audit.Log(RemoveAction, player.Ref, null,
+            new PieceDetails(placed.Id, plot.Id, piece.Key, placed.Position.X, placed.Position.Y, placed.Position.Z, placed.Rotation.Y));
+        return true;
+    }
+
+    private async Task PlaceAgainAsync(OnlinePlayer player, PlotRecord plot, ArchitectChange change, Piece piece, uint refId)
+    {
+        var placed = await plots.AddObjectAsync(plot, piece, change.Position, change.Rotation, PlotObjectState.Built, refId, player.Ref);
+        _changes.Renumber(player.Ref, change.PieceId, placed.Id);
+        audit.Log(PlaceAction, player.Ref, null, new PieceDetails(placed.Id, plot.Id, piece.Key, change.Position.X, change.Position.Y,
+            change.Position.Z, change.Rotation.Y));
     }
 
     private static Phrase Explain(BreakVerdict verdict) => verdict switch
@@ -499,6 +613,7 @@ internal sealed partial class Architects(
     // Who builds on a plot taken away goes back to choosing one.
     private void OnPlotRemoved(PlotRecord plot)
     {
+        _changes.ForgetPlot(plot.Id);
         foreach (var (player, session) in _open.ToList())
         {
             if (session.Tool != ArchitectTool.Build || session.PlotId != plot.Id)

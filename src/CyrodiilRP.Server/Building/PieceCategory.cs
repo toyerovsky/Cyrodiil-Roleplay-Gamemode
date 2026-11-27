@@ -19,6 +19,9 @@ internal enum PieceCategory
 
     Doors,
 
+    // The game's candles, chandeliers and lamps, each lighting what is near.
+    Lights,
+
     Furniture,
 
     Decoration,
