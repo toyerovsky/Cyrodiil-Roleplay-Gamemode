@@ -30,6 +30,8 @@ public sealed class ShippedConfigTests
         var config = JsonSerializer.Deserialize<RpConfig>(shipped, ServerOptions);
 
         Assert.NotNull(config);
+        config.Progression.RequireValid();
+        config.Zones.RequireValid();
         Assert.Equal(PotionRule.PlayerMade, config.Specializations.Potions);
     }
 

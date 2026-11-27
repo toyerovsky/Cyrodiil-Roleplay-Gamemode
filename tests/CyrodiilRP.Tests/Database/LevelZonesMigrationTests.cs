@@ -22,7 +22,7 @@ public sealed class LevelZonesMigrationTests(PostgresFixture pg) : IClassFixture
             WHERE name = {StaffRole.Admin}
             """);
 
-        await db.Database.MigrateAsync();
+        await db.GetService<IMigrator>().MigrateAsync("20261126211635_LevelZones");
 
         var permissions = await db.StaffRoles.AsNoTracking().Where(role => role.Name == StaffRole.Admin).Select(role => role.Permissions).SingleAsync();
         Assert.Equal([StaffPermissions.Kick, CustomPermission, StaffPermissions.Zone], permissions);

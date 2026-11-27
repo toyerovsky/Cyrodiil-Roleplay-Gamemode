@@ -58,6 +58,8 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
 
     public DbSet<CharacterFishRecord> CharacterFishRecords => Set<CharacterFishRecord>();
 
+    public DbSet<CharacterProgression> CharacterProgression => Set<CharacterProgression>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -354,6 +356,18 @@ public sealed class CyrodiilContext(DbContextOptions<CyrodiilContext> options) :
             entity.HasKey(x => new { x.CharacterId, x.Species });
             entity.Property(x => x.Species).HasMaxLength(ColumnLengths.EnumName);
             entity.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CharacterProgression>(entity =>
+        {
+            entity.ToTable("character_progression", table =>
+            {
+                table.HasCheckConstraint("ck_character_progression_level", "level BETWEEN 1 AND 65535");
+                table.HasCheckConstraint("ck_character_progression_counts", "xp >= 0 AND perk_points >= 0 AND gathering_xp >= 0");
+            });
+            entity.HasKey(x => x.CharacterId);
+            entity.Property(x => x.CharacterId).ValueGeneratedNever();
+            entity.HasOne<Character>().WithOne().HasForeignKey<CharacterProgression>(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
         });
 
         SnakeCase.Apply(modelBuilder);

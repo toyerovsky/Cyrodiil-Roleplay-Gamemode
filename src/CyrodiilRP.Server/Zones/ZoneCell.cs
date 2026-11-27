@@ -20,4 +20,16 @@ internal readonly record struct ZoneCell(AreaId Area, ParentCellKind Kind, int X
             int.Parse(coordinates[0], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture),
             int.Parse(coordinates[1], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture));
     }
+
+    // An interior has no grid, so its levels hash the interior cell's form id instead of X and Y.
+    public (int X, int Y) LevelKey => Kind == ParentCellKind.Interior ? ((int)InteriorFormId(Area), 0) : (X, Y);
+
+    // Interior areas are named L_PersistentDungeon-<cell form id in hex>; anything else yields 0.
+    public static uint InteriorFormId(AreaId area)
+    {
+        var name = area.ToManaged();
+        var dash = name.LastIndexOf('-');
+        return dash >= 0 && uint.TryParse(name.AsSpan(dash + 1), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out var formId)
+            ? formId : 0;
+    }
 }

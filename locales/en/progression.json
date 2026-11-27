@@ -1,0 +1,9 @@
+{
+  "progression.cmd.xp": "/xp - show your level, experience and perk points",
+  "progression.cmd.staff": "/axp give <player> <xp> | set <player> <level> - change progression for a playtest",
+  "progression.level": "Level {level}",
+  "progression.status": "Level {level}. XP: {xp}/{next}. Unspent perk points: {points}.",
+  "progression.disabled": "Progression is disabled.",
+  "progression.not_ready": "The character must be playing and its progression loaded.",
+  "progression.changed": "Progression updated for {name}."
+}

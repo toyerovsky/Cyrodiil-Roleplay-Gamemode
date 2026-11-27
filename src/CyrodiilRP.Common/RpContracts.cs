@@ -22,7 +22,10 @@ public static partial class RpContracts
     public static partial void Notify(string text);
 
     [ServerToClient]
-    public static partial void ZoneEntered(string text);
+    public static partial void CenterMessage(string text);
+
+    [ServerToClient]
+    public static partial void ProgressionState(string json);
 
     // An action (/me) over the head of the player who did it, by their number (the raw value of their PlayerId), for this
     // long.

@@ -1,5 +1,6 @@
 // The pages, their preview scenarios (the hash) and the C# class each talks to.
 export const PAGES = [
+  { name: "progression", title: "Progression", scenarios: ["", "level", "max", "hidden"], game: "Progression/ProgressionOverlay.cs" },
   { name: "gambling", title: "Gaming table", scenarios: ["", "rules", "raise", "call", "reroll", "waiting", "favor", "result", "seat1", "empty"], game: "Gambling/GamblingOverlay.cs" },
   { name: "chat", title: "Chat", scenarios: ["", "open", "long", "draft"], game: "Chat/ChatOverlay.cs" },
   { name: "creator", title: "New character", scenarios: ["", "waiting"], game: "Creator/NameFormOverlay.cs" },

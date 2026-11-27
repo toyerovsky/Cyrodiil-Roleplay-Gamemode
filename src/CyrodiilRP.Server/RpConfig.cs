@@ -34,4 +34,6 @@ internal sealed partial class RpConfig
     public AuctionSettings Auction { get; set; } = new();
 
     public ZoneSettings Zones { get; set; } = new();
+
+    public ProgressionSettings Progression { get; set; } = new();
 }

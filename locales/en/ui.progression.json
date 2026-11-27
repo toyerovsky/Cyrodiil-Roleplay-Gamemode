@@ -1,0 +1,7 @@
+{
+  "ui.progression.title": "Experience",
+  "ui.progression.level": "Level {level}",
+  "ui.progression.xp": "{xp} / {next} XP",
+  "ui.progression.maximum": "Maximum level",
+  "ui.progression.perks": "Perk points: {points}"
+}

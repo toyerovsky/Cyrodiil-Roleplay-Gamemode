@@ -40,6 +40,10 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     public event Action<string>? PartyChanged;
 
+    public event Action<string>? ProgressionChanged;
+
+    partial void OnProgressionState(string json) => ProgressionChanged?.Invoke(json);
+
     public event Action<string, int>? AsksChanged;
 
     public event Action<int, string, int>? OverheadShown;
@@ -149,7 +153,7 @@ internal sealed partial class RpcHandlers(IUserInterface ui)
 
     partial void OnNotify(string text) => ShowNotice(text);
 
-    partial void OnZoneEntered(string text) => ui.ShowMessage(text, MessagePosition.Center, NoticeSeconds);
+    partial void OnCenterMessage(string text) => ui.ShowMessage(text, MessagePosition.Center, NoticeSeconds);
 
     partial void OnLocale(string locale) => LocaleChanged?.Invoke(locale);
 

@@ -40,23 +40,26 @@ public sealed class ZoneTests
 
     [Theory]
     [InlineData(4, 15, "imperial-city")]
-    [InlineData(0, 15, "imperial-city")]
-    [InlineData(-1, 15, "imperial-city")]
+    [InlineData(0, 15, "heartlands")]
+    [InlineData(-1, 15, "heartlands")]
     [InlineData(4, 10, "imperial-city")]
     [InlineData(27, 22, "blue-road")]
     [InlineData(30, 23, "blue-road")]
     [InlineData(29, 19, "cheydinhal")]
     [InlineData(30, 10, "cheydinhal")]
     [InlineData(18, 20, "blue-road")]
-    [InlineData(11, 25, "cheydinhal")]
-    [InlineData(3, 25, "cheydinhal")]
+    [InlineData(11, 25, "heartlands")]
+    [InlineData(3, 25, "heartlands")]
+    [InlineData(15, 0, "heartlands")]
+    [InlineData(-27, 20, "colovian-highlands")]
+    [InlineData(-25, 30, "colovian-highlands")]
     [InlineData(5, 35, "jerall")]
     [InlineData(6, 35, "jerall")]
     [InlineData(5, 36, "jerall")]
     [InlineData(6, 36, "jerall")]
     [InlineData(3, 39, "jerall")]
-    [InlineData(6, 29, "jerall")]
-    [InlineData(29, 31, "jerall")]
+    [InlineData(6, 29, "great-forest")]
+    [InlineData(29, 31, "cheydinhal")]
     [InlineData(-17, 22, "great-forest")]
     [InlineData(-16, 22, "great-forest")]
     [InlineData(-17, 23, "great-forest")]
@@ -78,9 +81,9 @@ public sealed class ZoneTests
     [InlineData(-16, 1, "west-weald")]
     [InlineData(-27, 2, "west-weald")]
     [InlineData(-36, -4, "kvatch")]
-    [InlineData(-32, -2, "kvatch")]
+    [InlineData(-32, -2, "west-weald")]
     [InlineData(-40, -4, "kvatch")]
-    [InlineData(-42, -11, "kvatch")]
+    [InlineData(-42, -11, "gold-coast")]
     [InlineData(-48, -9, "gold-coast")]
     [InlineData(-47, -9, "gold-coast")]
     [InlineData(-46, -9, "gold-coast")]
@@ -92,13 +95,16 @@ public sealed class ZoneTests
     [InlineData(-46, -7, "gold-coast")]
     [InlineData(-46, -3, "gold-coast")]
     [InlineData(-48, 0, "gold-coast")]
-    [InlineData(5, 5, "nibenay")]
-    [InlineData(5, 0, "nibenay")]
-    [InlineData(7, -1, "nibenay")]
-    [InlineData(21, 5, "nibenay")]
+    [InlineData(5, 5, "great-forest")]
+    [InlineData(5, 0, "great-forest")]
+    [InlineData(7, -1, "great-forest")]
+    [InlineData(21, 5, "cheydinhal")]
     [InlineData(16, -8, "nibenay")]
-    [InlineData(27, -5, "nibenay")]
-    [InlineData(32, -6, "nibenay")]
+    [InlineData(45, -5, "nibenay")]
+    [InlineData(42, 3, "nibenay")]
+    [InlineData(35, 5, "cheydinhal")]
+    [InlineData(27, -5, "cheydinhal")]
+    [InlineData(32, -6, "cheydinhal")]
     [InlineData(31, -22, "blackwood")]
     [InlineData(19, -28, "blackwood")]
     [InlineData(17, -28, "blackwood")]
@@ -134,14 +140,79 @@ public sealed class ZoneTests
     }
 
     [Theory]
-    [InlineData(-3, 15, "imperial-city")]
-    [InlineData(15, 19, "imperial-city")]
-    [InlineData(3, 25, "cheydinhal")]
+    [InlineData(4, 15, "imperial-city")]
+    [InlineData(27, 22, "blue-road")]
+    [InlineData(16, -8, "nibenay")]
+    [InlineData(-36, -4, "kvatch")]
     [InlineData(-30, 0, "west-weald")]
-    [InlineData(-44, 0, "kvatch")]
-    [InlineData(0, -15, "nibenay")]
-    public void The_first_zone_wins_at_shared_inclusive_borders(int x, int y, string expected) =>
+    public void Specific_entries_win_where_the_game_regions_overlap(int x, int y, string expected)
+    {
+        var settings = Shipped();
+        Assert.True(settings.Entries.Count(zone => zone.Shapes.Any(shape => ZoneMap.Contains(shape, x, y))) > 1);
+        Assert.Equal(expected, new ZoneMap(settings).Find(Outside(x, y))?.Id);
+    }
+
+    [Theory]
+    [InlineData(0, 15, "heartlands", "imperial-city-fallback")]
+    [InlineData(-27, 20, "colovian-highlands", "great-forest-fallback")]
+    [InlineData(-32, -2, "west-weald", "kvatch-fallback")]
+    [InlineData(29, 31, "cheydinhal", "jerall-fallback")]
+    public void Region_entries_win_over_the_old_rectangles(int x, int y, string expected, string fallback)
+    {
+        var settings = Shipped();
+        var old = Assert.Single(settings.Entries, zone => zone.Id == fallback);
+        Assert.Contains(old.Shapes, shape => ZoneMap.Contains(shape, x, y));
+        Assert.Equal(expected, new ZoneMap(settings).Find(Outside(x, y))?.Id);
+        var firstFallback = settings.Entries.FindIndex(zone => zone.Id.EndsWith("-fallback", StringComparison.Ordinal));
+        Assert.All(settings.Entries.Skip(firstFallback), zone => Assert.EndsWith("-fallback", zone.Id));
+    }
+
+    [Theory]
+    [InlineData(0, -15, "nibenay-fallback")]
+    [InlineData(60, 60, "jerall-fallback")]
+    [InlineData(60, -60, "blackwood-fallback")]
+    public void Fallbacks_fill_gaps_outside_the_catalog_outlines(int x, int y, string expected) =>
         Assert.Equal(expected, new ZoneMap(Shipped()).Find(Outside(x, y))?.Id);
+
+    [Fact]
+    public void No_cell_of_the_old_shapes_loses_its_zone()
+    {
+        var settings = Shipped();
+        var map = new ZoneMap(settings);
+        foreach (var zone in settings.Entries.Where(zone => zone.Id.EndsWith("-fallback", StringComparison.Ordinal)))
+        foreach (var shape in zone.Shapes)
+        for (var x = shape.Min(point => point[0]); x <= shape.Max(point => point[0]); x++)
+        for (var y = shape.Min(point => point[1]); y <= shape.Max(point => point[1]); y++)
+        {
+            if (ZoneMap.Contains(shape, x, y))
+                Assert.NotNull(map.Find(Outside(x, y)));
+        }
+    }
+
+    [Fact]
+    public void Regenerated_polygons_keep_distinct_neighbors_and_both_translated_names()
+    {
+        var settings = Shipped();
+        Assert.Equal(24, settings.Entries.Count);
+        foreach (var zone in settings.Entries)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(zone.Named("en")));
+            Assert.False(string.IsNullOrWhiteSpace(zone.Named("pl")));
+            foreach (var shape in zone.Shapes)
+            for (var index = 0; index < shape.Length; index++)
+                Assert.False(shape[index].SequenceEqual(shape[(index + 1) % shape.Length]));
+        }
+    }
+
+    [Fact]
+    public void Oblivion_uses_all_eleven_catalog_worldspaces_and_no_Tamriel_shape()
+    {
+        var zone = Assert.Single(Shipped().Entries, zone => zone.Id == "oblivion");
+        Assert.Equal(ZoneMode.PartyLowest, zone.Mode);
+        Assert.Empty(zone.Shapes);
+        Assert.Equal(Enumerable.Range(1, 7).Select(number => $"OblivionRD{number:000}").Concat(
+            ["MS13CheydinhalOblivionWorld", "MQ10BrumaOblivionGate", "OblivionMQKvatch", "MQ14OblivionWorld"]), zone.Areas);
+    }
 
     [Fact]
     public void Every_shipped_area_matches_its_zone_away_from_the_Tamriel_grid()
@@ -164,6 +235,52 @@ public sealed class ZoneTests
         Assert.Null(map.Find(Outside(27, 22) with { Area = OblivionAreaIds.BuildExterior("UnmappedWorld") }));
     }
 
+    [Theory]
+    [InlineData(0x96AC5u)]
+    [InlineData(0x96228u)]
+    [InlineData(0xABB3u)]
+    public void Imperial_City_sewer_interiors_are_one_dungeon_for_levels_10_to_15(uint cell)
+    {
+        var settings = Shipped();
+        var interior = new ZoneCell(OblivionAreaIds.BuildInterior(cell), ParentCellKind.Interior, 0, 0);
+        var zone = new ZoneMap(settings).Find(interior);
+        Assert.Equal("imperial-sewers", zone?.Id);
+        Assert.Equal((10, 15), (zone!.MinLevel, zone.MaxLevel));
+        Assert.InRange(ZoneLevels.ForCell(zone, interior, 40), 10, 15);
+        // The interior's own grid values are ignored, only its form id picks the level.
+        Assert.Equal(ZoneLevels.ForCell(zone, interior, 1), ZoneLevels.ForCell(zone, interior with { X = 7, Y = -3 }, 1));
+    }
+
+    [Fact]
+    public void Sewer_sections_get_different_levels_and_unlisted_interiors_stay_unzoned()
+    {
+        var settings = Shipped();
+        var map = new ZoneMap(settings);
+        var sewers = Assert.Single(settings.Entries, zone => zone.Id == "imperial-sewers");
+        Assert.Equal(21, sewers.Interiors.Count);
+        var levels = sewers.Interiors.Select(cell => ZoneLevels.ForCell(sewers,
+            new ZoneCell(OblivionAreaIds.BuildInterior(Convert.ToUInt32(cell, 16)), ParentCellKind.Interior, 0, 0), 1)).ToHashSet();
+        Assert.Contains(10, levels);
+        Assert.Contains(15, levels);
+        Assert.Null(map.Find(new ZoneCell(OblivionAreaIds.BuildInterior(0x12345), ParentCellKind.Interior, 0, 0)));
+        Assert.Equal(0x96AC5u, ZoneCell.InteriorFormId(OblivionAreaIds.BuildInterior(0x96AC5)));
+        Assert.Equal(0u, ZoneCell.InteriorFormId(GameSpace.Outside));
+    }
+
+    [Theory]
+    [InlineData("not-hex", (int)ZoneMode.Fixed)]
+    [InlineData("0", (int)ZoneMode.Fixed)]
+    [InlineData("00096AC5", (int)ZoneMode.Gradient)]
+    public void Interiors_must_be_form_ids_and_cannot_use_a_gradient(string cell, int mode)
+    {
+        var settings = new ZoneSettings { Entries = [new ZoneDefinition
+        {
+            Id = "sewers", Name = new() { ["en"] = "Sewers", ["pl"] = "Kanały" }, Mode = (ZoneMode)mode, MinLevel = 10, MaxLevel = 15,
+            Interiors = [cell],
+        }] };
+        Assert.Throws<InvalidOperationException>(settings.RequireValid);
+    }
+
     [Fact]
     public void Disabling_zones_disables_both_shapes_and_named_areas()
     {
@@ -172,6 +289,7 @@ public sealed class ZoneTests
         var map = new ZoneMap(settings);
         Assert.Null(map.Find(Outside(27, 22)));
         Assert.Null(map.Find(Outside(0, 0) with { Area = OblivionAreaIds.BuildExterior("AnvilWorld") }));
+        Assert.Null(map.Find(new ZoneCell(OblivionAreaIds.BuildInterior(0x96AC5), ParentCellKind.Interior, 0, 0)));
     }
 
     [Fact]
@@ -223,8 +341,8 @@ public sealed class ZoneTests
 
     [Theory]
     [InlineData(1, 40, -39)]
-    [InlineData(40, 1, 39)]
-    [InlineData(40, 40, 0)]
+    [InlineData(40, 1, 19)]
+    [InlineData(40, 40, -20)]
     [InlineData(0, 10, -9)]
     [InlineData(-10, 0, 1)]
     [InlineData(int.MaxValue, 1, ushort.MaxValue - 1)]

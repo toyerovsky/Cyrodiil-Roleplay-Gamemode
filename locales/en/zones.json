@@ -7,5 +7,5 @@
   "zones.none": "This cell has no level zone.",
   "zones.not_in_world": "You have to be in the world to check a level zone.",
   "zones.no_spawners": "none",
-  "zones.diagnostics": "Area: {area}. Cell: {kind} {x},{y}. Zone: {zone}. Cell level: {level}. Session level: {session}. Spawners (ref: offset): {offsets}."
+  "zones.diagnostics": "Area: {area}. Cell: {kind} {x},{y}. Zone: {zone}. Cell MMO level: {level}. Session engine level: {session}. Spawners (ref: offset): {offsets}."
 }

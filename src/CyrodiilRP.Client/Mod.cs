@@ -16,6 +16,7 @@ using CyrodiilRP.Client.Jobs;
 using CyrodiilRP.Client.Lore;
 using CyrodiilRP.Client.Notices;
 using CyrodiilRP.Client.Party;
+using CyrodiilRP.Client.Progression;
 using CyrodiilRP.Client.PlayerMenu;
 using CyrodiilRP.Client.Specializations;
 using CyrodiilRP.Client.Stable;
@@ -39,6 +40,7 @@ internal sealed partial class Mod(IDependencyContainer services, ILogger logger)
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<RadialOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<ExchangeOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<PartyOverlay>());
+        services.RegisterSingleton<ICefRpcHandler>(services.Resolve<ProgressionOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<AsksOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<TraderOverlay>());
         services.RegisterSingleton<ICefRpcHandler>(services.Resolve<ForemanOverlay>());

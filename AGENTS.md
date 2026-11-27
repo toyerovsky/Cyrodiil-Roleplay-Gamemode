@@ -57,8 +57,10 @@ client half (`client/`) and a server half (`server/`), built on the platform's S
   `docs/features/notice-board.md`.
 - **Spawn:** the staff set it in the outside world (`/aspawn here`, a button in the panel), a new character goes
   there after closing the game's creator.
-- **Level zones:** configurable Tamriel cell polygons and world spaces, fixed level ranges or party-lowest scaling,
-  spawn offsets, damage gaps, native entry messages, `/zone` and staff `/azone`. See `docs/features/zones.md` for v1 limits.
+- **Progression:** per-character MMO levels 1-40, XP from kills, skill increases, fishing and supported Jobs events,
+  a HUD bar, unspent perk points, `/xp` and staff `/axp`. See `docs/features/progression.md`, including SDK limits.
+- **Level zones:** Tamriel cell polygons and world spaces in MMO levels, fixed ranges, radial gradients or party-lowest
+  scaling, half-level engine spawns, enemy strength and group health, `/zone` and staff `/azone`. See `docs/features/zones.md`.
 - **Feeding:** Feed on the H wheel opens a wheel of the foods the player carries, what the one in front needs most
   first; a pick gives them one through the Hunger and Thirst mod (`mods/HungerAndThirst`), and the feeding is said
   around as an action.

@@ -12,7 +12,8 @@ namespace CyrodiilRP.Server.Fishing;
 // Each playing character's fishing skill, catches, bait and best fish: read as the character starts playing, held while
 // it plays, and written after each change, in order, on the database's writer.
 [Service]
-internal sealed partial class FishingSkills(OnlinePlayers online, Persistence persistence, Fire fire, Callbacks callbacks, SystemClock clock, ILogger logger)
+internal sealed partial class FishingSkills(OnlinePlayers online, Persistence persistence, Fire fire, Callbacks callbacks, SystemClock clock, ILogger logger,
+    Progression.Progression progression, RpConfig config)
 {
     private const string LoadJob = "fishing.load";
     private const string SaveJob = "fishing.save";
@@ -33,6 +34,8 @@ internal sealed partial class FishingSkills(OnlinePlayers online, Persistence pe
 
     public CatchGain RecordCatch(OnlinePlayer player, FishQuarry fish)
     {
+        progression.Grant(player, Progression.ProgressionSource.Fishing,
+            checked((int)Math.Round(config.Progression.FishingXp * (fish.Fish.Rare ? config.Progression.RareFishMult : 1))));
         var progress = Require(player);
         var gain = progress.Judge(fish);
         var after = progress.AfterCatch(fish, gain, clock.UtcNow);

@@ -1,0 +1,9 @@
+{
+  "progression.cmd.xp": "/xp - pokaż swój poziom, doświadczenie i punkty talentów",
+  "progression.cmd.staff": "/axp give <gracz> <xp> | set <gracz> <poziom> - zmień progresję na potrzeby testów",
+  "progression.level": "Poziom {level}",
+  "progression.status": "Poziom {level}. XP: {xp}/{next}. Niewydane punkty talentów: {points}.",
+  "progression.disabled": "Progresja jest wyłączona.",
+  "progression.not_ready": "Postać musi być w grze, a jej progresja wczytana.",
+  "progression.changed": "Zaktualizowano progresję postaci {name}."
+}

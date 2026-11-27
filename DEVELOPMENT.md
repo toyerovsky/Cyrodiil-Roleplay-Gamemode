@@ -64,6 +64,7 @@ The server refuses a config without a connection string and a database at anothe
 | `chat` | ranges of say, shout, whisper and emotes, in game units (about centimetres) |
 | `away` | `afterMinutes` (5): how long a player stands still, does not turn, does not write and touches no window before their name shows `[AFK]`; the screen asks 30 s before (`docs/features/away.md`) |
 | `zones` | `enabled`, ordered `entries` (names, level modes, cell polygons and world spaces), and damage multipliers. Tune in the deployed config and restart without a build. See `docs/features/zones.md`. |
+| `progression` | MMO levels 1-40, the 39-entry `xpToNext` table, XP sources and rank ids, party sharing, gathering soft cap, perk points and experimental `syncEngineLevel`. All values are tunable on restart. See `docs/features/progression.md`. |
 | `economy` | `maxPayment`: the most gold one trade or `/agold` moves |
 | `factions` | `foundingFee`: the gold a founder pays from what they carry (500 by default, 0 founds for free) |
 | `stable` | the gold each horse costs at a stablemaster: `paint`, `bay`, `chestnut`, `white`, `black` (500, 1000, 2500, 4000 and 5000 by default, as the game's stables ask; 0 gives it away, below 0 stops the mod) |
@@ -71,6 +72,12 @@ The server refuses a config without a connection string and a database at anothe
 | `noticeBoards` | the notice boards: `shown` (10), `minLength` and `maxLength` (1 and 300), `perCharacter` (3), `cooldownMinutes` (5), `expiryDays` (7) and `asset`, the game's form a board stands as (`docs/features/notice-board.md`) |
 | `auction` | the auction house: `listingFeePercent` (2) and `cutPercent` (5), `durationHours` (12, 24, 48), `maxLots` (10) a character, `bidStepPercent` (5) and `extendMinutes` (5) (`docs/features/auction-house.md`) |
 | `lore` | the lore card: `catalogMode` (`Canon` by default) and `allowImplausibleSubtypes` (`false`: no kinds that do not fit the race's body, such as the Senche) |
+
+## Catalog tools
+
+| Tool | Requirements | Purpose |
+|---|---|---|
+| `tools/generate-zone-regions.py <weather.json.gz> <places.json.gz>` | Python 3.10+, standard library | Print catalog region shapes. `--write` regenerates zone config entries and `docs/features/zone-places.md`; `--check` verifies them. See [zones.md](docs/features/zones.md#reproduce-the-catalog-import). |
 
 ## Pages' pictures
 

@@ -1,0 +1,15 @@
+.progression {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 340px;
+  padding: 10px 16px;
+  color: var(--night-text);
+  font-size: 16px;
+}
+.progression__line { display: flex; justify-content: space-between; gap: 12px; }
+.progression__level { color: var(--gold-light); font-weight: 600; }
+.progression__bar { height: 6px; margin-top: 6px; background: var(--night); overflow: hidden; }
+.progression__fill { height: 100%; background: var(--gold-light); transition: width var(--duration-fade) ease-out; }
+.progression__perks { color: var(--night-muted); margin-top: 4px; font-size: 14px; text-align: center; }

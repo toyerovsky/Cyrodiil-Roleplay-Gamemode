@@ -11,16 +11,31 @@ internal sealed class ZoneMap(ZoneSettings settings)
     public const int FewestPoints = 3;
 
     private readonly IReadOnlyList<MappedZone> _zones = settings.Entries
-        .Select(zone => new MappedZone(zone, zone.Areas.Select(OblivionAreaIds.BuildExterior).ToHashSet())).ToList();
+        .Select(zone => new MappedZone(zone, zone.Areas.Select(OblivionAreaIds.BuildExterior).ToHashSet(),
+            zone.Interiors.Select(cell => OblivionAreaIds.BuildInterior(ParseFormId(cell))).ToHashSet())).ToList();
 
     public ZoneDefinition? Find(ZoneCell cell)
     {
-        if (!settings.Enabled || cell.Kind != ParentCellKind.Exterior)
+        if (!settings.Enabled)
+            return null;
+
+        if (cell.Kind == ParentCellKind.Interior)
+            return _zones.FirstOrDefault(zone => zone.Interiors.Contains(cell.Area))?.Definition;
+
+        if (cell.Kind != ParentCellKind.Exterior)
             return null;
 
         return _zones.FirstOrDefault(zone => zone.Areas.Contains(cell.Area)
             || (cell.Area == GameSpace.Outside && zone.Definition.Shapes.Any(shape => Contains(shape, cell.X, cell.Y))))?.Definition;
     }
+
+    // Interior cells are listed by their form id in hex, as the catalog and the game write them.
+    public static bool TryParseFormId(string text, out uint formId) =>
+        uint.TryParse(text, System.Globalization.NumberStyles.AllowHexSpecifier, System.Globalization.CultureInfo.InvariantCulture, out formId)
+        && formId != 0;
+
+    private static uint ParseFormId(string text) => TryParseFormId(text, out var formId)
+        ? formId : throw new FormatException($"Interior cell '{text}' is not a form id in hex.");
 
     public static bool Contains(int[][] polygon, int x, int y)
     {
@@ -42,5 +57,5 @@ internal sealed class ZoneMap(ZoneSettings settings)
         return inside;
     }
 
-    private sealed record MappedZone(ZoneDefinition Definition, HashSet<AreaId> Areas);
+    private sealed record MappedZone(ZoneDefinition Definition, HashSet<AreaId> Areas, HashSet<AreaId> Interiors);
 }

@@ -7,5 +7,5 @@
   "zones.none": "Ta komórka nie ma strefy poziomów.",
   "zones.not_in_world": "Musisz być w świecie gry, aby sprawdzić strefę poziomów.",
   "zones.no_spawners": "brak",
-  "zones.diagnostics": "Obszar: {area}. Komórka: {kind} {x},{y}. Strefa: {zone}. Poziom komórki: {level}. Poziom sesji: {session}. Spawnery (ref: przesunięcie): {offsets}."
+  "zones.diagnostics": "Obszar: {area}. Komórka: {kind} {x},{y}. Strefa: {zone}. Poziom MMO komórki: {level}. Poziom silnika sesji: {session}. Spawnery (ref: przesunięcie): {offsets}."
 }

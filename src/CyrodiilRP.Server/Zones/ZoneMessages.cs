@@ -42,13 +42,13 @@ internal sealed partial class ZoneMessages(
                 continue;
 
             _shown[player] = zone.Id;
-            rpc.SendZoneEntered(player.Id, texts.Get(player.Locale, Describe(zone, player.Locale)));
+            rpc.SendCenterMessage(player.Id, texts.Get(player.Locale, Describe(zone, player.Locale)));
         }
     }
 
     private static Phrase Describe(ZoneDefinition zone, string locale) => zone.Mode switch
     {
-        ZoneMode.Fixed => ZonesText.Range(zone.Named(locale), zone.MinLevel, zone.MaxLevel),
+        ZoneMode.Fixed or ZoneMode.Gradient => ZonesText.Range(zone.Named(locale), zone.MinLevel, zone.MaxLevel),
         ZoneMode.ScalesAbove => ZonesText.Above(zone.Named(locale), zone.MinLevel),
         ZoneMode.PartyLowest => ZonesText.Party(zone.Named(locale)),
     };

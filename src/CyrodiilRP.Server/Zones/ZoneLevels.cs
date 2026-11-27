@@ -8,8 +8,11 @@ internal static class ZoneLevels
 
     public static int ForCell(ZoneDefinition zone, ZoneCell cell, int partyLowest) => zone.Mode switch
     {
-        ZoneMode.Fixed => zone.MinLevel + (int)(unchecked((uint)cell.X * HorizontalMix ^ (uint)cell.Y * VerticalMix)
+        ZoneMode.Fixed => zone.MinLevel + (int)(unchecked((uint)cell.LevelKey.X * HorizontalMix ^ (uint)cell.LevelKey.Y * VerticalMix)
             % (uint)(zone.MaxLevel - zone.MinLevel + 1)),
+        ZoneMode.Gradient => zone.MinLevel + (int)Math.Round((zone.MaxLevel - zone.MinLevel)
+            * Math.Clamp(Math.Sqrt(Math.Pow((double)cell.X - zone.Origin[0], 2) + Math.Pow((double)cell.Y - zone.Origin[1], 2)) / zone.Radius, 0, 1),
+            MidpointRounding.AwayFromZero),
         ZoneMode.ScalesAbove => Math.Max(zone.MinLevel, Math.Max(Minimum, partyLowest)),
         ZoneMode.PartyLowest => Math.Max(Minimum, partyLowest),
     };
@@ -18,7 +21,11 @@ internal static class ZoneLevels
         occupants.SelectMany(player => partyMembers(player).Prepend(player)).Distinct()
             .Select(onlineLevel).OfType<int>().Select(level => Math.Max(Minimum, level)).DefaultIfEmpty(Minimum).Min();
 
-    public static int Offset(int cellLevel, int sessionLevel) => Math.Clamp(cellLevel, Minimum, ushort.MaxValue) - sessionLevel;
+    public static int Offset(int cellLevel, int sessionLevel) => Progression.ProgressionRules.EngineLevel(cellLevel) - sessionLevel;
+
+    public static float Strength(float amount, bool npcAttacks, double health, double damage, int players, ZoneSettings settings) =>
+        amount >= 0 ? amount : npcAttacks ? (float)(amount * damage)
+            : (float)(amount / (health * (1 + settings.GroupHealthPerPlayer * Math.Max(0, players - 1))));
 
     public static float Damage(float amount, bool npcAttacks, int zoneLevel, int playerLevel, ZoneSettings settings)
     {

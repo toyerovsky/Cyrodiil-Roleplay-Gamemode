@@ -10,7 +10,8 @@ using ReadyM.SDK.Server.Entities;
 namespace CyrodiilRP.Server.Zones;
 
 [Service]
-internal sealed partial class ZoneResolver(RpConfig config, OnlinePlayers online, Parties parties, IEntities entities)
+internal sealed partial class ZoneResolver(RpConfig config, OnlinePlayers online, Parties parties, IEntities entities,
+    Progression.ProgressionRegistry progression)
 {
     private readonly ZoneMap _map = new(config.Zones);
 
@@ -24,9 +25,9 @@ internal sealed partial class ZoneResolver(RpConfig config, OnlinePlayers online
 
         var lowest = zone.Mode switch
         {
-            ZoneMode.Fixed => ZoneLevels.Minimum,
+            ZoneMode.Fixed or ZoneMode.Gradient => ZoneLevels.Minimum,
             ZoneMode.ScalesAbove or ZoneMode.PartyLowest => ZoneLevels.Lowest(
-                online.All.Where(player => TryLocate(player.Id, out var at) && at == cell), parties.MembersOf, ReadLevel),
+                online.All.Where(player => player.IsPlaying && TryLocate(player.Id, out var at) && at == cell), parties.MembersOf, ReadLevel),
         };
         return new ZoneResolution(zone, ZoneLevels.ForCell(zone, cell, lowest));
     }
@@ -54,5 +55,5 @@ internal sealed partial class ZoneResolver(RpConfig config, OnlinePlayers online
         return false;
     }
 
-    private int? ReadLevel(OnlinePlayer player) => player.IsLive && entities.TryLookup(player.Id, out MainCharacter main) ? main.Level : null;
+    private int? ReadLevel(OnlinePlayer player) => player.IsLive && player.IsPlaying ? progression.Find(player)?.Level : null;
 }

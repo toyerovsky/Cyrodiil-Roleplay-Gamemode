@@ -41,6 +41,11 @@ internal sealed partial class CharacterSpecializations(
     private void Start()
     {
         online.Loaded += OnLoaded;
+        online.Playing += player =>
+        {
+            if (Find(player) is null)
+                OnLoaded(player);
+        };
         online.Left += player => _chosen.Remove(player);
         online.LocaleChanged += ApplyCaps;
     }
