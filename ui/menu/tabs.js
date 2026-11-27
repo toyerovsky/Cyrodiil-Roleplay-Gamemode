@@ -30,5 +30,9 @@ export const KEYS = [
   { id: "dice", key: "HOME", label: "Home" },
   { id: "lore", key: "END", label: "End" },
   { id: "lore_look", key: "END", label: "Shift+End" },
+  { id: "architect_look", key: "B" },
+  { id: "architect_pick", key: "MIDDLE_MOUSE_BUTTON", label: "Mouse 3" },
+  { id: "architect_pieces", key: "C" },
+  { id: "architect_hide", key: "L" },
   { id: "close", key: "Esc" },
 ];

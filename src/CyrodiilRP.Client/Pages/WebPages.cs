@@ -57,6 +57,9 @@ internal sealed partial class WebPages(CefHost cef, PawnWatch pawn, ILogger logg
 
     public const int AdminLayer = 12;
 
+    // Architect mode is the staff's, as the panel is, and never open with it.
+    public const int ArchitectLayer = AdminLayer;
+
     public const int FormLayer = 13;
 
     // A guide's card over every window, beside the name form: a guide shows only while playing, the form only before.

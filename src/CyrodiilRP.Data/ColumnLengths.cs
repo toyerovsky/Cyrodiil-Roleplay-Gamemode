@@ -72,6 +72,9 @@ internal static class ColumnLengths
     // The SDK keeps a custom item's key in 254 characters. A key is never cut: cut, it would name another item.
     public const int CustomItemKey = 256;
 
+    // A piece of the building catalogue, such as "furniture.table-lower".
+    public const int PieceKey = 64;
+
     // Never between the two halves of a surrogate pair, which PostgreSQL refuses to store.
     public static string Cut(string value, int length)
     {
