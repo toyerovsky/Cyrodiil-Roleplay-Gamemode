@@ -5,9 +5,10 @@ import CatchCard from "./CatchCard.vue";
 import { findPower, NEAREST_CAST_CM } from "./charge.js";
 import FightGauges from "./FightGauges.vue";
 import GearCorner from "./GearCorner.vue";
-import { findOrder } from "./orders.js";
+import { findCue, findOrder } from "./orders.js";
 import { isCatch, isHeld, OUTCOME_TEXTS } from "./outcomes.js";
 import PullArrow from "./PullArrow.vue";
+import TensionRing from "./TensionRing.vue";
 
 // Shown over the game, never taking the input: the server keeps every time and the game reads the keys.
 const props = defineProps({ bridge: { type: Object, required: true } });
@@ -56,12 +57,26 @@ const title = computed(() => {
   }
 });
 
-// The one thing to do about the fish now, with the key it is done with.
+// The one thing to do about the fish now, with the key it is done with, on the plate.
 const order = computed(() => {
   if (!fight.value) return null;
 
   const { state, key, letGo, text } = findOrder(fight.value);
-  return { state, letGo, cap: key ? t.value[`key_${key}`] : "", text: t.value[text] };
+  return { state, letGo, cap: t.value[`key_${key}`], text: t.value[text] };
+});
+
+// The same at the float: the key to hold beside it, and the sign to let Space go.
+const cue = computed(() => {
+  if (!fight.value) return null;
+
+  const { hold, letGo, free } = findCue(fight.value);
+  return { hold: hold && { ...hold, cap: t.value[`key_${hold.key}`] }, letGo, free };
+});
+
+// Whether a twitch may be made now, while one is on offer: the ring over the float says it.
+const water = computed(() => {
+  if (stage.value !== "Waiting" || !view.value.twitch || view.value.twitch.spent) return null;
+  return calm.value ? "calm" : "troubled";
 });
 
 const hint = computed(() => {
@@ -191,6 +206,12 @@ function onState(json) {
     card.value = ended;
     later("card", CARD_SHOWN_MS, () => (card.value = null));
   }
+
+  // The card is about the last cast: it leaves when the next one lands.
+  if (next.stage === "Waiting" && before && before.stage !== "Waiting") {
+    clearTimeout(timers.card);
+    card.value = null;
+  }
 }
 
 function onAnchor(x, y, shown) {
@@ -229,21 +250,32 @@ onUnmounted(() => {
     <div
       v-if="marked"
       class="fishing__mark"
-      :class="[`fishing__mark--${stage.toLowerCase()}`, { 'fishing__mark--charging': charging && stage === 'Aim' }]"
+      :class="[
+        `fishing__mark--${stage.toLowerCase()}`,
+        { 'fishing__mark--charging': charging && stage === 'Aim', [`fishing__mark--${water}`]: !!water },
+      ]"
       :style="markStyle"
       aria-hidden="true"
     >
-      <span v-if="stage === 'Bite'" :key="view.bites" class="fishing__ring" :style="{ animationDuration: `${view.strikeWindowMs}ms` }"></span>
+      <TensionRing v-if="fight" :tension="fight.tension" :warn="fight.tensionWarn" />
+      <span v-else-if="stage === 'Bite'" :key="view.bites" class="fishing__ring" :style="{ animationDuration: `${view.strikeWindowMs}ms` }"></span>
       <span v-else class="fishing__ring"></span>
       <span v-if="stage === 'Waiting' && view.nibbles > 0" :key="view.nibbles" class="fishing__ripple"></span>
       <PullArrow v-if="fight && fight.pull !== 'Rest'" class="fishing__run" :class="`fishing__run--${fight.pull.toLowerCase()}`" :pull="fight.pull" />
-      <kbd
-        v-if="order && order.cap && order.state !== 'done'"
-        class="fishing__cue"
-        :class="[`fishing__cue--${order.state}`, { 'fishing__cue--let-go': order.letGo }]"
-      >
-        {{ order.cap }}
-      </kbd>
+      <template v-if="cue">
+        <span v-if="cue.hold" class="fishing__spot" :class="`fishing__spot--${cue.hold.side}`">
+          <kbd class="fishing__cue" :class="`fishing__cue--${cue.hold.state}`" data-cue="hold" :data-side="cue.hold.side">{{ cue.hold.cap }}</kbd>
+        </span>
+        <span v-if="cue.letGo" class="fishing__spot fishing__spot--under">
+          <span class="fishing__let-go" data-cue="let-go">
+            <kbd class="fishing__crossed">{{ t.key_space }}</kbd>
+            <span>{{ t.let_go }}</span>
+          </span>
+        </span>
+        <span v-else-if="cue.free" class="fishing__spot fishing__spot--under">
+          <span class="fishing__free" data-cue="free">{{ t["order.Away"] }}</span>
+        </span>
+      </template>
     </div>
 
     <Transition name="fishing-card">
@@ -264,8 +296,10 @@ onUnmounted(() => {
         :data-order="order.state"
         role="status"
       >
-        <kbd v-if="order.cap">{{ order.cap }}</kbd>
-        <span>{{ order.text }}</span>
+        <span class="fishing__order-key">
+          <kbd :class="{ fishing__crossed: order.letGo }">{{ order.cap }}</kbd>
+        </span>
+        <span class="fishing__order-text">{{ order.text }}</span>
       </p>
       <p v-else-if="hint" class="fishing__hint">{{ hint }}</p>
 

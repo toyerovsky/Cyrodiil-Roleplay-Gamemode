@@ -196,8 +196,16 @@ internal sealed partial class FishingOverlay(
             return;
 
         _read = read;
-        if (_fishing is { } fishing && players.LocalMainCharacter is { } me)
-            cues.Hear(read, me.Position, AnglerFraming.HandAt(fishing.Stand, fishing.Yaw));
+        if (_fishing is not { } fishing || players.LocalMainCharacter is not { } me)
+            return;
+
+        cues.Hear(read, me.Position, AnglerFraming.HandAt(fishing.Stand, fishing.Yaw));
+        var helped = read.Twitch?.Last switch
+        {
+            LineTwitch.Drew or LineTwitch.Provoked => true,
+            LineTwitch.Troubled or LineTwitch.Spooked or LineTwitch.None or null => false,
+        };
+        cues.HearTwitch(read.Twitch?.Count ?? 0, helped, me.Position);
     }
 
     // A view this game cannot read is told once a fishing: the views come many a second in a fight.
@@ -463,7 +471,12 @@ internal sealed partial class FishingOverlay(
         // grows, and trembles in the red.
         var strain = shot == AnglerShot.Fight ? _read?.Fight : null;
         var wanted = Shoot(fishing, shot, lookAt, sight.Rung);
-        var frame = sight.Reach(over, strain is null ? wanted : AnglerFraming.Strained(wanted, strain.Tension));
+        var reached = sight.Reach(over, strain is null ? wanted : AnglerFraming.Strained(wanted, strain.Tension));
+        var frame = shot switch
+        {
+            AnglerShot.Shoulder or AnglerShot.Bite or AnglerShot.Fight => AnglerFraming.Level(reached),
+            AnglerShot.Catch => reached,
+        };
         var narrow = shot switch
         {
             AnglerShot.Fight => AnglerFraming.StrainNarrows * Math.Clamp(strain?.Tension ?? 0f, 0f, 1f),

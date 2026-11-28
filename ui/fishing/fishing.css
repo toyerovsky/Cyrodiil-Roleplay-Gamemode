@@ -5,6 +5,11 @@
   --fishing-warn: #f4bb62;
   --fishing-danger: var(--night-refusal);
   --fishing-water: #8cc6de;
+  /* Drawn straight on the water: brighter than the plate's gold, and always inside a dark edge. */
+  --fishing-mark: #fff6e0;
+  --fishing-mark-gold: #ffcf6b;
+  --fishing-mark-red: #ff6a4d;
+  --fishing-mark-edge: rgba(0, 0, 0, 0.72);
 
   position: relative;
   height: 100%;
@@ -64,21 +69,30 @@
 }
 
 /* What to do about the fish now: gold while it is still to be done, green while it is being done, red while the
-   player does what loses it. A key to let go is struck through. */
+   player does what loses it. The key ends and the words begin at the same place whatever they are, so neither jumps
+   when the fish turns. */
 .fishing__order {
-  display: flex;
+  display: grid;
+  grid-template-columns: calc(50% - 64px) minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
-  gap: 10px;
+  gap: 12px;
   margin: 6px 0 0;
   font-weight: 700;
   font-size: 19px;
   line-height: 1.25;
+  text-align: left;
+  white-space: nowrap;
   color: var(--gold-light);
 }
 
+.fishing__order-key {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .fishing__order kbd,
-.fishing__cue {
+.fishing__cue,
+.fishing__let-go kbd {
   flex: none;
   min-width: 34px;
   padding: 2px 10px;
@@ -92,8 +106,7 @@
   color: #fff6e0;
 }
 
-.fishing__order--do kbd,
-.fishing__cue--do {
+.fishing__order--do kbd {
   animation: fishing-wanted 500ms ease-in-out infinite alternate;
 }
 
@@ -101,9 +114,10 @@
   color: var(--fishing-good);
 }
 
-.fishing__order--done kbd {
+.fishing__order--done kbd,
+.fishing__cue--done {
   border-color: var(--fishing-good);
-  background: rgba(60, 110, 60, 0.6);
+  background: #2c5230;
 }
 
 .fishing__order--wrong {
@@ -111,33 +125,139 @@
 }
 
 .fishing__order--wrong kbd,
-.fishing__cue--wrong {
+.fishing__cue--wrong,
+.fishing__let-go kbd {
   border-color: var(--fishing-danger);
-  background: rgba(143, 29, 20, 0.85);
+  background: #8f1d14;
 }
 
-.fishing__order--wrong kbd {
-  animation: fishing-wrong 260ms ease-in-out infinite alternate;
+.fishing__order--wrong kbd,
+.fishing__cue--wrong,
+.fishing__let-go {
+  animation: fishing-beat 260ms ease-in-out infinite alternate;
+}
+
+/* A key to let go: struck out from corner to corner, so it never reads as a key to press. The stroke is as thick as
+   the key's letters, so the key's name still reads under it at every size. */
+.fishing__crossed {
+  position: relative;
+}
+
+.fishing__crossed::after {
+  --slash: #fff0ec;
+  --slash-edge: var(--fishing-mark-edge);
+
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    to top right,
+    transparent calc(50% - 0.1em),
+    var(--slash-edge) 0 calc(50% - 0.055em),
+    var(--slash) 0 calc(50% + 0.055em),
+    var(--slash-edge) 0 calc(50% + 0.1em),
+    transparent 0
+  );
 }
 
 .fishing__order--let-go kbd,
-.fishing__cue--let-go {
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
+.fishing__let-go kbd {
+  color: #f0b4a8;
 }
 
-/* The key to hold, under the float where the eyes are. */
-.fishing__cue {
+/* Space kept let go through a dive: struck out still, but nothing is wrong. */
+.fishing__order--done.fishing__order--let-go kbd {
+  border-color: var(--night-line);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--night-muted);
+}
+
+.fishing__order--done.fishing__order--let-go .fishing__crossed::after {
+  --slash: var(--night-muted);
+  --slash-edge: transparent;
+}
+
+/* At the float, where the eyes are: a place a side of the ring and one under it, each of no size, whatever stands in
+   it centred on it. */
+.fishing__spot {
   position: absolute;
-  left: 0;
-  top: 44px;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  box-shadow: 0 0 10px var(--shadow-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.fishing__cue--wrong {
-  animation: fishing-cue-wrong 260ms ease-in-out infinite alternate;
+.fishing__spot--under {
+  left: 0;
+  top: 56px;
+  width: 0;
+  align-items: flex-start;
+}
+
+.fishing__spot--left {
+  right: 56px;
+  top: 0;
+  height: 0;
+  justify-content: flex-end;
+}
+
+.fishing__spot--right {
+  left: 56px;
+  top: 0;
+  height: 0;
+  justify-content: flex-start;
+}
+
+/* The key to hold: gold and beating until it is held, green and still while it is, red while the other one is. */
+.fishing__cue {
+  min-width: 46px;
+  padding: 4px 13px;
+  border-color: var(--fishing-mark-gold);
+  font-size: 24px;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-shadow: 0 0 0 2px var(--fishing-mark-edge), 0 0 14px var(--shadow-deep);
+}
+
+.fishing__cue--do {
+  animation: fishing-cue 420ms ease-in-out infinite alternate;
+}
+
+/* Space held into a run or a dive: the key struck out and the word, red and beating. */
+.fishing__let-go,
+.fishing__free {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 12px 5px 6px;
+  border: 2px solid var(--fishing-danger);
+  border-radius: var(--radius);
+  background: rgba(20, 4, 2, 0.9);
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #ffd0c6;
+  box-shadow: 0 0 14px var(--shadow-deep);
+}
+
+.fishing__let-go kbd {
+  padding: 3px 12px;
+  font-size: 21px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* A dive with nothing held: all it asks, said calmly. */
+.fishing__free {
+  padding: 3px 12px;
+  border: 1px solid var(--fishing-good);
+  background: rgba(8, 20, 8, 0.82);
+  font-size: 16px;
+  color: var(--fishing-good);
 }
 
 /* The cast's power, from the nearest cast to the rod's reach. */
@@ -184,7 +304,7 @@
   background: var(--night-line);
 }
 
-/* The fight: two gauges, then what the fish feels like, the rod's lean and how far it is. */
+/* The fight: two gauges, then what the fish feels like and how far out it is. */
 .fishing-fight {
   display: grid;
   gap: 6px;
@@ -264,9 +384,9 @@
 }
 
 .fishing-fight__facts {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   margin-top: 2px;
   font-size: 16px;
@@ -274,7 +394,6 @@
 }
 
 .fishing-fight__feel {
-  justify-self: start;
   padding: 1px 10px;
   border: 1px solid var(--night-line);
   border-radius: var(--radius-pill);
@@ -298,44 +417,9 @@
   color: var(--fishing-danger);
 }
 
-.fishing-fight__lean {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.fishing-fight__rod {
-  width: 26px;
-  height: 26px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  transform-origin: 50% 92%;
-  transition: transform var(--duration-hover);
-}
-
-.fishing-fight__lean--against {
-  color: var(--fishing-good);
-}
-
-.fishing-fight__lean--with {
-  font-weight: 700;
-  color: var(--fishing-danger);
-}
-
 .fishing-fight__distance {
-  display: inline-flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  justify-self: end;
-  gap: 2px 8px;
   font-variant-numeric: tabular-nums;
-}
-
-.fishing-fight__reeling {
-  font-weight: 700;
-  color: var(--gold-light);
+  white-space: nowrap;
 }
 
 .fishing-fight__slack {
@@ -568,22 +652,41 @@
   height: 56px;
   border: 3px solid var(--gold-light);
   border-radius: 50%;
-  box-shadow: 0 0 10px var(--shadow-deep), inset 0 0 6px var(--shadow-deep);
+  box-shadow: 0 0 0 1.5px var(--fishing-mark-edge), inset 0 0 0 1.5px var(--fishing-mark-edge), 0 0 10px var(--shadow-deep);
 }
 
+/* Where the cast would land: a pale ring and its centre inside dark edges, plain on sunlit water and at night. */
 .fishing__mark--aim .fishing__ring {
-  left: -14px;
-  top: -14px;
-  width: 28px;
-  height: 28px;
-  border-width: 2px;
-  border-color: var(--night-text);
+  left: -26px;
+  top: -26px;
+  width: 52px;
+  height: 52px;
+  border-color: var(--fishing-mark);
+  box-shadow: 0 0 0 2px var(--fishing-mark-edge), inset 0 0 0 2px var(--fishing-mark-edge), 0 0 14px var(--shadow-deep);
+}
+
+.fishing__mark--aim .fishing__ring::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--fishing-mark);
+  box-shadow: 0 0 0 2px var(--fishing-mark-edge);
 }
 
 /* While Space is held the game moves the mark to where the power would land the float. */
 .fishing__mark--charging .fishing__ring {
-  border-color: var(--gold-bright);
-  box-shadow: 0 0 10px var(--glow), 0 0 4px var(--shadow-deep);
+  border-color: var(--fishing-mark-gold);
+  box-shadow: 0 0 0 2px var(--fishing-mark-edge), inset 0 0 0 2px var(--fishing-mark-edge), 0 0 16px var(--glow);
+  animation: fishing-beat 520ms ease-in-out infinite alternate;
+}
+
+.fishing__mark--charging .fishing__ring::after {
+  background: var(--fishing-mark-gold);
 }
 
 .fishing__mark--waiting .fishing__ring {
@@ -592,7 +695,25 @@
   width: 40px;
   height: 40px;
   border-width: 2px;
-  border-color: rgba(244, 236, 220, 0.7);
+  border-color: rgba(244, 236, 220, 0.85);
+}
+
+/* The water still troubled by the last twitch: the ring broken and grey until the next may be made. */
+.fishing__mark--troubled .fishing__ring {
+  border-style: dashed;
+  border-color: #d2ccc0;
+}
+
+/* Calm water: a twitch may be made. */
+.fishing__mark--calm .fishing__ring {
+  left: -23px;
+  top: -23px;
+  width: 46px;
+  height: 46px;
+  border-width: 3px;
+  border-color: var(--fishing-mark-gold);
+  box-shadow: 0 0 0 2px var(--fishing-mark-edge), inset 0 0 0 1px var(--fishing-mark-edge), 0 0 14px var(--glow);
+  animation: fishing-calm 1100ms ease-in-out infinite alternate;
 }
 
 /* A nibble: a ripple spreads from the float. */
@@ -615,33 +736,78 @@
   animation-fill-mode: forwards;
 }
 
-.fishing__mark--fight .fishing__ring {
-  border-color: var(--gold-bright);
-  border-style: dashed;
+/* The fight: the line's tension round the float. */
+.fishing-tension {
+  position: absolute;
+  left: -46px;
+  top: -46px;
+  width: 92px;
+  height: 92px;
+  fill: none;
+  filter: drop-shadow(0 0 5px var(--shadow-deep));
+}
+
+.fishing-tension__edge {
+  stroke: var(--fishing-mark-edge);
+  stroke-width: 15.5;
+}
+
+.fishing-tension__track {
+  stroke: #3a3128;
+  stroke-width: 11;
+}
+
+.fishing-tension__danger {
+  stroke: #8a2a1c;
+  stroke-width: 11;
+}
+
+.fishing-tension__fill {
+  stroke: var(--fishing-mark-gold);
+  stroke-width: 11;
+  transition: stroke-dasharray var(--duration-hover) linear;
+}
+
+.fishing-tension__tick-edge {
+  stroke: var(--fishing-mark-edge);
+  stroke-width: 6;
+}
+
+.fishing-tension__tick {
+  stroke: var(--fishing-mark);
+  stroke-width: 3;
+}
+
+.fishing-tension--red {
+  animation: fishing-beat 260ms ease-in-out infinite alternate;
+}
+
+.fishing-tension--red .fishing-tension__fill {
+  stroke: var(--fishing-mark-red);
 }
 
 /* The run, beside the float on the side it goes. */
 .fishing__run {
   position: absolute;
-  width: 44px;
-  height: 44px;
-  color: var(--gold-bright);
-  filter: drop-shadow(0 0 3px var(--shadow-deep)) drop-shadow(0 0 6px var(--shadow-deep));
+  width: 48px;
+  height: 48px;
+  color: var(--fishing-mark-gold);
+  filter: drop-shadow(0 0 2px #000) drop-shadow(0 0 3px #000) drop-shadow(0 0 7px var(--shadow-deep));
 }
 
 .fishing__run--left {
-  left: -90px;
-  top: -22px;
+  left: -102px;
+  top: -24px;
 }
 
 .fishing__run--right {
-  left: 46px;
-  top: -22px;
+  left: 54px;
+  top: -24px;
 }
 
 .fishing__run--away {
-  left: -22px;
-  top: -90px;
+  left: -24px;
+  top: -102px;
 }
 
 .pull-arrow {
@@ -845,7 +1011,19 @@
   }
 }
 
-@keyframes fishing-wrong {
+@keyframes fishing-cue {
+  from {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+
+  to {
+    filter: brightness(1.3);
+    transform: scale(1.14);
+  }
+}
+
+@keyframes fishing-beat {
   from {
     transform: scale(1);
   }
@@ -855,12 +1033,14 @@
   }
 }
 
-@keyframes fishing-cue-wrong {
+@keyframes fishing-calm {
   from {
-    transform: translateX(-50%) scale(1);
+    filter: brightness(0.92);
+    transform: scale(1);
   }
 
   to {
-    transform: translateX(-50%) scale(1.12);
+    filter: brightness(1.15);
+    transform: scale(1.16);
   }
 }

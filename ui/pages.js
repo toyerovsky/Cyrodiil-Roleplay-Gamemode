@@ -27,7 +27,7 @@ export const PAGES = [
   {
     name: "fishing",
     title: "Fishing",
-    scenarios: ["", "charging", "waiting", "nibble", "twitch", "spooked", "bite", "fight", "strain", "dive", "rest", "slack", "monster", "caught", "released", "rare", "found", "lostearly", "lostnibble", "lostlate", "snapped", "slipped", "runaway", "nobait"],
+    scenarios: ["", "charging", "waiting", "nibble", "troubled", "twitch", "spooked", "bite", "fight", "run", "wrongway", "force", "forcedive", "strain", "dive", "rest", "slack", "monster", "caught", "released", "rare", "found", "lostearly", "lostnibble", "lostlate", "snapped", "slipped", "runaway", "nobait"],
     game: "Fishing/FishingOverlay.cs",
   },
   { name: "fisher", title: "Fisher", scenarios: ["", "empty", "poor", "many", "records", "norecords", "unread"], game: "Fisher/FisherOverlay.cs" },

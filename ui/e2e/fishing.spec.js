@@ -1,6 +1,7 @@
 import { test, expect, readTexts, screenshot, readSent, expectNoHorizontalOverflow, pauseClock } from "./fixtures.js";
 
 const t = readTexts("ui.fishing");
+const pl = readTexts("ui.fishing", "pl");
 const CHARGE_UP_MS = 1100;
 const NIBBLE_SHOWN_MS = 800;
 const CARD_SHOWN_MS = 6000;
@@ -64,6 +65,22 @@ async function expectWithinScreen(page) {
   }
 }
 
+// What is drawn at the float covers nothing else drawn there, and none of it lies on the plate.
+const AT_FLOAT = [".fishing-tension", ".fishing__run", '[data-cue="hold"]', '[data-cue="let-go"]', '[data-cue="free"]'];
+async function expectFloatClear(page) {
+  const boxes = [];
+  for (const part of [...AT_FLOAT, ".fishing__plate"]) {
+    if ((await page.locator(part).count()) > 0) boxes.push([part, await page.locator(part).boundingBox()]);
+  }
+
+  for (const [index, [part, box]] of boxes.entries()) {
+    for (const [other, next] of boxes.slice(index + 1)) {
+      const apart = box.x + box.width <= next.x || next.x + next.width <= box.x || box.y + box.height <= next.y || next.y + next.height <= box.y;
+      expect(apart, `${part} over ${other}`).toBe(true);
+    }
+  }
+}
+
 test("a whole bite from the cast to the catch, as the game tells it", async ({ page }, testInfo) => {
   await page.clock.install();
   await openLine(page, "");
@@ -102,16 +119,26 @@ test("a whole bite from the cast to the catch, as the game tells it", async ({ p
   await showLine(page, { stage: "Fight", bites: 1, fight: FIGHT });
   await expect(page.locator(".fishing__title")).toHaveText(t("pull.Left"));
   await expect(page.locator('.fishing__order[data-order="do"]')).toHaveText(`${t("key_d")}${t("order.Left")}`);
-  await expect(page.locator(".fishing__cue--do")).toHaveText(t("key_d"));
+  const hold = page.locator('[data-cue="hold"]');
+  const ring = page.locator('[data-ring="tension"]');
+  await expect(hold).toHaveText(t("key_d"));
+  await expect(hold).toHaveClass(/fishing__cue--do/);
+  await expect(page.locator("[data-cue]")).toHaveCount(1);
   await expect(page.locator(".fishing__key--wanted")).toHaveAttribute("data-key", "right");
   await expect(page.locator(".fishing__run--left")).toBeVisible();
+  await expect(ring).not.toHaveClass(/fishing-tension--red/);
+  const [arrowBox, ringBox, holdBox] = [await page.locator(".fishing__run").boundingBox(), await ring.boundingBox(), await hold.boundingBox()];
+  expect(arrowBox.x + arrowBox.width, "the run's arrow left of the ring").toBeLessThanOrEqual(ringBox.x);
+  expect(holdBox.x, "the key to hold right of the ring").toBeGreaterThanOrEqual(ringBox.x + ringBox.width);
+  await expectFloatClear(page);
   await expectWithinScreen(page);
   await screenshot(page, testInfo, "fishing-run-lake");
 
   await showLine(page, { stage: "Fight", bites: 1, fight: { ...FIGHT, lean: 1 } });
   await expect(page.locator('.fishing__order[data-order="done"]')).toHaveText(`${t("key_d")}${t("order.held")}`);
-  await expect(page.locator(".fishing__cue")).toHaveCount(0);
-  await expect(page.locator(".fishing-fight__lean--against")).toHaveText(t("lean.right"));
+  await expect(hold).toHaveClass(/fishing__cue--done/);
+  await expect(page.locator('[data-key="right"]')).toHaveClass(/fishing__key--on/);
+  await expectFloatClear(page);
   await expectWithinScreen(page);
   await screenshot(page, testInfo, "fishing-fight-lake");
 
@@ -121,7 +148,12 @@ test("a whole bite from the cast to the catch, as the game tells it", async ({ p
   await expect(page.locator('[data-key="right"]')).toHaveClass(/fishing__key--strain/);
   await expect(page.locator('[data-key="reel"]')).toHaveClass(/fishing__key--strain/);
   await expect(page.locator('.fishing__order[data-order="wrong"]')).toHaveText(`${t("key_space")}${t("order.force")}`);
-  await expect(page.locator(".fishing__cue--wrong")).toHaveText(t("key_space"));
+  await expect(page.locator('[data-cue="let-go"]')).toHaveText(`${t("key_space")}${t("let_go")}`);
+  await expect(hold).toHaveText(t("key_a"));
+  await expect(hold).toHaveClass(/fishing__cue--wrong/);
+  await expect(hold).toHaveAttribute("data-side", "left");
+  await expect(ring).toHaveClass(/fishing-tension--red/);
+  await expectFloatClear(page);
   await expectWithinScreen(page);
   await screenshot(page, testInfo, "fishing-strain-night");
 
@@ -144,7 +176,10 @@ test("a whole bite from the cast to the catch, as the game tells it", async ({ p
   await showLine(page, { stage: "Aim", outcome: { number: 1, kind: "Caught" } });
   await expect(page.locator(".fishing__title")).toHaveText(t("aim"));
   await expect(power).toHaveAttribute("aria-valuenow", "0");
-  await page.clock.runFor(CARD_SHOWN_MS + LEAVE_MS);
+  await expect(card).toHaveCount(1);
+
+  await showLine(page, { stage: "Waiting", outcome: { number: 1, kind: "Caught" } });
+  await page.clock.runFor(LEAVE_MS);
   await expect(card).toHaveCount(0);
 
   await tell(page, "Ended");
@@ -162,12 +197,15 @@ test("the bait is twitched once the water is calm, and the page says what came o
   await expect(page.locator(".fishing__title")).toHaveText(t("waiting"));
   await expect(twitch).toHaveText(`${t("key_twitch")}${t("keys.twitch")}`);
   await expect(twitch).toHaveClass(/fishing__key--wanted/);
+  const mark = page.locator(".fishing__mark");
+  await expect(mark).toHaveClass(/fishing__mark--calm/);
   await expectWithinScreen(page);
   await screenshot(page, testInfo, "fishing-calm-lake");
 
   await showLine(page, { stage: "Waiting", twitch: { count: 1, last: "Drew", calmInMs: CALM_MS, spent: false } });
   await expect(page.locator(".fishing__title")).toHaveText(t("twitch.Drew"));
   await expect(twitch).not.toHaveClass(/fishing__key--wanted/);
+  await expect(mark).toHaveClass(/fishing__mark--troubled/);
   await expectWithinScreen(page);
   await screenshot(page, testInfo, "fishing-twitched-lake");
 
@@ -176,11 +214,13 @@ test("the bait is twitched once the water is calm, and the page says what came o
   await expect(twitch).not.toHaveClass(/fishing__key--wanted/);
   await page.clock.runFor(CALM_MS - TWITCH_SHOWN_MS);
   await expect(twitch).toHaveClass(/fishing__key--wanted/);
+  await expect(mark).toHaveClass(/fishing__mark--calm/);
 
   await setScene(page, "night");
   await showLine(page, { stage: "Waiting", twitch: { count: 2, last: "Spooked", calmInMs: CALM_MS, spent: true } });
   await expect(page.locator(".fishing__title")).toHaveText(t("twitch.Spooked"));
   await expect(twitch).toHaveCount(0);
+  await expect(mark).not.toHaveClass(/fishing__mark--(calm|troubled)/);
   await screenshot(page, testInfo, "fishing-spooked-night");
 });
 
@@ -253,10 +293,27 @@ test("every way a fish gets away is named, with what it cost the gear", async ({
 // Each state worth seeing, over the lake and the night, at the sizes the run is given.
 const SHOTS = [
   ["", "lake"],
+  ["", "night"],
+  ["charging", "lake"],
+  ["charging", "night"],
+  ["waiting", "lake"],
   ["waiting", "night"],
+  ["troubled", "lake"],
+  ["troubled", "night"],
   ["bite", "lake"],
+  ["run", "lake"],
+  ["run", "night"],
+  ["fight", "lake"],
+  ["fight", "night"],
   ["wrongway", "lake"],
+  ["wrongway", "night"],
+  ["force", "lake"],
+  ["force", "night"],
+  ["strain", "lake"],
   ["dive", "lake"],
+  ["dive", "night"],
+  ["forcedive", "lake"],
+  ["forcedive", "night"],
   ["rest", "night"],
   ["slack", "lake"],
   ["monster", "night"],
@@ -270,10 +327,57 @@ for (const [scenario, scene] of SHOTS) {
   test(`#${scenario || "aim"} over the ${scene} keeps within the screen`, async ({ page }, testInfo) => {
     await openLine(page, scenario);
     await setScene(page, scene);
+    await expectFloatClear(page);
     await expectWithinScreen(page);
     await screenshot(page, testInfo, `fishing-${scenario || "aim"}-${scene}`);
   });
 }
+
+test("the order keeps its place on the plate whatever the fish does, in English and in Polish", async ({ page }, testInfo) => {
+  // A key that beats is measured where it stands, not mid-beat.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await openLine(page, "run");
+  await setScene(page, "lake");
+  const fights = [
+    { pull: "Left", lean: 0 },
+    { pull: "Left", lean: 1 },
+    { pull: "Left", lean: -1 },
+    { pull: "Right", lean: 1 },
+    { pull: "Left", lean: 0, reeling: true },
+    { pull: "Away", lean: 0 },
+    { pull: "Away", lean: 0, reeling: true },
+    { pull: "Rest", lean: 0 },
+    { pull: "Rest", lean: 0, reeling: true },
+  ];
+
+  for (const locale of ["en", "pl"]) {
+    await tell(page, "Locale", locale);
+    const places = new Set();
+    for (const fight of fights) {
+      await showLine(page, { stage: "Fight", bites: 1, fight: { ...FIGHT, ...fight } });
+      const words = page.locator(".fishing__order-text");
+      const cap = await page.locator(".fishing__order kbd").boundingBox();
+      const box = await words.boundingBox();
+      places.add(`${Math.round(cap.x + cap.width)} ${Math.round(box.x)} ${Math.round(box.y)}`);
+      expect(await words.evaluate((element) => element.scrollWidth <= element.clientWidth), `"${await words.textContent()}" fits its line`).toBe(true);
+      await expectFloatClear(page);
+    }
+
+    expect([...places], `the order's key and words in ${locale}`).toHaveLength(1);
+  }
+
+  await showLine(page, { stage: "Fight", bites: 1, fight: { ...FIGHT, lean: -1 } });
+  await expect(page.locator(".fishing__order-text")).toHaveText(pl("order.Left.wrong"));
+  await expect(page.locator('[data-gauge="tension"] .fishing-fight__label')).toHaveText(pl("tension"));
+  await expectWithinScreen(page);
+  await screenshot(page, testInfo, "fishing-wrongway-pl-lake");
+
+  await showLine(page, { stage: "Fight", bites: 1, fight: { ...FIGHT, lean: 0, reeling: true, tension: 0.84 } });
+  await expect(page.locator('[data-cue="let-go"]')).toHaveText(`${pl("key_space")}${pl("let_go")}`);
+  await setScene(page, "night");
+  await expectFloatClear(page);
+  await screenshot(page, testInfo, "fishing-force-pl-night");
+});
 
 test("the page never takes a click or the focus from the game", async ({ page }) => {
   await openLine(page, "fight");

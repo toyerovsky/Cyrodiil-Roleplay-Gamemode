@@ -66,7 +66,9 @@ public sealed class FishingLineTests
         }
 
         Assert.Equal([LineChange.Approach, .. Enumerable.Repeat(LineChange.Nibble, FishingRules.MostNibbles), LineChange.Bite], changes);
-        Assert.InRange(times[1] - times[0], (long)FishingRules.ApproachBefore.TotalMilliseconds, (long)FishingRules.ApproachBefore.TotalMilliseconds + TickMs);
+        // A while before the first nibble, or as soon after the cast as a fish may show when that is later.
+        var shows = Math.Max(CastAt + (long)FishingRules.ApproachSoonest.TotalMilliseconds, times[1] - (long)FishingRules.ApproachBefore.TotalMilliseconds);
+        Assert.InRange(times[0], shows - TickMs, shows + TickMs);
         Assert.True(times[1] >= CastAt + (long)FishingRules.NibbleSoonest.TotalMilliseconds);
         Assert.True(times[^2] <= times[^1] - (long)FishingRules.NibbleBeforeBite.TotalMilliseconds);
     }
@@ -162,8 +164,45 @@ public sealed class FishingLineTests
             Assert.Equal(LineChange.Fought, line.Tick(now));
 
         Assert.InRange(line.Tension, FishFightRules.RestHold - 0.05, FishFightRules.RestHold + 0.05);
-        Assert.Equal(Distance - 3 * FishFightRules.ReelSpeed, line.DistanceCm, 1);
+        Assert.True(line.Stamina is > 0 and < 1);
+        Assert.InRange(line.DistanceCm, Distance - 3 * FishFightRules.ReelSpeed * (1 + FishFightRules.ReelSpentBoost), Distance - 3 * FishFightRules.ReelSpeed - 1);
         Assert.Equal(0, line.SlackShare);
+    }
+
+    [Fact]
+    public void A_spent_fish_only_rests_and_comes_in_faster_than_a_fresh_one()
+    {
+        var spent = Steady with { StaminaSeconds = SpentAtOnce, ChangeSoonestSeconds = 0.5, ChangeLatestSeconds = 0.5 };
+        var line = new FishingLine(Rolls(0.0, 0.0, RestRoll, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5));
+        line.Cast(CastAt, CastOf(spent, waitFactor: 1));
+        var hookedAt = TickUntil(line, LineChange.Bite, CastAt, CastAt + Soonest);
+        line.Press(hookedAt, reactionMs: 0);
+        line.Tick(hookedAt + TickMs);
+        line.Press(hookedAt + TickMs, reactionMs: 0);
+
+        for (var now = hookedAt + 2 * TickMs; now <= hookedAt + 2_000; now += TickMs)
+        {
+            line.Tick(now);
+            Assert.Equal(FishPull.Rest, line.Pull);
+        }
+
+        Assert.Equal(0, line.Stamina);
+        var reeled = Distance - line.DistanceCm;
+        Assert.InRange(reeled, 1.8 * FishFightRules.ReelSpeed * (1 + FishFightRules.ReelSpentBoost) - 1, 1.9 * FishFightRules.ReelSpeed * (1 + FishFightRules.ReelSpentBoost) + 1);
+    }
+
+    [Fact]
+    public void A_twitch_right_after_a_nibble_is_not_taken()
+    {
+        // The longest wait, five nibbles, each in the middle of its part. The rolls after are the twitch's own.
+        var line = new FishingLine(Rolls(0.999, 0.99, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0));
+        line.Cast(CastAt, CastOf(Steady, waitFactor: 1));
+        var nibbledAt = TickUntil(line, LineChange.Nibble, CastAt, CastAt + Latest);
+        var shields = (long)FishingRules.NibbleShields.TotalMilliseconds;
+
+        Assert.Equal(LineChange.None, line.Twitch(nibbledAt + shields - 1));
+        Assert.Equal(Distance, line.FloatDistanceCm);
+        Assert.NotEqual(LineChange.None, line.Twitch(nibbledAt + shields));
     }
 
     [Fact]
@@ -250,11 +289,11 @@ public sealed class FishingLineTests
         line.Tick(hookedAt + TickMs);
         line.Press(hookedAt + TickMs, reactionMs: 0);
 
-        var snappedAt = TickUntil(line, LineChange.LostSnapped, hookedAt, hookedAt + 3_000);
+        var snappedAt = TickUntil(line, LineChange.LostSnapped, hookedAt, hookedAt + 4_000);
 
-        Assert.True(snappedAt - hookedAt < 2_000, $"Snapped after {snappedAt - hookedAt} ms.");
+        Assert.True(snappedAt - hookedAt < 3_000, $"Snapped after {snappedAt - hookedAt} ms.");
         Assert.True(line.DistanceCm >= Distance, $"At {line.DistanceCm} cm.");
-        Assert.True(line.Stamina > 0.94, $"Tired to {line.Stamina}.");
+        Assert.True(line.Stamina > 0.9, $"Tired to {line.Stamina}.");
     }
 
     [Fact]
@@ -265,17 +304,17 @@ public sealed class FishingLineTests
         var late = Hooked(out _, Steady, LeftRoll, NoJump, LongestTurn);
         var runAt = hookedAt + TickMs;
         var grace = (long)FishFightRules.ForceAfter.TotalMilliseconds;
-        // A step is forced when it ends past the grace: the reel let go before the tick that ends 400 ms into the run
-        // held through none, one let go two ticks later through two.
-        var inTimeLetsGoAt = runAt + 4 * TickMs;
-        var lateLetsGoAt = runAt + 6 * TickMs;
-        Assert.True(inTimeLetsGoAt - TickMs - runAt < grace && lateLetsGoAt - TickMs - runAt >= grace);
+        // A step is forced when it ends past the grace: the reel let go before the tick that ends at the grace held
+        // through none, one let go four ticks later through four.
+        var inTimeLetsGoAt = runAt + grace;
+        var lateLetsGoAt = inTimeLetsGoAt + 4 * TickMs;
+        Assert.Equal(0, grace % TickMs);
         foreach (var line in new[] { never, inTime, late })
             Assert.Equal(LineChange.Turned, line.Tick(runAt));
         inTime.Press(runAt, reactionMs: 0);
         late.Press(runAt, reactionMs: 0);
 
-        for (var now = runAt + TickMs; now <= runAt + 1_000; now += TickMs)
+        for (var now = runAt + TickMs; now <= runAt + 1_200; now += TickMs)
         {
             if (now == inTimeLetsGoAt)
                 inTime.Release(now);
@@ -293,7 +332,7 @@ public sealed class FishingLineTests
     }
 
     [Fact]
-    public void Each_press_of_the_reel_into_a_run_jerks_the_line_and_the_second_snaps_it()
+    public void A_press_of_the_reel_into_a_run_jerks_the_line_and_the_next_one_harder()
     {
         var idle = Hooked(out var hookedAt, Steady, LeftRoll, NoJump, LongestTurn);
         var tapped = Hooked(out _, Steady, LeftRoll, NoJump, LongestTurn);
@@ -313,12 +352,38 @@ public sealed class FishingLineTests
         tapped.Tick(pressAt + 2 * TickMs);
         var eased = tapped.Tension;
         tapped.Press(pressAt + 2 * TickMs, reactionMs: 0);
-        var again = tapped.Tick(pressAt + 3 * TickMs);
+        tapped.Tick(pressAt + 3 * TickMs);
 
         Assert.True(once > before + FishFightRules.ForceJolt, $"From {before} to {once}.");
+        Assert.True(once < before + FishFightRules.ForceJoltAgain, $"From {before} to {once}.");
         Assert.True(once > idle.Tension + FishFightRules.ForceJolt);
-        Assert.True(eased + FishFightRules.ForceJolt >= FishFightRules.Snaps, $"Eased to {eased}.");
-        Assert.Equal(LineChange.LostSnapped, again);
+        Assert.True(tapped.Tension > eased + FishFightRules.ForceJoltAgain, $"From {eased} to {tapped.Tension}.");
+    }
+
+    [Fact]
+    public void A_fish_that_rested_since_the_last_press_is_jerked_lightly_again()
+    {
+        var turning = Steady with { ChangeSoonestSeconds = 1, ChangeLatestSeconds = 1 };
+        double[] rolls = [LeftRoll, NoJump, 0.5, RestRoll, 0.5, LeftRoll, NoJump, 0.5, LeftRoll, NoJump, 0.5];
+        var line = Hooked(out var hookedAt, turning, rolls);
+        var runAt = hookedAt + TickMs;
+        var grace = (long)FishFightRules.ForceAfter.TotalMilliseconds;
+        for (var now = runAt; now <= runAt + grace + TickMs; now += TickMs)
+            line.Tick(now);
+        line.Press(runAt + grace + TickMs, reactionMs: 0);
+        line.Tick(runAt + grace + 2 * TickMs);
+        line.Release(runAt + grace + 2 * TickMs);
+
+        var again = runAt + 2_000 + grace + TickMs;
+        for (var now = runAt + grace + 3 * TickMs; now <= again; now += TickMs)
+            line.Tick(now);
+        Assert.Equal(FishPull.Left, line.Pull);
+        var before = line.Tension;
+        line.Press(again, reactionMs: 0);
+        line.Tick(again + TickMs);
+
+        Assert.True(line.Tension > before + FishFightRules.ForceJolt, $"From {before} to {line.Tension}.");
+        Assert.True(line.Tension < before + FishFightRules.ForceJoltAgain, $"From {before} to {line.Tension}.");
     }
 
     [Fact]
@@ -374,9 +439,9 @@ public sealed class FishingLineTests
         {
             if (now == turnAt + TickMs)
                 atOnce.LeanTo(now, 0);
-            if (now == turnAt + 4 * TickMs)
+            if (now == turnAt + (long)FishFightRules.ForceAfter.TotalMilliseconds)
                 inTime.LeanTo(now, 0);
-            if (now == turnAt + 7 * TickMs)
+            if (now == turnAt + (long)FishFightRules.ForceAfter.TotalMilliseconds + 3 * TickMs)
                 late.LeanTo(now, 0);
             foreach (var line in lines)
                 line.Tick(now);
@@ -574,7 +639,8 @@ public sealed class FishingLineTests
         tired.Tick(biteAt + TickMs);
         tired.Press(biteAt + TickMs, reactionMs: 0);
 
-        Assert.Equal(boltedAt, TickUntil(tired, LineChange.Caught, biteAt + TickMs, biteAt + 2_000));
+        // The tired one comes in a little faster.
+        Assert.InRange(TickUntil(tired, LineChange.Caught, biteAt + TickMs, biteAt + 2_000), boltedAt - TickMs, boltedAt);
         Assert.Equal(FishingStage.Rest, tired.Stage);
     }
 
@@ -726,7 +792,7 @@ public sealed class FishingLineTests
         shownAt = TickUntil(bolted, LineChange.Approach, CastAt, CastAt + Latest);
 
         Assert.Equal(LineChange.Spooked, bolted.Twitch(shownAt));
-        var again = shownAt + Soonest;
+        var again = shownAt + (long)FishingRules.SpookSoonest.TotalMilliseconds;
         var backAt = TickUntil(bolted, LineChange.Approach, shownAt, again);
         Assert.InRange(backAt - shownAt, Calm, Calm + TickMs);
         Assert.Equal(LineChange.None, bolted.Tick(again - 1));

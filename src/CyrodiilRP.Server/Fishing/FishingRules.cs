@@ -6,9 +6,13 @@ namespace CyrodiilRP.Server.Fishing;
 internal static class FishingRules
 {
     // An untrained angler's wait for a bite with a plain rod and a bait; a bare hook waits longer.
-    public static readonly TimeSpan BiteSoonest = TimeSpan.FromSeconds(5);
-    public static readonly TimeSpan BiteLatest = TimeSpan.FromSeconds(20);
+    public static readonly TimeSpan BiteSoonest = TimeSpan.FromSeconds(4);
+    public static readonly TimeSpan BiteLatest = TimeSpan.FromSeconds(12);
     public const double BareHookWaits = 1.3;
+
+    // A fish a twitch scared off is back for the bait this soon, by the same rod, skill and bait.
+    public static readonly TimeSpan SpookSoonest = TimeSpan.FromSeconds(4);
+    public static readonly TimeSpan SpookLatest = TimeSpan.FromSeconds(8);
 
     // A fish shows by the float this long before the first nibble or the bite, and not sooner after the cast.
     public static readonly TimeSpan ApproachBefore = TimeSpan.FromSeconds(3);
@@ -20,6 +24,8 @@ internal static class FishingRules
     public static readonly TimeSpan NibbleBeforeBite = TimeSpan.FromSeconds(0.8);
     // A strike this soon after a nibble is the nibble's fault, not an early strike.
     public static readonly TimeSpan NibbleSpooks = TimeSpan.FromSeconds(1);
+    // A twitch this soon after a nibble was meant for the water before it: it is not taken.
+    public static readonly TimeSpan NibbleShields = TimeSpan.FromMilliseconds(600);
 
     // A twitch of the bait pulls the float this far in. Centimetres.
     public const float TwitchPull = 25f;
@@ -110,6 +116,8 @@ internal static class FishingRules
     public static readonly FishFight FindFight = new(Strength: 0.1, StaminaSeconds: 2, ChangeSoonestSeconds: 1.5, ChangeLatestSeconds: 2.5, Jumpiness: 0, Runs: false);
 
     public static TimeSpan BiteWait(double roll) => BiteSoonest + (BiteLatest - BiteSoonest) * roll;
+
+    public static TimeSpan SpookWait(double roll) => SpookSoonest + (SpookLatest - SpookSoonest) * CheckRoll(roll);
 
     public static TimeSpan ProvokedBite(double roll) => ProvokedSoonest + (ProvokedLatest - ProvokedSoonest) * roll;
 

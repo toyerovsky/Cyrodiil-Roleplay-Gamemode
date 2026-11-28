@@ -31,8 +31,27 @@ public static class AnglerFraming
     // The camera stops this far short of what stands in its way.
     public const float ObstacleClear = 25f;
 
+    // Behind the angler on the way to what it looks at, so the angler stays in the shot wherever the cast went.
     public static CameraFrame Shoulder(Vector3 stand, float yaw, float waterZ, Vector3 lookAt, CameraRung rung) =>
-        new(FishingShot.CameraAt(stand, yaw, waterZ, rung), lookAt);
+        new(FishingShot.CameraAt(stand, FishMotion.Heading(stand, lookAt, yaw), waterZ, rung), lookAt);
+
+    // The camera looks no steeper down than this, and this share of the way's length over what it frames: a float near
+    // the bank does not turn it onto the angler's feet, and the float sits under the middle with room for the rod's tip.
+    public const float SteepestDegrees = 35f;
+    public const float LookOver = 0.1f;
+    private const float DegreesToRadians = MathF.PI / 180f;
+
+    public static CameraFrame Level(CameraFrame frame)
+    {
+        var way = frame.LookAt - frame.At;
+        var flat = MathF.Sqrt(way.X * way.X + way.Y * way.Y);
+        if (flat < 1f)
+            return frame;
+
+        var over = frame.LookAt.Z + flat * LookOver;
+        var lowest = frame.At.Z - flat * MathF.Tan(SteepestDegrees * DegreesToRadians);
+        return frame with { LookAt = frame.LookAt with { Z = Math.Max(over, lowest) } };
+    }
 
     public static Vector3 OverHead(Vector3 stand) => stand + new Vector3(0f, 0f, OverHeadUp);
 

@@ -28,6 +28,13 @@ next join.
   `Interface/Lockpick/ui_lock_tumbler_move` (19 dry clicks in 1.4 to 1.6 s), its drag
   `Interface/MiniGames/Redesign/ui_lockpicking_tumbler_fast`. A sound that does not loop is played again on a beat just
   under its `MinimumDuration`.
+- **How loud a sound is in the game** is its WAV's level plus the Volume and MakeUpGain its event's bank sets on it and
+  its parents (HIRC, version 150: property 0 Volume, 1 Pitch, 5 MakeUpGain), which shifts sounds by -17 to +20 dB: a
+  raw WAV misleads. Media on bus 3570388967 are controller haptics, not audio: an interface event "0.11 to 0.24 s" long
+  is haptics only.
+- **Measure when a sound speaks, not only how loud it gets.** The fishing's first strain creak, `obj_trp_rope_stretch`,
+  peaks 1.2 s in and was never heard as a warning on a 0.45 s beat. A warning must differ in kind from what it warns
+  over (a tone over clicks, not more clicks): a squeak shows as harmonic partials, a bell as inharmonic ones.
 - **The game has no fishing rod mesh,** and Nexus has none for the remaster (the original Oblivion's are in its old
   engine's format). Its staves (`SM_Staff01` and kin) hang on `Weapon_Socket` by the grip at the mesh's origin, the
   shaft along the mesh's Y, the head on Unreal's -Y.

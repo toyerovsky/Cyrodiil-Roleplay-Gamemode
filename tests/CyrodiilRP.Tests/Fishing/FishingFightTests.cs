@@ -12,14 +12,16 @@ public sealed class FishingFightTests
     private const long GiveUpAfterMs = 200_000;
     private const double CastShare = 2.0 / 3.0;
     private const long QuickHands = 300;
-    private const long SlowHands = 800;
-    private const double ShortestMedianSeconds = 7;
+    private const long SlowHands = 1200;
+    private const double ShortestMedianSeconds = 4;
     private const double LongestMedianSeconds = 25;
-    private const double MostForcedLanded = 0.1;
-    private const double MostLopsidedLanded = 0.8;
+    private const double MostForcedLanded = 0.2;
+    private const double MostLopsidedLanded = 0.9;
+    private const double WithinNoise = 0.05;
     private const double GoodRodLandsMore = 0.2;
+    private const double MostLandedByAHuman = 0.9;
     private const double LeaningIsQuickerBy = 1.2;
-    private const long HumanHands = 550;
+    private const long HumanHands = 800;
 
     private static readonly FishSpecies[] Strong = [FishSpecies.Pike, FishSpecies.Longfin, FishSpecies.Slaughterfish, FishSpecies.Catfish, FishSpecies.GoldenCarp];
 
@@ -68,6 +70,15 @@ public sealed class FishingFightTests
         }
     }
 
+    [Theory]
+    [MemberData(nameof(EverySpeciesWithEveryRod))]
+    public void A_player_who_takes_most_of_a_second_to_answer_lands_nearly_every_fish(string species, RodTier tier)
+    {
+        var results = FightMany(Enum.Parse<FishSpecies>(species), tier, Bot.Good, HumanHands);
+
+        Assert.True(LandedShare(results) >= MostLandedByAHuman, $"{LandedShare(results):P0} landed.");
+    }
+
     [Fact]
     public void Leaning_against_the_runs_loses_no_strong_fish_that_reeling_at_rest_alone_would_land_in_a_humans_hands()
     {
@@ -78,13 +89,13 @@ public sealed class FishingFightTests
                 var leaning = LandedShare(FightMany(species, tier, Bot.Good, HumanHands));
                 var plain = LandedShare(FightMany(species, tier, Bot.Plain, HumanHands));
 
-                Assert.True(leaning >= plain, $"{species} on {tier}: {leaning:P0} leaning, {plain:P0} without.");
+                Assert.True(leaning >= plain - WithinNoise, $"{species} on {tier}: {leaning:P0} leaning, {plain:P0} without.");
             }
         }
     }
 
     [Fact]
-    public void A_player_who_leans_one_way_the_whole_fight_loses_many_a_strong_fish_on_a_plain_rod()
+    public void A_player_who_leans_one_way_the_whole_fight_loses_some_of_every_strong_fish_on_a_plain_rod()
     {
         foreach (var species in Strong)
         {

@@ -27,6 +27,60 @@ public sealed class AnglerFramingTests
         Assert.Equal(floatAt, bite.LookAt);
     }
 
+    [Theory]
+    [InlineData(0f)]
+    [InlineData(50f)]
+    [InlineData(-60f)]
+    public void Over_the_shoulder_the_camera_stands_behind_the_angler_on_the_way_to_the_float_wherever_the_cast_went(float aside)
+    {
+        var way = FishingShot.Forward(aside);
+        var floatAt = Stand + way * 1500f + new Vector3(0f, 0f, WaterZ);
+
+        var shoulder = AnglerFraming.Shoulder(Stand, yaw: 0f, WaterZ, floatAt, Usual);
+
+        var behind = new Vector2(Stand.X - shoulder.At.X, Stand.Y - shoulder.At.Y);
+        Assert.Equal(FishingShot.CameraBack, Vector2.Dot(behind, new Vector2(way.X, way.Y)), 0.5f);
+        Assert.Equal(floatAt, shoulder.LookAt);
+    }
+
+    [Theory]
+    [InlineData(2000f)]
+    [InlineData(600f)]
+    public void The_camera_looks_a_little_over_a_float_far_enough_out(float cast)
+    {
+        var frame = new CameraFrame(new Vector3(-220f, 90f, 250f), new Vector3(cast, 0f, WaterZ));
+
+        var level = AnglerFraming.Level(frame);
+
+        var flat = new Vector2(frame.LookAt.X - frame.At.X, frame.LookAt.Y - frame.At.Y).Length();
+        Assert.Equal(frame.At, level.At);
+        Assert.Equal(frame.LookAt.X, level.LookAt.X);
+        Assert.Equal(frame.LookAt.Y, level.LookAt.Y);
+        Assert.Equal(WaterZ + flat * AnglerFraming.LookOver, level.LookAt.Z, Tolerance);
+    }
+
+    [Theory]
+    [InlineData(150f)]
+    [InlineData(75f)]
+    public void The_camera_never_looks_steeper_down_than_its_steepest_at_a_float_by_the_bank(float cast)
+    {
+        var frame = new CameraFrame(new Vector3(-220f, 90f, 250f), new Vector3(cast, 0f, -150f));
+
+        var level = AnglerFraming.Level(frame);
+
+        var way = level.LookAt - level.At;
+        var down = MathF.Atan2(-way.Z, new Vector2(way.X, way.Y).Length()) * 180f / MathF.PI;
+        Assert.Equal(AnglerFraming.SteepestDegrees, down, Tolerance);
+    }
+
+    [Fact]
+    public void A_camera_straight_over_what_it_looks_at_is_left_as_it_is()
+    {
+        var frame = new CameraFrame(new Vector3(100f, 50f, 300f), new Vector3(100f, 50f, WaterZ));
+
+        Assert.Equal(frame, AnglerFraming.Level(frame));
+    }
+
     [Fact]
     public void At_the_bite_the_camera_stays_above_the_water()
     {

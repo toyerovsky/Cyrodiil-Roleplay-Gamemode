@@ -138,8 +138,9 @@ internal sealed partial class AnglerScenery(
             return;
         }
 
-        var placed = scene with { Float = PlaceFloat(at, at) };
-        _anglers[angler] = FindCharacter(angler) is { } character ? Gather(placed, character.Position, at, Time.Elapsed) : placed;
+        var seenFrom = FindCharacter(angler);
+        var placed = scene with { Float = PlaceFloat(at, at, seenFrom?.Position ?? at) };
+        _anglers[angler] = seenFrom is { } character ? Gather(placed, character.Position, at, Time.Elapsed) : placed;
     }
 
     private void OnFloatGone(int angler)
@@ -383,7 +384,7 @@ internal sealed partial class AnglerScenery(
 
         var share = (now - cast.FliesAt) / (cast.LandsAt - cast.FliesAt);
         var at = CastFlight.PointAt(cast.From, cast.To, cast.Rise, share);
-        var bobber = scene.Float ?? PlaceFloat(at, cast.To);
+        var bobber = scene.Float ?? PlaceFloat(at, cast.To, cast.From);
         if (!cast.Flying)
             sounds.PlayAt(AnglerLooks.WhooshSound, cast.From);
 
@@ -603,9 +604,12 @@ internal sealed partial class AnglerScenery(
         return scene with { Fish = fish with { Swim = FishSwim.Following, Since = now, Drawn = down } };
     }
 
-    private FloatScene PlaceFloat(Vector3 at, Vector3 target)
+    // angler: where the angler stands, the target itself when this game does not draw them.
+    private FloatScene PlaceFloat(Vector3 at, Vector3 target, Vector3 angler)
     {
-        var prop = props.Place(new Prop(AnglerLooks.FloatMesh, at, AnglerLooks.FloatRotation, AnglerLooks.FloatScale), collides: false);
+        var far = Vector2.Distance(new Vector2(angler.X, angler.Y), new Vector2(target.X, target.Y)) / AnglerLooks.FloatFullSizeWithin;
+        var scale = AnglerLooks.FloatScale * Math.Clamp(far, 1f, AnglerLooks.FloatBiggest);
+        var prop = props.Place(new Prop(AnglerLooks.FloatMesh, at, AnglerLooks.FloatRotation, scale), collides: false);
         return new FloatScene(prop, at, at, target, Sunk: Afloat, NibbledAt: float.NegativeInfinity, VisualEffectHandle.None);
     }
 

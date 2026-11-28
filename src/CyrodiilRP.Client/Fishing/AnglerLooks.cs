@@ -105,6 +105,9 @@ internal static class AnglerLooks
 
     public const string FloatMesh = "/Game/Art/Environment/clutter/SM_kelpgasbladder.SM_kelpgasbladder";
     public const float FloatScale = 0.45f;
+    // A float lying farther from the angler than this is drawn as much bigger, up to FloatBiggest times, to be seen.
+    public const float FloatFullSizeWithin = 700f;
+    public const float FloatBiggest = 2.4f;
     public static readonly Vector3 FloatRotation = Vector3.Zero;
     // How high over the water line the float's origin is put.
     public const float FloatRaise = 0f;
@@ -118,7 +121,7 @@ internal static class AnglerLooks
     public const float BobPhaseSeconds = 0.37f;
 
     // The float leaves the rod this far into the swing, from above the hand: the character's position is its middle.
-    public const float ReleaseSeconds = 0.45f;
+    public const float ReleaseSeconds = 0.65f;
     public const float ReleaseAhead = 60f;
     public const float ReleaseUp = 110f;
 

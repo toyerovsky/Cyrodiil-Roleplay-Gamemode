@@ -10,6 +10,7 @@ internal static class FishFightRules
     public const double Give = 1.0;
     public const double SlackGive = 2.0;
     public const double RunEases = 0.4;
+    public const double ForceGive = 0.6;
 
     // A fish hooked nearer than this fights from here, and one fought longer than LongestFight works the hook loose.
     public const double HookedAtLeast = 175;
@@ -20,7 +21,7 @@ internal static class FishFightRules
     public const double RunSide = 0.35;
     public const double RunAway = 0.5;
     public const double LeanWith = 1.0;
-    public const double RestHold = 0.4;
+    public const double RestHold = 0.3;
 
     // With the rod leant against the run.
     public const double WorkBase = 0.5;
@@ -28,13 +29,15 @@ internal static class FishFightRules
 
     // Reeling into a run that has lasted ForceAfter: past the snap for every fish on every rod. A rod leaning the
     // run's way counts from then too, so a lean held against the last run is not held against the angler.
-    public static readonly TimeSpan ForceAfter = TimeSpan.FromMilliseconds(350);
-    public const double ForceBase = 1.3;
+    public static readonly TimeSpan ForceAfter = TimeSpan.FromMilliseconds(500);
+    public const double ForceBase = 1.45;
     public const double ForcePull = 0.9;
     public const double ForceMost = 2.0;
 
-    // Each press of the reel into such a run jerks the line this much.
-    public const double ForceJolt = 0.3;
+    // A press of the reel into such a run jerks the line this much, and each press after it, until the fish next
+    // rests, by ForceJoltAgain.
+    public const double ForceJolt = 0.15;
+    public const double ForceJoltAgain = 0.3;
 
     // Where the page's meter turns red, and where the line snaps.
     public const double TensionWarn = 0.8;
@@ -57,7 +60,9 @@ internal static class FishFightRules
     public const double SizeSpan = 0.6;
 
     // Centimetres a second: the reel on a resting fish, and the line a dive and a run to a side take at full effort.
+    // A spent fish comes in 1 + ReelSpentBoost times as fast as a fresh one.
     public const double ReelSpeed = 160;
+    public const double ReelSpentBoost = 1.5;
     public const double AwaySpeed = 130;
     public const double SideSpeed = 60;
 
